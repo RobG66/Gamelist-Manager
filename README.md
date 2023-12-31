@@ -14,7 +14,7 @@ This is version 2.0 which is a c# rewrite of the original powershell tool.  VLCS
 
 Most of the features I inteded to have are available now, but there are a few more things I want to add.  
 
-  Method of use:
+    - Method of use:
     - map a network drive to your batocera share (\\batocera\share).
     - Load gamelists from the new network drive.
     - I recommend first stopping ES on your batocera.  Connect by SSH (putty) and run: 
