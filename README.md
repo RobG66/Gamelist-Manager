@@ -9,7 +9,7 @@ Gamelist Manager is a gamelist management tool for Batocera gamelists.  It offer
 - View game media with video playback
 - Edit or delete items from the gamelist
 - Clear or update scraper dates
-- Identify non-playable MAME games
+- Identify non-playable MAME roms
 - Save your cleaned up gamelist!
 
 The easiest method of use is to map a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux
