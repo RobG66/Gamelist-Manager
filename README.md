@@ -1,3 +1,6 @@
+
+![Untitled](https://github.com/RobG66/Gamelist-Manager/assets/91415974/ad16f981-788e-47e9-90c5-32e0dcf60b5a)
+
 Gamelist Manager is a gamelist management tool for Batocera gamelists.  This is version 2.x which is a complete c# rewrite of the original powershell tool.  
 
 It offers functionality to:
