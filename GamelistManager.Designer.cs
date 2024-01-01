@@ -36,16 +36,16 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.labels = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.labelh = new System.Windows.Forms.Label();
-            this.labelv = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.labelShowingCount = new System.Windows.Forms.Label();
+            this.labelShowing = new System.Windows.Forms.Label();
+            this.labelHiddenCount = new System.Windows.Forms.Label();
+            this.labelVisibleCount = new System.Windows.Forms.Label();
+            this.labelHidden = new System.Windows.Forms.Label();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.labelVisible = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -104,6 +104,9 @@
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar1 = new System.Windows.Forms.StatusBar();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.favoriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.labelFavorite = new System.Windows.Forms.Label();
+            this.labelFavoriteCount = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -145,7 +148,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(405, 79);
+            this.dataGridView1.Size = new System.Drawing.Size(464, 97);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -165,8 +168,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.richTextBox1);
-            this.splitContainer1.Size = new System.Drawing.Size(538, 79);
-            this.splitContainer1.SplitterDistance = 405;
+            this.splitContainer1.Size = new System.Drawing.Size(617, 97);
+            this.splitContainer1.SplitterDistance = 464;
             this.splitContainer1.TabIndex = 2;
             // 
             // richTextBox1
@@ -177,7 +180,7 @@
             this.richTextBox1.Location = new System.Drawing.Point(0, 0);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(129, 79);
+            this.richTextBox1.Size = new System.Drawing.Size(149, 97);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             // 
@@ -188,72 +191,72 @@
             this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.ItemHeight = 13;
-            this.comboBox1.Location = new System.Drawing.Point(327, 2);
+            this.comboBox1.Location = new System.Drawing.Point(403, 2);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(207, 21);
             this.comboBox1.TabIndex = 10;
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.ComboBox1_SelectedIndexChanged);
             // 
-            // labels
+            // labelShowingCount
             // 
-            this.labels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labels.AutoSize = true;
-            this.labels.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labels.ForeColor = System.Drawing.Color.Red;
-            this.labels.Location = new System.Drawing.Point(236, 5);
-            this.labels.Name = "labels";
-            this.labels.Size = new System.Drawing.Size(13, 15);
-            this.labels.TabIndex = 9;
-            this.labels.Text = "0";
+            this.labelShowingCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelShowingCount.AutoSize = true;
+            this.labelShowingCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelShowingCount.ForeColor = System.Drawing.Color.Red;
+            this.labelShowingCount.Location = new System.Drawing.Point(216, 5);
+            this.labelShowingCount.Name = "labelShowingCount";
+            this.labelShowingCount.Size = new System.Drawing.Size(13, 15);
+            this.labelShowingCount.TabIndex = 9;
+            this.labelShowingCount.Text = "0";
             // 
-            // label5
+            // labelShowing
             // 
-            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(183, 5);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(56, 15);
-            this.label5.TabIndex = 8;
-            this.label5.Text = "Showing:";
+            this.labelShowing.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelShowing.AutoSize = true;
+            this.labelShowing.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelShowing.Location = new System.Drawing.Point(163, 5);
+            this.labelShowing.Name = "labelShowing";
+            this.labelShowing.Size = new System.Drawing.Size(56, 15);
+            this.labelShowing.TabIndex = 8;
+            this.labelShowing.Text = "Showing:";
             // 
-            // labelh
+            // labelHiddenCount
             // 
-            this.labelh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelh.AutoSize = true;
-            this.labelh.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelh.ForeColor = System.Drawing.Color.Red;
-            this.labelh.Location = new System.Drawing.Point(140, 5);
-            this.labelh.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
-            this.labelh.Name = "labelh";
-            this.labelh.Size = new System.Drawing.Size(13, 15);
-            this.labelh.TabIndex = 6;
-            this.labelh.Text = "0";
+            this.labelHiddenCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelHiddenCount.AutoSize = true;
+            this.labelHiddenCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelHiddenCount.ForeColor = System.Drawing.Color.Red;
+            this.labelHiddenCount.Location = new System.Drawing.Point(131, 5);
+            this.labelHiddenCount.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+            this.labelHiddenCount.Name = "labelHiddenCount";
+            this.labelHiddenCount.Size = new System.Drawing.Size(13, 15);
+            this.labelHiddenCount.TabIndex = 6;
+            this.labelHiddenCount.Text = "0";
             // 
-            // labelv
+            // labelVisibleCount
             // 
-            this.labelv.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelv.AutoSize = true;
-            this.labelv.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelv.ForeColor = System.Drawing.Color.Red;
-            this.labelv.Location = new System.Drawing.Point(51, 5);
-            this.labelv.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
-            this.labelv.Name = "labelv";
-            this.labelv.Size = new System.Drawing.Size(13, 15);
-            this.labelv.TabIndex = 5;
-            this.labelv.Text = "0";
+            this.labelVisibleCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelVisibleCount.AutoSize = true;
+            this.labelVisibleCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelVisibleCount.ForeColor = System.Drawing.Color.Red;
+            this.labelVisibleCount.Location = new System.Drawing.Point(51, 5);
+            this.labelVisibleCount.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+            this.labelVisibleCount.Name = "labelVisibleCount";
+            this.labelVisibleCount.Size = new System.Drawing.Size(13, 15);
+            this.labelVisibleCount.TabIndex = 5;
+            this.labelVisibleCount.Text = "0";
             // 
-            // label3
+            // labelHidden
             // 
-            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(94, 5);
-            this.label3.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(49, 15);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "Hidden:";
+            this.labelHidden.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelHidden.AutoSize = true;
+            this.labelHidden.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelHidden.Location = new System.Drawing.Point(85, 5);
+            this.labelHidden.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+            this.labelHidden.Name = "labelHidden";
+            this.labelHidden.Size = new System.Drawing.Size(49, 15);
+            this.labelHidden.TabIndex = 4;
+            this.labelHidden.Text = "Hidden:";
             // 
             // splitContainer2
             // 
@@ -271,8 +274,8 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.panel2);
-            this.splitContainer2.Size = new System.Drawing.Size(541, 191);
-            this.splitContainer2.SplitterDistance = 112;
+            this.splitContainer2.Size = new System.Drawing.Size(620, 223);
+            this.splitContainer2.SplitterDistance = 130;
             this.splitContainer2.TabIndex = 3;
             // 
             // panel1
@@ -282,7 +285,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(541, 112);
+            this.panel1.Size = new System.Drawing.Size(620, 130);
             this.panel1.TabIndex = 11;
             // 
             // panel3
@@ -291,17 +294,19 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel3.BackColor = System.Drawing.Color.LightSteelBlue;
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.labelFavoriteCount);
+            this.panel3.Controls.Add(this.labelFavorite);
             this.panel3.Controls.Add(this.label1);
-            this.panel3.Controls.Add(this.label2);
+            this.panel3.Controls.Add(this.labelVisible);
             this.panel3.Controls.Add(this.comboBox1);
-            this.panel3.Controls.Add(this.labelh);
-            this.panel3.Controls.Add(this.labels);
-            this.panel3.Controls.Add(this.labelv);
-            this.panel3.Controls.Add(this.label5);
-            this.panel3.Controls.Add(this.label3);
-            this.panel3.Location = new System.Drawing.Point(0, 83);
+            this.panel3.Controls.Add(this.labelHiddenCount);
+            this.panel3.Controls.Add(this.labelShowingCount);
+            this.panel3.Controls.Add(this.labelVisibleCount);
+            this.panel3.Controls.Add(this.labelShowing);
+            this.panel3.Controls.Add(this.labelHidden);
+            this.panel3.Location = new System.Drawing.Point(0, 101);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(538, 26);
+            this.panel3.Size = new System.Drawing.Size(617, 26);
             this.panel3.TabIndex = 12;
             // 
             // label1
@@ -309,23 +314,23 @@
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(280, 5);
+            this.label1.Location = new System.Drawing.Point(356, 5);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(41, 15);
             this.label1.TabIndex = 11;
             this.label1.Text = "Genre:";
             // 
-            // label2
+            // labelVisible
             // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(10, 5);
-            this.label2.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(44, 15);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Visible:";
+            this.labelVisible.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelVisible.AutoSize = true;
+            this.labelVisible.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelVisible.Location = new System.Drawing.Point(10, 5);
+            this.labelVisible.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
+            this.labelVisible.Name = "labelVisible";
+            this.labelVisible.Size = new System.Drawing.Size(44, 15);
+            this.labelVisible.TabIndex = 3;
+            this.labelVisible.Text = "Visible:";
             // 
             // panel2
             // 
@@ -333,7 +338,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(541, 75);
+            this.panel2.Size = new System.Drawing.Size(620, 89);
             this.panel2.TabIndex = 0;
             // 
             // menuStrip1
@@ -347,7 +352,7 @@
             this.toolsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(543, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(622, 24);
             this.menuStrip1.TabIndex = 5;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -369,40 +374,40 @@
             // loadGamelistxmlToolStripMenuItem
             // 
             this.loadGamelistxmlToolStripMenuItem.Name = "loadGamelistxmlToolStripMenuItem";
-            this.loadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.loadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadGamelistxmlToolStripMenuItem.Text = "Load Gamelist";
             this.loadGamelistxmlToolStripMenuItem.Click += new System.EventHandler(this.LoadGamelistXMLToolStripMenuItem_Click);
             // 
             // reloadGamelistxmlToolStripMenuItem
             // 
             this.reloadGamelistxmlToolStripMenuItem.Name = "reloadGamelistxmlToolStripMenuItem";
-            this.reloadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.reloadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.reloadGamelistxmlToolStripMenuItem.Text = "Reload Gamelist";
             this.reloadGamelistxmlToolStripMenuItem.Click += new System.EventHandler(this.ReloadGamelistxmlToolStripMenuItem_Click);
             // 
             // saveFileToolStripMenuItem
             // 
             this.saveFileToolStripMenuItem.Name = "saveFileToolStripMenuItem";
-            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveFileToolStripMenuItem.Text = "Save File";
             this.saveFileToolStripMenuItem.Click += new System.EventHandler(this.SaveFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator13
             // 
             this.toolStripSeparator13.Name = "toolStripSeparator13";
-            this.toolStripSeparator13.Size = new System.Drawing.Size(163, 6);
+            this.toolStripSeparator13.Size = new System.Drawing.Size(177, 6);
             // 
             // clearRecentFilesToolStripMenuItem
             // 
             this.clearRecentFilesToolStripMenuItem.Name = "clearRecentFilesToolStripMenuItem";
-            this.clearRecentFilesToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.clearRecentFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.clearRecentFilesToolStripMenuItem.Text = "Clear Recent Files";
             this.clearRecentFilesToolStripMenuItem.Click += new System.EventHandler(this.ClearRecentFilesToolStripMenuItem_Click_1);
             // 
             // toolStripSeparator12
             // 
             this.toolStripSeparator12.Name = "toolStripSeparator12";
-            this.toolStripSeparator12.Size = new System.Drawing.Size(163, 6);
+            this.toolStripSeparator12.Size = new System.Drawing.Size(177, 6);
             // 
             // ViewToolStripMenuItem
             // 
@@ -574,6 +579,7 @@
             // 
             this.columnsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.developerToolStripMenuItem,
+            this.favoriteToolStripMenuItem,
             this.gametimeToolStripMenuItem,
             this.languageToolStripMenuItem,
             this.lastplayedToolStripMenuItem,
@@ -769,26 +775,57 @@
             // statusBar1
             // 
             this.statusBar1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusBar1.Location = new System.Drawing.Point(0, 224);
+            this.statusBar1.Location = new System.Drawing.Point(0, 256);
             this.statusBar1.Name = "statusBar1";
-            this.statusBar1.Size = new System.Drawing.Size(543, 22);
+            this.statusBar1.Size = new System.Drawing.Size(622, 22);
             this.statusBar1.TabIndex = 6;
             this.statusBar1.Text = "Ready";
             // 
             // progressBar1
             // 
             this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar1.Location = new System.Drawing.Point(411, 226);
+            this.progressBar1.Location = new System.Drawing.Point(490, 258);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(113, 18);
             this.progressBar1.TabIndex = 7;
+            // 
+            // favoriteToolStripMenuItem
+            // 
+            this.favoriteToolStripMenuItem.CheckOnClick = true;
+            this.favoriteToolStripMenuItem.Name = "favoriteToolStripMenuItem";
+            this.favoriteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.favoriteToolStripMenuItem.Text = "Favorite";
+            this.favoriteToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.favoriteToolStripMenuItem_CheckStateChanged);
+            // 
+            // labelFavorite
+            // 
+            this.labelFavorite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelFavorite.AutoSize = true;
+            this.labelFavorite.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelFavorite.Location = new System.Drawing.Point(254, 5);
+            this.labelFavorite.Name = "labelFavorite";
+            this.labelFavorite.Size = new System.Drawing.Size(52, 15);
+            this.labelFavorite.TabIndex = 12;
+            this.labelFavorite.Text = "Favorite:";
+            // 
+            // labelFavoriteCount
+            // 
+            this.labelFavoriteCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelFavoriteCount.AutoSize = true;
+            this.labelFavoriteCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelFavoriteCount.ForeColor = System.Drawing.Color.Red;
+            this.labelFavoriteCount.Location = new System.Drawing.Point(303, 5);
+            this.labelFavoriteCount.Name = "labelFavoriteCount";
+            this.labelFavoriteCount.Size = new System.Drawing.Size(13, 15);
+            this.labelFavoriteCount.TabIndex = 13;
+            this.labelFavoriteCount.Text = "0";
             // 
             // GamelistManager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Silver;
-            this.ClientSize = new System.Drawing.Size(543, 246);
+            this.ClientSize = new System.Drawing.Size(622, 278);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.statusBar1);
             this.Controls.Add(this.splitContainer2);
@@ -796,7 +833,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(1);
-            this.MinimumSize = new System.Drawing.Size(415, 261);
+            this.MinimumSize = new System.Drawing.Size(638, 317);
             this.Name = "GamelistManager";
             this.Text = "Gamelist Manager";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -833,11 +870,11 @@
         private System.Windows.Forms.ToolStripMenuItem ShowHiddenItemsOnlyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showAllItemsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ShowMediaToolStripMenuItem;
-        private System.Windows.Forms.Label labelh;
-        private System.Windows.Forms.Label labelv;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label labels;
+        private System.Windows.Forms.Label labelHiddenCount;
+        private System.Windows.Forms.Label labelVisibleCount;
+        private System.Windows.Forms.Label labelHidden;
+        private System.Windows.Forms.Label labelShowing;
+        private System.Windows.Forms.Label labelShowingCount;
         private System.Windows.Forms.ToolStripMenuItem columnsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem MediaPathsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem languageToolStripMenuItem;
@@ -892,7 +929,10 @@
         private System.Windows.Forms.ToolStripMenuItem clearRecentFilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
         private System.Windows.Forms.ToolStripMenuItem checkForSingleColorImagesToolStripMenuItem;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label labelVisible;
+        private System.Windows.Forms.ToolStripMenuItem favoriteToolStripMenuItem;
+        private System.Windows.Forms.Label labelFavoriteCount;
+        private System.Windows.Forms.Label labelFavorite;
     }
 }
 

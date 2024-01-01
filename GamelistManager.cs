@@ -132,13 +132,13 @@ namespace GamelistManager
             // Get the current row filter
             string currentFilter = dataTable.DefaultView.RowFilter;
 
-            // Check if there's an existing genre filter
+            // Check if there's an existing visibility filter
             bool hasVisibilityFilter = currentFilter.Contains("hidden");
 
             string visibilityFilter = string.Empty;
             if (hasVisibilityFilter)
             {
-                // Extract the genre filter from the current filter
+                // Extract the visibility filter from the current filter
                 visibilityFilter = currentFilter
                 .Split(new[] { "AND", "OR" }, StringSplitOptions.RemoveEmptyEntries)
                 .FirstOrDefault(filter => filter.Contains("hidden"));
@@ -203,7 +203,7 @@ namespace GamelistManager
             if (menuItem.Checked == false)
             {
                 splitContainer2.Panel2Collapsed = true;
-                mediaPlayer.EndReached -= MediaPlayer_EndReached;
+
                 ClearTableLayoutPanel();
                 return;
             }
@@ -304,6 +304,12 @@ namespace GamelistManager
                     //Properly dispose VLC
                     //Stop playback
                     mediaPlayer.Stop();
+
+                    //Get rid of event for video looping
+                    if (mediaPlayer != null)
+                    {
+                        mediaPlayer.EndReached -= MediaPlayer_EndReached;
+                    }
 
                     // Dispose of resources
                     mediaPlayer.Dispose();
@@ -453,13 +459,18 @@ namespace GamelistManager
             int visibleItems = DataSet.Tables[0].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") != true);
 
+            // Count rows where "hidden" is false
+            int favoriteItems = DataSet.Tables[0].AsEnumerable()
+            .Count(row => row.Field<bool?>("favorite") == true);
+
             int visibleRowCount = dataGridView1.Rows.Cast<DataGridViewRow>().Count(row => row.Visible);
 
-            labelv.Text = (visibleItems).ToString();
-            labelh.Text = (hiddenItems).ToString();
-            labels.Text = (visibleRowCount).ToString();
-
+            labelVisibleCount.Text = (visibleItems).ToString();
+            labelHiddenCount.Text = (hiddenItems).ToString();
+            labelShowingCount.Text = (visibleRowCount).ToString();
+            labelFavoriteCount.Text = (favoriteItems).ToString();
         }
+
         private void ConvertColumnToBoolean(DataTable dataTable, string columnName)
         {
             // Check if the column exists in the DataTable
@@ -561,9 +572,13 @@ namespace GamelistManager
                 return false;
             }
 
+            //Add scraper columns
             AddScrapColumns(
             DataSet.Tables[0], DataSet.Tables[1], "scrap_");
+            
+            //Convert true/false columns to boolean
             ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
+            ConvertColumnToBoolean(DataSet.Tables[0], "favorite");
 
             DataSet.Tables[0].Columns.Add("unplayable", typeof(bool));
             DataSet.Tables[0].Columns.Add("missing", typeof(bool));
@@ -571,19 +586,20 @@ namespace GamelistManager
                 ("missing", 0),
                 ("uplayable", 1),
                 ("hidden", 2),
-                ("path", 3),
-                ("name", 4),
-                ("genre", 5),
-                ("releasedate", 6),
-                ("players", 7),
-                ("rating", 8),
-                ("lang", 9),
-                ("region", 10),
-                ("publisher", 11),
-                ("developer", 12),
-                ("playcount", 13),
-                ("gametime", 14),
-                ("lastplayed", 15)
+                ("favorite", 3),
+                ("path", 4),
+                ("name", 5),
+                ("genre", 6),
+                ("releasedate", 7),
+                ("players", 8),
+                ("rating", 9),
+                ("lang", 10),
+                ("region", 11),
+                ("publisher", 12),
+                ("developer", 13),
+                ("playcount", 14),
+                ("gametime", 15),
+                ("lastplayed", 16)
             );
 
             dataGridView1.DataSource = DataSet.Tables[0];
@@ -594,21 +610,26 @@ namespace GamelistManager
                 col.ReadOnly = true;
             }
 
-            //checking of readonly is handled on click event
+            //Checking of checkboxes is handled by an on_click event
+            //This allows the form to update right away
             //dataGridView1.Columns["hidden"].ReadOnly = false;
+            //dataGridView1.Columns["favorite"].ReadOnly = false;
             dataGridView1.Columns["hidden"].Visible = true;
             dataGridView1.Columns["path"].Visible = true;
             dataGridView1.Columns["name"].Visible = true;
             dataGridView1.Columns["genre"].Visible = true;
             dataGridView1.Columns["players"].Visible = true;
             dataGridView1.Columns["rating"].Visible = true;
+
+            dataGridView1.Columns["favorite"].SortMode = DataGridViewColumnSortMode.Automatic;
             dataGridView1.Columns["hidden"].SortMode = DataGridViewColumnSortMode.Automatic;
             dataGridView1.Columns["missing"].SortMode = DataGridViewColumnSortMode.Automatic;
             dataGridView1.Columns["unplayable"].SortMode = DataGridViewColumnSortMode.Automatic;
+
             dataGridView1.Columns["hidden"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            dataGridView1.Columns["favorite"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             dataGridView1.Columns["players"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             dataGridView1.Columns["rating"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-
             dataGridView1.Columns["path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["name"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["genre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
@@ -702,7 +723,6 @@ namespace GamelistManager
 
         private void ResetForm()
         {
-            descriptionToolStripMenuItem.Checked = true;
             statusBar1.Text = XMLFilename;
             showAllItemsToolStripMenuItem.Checked = true;
             ShowVisibleItemsOnlyToolStripMenuItem.Checked = false;
@@ -710,11 +730,21 @@ namespace GamelistManager
             showAllGenreToolStripMenuItem.Checked = true;
             showGenreOnlyToolStripMenuItem.Checked = false;
             verifyRomPathsToolStripMenuItem.Checked = false;
+            ShowMediaToolStripMenuItem.Checked = false;
 
             foreach (ToolStripMenuItem item in menuStrip1.Items)
             {
                 item.Enabled = true;
             }
+
+            foreach (var item in columnsToolStripMenuItem.DropDownItems)
+            {
+                if (item is ToolStripMenuItem toolStripItem)
+                {
+                    toolStripItem.Checked = false;
+                }
+            }
+            descriptionToolStripMenuItem.Checked = true;
 
             saveFileToolStripMenuItem.Enabled = true;
             reloadGamelistxmlToolStripMenuItem.Enabled = true;
@@ -840,6 +870,11 @@ namespace GamelistManager
             {
                 dataGridView1.Columns[columnName].Visible = visible;
             }
+        }
+
+        private void favoriteToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        {
+            Updatecolumnview(sender);
         }
 
         private void LanguageToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1200,15 +1235,13 @@ namespace GamelistManager
         private void DataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
 
-            DataGridView dataGridView = (DataGridView)sender;
-
-            //This event is a HUGE PITA to do and is required
+            //This event was a HUGE PITA to do and is required
             //for proper view updating when a datagridview cell checkbox is 
-            //changed and a visibility filter is applied
-            //to the view       
+            //changed and we need to update the form right away
 
             // Check if the clicked column is the hidden column
-            if (dataGridView.Columns[e.ColumnIndex].Name != "hidden")
+            string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
+            if (columnName != "hidden" && columnName != "favorite")
             {
                 // Exit the method if the clicked column is not the hidden column
                 return;
@@ -1218,31 +1251,50 @@ namespace GamelistManager
             {
                 return;
             }
-            var hiddenValue = dataGridView.Rows[e.RowIndex].Cells["hidden"].Value;
-            var pathValue = dataGridView.Rows[e.RowIndex].Cells["path"].Value;
 
-            bool currentHiddenValue = false; // Default value if hiddenValue is not a boolean or is null/empty
+            changeBoolValue(columnName,e.RowIndex);
+            UpdateCounters();
+        }
+
+        private void changeBoolValue(string columnName,int columnIndex)
+        {
+            var hiddenValue = dataGridView1.Rows[columnIndex].Cells[columnName].Value;
+            //Get the path value so we can lookup the row in the table and change it there
+            var pathValue = dataGridView1.Rows[columnIndex].Cells["path"].Value;
+
+            bool currentValue = false;
 
             if (hiddenValue is bool)
             {
-                currentHiddenValue = (bool)hiddenValue;
+                currentValue = (bool)hiddenValue;
+            }
+            else if (hiddenValue == DBNull.Value)
+            {
+                currentValue = false;
             }
 
-            if (pathValue is string)
+            string path = (string)pathValue;
+
+            // Find the corresponding row in the DataSet
+            DataRow[] rows = DataSet.Tables[0].Select($"path = '{path}'");
+
+            if (rows.Length > 0)
             {
-                string path = (string)pathValue;
+                DataRow tabledata = rows[0];
 
-                // Find the corresponding row in the DataSet
-                DataRow[] rows = DataSet.Tables[0].Select($"path = '{path}'");
-
-                if (rows.Length > 0)
+                if (currentValue == true)
                 {
-                    DataRow tabledata = rows[0];
-                    tabledata["hidden"] = !currentHiddenValue;
+                    //We will just remove the value since that is the same as false
+                    tabledata[columnName] = DBNull.Value;
+                }
+                else
+                {
+                    tabledata[columnName] = true;
                 }
             }
-            UpdateCounters();
+
         }
+
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -1428,18 +1480,19 @@ namespace GamelistManager
             }
 
             int missingCount = 0;
+            int totalItemCount = DataSet.Tables[0].Rows.Count;
+
+            InitializeProgressBar(0, totalItemCount);
 
             Cursor.Current = Cursors.WaitCursor;
 
             verifyRomPathsToolStripMenuItem.Checked = true;
 
-            DataTable dataTable = DataSet.Tables[0];
-
             // Get the index of the "path" column
 
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
             // Loop through each row in the DataTable
-            foreach (DataRow row in dataTable.Rows)
+            foreach (DataRow row in DataSet.Tables[0].Rows)
             {
                 // Access the "path" column value for each row
                 string itemPath = row["path"].ToString();
@@ -1462,11 +1515,11 @@ namespace GamelistManager
                     row["missing"] = true;
                 }
 
-
+                IncrementProgressBar();
             }
 
             Cursor.Current = Cursors.Default;
-
+            ResetProgressBar();
             if (missingCount > 0)
             {
                 MessageBox.Show("There are " + missingCount.ToString() + " missing items in this gamelist", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information); ;
@@ -1821,6 +1874,8 @@ namespace GamelistManager
             MessageBox.Show($"There were {scc} single color and {cf} corrupt images.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
+
+      
     }
 
 }
