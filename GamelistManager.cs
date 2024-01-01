@@ -685,7 +685,7 @@ namespace GamelistManager
             // Sort Items
             Array.Sort(uniqueValues);
 
-
+            comboBox1.Items.Clear();
             comboBox1.Items.Add("<All Genres>");
             comboBox1.Items.Add("<Empty Genres>");
             comboBox1.Items.AddRange(uniqueValues);
