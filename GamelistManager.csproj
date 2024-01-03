@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-	<PropertyGroup>
+  <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6F4FF20F-1FAE-4372-A908-F66DB5E11B22}</ProjectGuid>
@@ -104,6 +104,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Popup1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Popup1.Designer.cs">
+      <DependentUpon>Popup1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Image Processor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -119,6 +125,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Popup1.resx">
+      <DependentUpon>Popup1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GamelistManager.resx">
       <DependentUpon>GamelistManager.cs</DependentUpon>
     </EmbeddedResource>
@@ -152,7 +161,7 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
- 	<ItemGroup>
+  <ItemGroup>
     <None Include="Resources\missing.png" />
   </ItemGroup>
   <ItemGroup>

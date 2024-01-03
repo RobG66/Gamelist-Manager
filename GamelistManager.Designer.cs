@@ -44,6 +44,8 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.labelFavoriteCount = new System.Windows.Forms.Label();
+            this.labelFavorite = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.labelVisible = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -79,6 +81,7 @@
             this.updateScraperDateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.columnsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.developerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.favoriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gametimeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.languageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lastplayedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -104,9 +107,6 @@
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar1 = new System.Windows.Forms.StatusBar();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.favoriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.labelFavorite = new System.Windows.Forms.Label();
-            this.labelFavoriteCount = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -203,7 +203,7 @@
             this.labelShowingCount.AutoSize = true;
             this.labelShowingCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelShowingCount.ForeColor = System.Drawing.Color.Red;
-            this.labelShowingCount.Location = new System.Drawing.Point(216, 5);
+            this.labelShowingCount.Location = new System.Drawing.Point(220, 5);
             this.labelShowingCount.Name = "labelShowingCount";
             this.labelShowingCount.Size = new System.Drawing.Size(13, 15);
             this.labelShowingCount.TabIndex = 9;
@@ -214,7 +214,7 @@
             this.labelShowing.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelShowing.AutoSize = true;
             this.labelShowing.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelShowing.Location = new System.Drawing.Point(163, 5);
+            this.labelShowing.Location = new System.Drawing.Point(167, 5);
             this.labelShowing.Name = "labelShowing";
             this.labelShowing.Size = new System.Drawing.Size(56, 15);
             this.labelShowing.TabIndex = 8;
@@ -226,7 +226,7 @@
             this.labelHiddenCount.AutoSize = true;
             this.labelHiddenCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelHiddenCount.ForeColor = System.Drawing.Color.Red;
-            this.labelHiddenCount.Location = new System.Drawing.Point(131, 5);
+            this.labelHiddenCount.Location = new System.Drawing.Point(128, 5);
             this.labelHiddenCount.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.labelHiddenCount.Name = "labelHiddenCount";
             this.labelHiddenCount.Size = new System.Drawing.Size(13, 15);
@@ -239,7 +239,7 @@
             this.labelVisibleCount.AutoSize = true;
             this.labelVisibleCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelVisibleCount.ForeColor = System.Drawing.Color.Red;
-            this.labelVisibleCount.Location = new System.Drawing.Point(51, 5);
+            this.labelVisibleCount.Location = new System.Drawing.Point(46, 5);
             this.labelVisibleCount.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.labelVisibleCount.Name = "labelVisibleCount";
             this.labelVisibleCount.Size = new System.Drawing.Size(13, 15);
@@ -251,7 +251,7 @@
             this.labelHidden.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelHidden.AutoSize = true;
             this.labelHidden.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelHidden.Location = new System.Drawing.Point(85, 5);
+            this.labelHidden.Location = new System.Drawing.Point(83, 5);
             this.labelHidden.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.labelHidden.Name = "labelHidden";
             this.labelHidden.Size = new System.Drawing.Size(49, 15);
@@ -309,11 +309,35 @@
             this.panel3.Size = new System.Drawing.Size(617, 26);
             this.panel3.TabIndex = 12;
             // 
+            // labelFavoriteCount
+            // 
+            this.labelFavoriteCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelFavoriteCount.AutoSize = true;
+            this.labelFavoriteCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelFavoriteCount.ForeColor = System.Drawing.Color.Red;
+            this.labelFavoriteCount.Location = new System.Drawing.Point(310, 5);
+            this.labelFavoriteCount.Name = "labelFavoriteCount";
+            this.labelFavoriteCount.Size = new System.Drawing.Size(13, 15);
+            this.labelFavoriteCount.TabIndex = 13;
+            this.labelFavoriteCount.Text = "0";
+            // 
+            // labelFavorite
+            // 
+            this.labelFavorite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.labelFavorite.AutoSize = true;
+            this.labelFavorite.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelFavorite.Location = new System.Drawing.Point(261, 5);
+            this.labelFavorite.Name = "labelFavorite";
+            this.labelFavorite.Size = new System.Drawing.Size(52, 15);
+            this.labelFavorite.TabIndex = 12;
+            this.labelFavorite.Text = "Favorite:";
+            // 
             // label1
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.DarkBlue;
             this.label1.Location = new System.Drawing.Point(356, 5);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(41, 15);
@@ -325,7 +349,7 @@
             this.labelVisible.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelVisible.AutoSize = true;
             this.labelVisible.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelVisible.Location = new System.Drawing.Point(10, 5);
+            this.labelVisible.Location = new System.Drawing.Point(3, 5);
             this.labelVisible.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.labelVisible.Name = "labelVisible";
             this.labelVisible.Size = new System.Drawing.Size(44, 15);
@@ -374,40 +398,40 @@
             // loadGamelistxmlToolStripMenuItem
             // 
             this.loadGamelistxmlToolStripMenuItem.Name = "loadGamelistxmlToolStripMenuItem";
-            this.loadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.loadGamelistxmlToolStripMenuItem.Text = "Load Gamelist";
             this.loadGamelistxmlToolStripMenuItem.Click += new System.EventHandler(this.LoadGamelistXMLToolStripMenuItem_Click);
             // 
             // reloadGamelistxmlToolStripMenuItem
             // 
             this.reloadGamelistxmlToolStripMenuItem.Name = "reloadGamelistxmlToolStripMenuItem";
-            this.reloadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.reloadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.reloadGamelistxmlToolStripMenuItem.Text = "Reload Gamelist";
             this.reloadGamelistxmlToolStripMenuItem.Click += new System.EventHandler(this.ReloadGamelistxmlToolStripMenuItem_Click);
             // 
             // saveFileToolStripMenuItem
             // 
             this.saveFileToolStripMenuItem.Name = "saveFileToolStripMenuItem";
-            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.saveFileToolStripMenuItem.Text = "Save File";
             this.saveFileToolStripMenuItem.Click += new System.EventHandler(this.SaveFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator13
             // 
             this.toolStripSeparator13.Name = "toolStripSeparator13";
-            this.toolStripSeparator13.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator13.Size = new System.Drawing.Size(163, 6);
             // 
             // clearRecentFilesToolStripMenuItem
             // 
             this.clearRecentFilesToolStripMenuItem.Name = "clearRecentFilesToolStripMenuItem";
-            this.clearRecentFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.clearRecentFilesToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.clearRecentFilesToolStripMenuItem.Text = "Clear Recent Files";
             this.clearRecentFilesToolStripMenuItem.Click += new System.EventHandler(this.ClearRecentFilesToolStripMenuItem_Click_1);
             // 
             // toolStripSeparator12
             // 
             this.toolStripSeparator12.Name = "toolStripSeparator12";
-            this.toolStripSeparator12.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator12.Size = new System.Drawing.Size(163, 6);
             // 
             // ViewToolStripMenuItem
             // 
@@ -609,6 +633,14 @@
             this.developerToolStripMenuItem.Text = "Developer";
             this.developerToolStripMenuItem.CheckedChanged += new System.EventHandler(this.DeveloperToolStripMenuItem_CheckedChanged);
             // 
+            // favoriteToolStripMenuItem
+            // 
+            this.favoriteToolStripMenuItem.CheckOnClick = true;
+            this.favoriteToolStripMenuItem.Name = "favoriteToolStripMenuItem";
+            this.favoriteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.favoriteToolStripMenuItem.Text = "Favorite";
+            this.favoriteToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.favoriteToolStripMenuItem_CheckStateChanged);
+            // 
             // gametimeToolStripMenuItem
             // 
             this.gametimeToolStripMenuItem.CheckOnClick = true;
@@ -788,37 +820,6 @@
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(113, 18);
             this.progressBar1.TabIndex = 7;
-            // 
-            // favoriteToolStripMenuItem
-            // 
-            this.favoriteToolStripMenuItem.CheckOnClick = true;
-            this.favoriteToolStripMenuItem.Name = "favoriteToolStripMenuItem";
-            this.favoriteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.favoriteToolStripMenuItem.Text = "Favorite";
-            this.favoriteToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.favoriteToolStripMenuItem_CheckStateChanged);
-            // 
-            // labelFavorite
-            // 
-            this.labelFavorite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelFavorite.AutoSize = true;
-            this.labelFavorite.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelFavorite.Location = new System.Drawing.Point(254, 5);
-            this.labelFavorite.Name = "labelFavorite";
-            this.labelFavorite.Size = new System.Drawing.Size(52, 15);
-            this.labelFavorite.TabIndex = 12;
-            this.labelFavorite.Text = "Favorite:";
-            // 
-            // labelFavoriteCount
-            // 
-            this.labelFavoriteCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelFavoriteCount.AutoSize = true;
-            this.labelFavoriteCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelFavoriteCount.ForeColor = System.Drawing.Color.Red;
-            this.labelFavoriteCount.Location = new System.Drawing.Point(303, 5);
-            this.labelFavoriteCount.Name = "labelFavoriteCount";
-            this.labelFavoriteCount.Size = new System.Drawing.Size(13, 15);
-            this.labelFavoriteCount.TabIndex = 13;
-            this.labelFavoriteCount.Text = "0";
             // 
             // GamelistManager
             // 

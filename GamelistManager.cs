@@ -24,6 +24,7 @@ namespace GamelistManager
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
 
+        public Popup1 Popup1 { get; private set; }
 
         public GamelistManager()
         {
@@ -575,7 +576,7 @@ namespace GamelistManager
             //Add scraper columns
             AddScrapColumns(
             DataSet.Tables[0], DataSet.Tables[1], "scrap_");
-            
+
             //Convert true/false columns to boolean
             ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
             ConvertColumnToBoolean(DataSet.Tables[0], "favorite");
@@ -952,18 +953,6 @@ namespace GamelistManager
 
                 // Set the value of the "IsUnplayable" column to true or false
                 row["unplayable"] = isUnplayable;
-
-                // Change the cell color for the entire row if unplayable
-                if (isUnplayable)
-                {
-                    row.ClearErrors();  // Clear any previous errors
-                    row.RowError = "Unplayable game"; // Store the error message
-                }
-                else
-                {
-                    // Reset the cell color if not unplayable
-                    row.ClearErrors();  // Clear any previous errors
-                }
             }
 
             // Resume the DataGridView layout
@@ -1252,11 +1241,11 @@ namespace GamelistManager
                 return;
             }
 
-            changeBoolValue(columnName,e.RowIndex);
+            changeBoolValue(columnName, e.RowIndex);
             UpdateCounters();
         }
 
-        private void changeBoolValue(string columnName,int columnIndex)
+        private void changeBoolValue(string columnName, int columnIndex)
         {
             var hiddenValue = dataGridView1.Rows[columnIndex].Cells[columnName].Value;
             //Get the path value so we can lookup the row in the table and change it there
@@ -1818,7 +1807,22 @@ namespace GamelistManager
         private void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
+            Popup1 = new Popup1();
+            Popup1.StartPosition = FormStartPosition.Manual;
 
+            // Set the location to be relevant to the main form
+            Popup1.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+
+            Popup1.ShowDialog();
+
+            bool boolResult = Popup1.BoolResult;
+            int intResult = Popup1.IntResult;
+                        
+            if (boolResult == false)
+            {
+                return;
+            }
+       
             List<Tuple<string, int, int>> filesInfoList = GetImagesList();
 
             int totalFiles = filesInfoList.Count;
@@ -1871,11 +1875,13 @@ namespace GamelistManager
 
             statusBar1.Text = XMLFilename;
 
+          
+
             MessageBox.Show($"There were {scc} single color and {cf} corrupt images.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
 
-      
+
     }
 
 }
