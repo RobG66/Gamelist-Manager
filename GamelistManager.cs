@@ -1643,7 +1643,7 @@ namespace GamelistManager
             try
             {
                 statusBar1.Text = "Started XML Import.....";
-                string mameExePath = "d:\\launchbox\\emulators\\mame\\mame.exe";
+                string mameExePath = openFileDialog.FileName;
                 var gameNames = await MameGameLoader.GetFilteredGameNames(mameExePath);
                 statusBar1.Text = "Identifying unplayable games....";
                 HighlightUnplayableGames(gameNames);
@@ -1807,21 +1807,21 @@ namespace GamelistManager
         private void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-            Popup1 = new Popup1();
-            Popup1.StartPosition = FormStartPosition.Manual;
+          //  Popup1 = new Popup1();
+          //  Popup1.StartPosition = FormStartPosition.Manual;
 
             // Set the location to be relevant to the main form
-            Popup1.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+          //  Popup1.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
 
-            Popup1.ShowDialog();
+          //  Popup1.ShowDialog();
 
-            bool boolResult = Popup1.BoolResult;
-            int intResult = Popup1.IntResult;
+          //  bool boolResult = Popup1.BoolResult;
+          //  int intResult = Popup1.IntResult;
                         
-            if (boolResult == false)
-            {
-                return;
-            }
+          //  if (boolResult == false)
+          //  {
+          //      return;
+          //  }
        
             List<Tuple<string, int, int>> filesInfoList = GetImagesList();
 
