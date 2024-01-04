@@ -1295,6 +1295,7 @@ namespace GamelistManager
                 return;
             }
 
+
             Cursor.Current = Cursors.WaitCursor;
 
             //Remove all temporary columns
@@ -1313,6 +1314,16 @@ namespace GamelistManager
             {
                 DataSet.Tables[0].Columns.Remove(columnToDelete.ColumnName);
             }
+
+            // Set a few ordinals
+            SetColumnOrdinals(DataSet.Tables[0],
+                ("name", 0),
+                ("path", 1),
+                ("genre", 2),
+                ("hidden", 3)
+            );
+
+
 
             // Since the deleted columns were removed, make sure these are not checked
             verifyRomPathsToolStripMenuItem.Checked = false;
@@ -1828,10 +1839,17 @@ namespace GamelistManager
                     }
                 }
 
+               
                 // Update progress bar
                 IncrementProgressBar();
             }
             statusBar1.Text = XMLFilename;
+
+            if (singleColorImages == 0 && corruptImages == 0 && missingImages == 0)
+            {
+                MessageBox.Show("No bad or missing images were found", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
             bool boolResult = false;
             int intResult = 0;
@@ -1858,66 +1876,58 @@ namespace GamelistManager
 
             if (intResult == 1)
             {
-                string fileName = Directory.GetCurrentDirectory() + "\\" + "bad_images.csv";
-                if (ExportToCSV(filteredMediaObjects, fileName))
+                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_images.csv";
+                if (ExportToCSV(filteredMediaObjects, csvFileName))
                 {
-                    MessageBox.Show($"The file '{fileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    MessageBox.Show($"There was an error saving file '{fileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"There was an error saving file '{csvFileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                return;
             }
 
-            if (intResult == 2 || intResult == 3)
+            foreach (var mediaObject in filteredMediaObjects)
             {
-                foreach (var mediaObject in filteredMediaObjects)
+                string fileName = mediaObject.FullPath;
+                int rowIndex = mediaObject.RowIndex;
+                int columnIndex = mediaObject.ColumnIndex;
+                string status = mediaObject.Status;
+
+                switch (intResult)
                 {
-                    string fileName = mediaObject.FullPath;
-                    int rowIndex = mediaObject.RowIndex;
-                    int columnIndex = mediaObject.ColumnIndex;
-                    string status = mediaObject.Status;
-                    if (intResult == 2 || intResult == 3)
-                    {
+                    case 2:
+                        try
+                        {
+                            File.Delete(fileName);
+                        }
+                        catch
+                        {
+                            //catch exception - if we care?
+                        }
+                        break;
+                    case 3:
                         string oldFilePath = fileName;
                         string newFileNamePrefix = "bad-";
                         string directory = Path.GetDirectoryName(oldFilePath);
                         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldFilePath);
-                        string fileExtension = Path.GetExtension(oldFilePath);
-                        string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}{fileExtension}");
+                        string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}");
                         try
                         {
-                            if (intResult == 2)
-                            {
-                                // Delete the file
-                                if (status != "missing")
-                                {
-                                    File.Delete(fileName);
-                                }
-                            }
-                            if (intResult == 3)
-                            {
-                                // Rename the file
-                                if (status != "missing")
-                                {
-                                    File.Move(oldFilePath, newFilePath);
-                                }
-                            }
+                            File.Move(oldFilePath, newFilePath);
                         }
                         catch
                         {
-                            // Do we care?
+                            // Catch exception - if we care?
                         }
-                        finally
-                        {
-                            dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
-                        }
-                    }
+                        break;
                 }
-
+                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
             }
         }
+
+
+
 
 
         static bool ExportToCSV(List<MediaObject> mediaObjects, string filePath)

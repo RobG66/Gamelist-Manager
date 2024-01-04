@@ -397,40 +397,40 @@
             // loadGamelistxmlToolStripMenuItem
             // 
             this.loadGamelistxmlToolStripMenuItem.Name = "loadGamelistxmlToolStripMenuItem";
-            this.loadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.loadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loadGamelistxmlToolStripMenuItem.Text = "Load Gamelist";
             this.loadGamelistxmlToolStripMenuItem.Click += new System.EventHandler(this.LoadGamelistXMLToolStripMenuItem_Click);
             // 
             // reloadGamelistxmlToolStripMenuItem
             // 
             this.reloadGamelistxmlToolStripMenuItem.Name = "reloadGamelistxmlToolStripMenuItem";
-            this.reloadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.reloadGamelistxmlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.reloadGamelistxmlToolStripMenuItem.Text = "Reload Gamelist";
             this.reloadGamelistxmlToolStripMenuItem.Click += new System.EventHandler(this.ReloadGamelistxmlToolStripMenuItem_Click);
             // 
             // saveFileToolStripMenuItem
             // 
             this.saveFileToolStripMenuItem.Name = "saveFileToolStripMenuItem";
-            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.saveFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveFileToolStripMenuItem.Text = "Save File";
             this.saveFileToolStripMenuItem.Click += new System.EventHandler(this.SaveFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator13
             // 
             this.toolStripSeparator13.Name = "toolStripSeparator13";
-            this.toolStripSeparator13.Size = new System.Drawing.Size(163, 6);
+            this.toolStripSeparator13.Size = new System.Drawing.Size(177, 6);
             // 
             // clearRecentFilesToolStripMenuItem
             // 
             this.clearRecentFilesToolStripMenuItem.Name = "clearRecentFilesToolStripMenuItem";
-            this.clearRecentFilesToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.clearRecentFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.clearRecentFilesToolStripMenuItem.Text = "Clear Recent Files";
             this.clearRecentFilesToolStripMenuItem.Click += new System.EventHandler(this.ClearRecentFilesToolStripMenuItem_Click_1);
             // 
             // toolStripSeparator12
             // 
             this.toolStripSeparator12.Name = "toolStripSeparator12";
-            this.toolStripSeparator12.Size = new System.Drawing.Size(163, 6);
+            this.toolStripSeparator12.Size = new System.Drawing.Size(177, 6);
             // 
             // ViewToolStripMenuItem
             // 
@@ -770,15 +770,15 @@
             // mAMEHighlightUnplayableToolStripMenuItem
             // 
             this.mAMEHighlightUnplayableToolStripMenuItem.Name = "mAMEHighlightUnplayableToolStripMenuItem";
-            this.mAMEHighlightUnplayableToolStripMenuItem.Size = new System.Drawing.Size(218, 22);
+            this.mAMEHighlightUnplayableToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
             this.mAMEHighlightUnplayableToolStripMenuItem.Text = "MAME: Identify Unplayable";
             this.mAMEHighlightUnplayableToolStripMenuItem.Click += new System.EventHandler(this.MAMEHighlightUnplayableToolStripMenuItem_Click);
             // 
             // checkForSingleColorImagesToolStripMenuItem
             // 
             this.checkForSingleColorImagesToolStripMenuItem.Name = "checkForSingleColorImagesToolStripMenuItem";
-            this.checkForSingleColorImagesToolStripMenuItem.Size = new System.Drawing.Size(218, 22);
-            this.checkForSingleColorImagesToolStripMenuItem.Text = "Check For Bad Images";
+            this.checkForSingleColorImagesToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
+            this.checkForSingleColorImagesToolStripMenuItem.Text = "Check For Bad Or Missing Images";
             this.checkForSingleColorImagesToolStripMenuItem.Click += new System.EventHandler(this.CheckForSingleColorImagesToolStripMenuItem_Click);
             // 
             // contextMenuStrip1

@@ -59,6 +59,14 @@ namespace GamelistManager
         private void Popup1_Load(object sender, EventArgs e)
         {
             label2.Text = $"There are {corruptedImages} corrupt, {singleColorImages} single color and {missingImages} missing images";
+
+            if (corruptedImages == 0 && singleColorImages == 0 && missingImages != 0)
+            {
+                // If it's only missing images, provide a clear choice
+                radioButton2.Text = "Clear image paths";
+                radioButton3.Enabled = false;
+            }
+
         }
     }
 }
