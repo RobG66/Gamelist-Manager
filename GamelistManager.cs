@@ -24,8 +24,6 @@ namespace GamelistManager
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
 
-        public Popup1 Popup1 { get; private set; }
-
         public GamelistManager()
         {
             InitializeComponent();
@@ -1660,82 +1658,6 @@ namespace GamelistManager
 
         }
 
-        private List<Tuple<string, int, int>> GetImagesList()
-        {
-            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-
-            List<Tuple<string, int, int>> filesInfoList = new List<Tuple<string, int, int>>();
-
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
-            {
-                // Check if the column tag is set to "image"
-                if (column.Tag != null && column.Tag.ToString() == "image")
-                {
-                    foreach (DataGridViewRow row in dataGridView1.Rows)
-                    {
-                        // Access the cell in the specified column
-                        DataGridViewCell cell = row.Cells[column.Index];
-
-                        string imagePath = cell.Value?.ToString();
-                        if (!string.IsNullOrEmpty(imagePath))
-                        {
-                            // Build file list
-                            string fullpath = Path.Combine(parentFolderPath, imagePath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-                            filesInfoList.Add(Tuple.Create(fullpath, row.Index, column.Index));
-                        }
-                    }
-                }
-            }
-
-            return filesInfoList;
-
-        }
-
-        private void ClearMissingImagesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-            statusBar1.Text = "Checking files...";
-
-            List<Tuple<string, int, int>> filesInfoList = GetImagesList();
-
-            InitializeProgressBar(0, filesInfoList.Count);
-
-            for (int i = filesInfoList.Count - 1; i >= 0; i--)
-            {
-                var fileInfo = filesInfoList[i];
-
-                bool exists = File.Exists(fileInfo.Item1);
-
-                // Remove from the list if the file exists
-                if (exists)
-                {
-                    filesInfoList.RemoveAt(i);
-                }
-
-                // Update progress bar
-                IncrementProgressBar();
-            }
-
-            Cursor.Current = Cursors.Default;
-
-
-            statusBar1.Text = XMLFilename;
-
-            int missingCount = filesInfoList.Count;
-
-            if (missingCount == 0)
-            {
-                MessageBox.Show("There were no missing images in this gamelist", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ResetProgressBar();
-                return;
-            }
-
-            MessageBox.Show($"There were {missingCount} missing images in this gamelist.\nWould you like to clear these paths?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            ResetProgressBar();
-
-        }
-
         private void InitializeProgressBar(int minimum, int maximum)
         {
             if (progressBar1.InvokeRequired)
@@ -1804,85 +1726,226 @@ namespace GamelistManager
             }
         }
 
+        public class MediaObject
+        {
+            public string FullPath { get; set; }
+            public int RowIndex { get; set; }
+            public int ColumnIndex { get; set; }
+            public string Status { get; set; }
+        }
+
+        private List<MediaObject> GetMediaList()
+        {
+            List<MediaObject> mediaList = new List<MediaObject>();
+
+            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
+
+            foreach (DataGridViewColumn column in dataGridView1.Columns)
+            {
+                // Check if the column tag is set to "image"
+                if (column.Tag != null && column.Tag.ToString() == "image")
+                {
+                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                    {
+                        // Access the cell in the specified column
+                        DataGridViewCell cell = row.Cells[column.Index];
+
+                        string cellPathValue = cell.Value?.ToString();
+                        if (!string.IsNullOrEmpty(cellPathValue))
+                        {
+                            // Build file list
+                            string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                            mediaList.Add(new MediaObject
+                            {
+                                FullPath = fullPath,
+                                RowIndex = row.Index,
+                                ColumnIndex = column.Index,
+                                Status = string.Empty
+                            });
+                        }
+                    }
+                }
+            }
+
+            return mediaList;
+        }
+
+
         private void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-          //  Popup1 = new Popup1();
-          //  Popup1.StartPosition = FormStartPosition.Manual;
+            List<MediaObject> mediaList = GetMediaList();
+            int totalFiles = mediaList.Count;
 
-            // Set the location to be relevant to the main form
-          //  Popup1.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
-
-          //  Popup1.ShowDialog();
-
-          //  bool boolResult = Popup1.BoolResult;
-          //  int intResult = Popup1.IntResult;
-                        
-          //  if (boolResult == false)
-          //  {
-          //      return;
-          //  }
-       
-            List<Tuple<string, int, int>> filesInfoList = GetImagesList();
-
-            int totalFiles = filesInfoList.Count;
-
-            DialogResult result = MessageBox.Show($"This will check {totalFiles} source images for being single color or corrupt.  This may take a few minutes depending on how many images need to be checked.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show($"This will check {totalFiles} item images for being single color, missing or corrupt.  This may take a few minutes depending on how many images need to be checked.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
                 return;
             }
 
-
             statusBar1.Text = "Checking images...";
 
+            InitializeProgressBar(0, totalFiles);
 
-            InitializeProgressBar(0, filesInfoList.Count);
+            int missingImages = 0;
+            int corruptImages = 0;
+            int singleColorImages = 0;
 
-            int scc = 0;
-            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-            int cf = 0;
 
-            foreach (var fileInfo in filesInfoList)
+            foreach (var mediaObject in mediaList)
             {
-                // Assuming you have a method to check for a single color (replace with your actual color-checking logic)
-                string fullPath = Path.Combine(parentFolderPath, fileInfo.Item1.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-
+                string fileName = mediaObject.FullPath;
+                int rowIndex = mediaObject.RowIndex;
+                int columnIndex = mediaObject.ColumnIndex;
                 bool isSingleColor = false;
-                if (System.IO.File.Exists(fullPath))
-                {
-                    try
-                    {
-                        isSingleColor = ImageProcessor.IsSingleColorImage(fullPath);
-                    }
-                    catch
-                    {
-                        cf++;
-                    }
-                    finally
-                    {
-                        if (isSingleColor)
-                        {
-                            scc++;
-                        }
-                    }
 
+                bool fileExists = File.Exists(fileName);
+
+                if (!fileExists)
+                {
+                    missingImages++;
+                    mediaObject.Status = "missing";
+                    continue;
+                }
+
+                try
+                {
+                    isSingleColor = ImageProcessor.IsSingleColorImage(fileName);
+                }
+                catch
+                {
+                    corruptImages++;
+                    mediaObject.Status = "corrupt";
 
                 }
+                finally
+                {
+                    if (isSingleColor)
+                    {
+                        singleColorImages++;
+                        mediaObject.Status = "singlecolor";
+                    }
+                }
+
+                // Update progress bar
                 IncrementProgressBar();
             }
-
             statusBar1.Text = XMLFilename;
 
-          
+            bool boolResult = false;
+            int intResult = 0;
 
-            MessageBox.Show($"There were {scc} single color and {cf} corrupt images.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ResetProgressBar();
 
+            Popup1 popupForm = new Popup1(corruptImages, singleColorImages, missingImages);
+            // Set the start position and location for the instance of Popup1
+            popupForm.StartPosition = FormStartPosition.Manual;
+            popupForm.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+            popupForm.ShowDialog();
+
+            // Handle the result and other logic as needed
+            boolResult = popupForm.BoolResult;
+            intResult = popupForm.intResult;
+
+            if (boolResult == false)
+            {
+                return;
+            }
+
+            // Make a filtered list where Status isn't empty
+            List<MediaObject> filteredMediaObjects = mediaList.Where(obj => !string.IsNullOrEmpty(obj.Status)).ToList();
+
+            if (intResult == 1)
+            {
+                string fileName = Directory.GetCurrentDirectory() + "\\" + "bad_images.csv";
+                if (ExportToCSV(filteredMediaObjects, fileName))
+                {
+                    MessageBox.Show($"The file '{fileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"There was an error saving file '{fileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                return;
+            }
+
+            if (intResult == 2 || intResult == 3)
+            {
+                foreach (var mediaObject in filteredMediaObjects)
+                {
+                    string fileName = mediaObject.FullPath;
+                    int rowIndex = mediaObject.RowIndex;
+                    int columnIndex = mediaObject.ColumnIndex;
+                    string status = mediaObject.Status;
+                    if (intResult == 2 || intResult == 3)
+                    {
+                        string oldFilePath = fileName;
+                        string newFileNamePrefix = "bad-";
+                        string directory = Path.GetDirectoryName(oldFilePath);
+                        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldFilePath);
+                        string fileExtension = Path.GetExtension(oldFilePath);
+                        string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}{fileExtension}");
+                        try
+                        {
+                            if (intResult == 2)
+                            {
+                                // Delete the file
+                                if (status != "missing")
+                                {
+                                    File.Delete(fileName);
+                                }
+                            }
+                            if (intResult == 3)
+                            {
+                                // Rename the file
+                                if (status != "missing")
+                                {
+                                    File.Move(oldFilePath, newFilePath);
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Do we care?
+                        }
+                        finally
+                        {
+                            dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
+                        }
+                    }
+                }
+
+            }
         }
 
 
+        static bool ExportToCSV(List<MediaObject> mediaObjects, string filePath)
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    // Write header
+                    writer.WriteLine("FullPath,Status");
+
+                    // Write records
+                    foreach (var mediaObject in mediaObjects)
+                    {
+                        writer.WriteLine($"{mediaObject.FullPath},{mediaObject.Status}");
+                    }
+                }
+                // Return success!
+                return true;
+            }
+
+            catch
+            {
+                // Return failure
+                return false;
+            }
+
+        }
+
     }
-
 }
-

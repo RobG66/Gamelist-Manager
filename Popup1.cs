@@ -6,22 +6,29 @@ namespace GamelistManager
     public partial class Popup1 : Form
     {
         public bool BoolResult { get; private set; }
-        public int IntResult { get; private set; }
+        public int intResult { get; private set; }
+        int corruptedImages = 0;
+        int singleColorImages = 0;
+        int missingImages = 0;
 
-        public Popup1()
+        // Modified constructor to accept three integers
+        public Popup1(int intValue1, int intValue2, int intValue3)
         {
             InitializeComponent();
+            corruptedImages = intValue1;
+            singleColorImages = intValue2;
+            missingImages = intValue3;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            (BoolResult, IntResult) = ReturnTrue();
+            (BoolResult, intResult) = ReturnTrue();
             this.Close();
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            (BoolResult, IntResult) = ReturnFalse();
+            (BoolResult, intResult) = ReturnFalse();
             this.Close();
         }
 
@@ -47,6 +54,11 @@ namespace GamelistManager
         private (bool, int) ReturnFalse()
         {
             return (false, 0);
+        }
+
+        private void Popup1_Load(object sender, EventArgs e)
+        {
+            label2.Text = $"There are {corruptedImages} corrupt, {singleColorImages} single color and {missingImages} missing images";
         }
     }
 }

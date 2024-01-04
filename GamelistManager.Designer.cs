@@ -101,7 +101,6 @@
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mAMEHighlightUnplayableToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.clearMissingImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkForSingleColorImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -763,7 +762,6 @@
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mAMEHighlightUnplayableToolStripMenuItem,
-            this.clearMissingImagesToolStripMenuItem,
             this.checkForSingleColorImagesToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
@@ -775,13 +773,6 @@
             this.mAMEHighlightUnplayableToolStripMenuItem.Size = new System.Drawing.Size(218, 22);
             this.mAMEHighlightUnplayableToolStripMenuItem.Text = "MAME: Identify Unplayable";
             this.mAMEHighlightUnplayableToolStripMenuItem.Click += new System.EventHandler(this.MAMEHighlightUnplayableToolStripMenuItem_Click);
-            // 
-            // clearMissingImagesToolStripMenuItem
-            // 
-            this.clearMissingImagesToolStripMenuItem.Name = "clearMissingImagesToolStripMenuItem";
-            this.clearMissingImagesToolStripMenuItem.Size = new System.Drawing.Size(218, 22);
-            this.clearMissingImagesToolStripMenuItem.Text = "Check For Missing Images";
-            this.clearMissingImagesToolStripMenuItem.Click += new System.EventHandler(this.ClearMissingImagesToolStripMenuItem_Click);
             // 
             // checkForSingleColorImagesToolStripMenuItem
             // 
@@ -924,7 +915,6 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.ToolStripMenuItem clearMissingImagesToolStripMenuItem;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
         private System.Windows.Forms.ToolStripMenuItem clearRecentFilesToolStripMenuItem;
