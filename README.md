@@ -13,7 +13,7 @@ It offers functionality to:
 - View and change favorites easily
 - Fast sorting and filtering by genre and visibility values
 - Identify missing roms
-- Identify missing, single color or corrupt images
+- Identify and clean up missing, single color or corrupt images
 - View game media with video playback
 - Edit or delete items from the gamelist
 - Clear or update scraper dates
