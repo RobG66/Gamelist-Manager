@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace GamelistManager
@@ -214,6 +215,54 @@ namespace GamelistManager
             ShowMedia();
         }
 
+        private PictureBox MakePictureBox(string imagePath,string name)
+        {
+            System.Drawing.Image image;
+            
+            if (!File.Exists(imagePath))
+            {
+                image = Properties.Resources.missing;
+            }
+            else
+            {
+                try
+                {
+                    image = System.Drawing.Image.FromFile(imagePath);
+                }
+                catch
+                {
+                    image = Properties.Resources.loaderror;
+                }
+            }
+
+            PictureBox pictureBox = new PictureBox
+            {
+                Image = image,
+                Dock = DockStyle.Fill,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Name = name,
+                Tag = imagePath,
+                ContextMenuStrip = contextMenuStrip1
+            };
+
+            return pictureBox;
+        }
+
+        private Label MakeLabel(string text)
+        {
+            string labelName = text;
+            Label label = new Label
+            {
+                Text = labelName,
+                Font = new Font("Sego UI", 12, FontStyle.Bold),
+                AutoSize = true,
+                Anchor = AnchorStyles.None,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            return label;
+        }
+
+
         private void ShowMedia()
         {
             if (TableLayoutPanel1 != null)
@@ -236,58 +285,91 @@ namespace GamelistManager
 
             int columnCount = 0;
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-
+            
             foreach (DataGridViewCell cell in selectedRow.Cells)
             {
-                if (IsImageColumn(cell))
+                if (cell.OwningColumn.Tag == null || cell.OwningColumn.Tag.ToString().ToLower() != "image")
                 {
-                    Image image = GetImageFromCell(cell, parentFolderPath);
+                    continue;
+                }
 
-                    if (image != null)
-                    {
-                        AddImageToTableLayoutPanel(image, cell.OwningColumn.Name, ref columnCount);
-                    }
+                if (cell.Value == null || string.IsNullOrEmpty(cell.Value.ToString()))
+                {
+                    continue;
+                }
+
+                string imageCellValue = cell.Value.ToString();
+                string imagePath = Path.Combine(parentFolderPath, imageCellValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                string columnName = cell.OwningColumn.Name;
+
+                PictureBox pictureBox = MakePictureBox(imagePath,columnName);
+                TableLayoutPanel1.Controls.Add(pictureBox, columnCount, 1);
+                
+                string labelName = char.ToUpper(columnName[0]) + columnName.Substring(1);
+                Label label = MakeLabel(labelName);
+                TableLayoutPanel1.Controls.Add(label, columnCount, 0);
+                
+                TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
+                columnCount++;
+                TableLayoutPanel1.ColumnCount = columnCount;
+            }
+
+            string videoCellValue = selectedRow.Cells["video"].Value.ToString();
+            string videoPath = Path.Combine(parentFolderPath, videoCellValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+            if (System.IO.File.Exists(videoPath))
+            {
+                TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
+                columnCount++;
+                TableLayoutPanel1.ColumnCount = columnCount;
+
+                Core.Initialize();
+
+                libVLC = new LibVLC();
+                mediaPlayer = new MediaPlayer(libVLC);
+
+                videoView1 = new VideoView
+                {
+                    Dock = DockStyle.Fill
+                };
+
+                TableLayoutPanel1.Controls.Add(videoView1, columnCount, 1);
+
+                Label videoLabel = MakeLabel("Video");
+                TableLayoutPanel1.Controls.Add(videoLabel, columnCount, 0);
+                // Add event show the video loops!
+                mediaPlayer.EndReached += MediaPlayer_EndReached;
+
+                try
+                {
+                    mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoPath)));
+                    videoView1.MediaPlayer = mediaPlayer;
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions appropriately (log, show a message, etc.)
+                    MessageBox.Show($"An error occurred loading the video: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
-            string videoPath = selectedRow.Cells["video"].Value.ToString();
-            string videoFile = Path.Combine(parentFolderPath, videoPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-            if (System.IO.File.Exists(videoFile))
-            {
-                PlayVideo(videoFile, ref columnCount);
-            }
-            else if (!string.IsNullOrEmpty(videoPath))
-            {
-                Image missingVideoImage = Properties.Resources.missing;
-                AddImageToTableLayoutPanel(missingVideoImage, "video", ref columnCount);
-            }
-
+            
+            // Just in case there were no images or videos, show a 'no media' image 
             if (columnCount == 0)
             {
-                Image noMediaImage = Properties.Resources.nomedia;
-                AddImageToTableLayoutPanel(noMediaImage, "", ref columnCount);
+                PictureBox picturebox = MakePictureBox(string.Empty,"video");
+                picturebox.Image = Properties.Resources.nomedia;
+                TableLayoutPanel1.Controls.Add(picturebox,0,1);
+                TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
+                columnCount++;
             }
 
-            // Apply style
+            // Apply style so everythhing is sized and spaced evently
             foreach (ColumnStyle columnStyle in TableLayoutPanel1.ColumnStyles)
             {
                 columnStyle.SizeType = SizeType.Percent;
                 columnStyle.Width = 100f / TableLayoutPanel1.ColumnCount; // Equal distribution for each column
             }
 
-            TableLayoutPanel1.BackColor = Color.DarkGray;
-
-
-            for (int row = 0; row < TableLayoutPanel1.RowCount; row++)
-            {
-                for (int col = 0; col < TableLayoutPanel1.ColumnCount; col++)
-                {
-                    TableLayoutPanel1.GetControlFromPosition(col, row).BackColor = Color.DarkGray;
-                }
-            }
-
-
+                   
         }
 
         private void ClearTableLayoutPanel()
@@ -323,106 +405,6 @@ namespace GamelistManager
             }
 
             TableLayoutPanel1.Dispose();
-        }
-
-        private bool IsImageColumn(DataGridViewCell cell)
-        {
-            return cell.OwningColumn.Tag?.ToString() == "image" &&
-                   cell.Value != null &&
-                   !string.IsNullOrEmpty(cell.Value.ToString()) &&
-                   (cell.Value.ToString().EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                    cell.Value.ToString().EndsWith(".png", StringComparison.OrdinalIgnoreCase));
-        }
-
-        private Image GetImageFromCell(DataGridViewCell cell, string parentFolderPath)
-        {
-            string imagePath = cell.Value.ToString();
-            string fullPath = Path.Combine(parentFolderPath, imagePath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-            try
-            {
-                object image = System.IO.File.Exists(fullPath) ? Image.FromFile(fullPath) : Properties.Resources.missing;
-                return (Image)image;
-            }
-            catch
-            {
-                return (Image)Properties.Resources.loaderror;
-            }
-        }
-
-        private void AddImageToTableLayoutPanel(Image image, string columnName, ref int columnCount)
-        {
-            PictureBox pictureBox = new PictureBox
-            {
-                Image = image,
-                Dock = DockStyle.Fill,
-                SizeMode = PictureBoxSizeMode.Zoom
-            };
-            TableLayoutPanel1.Controls.Add(pictureBox, columnCount, 1);
-
-            string name = string.Empty;
-
-            if (columnName != string.Empty)
-            {
-                name = char.ToUpper(columnName[0]) + columnName.Substring(1);
-            }
-
-
-            Label label = new Label
-            {
-                Text = name,
-                Font = new Font("Sego UI", 12, FontStyle.Bold),
-                AutoSize = true,
-                Anchor = AnchorStyles.None,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-
-            TableLayoutPanel1.Controls.Add(label, columnCount, 0);
-
-            TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
-            columnCount++;
-            TableLayoutPanel1.ColumnCount = columnCount;
-        }
-
-        private void PlayVideo(string videoFilePath, ref int columnCount)
-        {
-            TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
-            columnCount++;
-            TableLayoutPanel1.ColumnCount = columnCount;
-
-            Core.Initialize();
-
-            libVLC = new LibVLC();
-            mediaPlayer = new MediaPlayer(libVLC);
-
-            videoView1 = new VideoView
-            {
-                Dock = DockStyle.Fill
-            };
-
-            TableLayoutPanel1.Controls.Add(videoView1, columnCount, 1);
-
-            Label label = new Label
-            {
-                Text = "Video",
-                Font = new Font("Sego UI", 12, FontStyle.Bold),
-                AutoSize = true,
-                Anchor = AnchorStyles.None,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            TableLayoutPanel1.Controls.Add(label, columnCount, 0);
-            mediaPlayer.EndReached += MediaPlayer_EndReached;
-
-            try
-            {
-                mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoFilePath)));
-                videoView1.MediaPlayer = mediaPlayer;
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions appropriately (log, show a message, etc.)
-                MessageBox.Show($"An error occurred loading the video: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
 
         private void MediaPlayer_EndReached(object sender, EventArgs e)
@@ -1480,7 +1462,7 @@ namespace GamelistManager
             int missingCount = 0;
             int totalItemCount = DataSet.Tables[0].Rows.Count;
 
-            InitializeProgressBar(0, totalItemCount);
+            ProgressBarInitialize(0, totalItemCount);
 
             Cursor.Current = Cursors.WaitCursor;
 
@@ -1513,11 +1495,11 @@ namespace GamelistManager
                     row["missing"] = true;
                 }
 
-                IncrementProgressBar();
+                ProgressBarIncrement();
             }
 
             Cursor.Current = Cursors.Default;
-            ResetProgressBar();
+            ProgressBarReset();
             if (missingCount > 0)
             {
                 MessageBox.Show("There are " + missingCount.ToString() + " missing items in this gamelist", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information); ;
@@ -1669,7 +1651,7 @@ namespace GamelistManager
 
         }
 
-        private void InitializeProgressBar(int minimum, int maximum)
+        private void ProgressBarInitialize(int minimum, int maximum)
         {
             if (progressBar1.InvokeRequired)
             {
@@ -1688,7 +1670,7 @@ namespace GamelistManager
             }
         }
 
-        private void ResetProgressBar()
+        private void ProgressBarReset()
         {
             if (progressBar1.InvokeRequired)
             {
@@ -1703,7 +1685,7 @@ namespace GamelistManager
             }
         }
 
-        private void IncrementProgressBar()
+        private void ProgressBarIncrement()
         {
             if (progressBar1.InvokeRequired)
             {
@@ -1797,7 +1779,7 @@ namespace GamelistManager
 
             statusBar1.Text = "Checking images...";
 
-            InitializeProgressBar(0, totalFiles);
+            ProgressBarInitialize(0, totalFiles);
 
             int missingImages = 0;
             int corruptImages = 0;
@@ -1839,9 +1821,9 @@ namespace GamelistManager
                     }
                 }
 
-               
+
                 // Update progress bar
-                IncrementProgressBar();
+                ProgressBarIncrement();
             }
             statusBar1.Text = XMLFilename;
 
@@ -1854,7 +1836,7 @@ namespace GamelistManager
             bool boolResult = false;
             int intResult = 0;
 
-            ResetProgressBar();
+            ProgressBarReset();
 
             Popup1 popupForm = new Popup1(corruptImages, singleColorImages, missingImages);
             // Set the start position and location for the instance of Popup1
@@ -1957,5 +1939,42 @@ namespace GamelistManager
 
         }
 
+        private void editToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            string pictureBoxName = contextMenuStrip1.SourceControl.Name;
+            PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
+
+            if (pictureBox == null)
+            {
+                return;
+            }
+            
+            string imagePath = pictureBox.Tag.ToString();
+            
+            
+            try
+            {
+                Process.Start(imagePath);
+            }
+            catch
+            {
+                // Handle the exception if the process can't be started 
+                MessageBox.Show("Error loading image!");
+            }
+        }
+
+        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        {
+            string pictureBoxName = contextMenuStrip1.SourceControl.Name;
+            PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
+
+            if (pictureBox == null)
+            {
+                return;
+            }
+
+            string imagePath = pictureBox.Tag.ToString();
+            Clipboard.SetText(imagePath);
+        }
     }
 }
