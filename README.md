@@ -18,6 +18,11 @@ It offers functionality to:
 - Edit or delete items from the gamelist
 - Clear or update scraper dates
 - Identify non-playable MAME roms
+- Run specific remote SSH commands on your Batocera host
+- Securely save your Batocera credentials
+- Map a network drive assistance
+- Open images in default editor
+- Create a terminal session to your Batocera host (openSSH)
 - Save your cleaned up gamelist!
 
 The easiest method of use is to map a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux
