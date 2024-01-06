@@ -1,5 +1,6 @@
 ﻿using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
+using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,11 +8,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
+using File = System.IO.File;
 
 
 namespace GamelistManager
@@ -24,6 +26,8 @@ namespace GamelistManager
         private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
+        private string batoceraHostName;
+
 
         public GamelistManager()
         {
@@ -125,7 +129,6 @@ namespace GamelistManager
 
         private string Getvisibilityfilter()
         {
-
             // Get the DataTable bound to the DataGridView
             DataTable dataTable = (DataTable)dataGridView1.DataSource;
 
@@ -191,7 +194,7 @@ namespace GamelistManager
             fileToolStripMenuItem.Enabled = true;
             reloadGamelistxmlToolStripMenuItem.Enabled = false;
             saveFileToolStripMenuItem.Enabled = false;
-
+            RemoteToolStripMenuItem.Enabled = true;
             LoadLastFilenamesToMenu();
 
         }
@@ -215,10 +218,10 @@ namespace GamelistManager
             ShowMedia();
         }
 
-        private PictureBox MakePictureBox(string imagePath,string name)
+        private PictureBox MakePictureBox(string imagePath, string name)
         {
             System.Drawing.Image image;
-            
+
             if (!File.Exists(imagePath))
             {
                 image = Properties.Resources.missing;
@@ -285,7 +288,7 @@ namespace GamelistManager
 
             int columnCount = 0;
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-            
+
             foreach (DataGridViewCell cell in selectedRow.Cells)
             {
                 if (cell.OwningColumn.Tag == null || cell.OwningColumn.Tag.ToString().ToLower() != "image")
@@ -302,13 +305,13 @@ namespace GamelistManager
                 string imagePath = Path.Combine(parentFolderPath, imageCellValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
                 string columnName = cell.OwningColumn.Name;
 
-                PictureBox pictureBox = MakePictureBox(imagePath,columnName);
+                PictureBox pictureBox = MakePictureBox(imagePath, columnName);
                 TableLayoutPanel1.Controls.Add(pictureBox, columnCount, 1);
-                
+
                 string labelName = char.ToUpper(columnName[0]) + columnName.Substring(1);
                 Label label = MakeLabel(labelName);
                 TableLayoutPanel1.Controls.Add(label, columnCount, 0);
-                
+
                 TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
                 columnCount++;
                 TableLayoutPanel1.ColumnCount = columnCount;
@@ -351,13 +354,13 @@ namespace GamelistManager
                     MessageBox.Show($"An error occurred loading the video: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            
+
             // Just in case there were no images or videos, show a 'no media' image 
             if (columnCount == 0)
             {
-                PictureBox picturebox = MakePictureBox(string.Empty,"video");
+                PictureBox picturebox = MakePictureBox(string.Empty, "video");
                 picturebox.Image = Properties.Resources.nomedia;
-                TableLayoutPanel1.Controls.Add(picturebox,0,1);
+                TableLayoutPanel1.Controls.Add(picturebox, 0, 1);
                 TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
                 columnCount++;
             }
@@ -369,7 +372,7 @@ namespace GamelistManager
                 columnStyle.Width = 100f / TableLayoutPanel1.ColumnCount; // Equal distribution for each column
             }
 
-                   
+
         }
 
         private void ClearTableLayoutPanel()
@@ -951,60 +954,6 @@ namespace GamelistManager
             return match.Success ? match.Groups[1].Value : originalPath;
         }
 
-        public static class MameGameLoader
-        {
-            public static async Task<HashSet<string>> GetFilteredGameNames(string mameExePath)
-            {
-                string command = "-listxml";
-                string output = await ExecuteCommandAsync(mameExePath, command);
-
-                var xml = XDocument.Parse(output);
-                var machines = xml.Descendants("machine").ToArray();
-
-                var gameNames = new HashSet<string>();
-
-                foreach (var machine in machines)
-                {
-                    if (ShouldIncludeMachine(machine))
-                    {
-                        gameNames.Add(machine.Attribute("name")?.Value);
-                    }
-                }
-
-                return gameNames;
-
-            }
-
-            private static async Task<string> ExecuteCommandAsync(string mameExePath, string command)
-            {
-                using (Process process = new Process())
-                {
-                    process.StartInfo.FileName = mameExePath;
-                    process.StartInfo.Arguments = command;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
-
-                    process.Start();
-
-                    string output = await process.StandardOutput.ReadToEndAsync();
-
-                    process.WaitForExit();
-
-                    return output;
-                }
-            }
-
-            private static bool ShouldIncludeMachine(XElement machine)
-            {
-                return machine.Attribute("isbios")?.Value == "yes" ||
-                       machine.Attribute("isdevice")?.Value == "yes" ||
-                       machine.Attribute("ismechanical")?.Value == "yes" ||
-                       machine.Element("driver")?.Attribute("status")?.Value == "preliminary" ||
-                       machine.Element("disk")?.Attribute("status")?.Value == "nodump" ||
-                       machine.Attribute("runnable")?.Value == "no";
-            }
-        }
 
 
         private void ShowAllGenreToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1635,7 +1584,7 @@ namespace GamelistManager
             {
                 statusBar1.Text = "Started XML Import.....";
                 string mameExePath = openFileDialog.FileName;
-                var gameNames = await MameGameLoader.GetFilteredGameNames(mameExePath);
+                var gameNames = await MameUnplayable.GetFilteredGameNames(mameExePath);
                 statusBar1.Text = "Identifying unplayable games....";
                 HighlightUnplayableGames(gameNames);
                 statusBar1.Text = XMLFilename;
@@ -1648,7 +1597,6 @@ namespace GamelistManager
                 Console.WriteLine($"An error occurred: {ex.Message}");
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
         }
 
         private void ProgressBarInitialize(int minimum, int maximum)
@@ -1948,10 +1896,10 @@ namespace GamelistManager
             {
                 return;
             }
-            
+
             string imagePath = pictureBox.Tag.ToString();
-            
-            
+
+
             try
             {
                 Process.Start(imagePath);
@@ -1976,5 +1924,307 @@ namespace GamelistManager
             string imagePath = pictureBox.Tag.ToString();
             Clipboard.SetText(imagePath);
         }
+
+        static (string, string, string) GetCredentials()
+        {
+            string hostName = RegistryManager.ReadRegistryValue("HostName");
+
+            if (hostName == null || hostName == string.Empty)
+            {
+                MessageBox.Show("The batocera hostname is not set.\nPlease use the remote setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return ("connectfailed", null, null);
+            }
+
+            CredentialManager credentialManager = new CredentialManager();
+
+            string userName = string.Empty;
+            string userPassword = string.Empty;
+
+            if (credentialManager.TryReadCredentials(hostName, out NetworkCredential retrievedCredentials))
+            {
+                userName = retrievedCredentials.UserName;
+                userPassword = retrievedCredentials.Password;
+            }
+
+            if (userName == null || userName == string.Empty)
+            {
+                MessageBox.Show("The batocera username is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return (null, null, null);
+            }
+            return (hostName, userName, userPassword);
+        }
+
+
+        static string ExecuteSshCommand(string command)
+        {
+            var result = GetCredentials();
+            string hostName = result.Item1;
+            string userName = result.Item2;
+            string userPassword = result.Item3;
+
+            if (hostName == null || hostName == string.Empty)
+            {
+                return "connectfailed";
+            }
+
+            string output = string.Empty;
+            using (var client = new SshClient(hostName, userName, userPassword))
+            {
+                try
+                {
+                    client.Connect();
+                }
+                catch
+                {
+                    MessageBox.Show($"Could not connect to host {hostName}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return "connectfailed";
+                }
+
+                using (var commandRunner = client.RunCommand(command))
+                {
+                    // Show the server output in a message box
+                    output = commandRunner.Result;
+                }
+
+                client.Disconnect();
+                userPassword = null;
+                return output;
+            }
+        }
+
+        private void stopEmulationstationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            DialogResult result = MessageBox.Show("Are you sure you want to stop EmulationStation?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string command = "/etc/init.d/S31emulationstation stop ; batocera-es-swissknife --espid"; // Replace with your desired command
+            string output = ExecuteSshCommand(command) as string;
+
+            if (output == "connectfailed")
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(output) && output.Length > 0 && output[0] == '0')
+            {
+                MessageBox.Show("Emulationstation is stopped", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("An error has occured!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void rebootBatoceraHostToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            DialogResult result = MessageBox.Show("Are you sure you want to reboot your Batocera host?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string command = "/etc/init.d/S31emulationstation stop;reboot"; // Replace with your desired command
+            string output = ExecuteSshCommand(command) as string;
+
+            if (output == "connectfailed")
+            {
+                return;
+            }
+
+            MessageBox.Show("Reboot has been sent to host!", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void setupSSHToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            richTextBox1.Hide();
+            CredentialManager userControl = new CredentialManager();
+            splitContainer1.Panel2.Controls.Add(userControl);
+            menuStrip1.Enabled = false;
+            // I could not figure out how to make the richtextbox visible
+            // from within the Credential Manager control because it's nested
+            // So as a workaround I make an event to handle this.
+            menuStrip1.EnabledChanged += MenuStrip1_EnabledChanged;
+        }
+
+        private void MenuStrip1_EnabledChanged(object sender, EventArgs e)
+        {
+            richTextBox1.Visible = true;
+            menuStrip1.EnabledChanged -= MenuStrip1_EnabledChanged;
+        }
+
+        private void connectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string hostName = RegistryManager.ReadRegistryValue("HostName");
+
+            if (hostName == null || hostName == string.Empty)
+            {
+                MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            CredentialManager credentialManager = new CredentialManager();
+
+            string userName = string.Empty;
+            string userPassword = string.Empty;
+
+            if (credentialManager.TryReadCredentials(hostName, out NetworkCredential retrievedCredentials))
+            {
+                userName = retrievedCredentials.UserName;
+                userPassword = retrievedCredentials.Password;
+            }
+
+
+            string sshPath = "C:\\Windows\\System32\\OpenSSH\\ssh.exe"; // Path to ssh.exe on Windows
+
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo(sshPath)
+                {
+                    Arguments = $"-t {userName}@{hostName}",
+                    UseShellExecute = true,
+                    //RedirectStandardOutput = true,
+                    //RedirectStandardError = true,
+                    CreateNoWindow = false // Set this to false to see the terminal window
+                };
+
+                Process process = new Process { StartInfo = psi };
+                process.Start();
+
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Could not start OpenSSH", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void getVersionInformationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string command = "batocera-es-swissknife --version"; // Replace with your desired command
+            string output = ExecuteSshCommand(command) as string;
+
+            if (output == "connectfailed")
+            {
+                return;
+            }
+
+            MessageBox.Show($"Your Batocera is version {output}", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void stopRunningEmulatorsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to stop any running emulators?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string command = "/etc/init.d/S31emulationstation stop;reboot"; // Replace with your desired command
+            string output = ExecuteSshCommand(command) as string;
+
+            if (output == "connectfailed")
+            {
+                return;
+            }
+
+            MessageBox.Show("Running emulators should be stopped now", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        }
+
+        private void showAvailableUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string command = "batocera-es-swissknife --update"; // Replace with your desired command
+            string output = ExecuteSshCommand(command) as string;
+
+            if (output == "connectfailed")
+            {
+                return;
+            }
+
+            MessageBox.Show($"{output}", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void shutdownBatoceraHostToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to shutdown your Batocera host?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string command = "/etc/init.d/S31emulationstation stop;sleep 3;shutdown -h now"; // Replace with your desired command
+            string output = ExecuteSshCommand(command) as string;
+
+            if (output == "connectfailed")
+            {
+                return;
+            }
+
+            MessageBox.Show("Shutdown has been sent to host!", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        }
+
+        private void mapANetworkDriveToolStripMenuItem_ClickAsync(object sender, EventArgs e)
+        {
+            MapNetworkDrive();
+        }
+
+        private void MapNetworkDrive()
+        {
+            var result = GetCredentials();
+            string hostName = result.Item1;
+            string userName = result.Item2;
+            string userPassword = result.Item3;
+
+            if (hostName == null || hostName == string.Empty)
+            {
+                return;
+            }
+
+            string networkShareToCheck = $"\\\\{hostName}\\share"; // Change this to the network share path
+            bool isMapped = NetworkShareChecker.IsNetworkShareMapped(networkShareToCheck);
+
+            if (isMapped == true)
+            {
+                MessageBox.Show($"There is already a drive mapping for {networkShareToCheck}", "Map Network Drive", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            char driveLetter = '\0';
+
+            // Get first letter starting at z: working backward
+            for (char drive = 'Z'; drive >= 'D'; drive--)
+            {
+                if (!DriveInfo.GetDrives().Any(d => d.Name[0] == drive))
+                {
+                    driveLetter = drive;
+                    break;
+                }
+            }
+
+            string networkSharePath = $"\\\\{hostName}\\share";
+            string exePath = "net";
+            string command = $" use {driveLetter}: {networkSharePath} /user:{userName} {userPassword}";
+
+            // Execute the net use command
+            string output = CommandExecutor.ExecuteCommand(exePath, command);
+
+            if (output != null && output != string.Empty)
+            {
+                MessageBox.Show(output, "Map Network Drive", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+        }
+
     }
+
 }
+

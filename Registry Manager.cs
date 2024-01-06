@@ -10,6 +10,7 @@ namespace GamelistManager
         private const string RegistryKey = @"Software\GamelistManager";
         private const string LastFilenamesValueName = "LastFilenames";
 
+
         public static void ClearRecentFiles()
         {
             try
@@ -85,5 +86,47 @@ namespace GamelistManager
 
             return new List<string>();
         }
+
+        public static void SaveRegistryValue(string valueName, string value)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryKey))
+                {
+                    if (key != null)
+                    {
+                        key.SetValue(valueName, value);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving to the registry: {ex.Message}");
+                // Handle the exception as needed
+            }
+        }
+
+        public static string ReadRegistryValue(string valueName)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(RegistryKey))
+                {
+                    if (key != null)
+                    {
+                        // If the value doesn't exist, this will return null
+                        return key.GetValue(valueName) as string;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading from the registry: {ex.Message}");
+                // Handle the exception as needed
+            }
+
+            return string.Empty;
+        }
+
     }
 }

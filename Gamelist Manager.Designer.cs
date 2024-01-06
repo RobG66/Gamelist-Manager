@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GamelistManager));
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -102,11 +102,25 @@
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mAMEHighlightUnplayableToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkForSingleColorImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RemoteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setupSSHToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
+            this.connectToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator16 = new System.Windows.Forms.ToolStripSeparator();
+            this.getVersionInformationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showAvailableUpdatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
+            this.stopRunningEmulatorsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.stopEmulationstationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator17 = new System.Windows.Forms.ToolStripSeparator();
+            this.rebootBatoceraHostToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.shutdownBatoceraHostToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar1 = new System.Windows.Forms.StatusBar();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mapANetworkDriveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -127,21 +141,21 @@
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.AllowUserToResizeRows = false;
-            dataGridViewCellStyle5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
             this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
             this.dataGridView1.Name = "dataGridView1";
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridView1.RowHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowHeadersWidth = 123;
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
@@ -373,7 +387,8 @@
             this.ViewToolStripMenuItem,
             this.editToolStripMenuItem,
             this.columnsToolStripMenuItem,
-            this.toolsToolStripMenuItem});
+            this.toolsToolStripMenuItem,
+            this.RemoteToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(622, 24);
@@ -782,6 +797,102 @@
             this.checkForSingleColorImagesToolStripMenuItem.Text = "Check For Bad Or Missing Images";
             this.checkForSingleColorImagesToolStripMenuItem.Click += new System.EventHandler(this.CheckForSingleColorImagesToolStripMenuItem_Click);
             // 
+            // RemoteToolStripMenuItem
+            // 
+            this.RemoteToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setupSSHToolStripMenuItem,
+            this.mapANetworkDriveToolStripMenuItem,
+            this.toolStripSeparator14,
+            this.connectToolStripMenuItem,
+            this.toolStripSeparator16,
+            this.getVersionInformationToolStripMenuItem,
+            this.showAvailableUpdatesToolStripMenuItem,
+            this.toolStripSeparator15,
+            this.stopRunningEmulatorsToolStripMenuItem,
+            this.stopEmulationstationToolStripMenuItem,
+            this.toolStripSeparator17,
+            this.rebootBatoceraHostToolStripMenuItem,
+            this.shutdownBatoceraHostToolStripMenuItem});
+            this.RemoteToolStripMenuItem.Name = "RemoteToolStripMenuItem";
+            this.RemoteToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
+            this.RemoteToolStripMenuItem.Text = "Remote";
+            // 
+            // setupSSHToolStripMenuItem
+            // 
+            this.setupSSHToolStripMenuItem.Name = "setupSSHToolStripMenuItem";
+            this.setupSSHToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.setupSSHToolStripMenuItem.Text = "Setup Batocera Host Credentials";
+            this.setupSSHToolStripMenuItem.Click += new System.EventHandler(this.setupSSHToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator14
+            // 
+            this.toolStripSeparator14.Name = "toolStripSeparator14";
+            this.toolStripSeparator14.Size = new System.Drawing.Size(240, 6);
+            // 
+            // connectToolStripMenuItem
+            // 
+            this.connectToolStripMenuItem.Name = "connectToolStripMenuItem";
+            this.connectToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.connectToolStripMenuItem.Text = "Open Terminal To Batocera Host";
+            this.connectToolStripMenuItem.Click += new System.EventHandler(this.connectToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator16
+            // 
+            this.toolStripSeparator16.Name = "toolStripSeparator16";
+            this.toolStripSeparator16.Size = new System.Drawing.Size(240, 6);
+            // 
+            // getVersionInformationToolStripMenuItem
+            // 
+            this.getVersionInformationToolStripMenuItem.Name = "getVersionInformationToolStripMenuItem";
+            this.getVersionInformationToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.getVersionInformationToolStripMenuItem.Text = "Get Batocera Version";
+            this.getVersionInformationToolStripMenuItem.Click += new System.EventHandler(this.getVersionInformationToolStripMenuItem_Click);
+            // 
+            // showAvailableUpdatesToolStripMenuItem
+            // 
+            this.showAvailableUpdatesToolStripMenuItem.Name = "showAvailableUpdatesToolStripMenuItem";
+            this.showAvailableUpdatesToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.showAvailableUpdatesToolStripMenuItem.Text = "Show Available Updates";
+            this.showAvailableUpdatesToolStripMenuItem.Click += new System.EventHandler(this.showAvailableUpdatesToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator15
+            // 
+            this.toolStripSeparator15.Name = "toolStripSeparator15";
+            this.toolStripSeparator15.Size = new System.Drawing.Size(240, 6);
+            // 
+            // stopRunningEmulatorsToolStripMenuItem
+            // 
+            this.stopRunningEmulatorsToolStripMenuItem.Name = "stopRunningEmulatorsToolStripMenuItem";
+            this.stopRunningEmulatorsToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.stopRunningEmulatorsToolStripMenuItem.Text = "Stop Running Emulators";
+            this.stopRunningEmulatorsToolStripMenuItem.Click += new System.EventHandler(this.stopRunningEmulatorsToolStripMenuItem_Click);
+            // 
+            // stopEmulationstationToolStripMenuItem
+            // 
+            this.stopEmulationstationToolStripMenuItem.Name = "stopEmulationstationToolStripMenuItem";
+            this.stopEmulationstationToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.stopEmulationstationToolStripMenuItem.Text = "Stop Emulationstation";
+            this.stopEmulationstationToolStripMenuItem.Click += new System.EventHandler(this.stopEmulationstationToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator17
+            // 
+            this.toolStripSeparator17.Name = "toolStripSeparator17";
+            this.toolStripSeparator17.Size = new System.Drawing.Size(240, 6);
+            // 
+            // rebootBatoceraHostToolStripMenuItem
+            // 
+            this.rebootBatoceraHostToolStripMenuItem.Name = "rebootBatoceraHostToolStripMenuItem";
+            this.rebootBatoceraHostToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.rebootBatoceraHostToolStripMenuItem.Text = "Reboot Batocera Host";
+            this.rebootBatoceraHostToolStripMenuItem.Click += new System.EventHandler(this.rebootBatoceraHostToolStripMenuItem_Click);
+            // 
+            // shutdownBatoceraHostToolStripMenuItem
+            // 
+            this.shutdownBatoceraHostToolStripMenuItem.Name = "shutdownBatoceraHostToolStripMenuItem";
+            this.shutdownBatoceraHostToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.shutdownBatoceraHostToolStripMenuItem.Text = "Shutdown Batocera Host";
+            this.shutdownBatoceraHostToolStripMenuItem.Click += new System.EventHandler(this.shutdownBatoceraHostToolStripMenuItem_Click);
+            // 
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(48, 48);
@@ -789,7 +900,7 @@
             this.toolStripMenuItem2,
             this.editToolStripMenuItem1});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(200, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(200, 48);
             // 
             // toolStripMenuItem2
             // 
@@ -797,6 +908,13 @@
             this.toolStripMenuItem2.Size = new System.Drawing.Size(199, 22);
             this.toolStripMenuItem2.Text = "Copy Path To Clipboard";
             this.toolStripMenuItem2.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
+            // 
+            // editToolStripMenuItem1
+            // 
+            this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
+            this.editToolStripMenuItem1.Size = new System.Drawing.Size(199, 22);
+            this.editToolStripMenuItem1.Text = "Edit Image";
+            this.editToolStripMenuItem1.Click += new System.EventHandler(this.editToolStripMenuItem1_Click);
             // 
             // statusBar1
             // 
@@ -815,12 +933,12 @@
             this.progressBar1.Size = new System.Drawing.Size(113, 18);
             this.progressBar1.TabIndex = 7;
             // 
-            // editToolStripMenuItem1
+            // mapANetworkDriveToolStripMenuItem
             // 
-            this.editToolStripMenuItem1.Name = "editToolStripMenuItem1";
-            this.editToolStripMenuItem1.Size = new System.Drawing.Size(199, 22);
-            this.editToolStripMenuItem1.Text = "Edit Image";
-            this.editToolStripMenuItem1.Click += new System.EventHandler(this.editToolStripMenuItem1_Click);
+            this.mapANetworkDriveToolStripMenuItem.Name = "mapANetworkDriveToolStripMenuItem";
+            this.mapANetworkDriveToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.mapANetworkDriveToolStripMenuItem.Text = "Map A Network Drive";
+            this.mapANetworkDriveToolStripMenuItem.Click += new System.EventHandler(this.mapANetworkDriveToolStripMenuItem_ClickAsync);
             // 
             // GamelistManager
             // 
@@ -935,6 +1053,20 @@
         private System.Windows.Forms.Label labelFavoriteCount;
         private System.Windows.Forms.Label labelFavorite;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem RemoteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stopEmulationstationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem rebootBatoceraHostToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setupSSHToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator14;
+        private System.Windows.Forms.ToolStripMenuItem connectToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
+        private System.Windows.Forms.ToolStripMenuItem getVersionInformationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator16;
+        private System.Windows.Forms.ToolStripMenuItem stopRunningEmulatorsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showAvailableUpdatesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator17;
+        private System.Windows.Forms.ToolStripMenuItem shutdownBatoceraHostToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mapANetworkDriveToolStripMenuItem;
     }
 }
 
