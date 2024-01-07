@@ -25,7 +25,7 @@ It offers functionality to:
 - Create a terminal session to your Batocera host (openSSH)
 - Save your cleaned up gamelist!
 
-The easiest method of use is to map a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux
+The easiest method of use is to map a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux.  The program can now securely story your credentials and map a network drive for you if you are not familiar with doing that.
 
 VLCSharp is used for video playback because it supports the different codecs required for various video file playback.  I am only building for 64bit to reduce source and release size.    
 
