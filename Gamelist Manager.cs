@@ -9,6 +9,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Resources;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -26,7 +29,6 @@ namespace GamelistManager
         private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
-        private string batoceraHostName;
 
 
         public GamelistManager()
@@ -68,7 +70,6 @@ namespace GamelistManager
 
         private void ApplyFilters(string visibilityFilter, string genreFilter)
         {
-
             DataTable dataTable = (DataTable)dataGridView1.DataSource;
             // Merge the genre filter with the visibility filter using "AND" if both are not empty
             string mergedFilter;
@@ -82,7 +83,9 @@ namespace GamelistManager
             }
 
             // Set the modified RowFilter
+
             dataTable.DefaultView.RowFilter = mergedFilter;
+
         }
 
         private void DataGridView1_SelectionChanged(object sender, EventArgs e)
@@ -186,6 +189,7 @@ namespace GamelistManager
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            pictureBox1.Image = Properties.Resources.gamelistmanager;
             splitContainer2.Panel2Collapsed = true;
             foreach (ToolStripMenuItem menuItem in menuStrip1.Items)
             {
@@ -568,7 +572,7 @@ namespace GamelistManager
             DataSet.Tables[0].Columns.Add("missing", typeof(bool));
             SetColumnOrdinals(DataSet.Tables[0],
                 ("missing", 0),
-                ("uplayable", 1),
+                ("unplayable", 1),
                 ("hidden", 2),
                 ("favorite", 3),
                 ("path", 4),
@@ -632,8 +636,13 @@ namespace GamelistManager
 
         private void SetColumnTags()
         {
+            DataGridViewTextBoxColumn imageColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["video"];
+
+            // Setting the Tag property for the "image" column
+            imageColumn.Tag = "video";
+
+
             // Set image column tags
-            string columnTag = "image";
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 // Check each cell in the column for a picture filename with ".jpg" or ".png" extension
@@ -648,7 +657,7 @@ namespace GamelistManager
 
                         if (fileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
                         {
-                            column.Tag = columnTag;
+                            column.Tag = "image";
                             break; // If at least one cell has a matching filename, set the tag and break the loop
                         }
                     }
@@ -692,6 +701,7 @@ namespace GamelistManager
 
             if (index > 1)
             {
+                selectedItem = selectedItem.Replace("'", "''");
                 genreFilter = $"genre = '{selectedItem}'";
             }
 
@@ -733,9 +743,22 @@ namespace GamelistManager
             saveFileToolStripMenuItem.Enabled = true;
             reloadGamelistxmlToolStripMenuItem.Enabled = true;
 
-        }
 
-        private void LoadLastFilenamesToMenu()
+            string romPath = Path.GetFileName(Path.GetDirectoryName(XMLFilename));
+            Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
+            //Image image = LoadImageFromResource(romPath);
+         
+            if (image is Image)
+            {
+                pictureBox1.Image = image;
+            }
+            else
+            {
+                pictureBox1.Image = Properties.Resources.gamelistmanager;
+            }
+
+            }
+         private void LoadLastFilenamesToMenu()
         {
             try
             {
@@ -1675,7 +1698,7 @@ namespace GamelistManager
             public string Status { get; set; }
         }
 
-        private List<MediaObject> GetMediaList()
+        private List<MediaObject> GetMediaList(string mediaType)
         {
             List<MediaObject> mediaList = new List<MediaObject>();
 
@@ -1684,7 +1707,7 @@ namespace GamelistManager
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 // Check if the column tag is set to "image"
-                if (column.Tag != null && column.Tag.ToString() == "image")
+                if (column.Tag != null && column.Tag.ToString() == mediaType)
                 {
                     foreach (DataGridViewRow row in dataGridView1.Rows)
                     {
@@ -1715,7 +1738,7 @@ namespace GamelistManager
         private void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-            List<MediaObject> mediaList = GetMediaList();
+            List<MediaObject> mediaList = GetMediaList("image");
             int totalFiles = mediaList.Count;
 
             DialogResult result = MessageBox.Show($"This will check {totalFiles} item images for being single color, missing or corrupt.  This may take a few minutes depending on how many images need to be checked.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -2189,12 +2212,14 @@ namespace GamelistManager
                 return;
             }
 
-            string networkShareToCheck = $"\\\\{hostName}\\share"; // Change this to the network share path
-            bool isMapped = NetworkShareChecker.IsNetworkShareMapped(networkShareToCheck);
+            string networkShareToCheck = $"\\\\{hostName}\\share";
+            
+            bool isMapped = DriveMappingChecker.IsShareMapped(networkShareToCheck);
 
+            
             if (isMapped == true)
             {
-                MessageBox.Show($"There is already a drive mapping for {networkShareToCheck}", "Map Network Drive", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"There already is a drive mapping for {networkShareToCheck}", "Map Network Drive", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -2223,8 +2248,130 @@ namespace GamelistManager
             }
 
         }
+    public class DriveMappingChecker
+    {
+        [DllImport("mpr.dll", CharSet = CharSet.Auto)]
+        public static extern int WNetGetConnection(
+            [MarshalAs(UnmanagedType.LPTStr)] string localName,
+            [MarshalAs(UnmanagedType.LPTStr)] System.Text.StringBuilder remoteName,
+            ref int length);
 
+        public static bool IsShareMapped(string networkPath)
+        {
+            try
+            {
+                // Iterate through drive letters (A-Z) and check if any is mapped to the specified network path
+                for (char driveLetter = 'A'; driveLetter <= 'Z'; driveLetter++)
+                {
+                    string drive = driveLetter + ":";
+
+                    System.Text.StringBuilder remoteName = new System.Text.StringBuilder(256);
+                    int length = remoteName.Capacity;
+
+                    // Call WNetGetConnection to get the remote name for the specified drive letter
+                    int result = WNetGetConnection(drive, remoteName, ref length);
+
+                    if (result == 0)
+                    {
+                        // Check if the mapped path matches the desired network path
+                        if (string.Equals(remoteName.ToString(), networkPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking drive mapping: {ex.Message}");
+                return false;
+            }
+        }
     }
 
+
+
+    private void checkForMissingVideosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<MediaObject> mediaList = GetMediaList("video");
+            int totalFiles = mediaList.Count;
+
+            statusBar1.Text = "Checking images...";
+
+            ProgressBarInitialize(0, totalFiles);
+
+            int missingVideos = 0;
+            
+            foreach (var mediaObject in mediaList)
+            {
+                string fileName = mediaObject.FullPath;
+                int rowIndex = mediaObject.RowIndex;
+                int columnIndex = mediaObject.ColumnIndex;
+            
+                bool fileExists = File.Exists(fileName);
+
+                if (!fileExists)
+                {
+                    missingVideos++;
+                    mediaObject.Status = "missing";
+                }
+
+                // Update progress bar
+                ProgressBarIncrement();
+            }
+
+            statusBar1.Text = XMLFilename;
+
+            ProgressBarReset();
+
+            if (missingVideos == 0)
+            {
+                MessageBox.Show("There are no missing videos", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string are = "are";
+            string videos = "videos";
+            if (missingVideos == 1)
+            {
+                are = "is";
+                videos = "video";
+            }
+
+            DialogResult result = MessageBox.Show($"There {are} {missingVideos} missing {videos}.  Do you want to clear these paths?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            // Make a filtered list where Status isn't empty
+            List<MediaObject> filteredMediaObjects = mediaList.Where(obj => !string.IsNullOrEmpty(obj.Status)).ToList();
+
+            DialogResult result2 = MessageBox.Show($"Would like a list created first?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result2 == DialogResult.Yes)
+            {
+                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "missing_videos.csv";
+                if (ExportToCSV(filteredMediaObjects, csvFileName))
+                {
+                    MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"There was an error saving file '{csvFileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            foreach (var mediaObject in filteredMediaObjects)
+            {
+                int rowIndex = mediaObject.RowIndex;
+                int columnIndex = mediaObject.ColumnIndex;
+                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
+            }
+        }
+    }
 }
 
