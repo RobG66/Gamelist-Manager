@@ -1,8 +1,13 @@
-<h1>Gamelist Manager 2</h1>
+![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
-![Untitled](https://github.com/RobG66/Gamelist-Manager/assets/91415974/ad16f981-788e-47e9-90c5-32e0dcf60b5a)
-![Untitled2](https://github.com/RobG66/Gamelist-Manager/assets/91415974/32050796-01e7-4155-893c-d84a5c864872)
-![Untitled3](https://github.com/RobG66/Gamelist-Manager/assets/91415974/32eb947d-1673-48f4-a266-f59112c4ec58)
+![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/8fd797d5-df41-4927-bfc9-9c89ccf06b9f)
+
+![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/2186b78a-e3b9-4b8e-98ff-ec5ff0bfca74)
+
+![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/68f57414-dbbd-4515-ba48-4133cae1120d)
+
+![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/5792cef6-100b-4c35-97a5-a78d08b44fe3)
+
 
 Gamelist Manager is a gamelist management tool for Batocera gamelists.  This is version 2.x which is a complete c# rewrite of the original powershell tool.  
 
