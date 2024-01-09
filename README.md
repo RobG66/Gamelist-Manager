@@ -18,19 +18,28 @@ It offers functionality to:
 - Edit or delete items from the gamelist
 - Clear or update scraper dates
 - Identify non-playable MAME roms
+- Run specific remote SSH commands on your Batocera host
+- Securely save your Batocera credentials
+- Map a network drive assistance
+- Open images in default editor
+- Create a terminal session to your Batocera host (openSSH)
 - Save your cleaned up gamelist!
 
-The easiest method of use is to map a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux
+The primary method of use requires mapping a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux.  The program can now securely store your credentials and assist you mapping a network drive if you like.
 
 VLCSharp is used for video playback because it supports the different codecs required for various video file playback.  I am only building for 64bit to reduce source and release size.    
 
-Most of the essential features I inteded to have are available now, but there are a few more things I want to add.  I want to create a handle for the missing/corrupt/single color images so you can either delete them or just get a list of the offending files.  
+SSH.NET is used for SSH remoting
 
-Scraping support is a possibility if there's an API or perhaps I can make my own web scraper.  
+Windows Credential Manager is used for saving credentials.  I thought about using public/private keys for authentication, but credential manager was still far simpler and straightfoward to use.
+
+Most of the essential features I inteded to have are available now, but there's always room for improvement.  I feel like trying to add scraping will be reinventing the wheel and this functionality is already built into Batocera.  
+
 
     - Method of use:
     - map a network drive to your batocera share (\\batocera\share).
     - Load gamelists from the new network drive.
-    - I recommend first stopping ES on your batocera.  Connect by SSH (putty) and run: 
-    - /etc/init.d/S31emulationstation stop
+    - I recommend first stopping ES on your batocera host which can now be done from the remote menu.
+    
+    
 
