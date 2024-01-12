@@ -28,6 +28,7 @@ It offers functionality to:
 - Map a network drive assistance
 - Open images in default editor
 - Create a terminal session to your Batocera host (openSSH)
+- Scrape????  Who knows?!  I'm now tinkering with that.
 - Save your cleaned up gamelist!
 
 The primary method of use requires mapping a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux.  The program can now securely store your credentials and assist you mapping a network drive if you like.
