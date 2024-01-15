@@ -539,7 +539,7 @@ namespace GamelistManager
                     // Check if the column already exists in the main table, if not, add it
                     if (!mainTable.Columns.Contains(columnName))
                     {
-                        mainTable.Columns.Add(columnName.ToLower(), typeof(string));
+                       mainTable.Columns.Add(columnName.ToLower(), typeof(string));
                     }
 
                     // Set the value in the main row
@@ -571,8 +571,11 @@ namespace GamelistManager
             }
 
             //Add scraper columns
-            AddScrapColumns(
-            DataSet.Tables[0], DataSet.Tables[1], "scrap_");
+
+            if (DataSet.Tables.Count > 1) {
+                AddScrapColumns(
+                DataSet.Tables[0], DataSet.Tables[1], "scrap_");
+            }
 
             //Convert true/false columns to boolean
             ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
@@ -649,10 +652,10 @@ namespace GamelistManager
             // Column tags are used to identify columns as temp, video or image
 
             // Set temp tags on columns we will discard before saving
-            DataGridViewTextBoxColumn tempColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["missing"];
+            DataGridViewColumn tempColumn = (DataGridViewColumn)dataGridView1.Columns["missing"];
             tempColumn.Tag = "temp";
 
-            DataGridViewTextBoxColumn tempColumn2 = (DataGridViewTextBoxColumn)dataGridView1.Columns["unplayable"];
+            DataGridViewColumn tempColumn2 = (DataGridViewColumn)dataGridView1.Columns["unplayable"];
             tempColumn2.Tag = "temp";
 
             foreach (DataGridViewColumn column in dataGridView1.Columns)
@@ -1286,16 +1289,20 @@ namespace GamelistManager
 
             Cursor.Current = Cursors.WaitCursor;
 
-            //Remove all temporary columns
-            foreach (DataGridView column in dataGridView1.Columns)
+            // Remove all temporary columns
+            // Has to be done in reverse order
+            for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
             {
-                if (column.Tag != null && column.Tag.ToString() == "temp")
+                DataGridViewColumn column = dataGridView1.Columns[i];
+
+                if (column.Tag != null && column.Tag.ToString() == "temp" || column.Name.StartsWith("scrap_"))
+
                 {
                     string columnName = column.Name;
-                    DataSet.Tables[0].Columns.Remove(columnName);
+                    dataGridView1.Columns.Remove(columnName);
                 }
-
             }
+
 
             // Set a few ordinals
             // Tidy up
