@@ -127,7 +127,7 @@
             this.Controls.Add(this.radioButton2);
             this.Controls.Add(this.radioButton1);
             this.Name = "Popup1";
-            this.Text = "Form1";
+            this.Text = "Image Handler";
             this.Load += new System.EventHandler(this.Popup1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -303,6 +303,16 @@ namespace GamelistManager.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap background11 {
+            get {
+                object obj = ResourceManager.GetObject("background11", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap bbc {
             get {
                 object obj = ResourceManager.GetObject("bbc", resourceCulture);
@@ -1446,6 +1456,16 @@ namespace GamelistManager.Properties {
         internal static System.Drawing.Bitmap saturn {
             get {
                 object obj = ResourceManager.GetObject("saturn", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap scraperlogo {
+            get {
+                object obj = ResourceManager.GetObject("scraperlogo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -1,4 +1,5 @@
-﻿using LibVLCSharp.Shared;
+﻿using GamelistManager.form;
+using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
 using Renci.SshNet;
 using System;
@@ -10,14 +11,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Resources;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using File = System.IO.File;
-
 
 namespace GamelistManager
 {
@@ -25,10 +22,14 @@ namespace GamelistManager
     {
         private DataSet DataSet;
         private TableLayoutPanel TableLayoutPanel1;
-        private string XMLFilename;
+        public string XMLFilename { get; set; }
         private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
+        public DataGridView MainDataGridView
+        {
+            get { return dataGridView1; }
+        }
 
 
         public GamelistManager()
@@ -104,10 +105,8 @@ namespace GamelistManager
 
         }
 
-
         private string GetGenreFilter()
         {
-
             // Get the DataTable bound to the DataGridView
             DataTable dataTable = (DataTable)dataGridView1.DataSource;
 
@@ -189,12 +188,23 @@ namespace GamelistManager
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // Get the assembly of the current executing code
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            // Get the version information
+            Version version = assembly.GetName().Version;
+
+            // Print the version number
+            this.Text = $"Gamelist Manager {version.Major}.{version.Minor}";
+
             pictureBox1.Image = Properties.Resources.gamelistmanager;
             splitContainer2.Panel2Collapsed = true;
+         
             foreach (ToolStripMenuItem menuItem in menuStrip1.Items)
             {
                 menuItem.Enabled = false;
             }
+            
             fileToolStripMenuItem.Enabled = true;
             reloadGamelistxmlToolStripMenuItem.Enabled = false;
             saveFileToolStripMenuItem.Enabled = false;
@@ -636,31 +646,46 @@ namespace GamelistManager
 
         private void SetColumnTags()
         {
-            DataGridViewTextBoxColumn imageColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["video"];
+            // Column tags are used to identify columns as temp, video or image
 
-            // Setting the Tag property for the "image" column
-            imageColumn.Tag = "video";
+            // Set temp tags on columns we will discard before saving
+            DataGridViewTextBoxColumn tempColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["missing"];
+            tempColumn.Tag = "temp";
 
+            DataGridViewTextBoxColumn tempColumn2 = (DataGridViewTextBoxColumn)dataGridView1.Columns["unplayable"];
+            tempColumn2.Tag = "temp";
 
-            // Set image column tags
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
-                // Check each cell in the column for a picture filename with ".jpg" or ".png" extension
-                foreach (DataGridViewRow row in dataGridView1.Rows)
+                if (column.Name.Contains("scrap_"))
                 {
-                    object cellValue = row.Cells[column.Index].Value;
+                    column.Tag = "temp";
+                }
+            }
 
-                    // Check if the cell value is a filename with ".jpg" or ".png" extension
-                    if (cellValue != null)
-                    {
-                        string fileName = cellValue.ToString().ToLower();
+            // There's only 1 video column and it's named video.  But set the tag anyhow
+            DataGridViewTextBoxColumn imageColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["video"];
+            imageColumn.Tag = "video";
 
-                        if (fileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || fileName.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-                        {
-                            column.Tag = "image";
-                            break; // If at least one cell has a matching filename, set the tag and break the loop
-                        }
-                    }
+            // Set image column tags
+            string[] imageTypes = {
+            "image",
+            "marquee",
+            "thumbnail",
+            "fanart",
+            "titleshot",
+            "manual",
+            "magazine",
+            "map",
+            "bezel"
+            }; 
+
+            foreach (DataGridViewColumn column in dataGridView1.Columns)
+            {
+                string columnName = column.Name.ToString().ToLower();
+                if (imageTypes.Contains(columnName))
+                {
+                    column.Tag = "image";
                 }
             }
         }
@@ -688,6 +713,15 @@ namespace GamelistManager
 
         private void ComboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ChangeGenreViaCombobox();
+        }
+
+        private void ChangeGenreViaCombobox()
+        {
+            if (comboBox1.Enabled == false)
+            {
+                return;
+            }
             int index = comboBox1.SelectedIndex;
             string selectedItem = comboBox1.SelectedItem as string;
 
@@ -725,6 +759,8 @@ namespace GamelistManager
             showGenreOnlyToolStripMenuItem.Checked = false;
             verifyRomPathsToolStripMenuItem.Checked = false;
             ShowMediaToolStripMenuItem.Checked = false;
+            checkBox1.Enabled = true;
+            comboBox1.Enabled = true;
 
             foreach (ToolStripMenuItem item in menuStrip1.Items)
             {
@@ -743,12 +779,11 @@ namespace GamelistManager
             saveFileToolStripMenuItem.Enabled = true;
             reloadGamelistxmlToolStripMenuItem.Enabled = true;
 
-
             string romPath = Path.GetFileName(Path.GetDirectoryName(XMLFilename));
-            Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
+            System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
             //Image image = LoadImageFromResource(romPath);
-         
-            if (image is Image)
+
+            if (image is System.Drawing.Image)
             {
                 pictureBox1.Image = image;
             }
@@ -757,8 +792,8 @@ namespace GamelistManager
                 pictureBox1.Image = Properties.Resources.gamelistmanager;
             }
 
-            }
-         private void LoadLastFilenamesToMenu()
+        }
+        private void LoadLastFilenamesToMenu()
         {
             try
             {
@@ -970,7 +1005,7 @@ namespace GamelistManager
             Cursor.Current = Cursors.Default;
         }
 
-        private string ExtractPath(string originalPath)
+        public string ExtractPath(string originalPath)
         {
             // Use regex to match the pattern and extract the desired value
             Match match = Regex.Match(originalPath, "/([^/]+)\\.[^/.]+$");
@@ -1239,7 +1274,7 @@ namespace GamelistManager
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            dataGridView1.SuspendLayout();
             string destinationFileName = Path.ChangeExtension(XMLFilename, "old");
 
             DialogResult result = MessageBox.Show($"Do you save the file '{XMLFilename}'?\nA backup will be saved as {destinationFileName}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -1249,35 +1284,27 @@ namespace GamelistManager
                 return;
             }
 
-
             Cursor.Current = Cursors.WaitCursor;
 
             //Remove all temporary columns
-            //Identify extra columns created earlier
-            List<DataColumn> columnsToDelete = new List<DataColumn>();
-            foreach (DataColumn column in DataSet.Tables[0].Columns)
+            foreach (DataGridView column in dataGridView1.Columns)
             {
-                if (column.ColumnName.StartsWith("scrap_") || column.ColumnName.Contains("missing"))
+                if (column.Tag != null && column.Tag.ToString() == "temp")
                 {
-                    columnsToDelete.Add(column);
+                    string columnName = column.Name;
+                    DataSet.Tables[0].Columns.Remove(columnName);
                 }
-            }
 
-            // Delete identified columns
-            foreach (DataColumn columnToDelete in columnsToDelete)
-            {
-                DataSet.Tables[0].Columns.Remove(columnToDelete.ColumnName);
             }
 
             // Set a few ordinals
+            // Tidy up
             SetColumnOrdinals(DataSet.Tables[0],
                 ("name", 0),
                 ("path", 1),
                 ("genre", 2),
                 ("hidden", 3)
             );
-
-
 
             // Since the deleted columns were removed, make sure these are not checked
             verifyRomPathsToolStripMenuItem.Checked = false;
@@ -1292,6 +1319,10 @@ namespace GamelistManager
             Cursor.Current = Cursors.Default;
 
             MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
+
+            // Reload after save
+            dataGridView1.ResumeLayout();
+            LoadXML(XMLFilename);
         }
 
         private void ScraperDatesToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
@@ -2213,10 +2244,10 @@ namespace GamelistManager
             }
 
             string networkShareToCheck = $"\\\\{hostName}\\share";
-            
+
             bool isMapped = DriveMappingChecker.IsShareMapped(networkShareToCheck);
 
-            
+
             if (isMapped == true)
             {
                 MessageBox.Show($"There already is a drive mapping for {networkShareToCheck}", "Map Network Drive", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -2248,52 +2279,52 @@ namespace GamelistManager
             }
 
         }
-    public class DriveMappingChecker
-    {
-        [DllImport("mpr.dll", CharSet = CharSet.Auto)]
-        public static extern int WNetGetConnection(
-            [MarshalAs(UnmanagedType.LPTStr)] string localName,
-            [MarshalAs(UnmanagedType.LPTStr)] System.Text.StringBuilder remoteName,
-            ref int length);
-
-        public static bool IsShareMapped(string networkPath)
+        public class DriveMappingChecker
         {
-            try
+            [DllImport("mpr.dll", CharSet = CharSet.Auto)]
+            public static extern int WNetGetConnection(
+                [MarshalAs(UnmanagedType.LPTStr)] string localName,
+                [MarshalAs(UnmanagedType.LPTStr)] System.Text.StringBuilder remoteName,
+                ref int length);
+
+            public static bool IsShareMapped(string networkPath)
             {
-                // Iterate through drive letters (A-Z) and check if any is mapped to the specified network path
-                for (char driveLetter = 'A'; driveLetter <= 'Z'; driveLetter++)
+                try
                 {
-                    string drive = driveLetter + ":";
-
-                    System.Text.StringBuilder remoteName = new System.Text.StringBuilder(256);
-                    int length = remoteName.Capacity;
-
-                    // Call WNetGetConnection to get the remote name for the specified drive letter
-                    int result = WNetGetConnection(drive, remoteName, ref length);
-
-                    if (result == 0)
+                    // Iterate through drive letters (A-Z) and check if any is mapped to the specified network path
+                    for (char driveLetter = 'A'; driveLetter <= 'Z'; driveLetter++)
                     {
-                        // Check if the mapped path matches the desired network path
-                        if (string.Equals(remoteName.ToString(), networkPath, StringComparison.OrdinalIgnoreCase))
+                        string drive = driveLetter + ":";
+
+                        System.Text.StringBuilder remoteName = new System.Text.StringBuilder(256);
+                        int length = remoteName.Capacity;
+
+                        // Call WNetGetConnection to get the remote name for the specified drive letter
+                        int result = WNetGetConnection(drive, remoteName, ref length);
+
+                        if (result == 0)
                         {
-                            return true;
+                            // Check if the mapped path matches the desired network path
+                            if (string.Equals(remoteName.ToString(), networkPath, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return true;
+                            }
                         }
                     }
-                }
 
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error checking drive mapping: {ex.Message}");
-                return false;
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error checking drive mapping: {ex.Message}");
+                    return false;
+                }
             }
         }
-    }
 
 
 
-    private void checkForMissingVideosToolStripMenuItem_Click(object sender, EventArgs e)
+        private void checkForMissingVideosToolStripMenuItem_Click(object sender, EventArgs e)
         {
             List<MediaObject> mediaList = GetMediaList("video");
             int totalFiles = mediaList.Count;
@@ -2303,13 +2334,13 @@ namespace GamelistManager
             ProgressBarInitialize(0, totalFiles);
 
             int missingVideos = 0;
-            
+
             foreach (var mediaObject in mediaList)
             {
                 string fileName = mediaObject.FullPath;
                 int rowIndex = mediaObject.RowIndex;
                 int columnIndex = mediaObject.ColumnIndex;
-            
+
                 bool fileExists = File.Exists(fileName);
 
                 if (!fileExists)
@@ -2372,6 +2403,51 @@ namespace GamelistManager
                 dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
             }
         }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.RowCount == 0) { return; }
+
+            if (checkBox1.Checked == true)
+            {
+                textBox1.Enabled = true;
+                textBox1.BackColor = SystemColors.Info;
+                comboBox1.Enabled = false;
+            }
+            else
+            {
+                textBox1.Enabled = false;
+                textBox1.BackColor = SystemColors.Window;
+                textBox1.Text = "";
+                comboBox1.Enabled = true;
+                ChangeGenreViaCombobox();
+
+            }
+        }
+
+        private void textBox1_KeyUp(object sender, KeyEventArgs e)
+        {
+            string text = textBox1.Text;
+
+            //selectedItem = selectedItem.Replace("'", "''");
+            string genreFilter = $"genre LIKE '*{text}*'";
+            string visibilityFilter = Getvisibilityfilter();
+            ApplyFilters(visibilityFilter, genreFilter);
+        }
+
+        private void scrapeItemToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Scraper scraper = new Scraper();
+            scraper.Owner = this;
+            // Set the start position and location
+            scraper.StartPosition = FormStartPosition.Manual;
+            scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+            scraper.ShowDialog();
+        }
+
     }
+
 }
+
+
 
