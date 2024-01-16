@@ -12,8 +12,12 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 using File = System.IO.File;
 
 namespace GamelistManager
@@ -577,6 +581,42 @@ namespace GamelistManager
                 DataSet.Tables[0], DataSet.Tables[1], "scrap_");
             }
 
+            string[] columnNames = {
+                "name",
+                "sortname",
+                "desc",
+                "rating",
+                "releasedate",
+                "developer",
+                "publisher",
+                "genre",
+                "players",
+                "lang",
+                "region",
+                "hidden",
+                "favorite",
+                "image",
+                "video",
+                "marquee",
+                "thumbnail",
+                "fanart",
+                "titleshot",
+                "manual",
+                "magazine",
+                "map",
+                "bezel"
+            };
+
+            // Add default columns if this is a sparse gamelist.xml file
+            foreach (string columnName in columnNames)
+            {
+                if (!DataSet.Tables[0].Columns.Contains(columnName))
+                {
+                    // If the column doesn't exist, add it to the DataTable
+                    DataSet.Tables[0].Columns.Add(columnName, typeof(string)); 
+                }
+            }
+
             //Convert true/false columns to boolean
             ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
             ConvertColumnToBoolean(DataSet.Tables[0], "favorite");
@@ -660,7 +700,7 @@ namespace GamelistManager
 
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
-                if (column.Name.Contains("scrap_"))
+                if (column.Name.StartsWith("scrap_"))
                 {
                     column.Tag = "temp";
                 }
@@ -669,7 +709,7 @@ namespace GamelistManager
             // There's only 1 video column and it's named video.  But set the tag anyhow
             DataGridViewTextBoxColumn imageColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["video"];
             imageColumn.Tag = "video";
-
+            
             // Set image column tags
             string[] imageTypes = {
             "image",
@@ -900,15 +940,12 @@ namespace GamelistManager
         private void Updatecolumnview(object sender)
         {
             ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
-            bool visible;
+            bool visible = false;
             if (menuItem.Checked)
             {
                 visible = true;
             }
-            else
-            {
-                visible = false;
-            }
+           
             string columnName = menuItem.Text.Replace(" ", "").ToLower();
 
             if (dataGridView1.Columns.Contains(columnName))
@@ -1277,7 +1314,6 @@ namespace GamelistManager
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            dataGridView1.SuspendLayout();
             string destinationFileName = Path.ChangeExtension(XMLFilename, "old");
 
             DialogResult result = MessageBox.Show($"Do you save the file '{XMLFilename}'?\nA backup will be saved as {destinationFileName}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -1289,20 +1325,32 @@ namespace GamelistManager
 
             Cursor.Current = Cursors.WaitCursor;
 
-            // Remove all temporary columns
-            // Has to be done in reverse order
+            // Remove all temporary and empty columns
+            DataTable dataTable = DataSet.Tables[0];
             for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
             {
                 DataGridViewColumn column = dataGridView1.Columns[i];
+                string columnName = column.Name;
 
-                if (column.Tag != null && column.Tag.ToString() == "temp" || column.Name.StartsWith("scrap_"))
-
+                // Remove from the DataGridView
+                if (column.Tag != null && column.Tag.ToString() == "temp")
                 {
-                    string columnName = column.Name;
-                    dataGridView1.Columns.Remove(columnName);
+                    dataGridView1.Columns.RemoveAt(i);
+                }
+
+                // Check if the column exists in the DataTable
+                if (dataTable.Columns.Contains(columnName))
+                {
+                    // Check if all values in the column are null
+                    bool allNull = dataTable.AsEnumerable().All(row => row.IsNull(columnName));
+
+                    // If all values are null, remove the column
+                    if (allNull)
+                    {
+                        dataTable.Columns.Remove(columnName);
+                    }
                 }
             }
-
 
             // Set a few ordinals
             // Tidy up
@@ -1324,12 +1372,12 @@ namespace GamelistManager
             DataSet.WriteXml(XMLFilename);
 
             Cursor.Current = Cursors.Default;
+            // Reload after save
+            LoadXML(XMLFilename);
 
             MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
 
-            // Reload after save
-            dataGridView1.ResumeLayout();
-            LoadXML(XMLFilename);
+
         }
 
         private void ScraperDatesToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
@@ -2452,6 +2500,29 @@ namespace GamelistManager
             scraper.ShowDialog();
         }
 
+        private void checkForAddedItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            string fileExtension = ".zip";
+            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
+
+            string[] zipFiles = Directory.GetFiles(parentFolderPath, $"*{fileExtension}");
+
+            foreach ( string zipFile in zipFiles )
+            {
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(zipFile);
+                string fileNameWithoutPath = Path.GetFileName(zipFile);
+                DataRow newRow = DataSet.Tables[0].NewRow();
+                newRow["name"] = fileNameWithoutExtension;
+                newRow["path"] = $"./{fileNameWithoutPath}";
+                // Add the new row to the Rows collection of the DataTable
+                DataSet.Tables[0].Rows.Add(newRow);
+                
+            }
+            DataSet.Tables[0].AcceptChanges();
+
+
+        }
     }
 
 }

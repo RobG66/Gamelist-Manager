@@ -46,6 +46,7 @@ namespace GamelistManager.form
             // Therefore a dictionary is made to cross reference
             // We can loop through the controls and elements all at once.
             // Checkbox controls are also named for Batocera element names
+            Metadata.Add("name", "title");
             Metadata.Add("desc", "history");
             Metadata.Add("genre", "genre");
             Metadata.Add("players", "players");
@@ -146,7 +147,7 @@ namespace GamelistManager.form
                         // Check for empty scrape value
                         if (string.IsNullOrEmpty(scrapedValue))
                         {
-                            return;
+                            continue;
                         }
 
                         if (!remotePropertyName.Contains("url_")) {
@@ -156,14 +157,14 @@ namespace GamelistManager.form
                             {
                                 row.Cells[localPropertyName].Value = scrapedValue;
                             }
-                            return;
+                            continue;
                         }
 
                         // Image handling
                         string remoteDownloadURL = scrapedValue;
 
                         if (string.IsNullOrEmpty(remoteDownloadURL)) {
-                            return;
+                            continue;
                         }
 
                         // What are we downloading, a video or image?                                     

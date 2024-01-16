@@ -126,6 +126,9 @@
             this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.statusBar1 = new System.Windows.Forms.StatusBar();
+            this.checkForAddedItemsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator18 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator19 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -151,7 +154,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -412,7 +415,6 @@
             // menuStrip1
             // 
             this.menuStrip1.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.ViewToolStripMenuItem,
@@ -811,8 +813,11 @@
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mAMEHighlightUnplayableToolStripMenuItem,
+            this.toolStripSeparator18,
             this.checkForSingleColorImagesToolStripMenuItem,
-            this.checkForMissingVideosToolStripMenuItem});
+            this.checkForMissingVideosToolStripMenuItem,
+            this.toolStripSeparator19,
+            this.checkForAddedItemsToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -952,7 +957,7 @@
             // scrapeItemToolStripMenuItem
             // 
             this.scrapeItemToolStripMenuItem.Name = "scrapeItemToolStripMenuItem";
-            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.scrapeItemToolStripMenuItem.Text = "Scrape Item";
             this.scrapeItemToolStripMenuItem.Click += new System.EventHandler(this.scrapeItemToolStripMenuItem_Click);
             // 
@@ -996,6 +1001,23 @@
             this.statusBar1.TabIndex = 6;
             this.statusBar1.Text = "Ready";
             // 
+            // checkForAddedItemsToolStripMenuItem
+            // 
+            this.checkForAddedItemsToolStripMenuItem.Name = "checkForAddedItemsToolStripMenuItem";
+            this.checkForAddedItemsToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
+            this.checkForAddedItemsToolStripMenuItem.Text = "Check For Added Items";
+            this.checkForAddedItemsToolStripMenuItem.Click += new System.EventHandler(this.checkForAddedItemsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator18
+            // 
+            this.toolStripSeparator18.Name = "toolStripSeparator18";
+            this.toolStripSeparator18.Size = new System.Drawing.Size(248, 6);
+            // 
+            // toolStripSeparator19
+            // 
+            this.toolStripSeparator19.Name = "toolStripSeparator19";
+            this.toolStripSeparator19.Size = new System.Drawing.Size(248, 6);
+            // 
             // GamelistManager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1007,7 +1029,7 @@
             this.Controls.Add(this.statusBar1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.Margin = new System.Windows.Forms.Padding(1);
             this.MinimumSize = new System.Drawing.Size(415, 261);
             this.Name = "GamelistManager";
             this.Text = "Gamelist Manager";
@@ -1127,6 +1149,9 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.ToolStripMenuItem scraperToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem scrapeItemToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator18;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator19;
+        private System.Windows.Forms.ToolStripMenuItem checkForAddedItemsToolStripMenuItem;
     }
 }
 
