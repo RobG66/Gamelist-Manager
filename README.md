@@ -1,5 +1,15 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+Note: Source files have been updated with preliminary scraping support for arcade games via ArcadeDB.  I have
+not built a new package yet as I am still testing.  I also have API information for ScreenScraper.fr which I will
+look at shortly.  
+
+ Known limitations:
+  - Last scraper date is not set (yet)
+  - ArcadeDB scraping is limited in what it provides for images and metadata, but it is quick.
+  - Save after scrape probably wasn't implemented yet (missed).  Save manually or you lose your scraped metadata!
+  - There is no build yet, but source is current.  I will release a build when I have tested it more.
+
 ![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/8fd797d5-df41-4927-bfc9-9c89ccf06b9f)
 
 ![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/2186b78a-e3b9-4b8e-98ff-ec5ff0bfca74)
