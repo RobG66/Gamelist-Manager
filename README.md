@@ -5,10 +5,10 @@ not built a new package yet as I am still testing.  I also have API information 
 look at shortly.  
 
  Known limitations:
-     - Last scraper date is not set (yet)
-     - ArcadeDB scraping is limited in what it provides for images and metadata, but it is quick.
-     - Save after scrape probably wasn't implemented yet.  Do it manually or you lose your metadata!
-     - There is no build yet, but source is current.  I will release a build when I have tested it more.
+  - Last scraper date is not set (yet)
+  - ArcadeDB scraping is limited in what it provides for images and metadata, but it is quick.
+  - Save after scrape probably wasn't implemented yet (missed).  Save manually or you lose your scraped metadata!
+  - There is no build yet, but source is current.  I will release a build when I have tested it more.
 
 ![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/8fd797d5-df41-4927-bfc9-9c89ccf06b9f)
 
