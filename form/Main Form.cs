@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 using File = System.IO.File;
 
 namespace GamelistManager
@@ -225,7 +226,7 @@ namespace GamelistManager
                 return;
             }
 
-            if (dataGridView1.SelectedRows.Count != 1) { return; }
+            if (dataGridView1.SelectedRows.Count < 1) { return; }
 
             splitContainer2.Panel2Collapsed = false;
 
@@ -274,7 +275,7 @@ namespace GamelistManager
                 Font = new Font("Sego UI", 12, FontStyle.Bold),
                 AutoSize = true,
                 Anchor = AnchorStyles.None,
-                TextAlign = ContentAlignment.MiddleCenter
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             };
             return label;
         }
@@ -2498,6 +2499,57 @@ namespace GamelistManager
             scraper.ShowDialog();
         }
 
+        private void findNewItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            DialogResult result = MessageBox.Show("This will check for additional items and add them to your gamelist.  Search criteria will be based upon file extensions used for any existing items.\n\nDo you want to contine?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            List<string> uniqueFileExtensions = new List<string>();
+            foreach (DataRow row in DataSet.Tables[0].Rows)
+            {
+                // Assuming the "path" column contains file paths
+                string path = row["path"] as string;
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    // Extract the file extension using Path.GetExtension
+                    string extension = System.IO.Path.GetExtension(path).TrimStart('.');
+                    if (!uniqueFileExtensions.Contains(extension))
+                    {
+                        uniqueFileExtensions.Add(extension);
+                    }
+                }
+            }
+
+            string[] uniqueExtensions = uniqueFileExtensions.ToArray();
+
+            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
+
+            string[] filesArray = uniqueExtensions
+           .SelectMany(ext => Directory.GetFiles(parentFolderPath, $"*.{ext}"))
+           .ToArray();
+
+                foreach (string fileName in filesArray)
+                {
+                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+                    string fileNameWithoutPath = Path.GetFileName(fileName);
+                    DataRow newRow = DataSet.Tables[0].NewRow();
+                    newRow["name"] = fileNameWithoutExtension;
+                    newRow["path"] = $"./{fileNameWithoutPath}";
+                    // Add the new row to the Rows collection of the DataTable
+                    DataSet.Tables[0].Rows.Add(newRow);
+
+                }
+                DataSet.Tables[0].AcceptChanges();
+
+
+            }
+        
     }
 }
 

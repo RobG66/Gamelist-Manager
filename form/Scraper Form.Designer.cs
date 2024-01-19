@@ -30,7 +30,6 @@
         {
             this.radioScrapeSelected = new System.Windows.Forms.RadioButton();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.radioScrapeAll = new System.Windows.Forms.RadioButton();
             this.listBoxLog = new System.Windows.Forms.ListBox();
             this.checkBox14 = new System.Windows.Forms.CheckBox();
@@ -85,7 +84,6 @@
             this.panel1.BackColor = System.Drawing.Color.Transparent;
             this.panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.checkBox1);
             this.panel1.Controls.Add(this.radioScrapeAll);
             this.panel1.Controls.Add(this.listBoxLog);
             this.panel1.Controls.Add(this.checkBox14);
@@ -103,16 +101,6 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(449, 369);
             this.panel1.TabIndex = 2;
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(8, 114);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(99, 17);
-            this.checkBox1.TabIndex = 23;
-            this.checkBox1.Text = "Find New Items";
-            this.checkBox1.UseVisualStyleBackColor = true;
             // 
             // radioScrapeAll
             // 
@@ -532,6 +520,5 @@
         private System.Windows.Forms.CheckBox checkbox_publisher;
         private System.Windows.Forms.CheckBox checkbox_developer;
         private System.Windows.Forms.RadioButton radioScrapeAll;
-        private System.Windows.Forms.CheckBox checkBox1;
     }
 }

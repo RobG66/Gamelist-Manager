@@ -127,6 +127,8 @@
             this.editToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.statusBar1 = new System.Windows.Forms.StatusBar();
+            this.findNewItemsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator19 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -813,7 +815,9 @@
             this.mAMEHighlightUnplayableToolStripMenuItem,
             this.toolStripSeparator18,
             this.checkForSingleColorImagesToolStripMenuItem,
-            this.checkForMissingVideosToolStripMenuItem});
+            this.checkForMissingVideosToolStripMenuItem,
+            this.toolStripSeparator19,
+            this.findNewItemsToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -958,7 +962,7 @@
             // scrapeItemToolStripMenuItem
             // 
             this.scrapeItemToolStripMenuItem.Name = "scrapeItemToolStripMenuItem";
-            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.scrapeItemToolStripMenuItem.Text = "Scrape Item";
             this.scrapeItemToolStripMenuItem.Click += new System.EventHandler(this.scrapeItemToolStripMenuItem_Click);
             // 
@@ -1001,6 +1005,18 @@
             this.statusBar1.Size = new System.Drawing.Size(652, 20);
             this.statusBar1.TabIndex = 6;
             this.statusBar1.Text = "Ready";
+            // 
+            // findNewItemsToolStripMenuItem
+            // 
+            this.findNewItemsToolStripMenuItem.Name = "findNewItemsToolStripMenuItem";
+            this.findNewItemsToolStripMenuItem.Size = new System.Drawing.Size(251, 22);
+            this.findNewItemsToolStripMenuItem.Text = "Find New Items";
+            this.findNewItemsToolStripMenuItem.Click += new System.EventHandler(this.findNewItemsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator19
+            // 
+            this.toolStripSeparator19.Name = "toolStripSeparator19";
+            this.toolStripSeparator19.Size = new System.Drawing.Size(248, 6);
             // 
             // GamelistManager
             // 
@@ -1134,6 +1150,8 @@
         private System.Windows.Forms.ToolStripMenuItem scraperToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem scrapeItemToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator18;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator19;
+        private System.Windows.Forms.ToolStripMenuItem findNewItemsToolStripMenuItem;
     }
 }
 

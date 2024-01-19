@@ -354,31 +354,6 @@ namespace GamelistManager.form
                 progressBar1.Value++;
             }
         }
-
-        private void checkForAddedItemsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-            // This is just testing and we are assuming zip for text
-            string fileExtension = ".zip";
-            string parentFolderPath = Path.GetDirectoryName(((GamelistManager)this.Owner).XMLFilename);
-
-            string[] zipFiles = Directory.GetFiles(parentFolderPath, $"*{fileExtension}");
-
-            foreach (string zipFile in zipFiles)
-            {
-                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(zipFile);
-                string fileNameWithoutPath = Path.GetFileName(zipFile);
-                //       DataRow newRow = DataSet.Tables[0].NewRow();
-                //     newRow["name"] = fileNameWithoutExtension;
-                //   newRow["path"] = $"./{fileNameWithoutPath}";
-                // Add the new row to the Rows collection of the DataTable
-                //    DataSet.Tables[0].Rows.Add(newRow);
-
-            }
-            //DataSet.Tables[0].AcceptChanges();
-
-
-        }
     }
 
 
