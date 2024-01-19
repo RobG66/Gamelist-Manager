@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -29,6 +30,31 @@ namespace GamelistManager.form
             comboBox1.Enabled = radioScrapeSelected.Checked;
         }
 
+        private void saveReminder(bool complete)
+        {
+
+            string finish = null;
+            MessageBoxIcon icon = MessageBoxIcon.Information;
+
+            if (complete)
+            {
+                finish = "Scraping Completed!";
+            }
+            else
+            {
+                finish = "Scraping Was Cancelled!";
+                icon = MessageBoxIcon.Error;
+            }
+
+            if (!checkBox_Save.Checked)
+            {
+                MessageBox.Show($"{finish}", "Notice:", MessageBoxButtons.OK, icon);
+                return;
+            }
+
+            // Prompt to save here
+
+        }
 
         private async void button1_Click(object sender, EventArgs e)
         {
@@ -77,6 +103,7 @@ namespace GamelistManager.form
 
                 // Starting the scraping process
                 isScraping = true;
+                buttonStart.BackColor = Color.FromArgb(255, 128, 128);
                 buttonStart.Text = "Stop";
 
                 // Reset the cancellation token source
@@ -88,16 +115,21 @@ namespace GamelistManager.form
 
                 // Cleanup after scraping is complete or canceled
                 isScraping = false;
+                buttonStart.BackColor = Color.FromArgb(128, 255, 128);
                 buttonStart.Text = "Start";
+                // True that it finished on its own
+                saveReminder(true);
             }
             else
             {
                 // Stopping the scraping process
                 isScraping = false;
                 buttonStart.Text = "Start";
-
+                buttonStart.BackColor = Color.FromArgb(128, 255, 128);
                 // Cancel the ongoing operation
                 cancellationTokenSource?.Cancel();
+                // False if scrape was cancelled by user
+                saveReminder(false);
             }
         }
 
@@ -108,12 +140,13 @@ namespace GamelistManager.form
             GamelistManager gamelistManager = (GamelistManager)this.Owner;
             DataSet dataSet = gamelistManager.DataSet;
 
-            // Batocera and Scraper element names don't always align
+            // Batocera and ArcadeDB element names don't always align
             // Therefore a dictionary is made to cross reference
             Dictionary<string, string> Metadata = new Dictionary<string, string>();
             Metadata.Add("name", "title");
             Metadata.Add("desc", "history");
             Metadata.Add("genre", "genre");
+            Metadata.Add("releasedate", "year");
             Metadata.Add("players", "players");
             Metadata.Add("rating", "rate");
             Metadata.Add("lang", "languages");
@@ -122,7 +155,6 @@ namespace GamelistManager.form
             Metadata.Add("image", "url_image_ingame");
             Metadata.Add("video", "url_video_shortplay_hd");
 
-            int count = 0;
             int batchSize = 50;
 
             string scraperBaseURL = "http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name=";
@@ -168,7 +200,6 @@ namespace GamelistManager.form
                 // Loop through the returned data and process it
                 for (int j = 0; j < batchArray.Length; j++)
                 {
-                    count++;
                     UpdateProgressBar();
 
                     if (cancellationToken.IsCancellationRequested)
@@ -250,7 +281,7 @@ namespace GamelistManager.form
 
                         string downloadPath = $"{parentFolderPath}\\{folderName}";
                         string fileToDownload = $"{downloadPath}\\{fileName}";
-                        bool result = await DownloadFile(fileToDownload, remoteDownloadURL);
+                        bool result = await DownloadFile(overWriteData, fileToDownload, remoteDownloadURL);
                         // Returns true on success
                         if (result == true)
                         {
@@ -261,7 +292,7 @@ namespace GamelistManager.form
                 }
             }
         }
-        private async Task<bool> DownloadFile(string fileToDownload, string url)
+        private async Task<bool> DownloadFile(bool overWriteData, string fileToDownload, string url)
         {
 
             Thread.Sleep(200);
@@ -270,7 +301,14 @@ namespace GamelistManager.form
             {
                 if (File.Exists(fileToDownload))
                 {
-                    File.Delete(fileToDownload);
+                    if (overWriteData)
+                    {
+                        File.Delete(fileToDownload);
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
 
                 using (WebClient webClient = new WebClient())
@@ -352,6 +390,46 @@ namespace GamelistManager.form
             else
             {
                 progressBar1.Value++;
+            }
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedIndex == 0)
+            {
+                // ArcadeDB
+                List<string> availableScraperElements = new List<string>{
+                "name",
+                "desc",
+                "genre",
+                "players",
+                "rating",
+                "lang",
+                "releasedate",
+                "publisher",
+                "marquee",
+                "image",
+                "video"
+                };
+
+                foreach (Control control in panel2.Controls)
+                {
+
+                    if (control is System.Windows.Forms.CheckBox checkBox)
+                    {
+                        string checkboxShortName = control.Name.Replace("checkbox_", "").ToLower();
+                        if (availableScraperElements.Contains(checkboxShortName))
+                        {
+                            checkBox.Enabled = true;
+                        }
+
+                        else
+                        {
+                            checkBox.Enabled = false;
+                        }
+                    }
+                }
+
             }
         }
     }

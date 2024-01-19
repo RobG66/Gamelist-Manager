@@ -32,19 +32,20 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.radioScrapeAll = new System.Windows.Forms.RadioButton();
             this.listBoxLog = new System.Windows.Forms.ListBox();
-            this.checkBox14 = new System.Windows.Forms.CheckBox();
+            this.checkBox_Save = new System.Windows.Forms.CheckBox();
             this.checkBox_OverwriteExisting = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.label2 = new System.Windows.Forms.Label();
             this.checkbox_publisher = new System.Windows.Forms.CheckBox();
             this.checkbox_developer = new System.Windows.Forms.CheckBox();
             this.buttonSelectNone = new System.Windows.Forms.Button();
             this.checkbox_releasedate = new System.Windows.Forms.CheckBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.label_Media = new System.Windows.Forms.Label();
+            this.label_Metadata = new System.Windows.Forms.Label();
             this.buttonSelectAll = new System.Windows.Forms.Button();
             this.checkbox_name = new System.Windows.Forms.CheckBox();
             this.checkbox_lang = new System.Windows.Forms.CheckBox();
@@ -86,7 +87,7 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.radioScrapeAll);
             this.panel1.Controls.Add(this.listBoxLog);
-            this.panel1.Controls.Add(this.checkBox14);
+            this.panel1.Controls.Add(this.checkBox_Save);
             this.panel1.Controls.Add(this.checkBox_OverwriteExisting);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.pictureBox1);
@@ -121,24 +122,24 @@
             this.listBoxLog.Size = new System.Drawing.Size(430, 82);
             this.listBoxLog.TabIndex = 21;
             // 
-            // checkBox14
+            // checkBox_Save
             // 
-            this.checkBox14.AutoSize = true;
-            this.checkBox14.Location = new System.Drawing.Point(8, 152);
-            this.checkBox14.Name = "checkBox14";
-            this.checkBox14.Size = new System.Drawing.Size(119, 17);
-            this.checkBox14.TabIndex = 20;
-            this.checkBox14.Text = "Save when finished";
-            this.checkBox14.UseVisualStyleBackColor = true;
+            this.checkBox_Save.AutoSize = true;
+            this.checkBox_Save.Location = new System.Drawing.Point(8, 152);
+            this.checkBox_Save.Name = "checkBox_Save";
+            this.checkBox_Save.Size = new System.Drawing.Size(156, 17);
+            this.checkBox_Save.TabIndex = 20;
+            this.checkBox_Save.Text = "Prompt for save when done";
+            this.checkBox_Save.UseVisualStyleBackColor = true;
             // 
             // checkBox_OverwriteExisting
             // 
             this.checkBox_OverwriteExisting.AutoSize = true;
             this.checkBox_OverwriteExisting.Location = new System.Drawing.Point(8, 133);
             this.checkBox_OverwriteExisting.Name = "checkBox_OverwriteExisting";
-            this.checkBox_OverwriteExisting.Size = new System.Drawing.Size(130, 17);
+            this.checkBox_OverwriteExisting.Size = new System.Drawing.Size(195, 17);
             this.checkBox_OverwriteExisting.TabIndex = 19;
-            this.checkBox_OverwriteExisting.Text = "Overwrite exising data";
+            this.checkBox_OverwriteExisting.Text = "Overwrite exising metadata and files";
             this.checkBox_OverwriteExisting.UseVisualStyleBackColor = true;
             // 
             // label1
@@ -181,15 +182,17 @@
             this.comboBox1.Size = new System.Drawing.Size(135, 21);
             this.comboBox1.Sorted = true;
             this.comboBox1.TabIndex = 2;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.checkbox_publisher);
             this.panel2.Controls.Add(this.checkbox_developer);
             this.panel2.Controls.Add(this.buttonSelectNone);
             this.panel2.Controls.Add(this.checkbox_releasedate);
-            this.panel2.Controls.Add(this.label3);
-            this.panel2.Controls.Add(this.label2);
+            this.panel2.Controls.Add(this.label_Media);
+            this.panel2.Controls.Add(this.label_Metadata);
             this.panel2.Controls.Add(this.buttonSelectAll);
             this.panel2.Controls.Add(this.checkbox_name);
             this.panel2.Controls.Add(this.checkbox_lang);
@@ -207,8 +210,16 @@
             this.panel2.Location = new System.Drawing.Point(224, 1);
             this.panel2.Margin = new System.Windows.Forms.Padding(1);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(202, 238);
+            this.panel2.Size = new System.Drawing.Size(202, 269);
             this.panel2.TabIndex = 10;
+            // 
+            // label2
+            // 
+            this.label2.Location = new System.Drawing.Point(4, 230);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(183, 35);
+            this.label2.TabIndex = 22;
+            this.label2.Text = "Note: Element availability will vary between scrapers.";
             // 
             // checkbox_publisher
             // 
@@ -259,27 +270,27 @@
             this.checkbox_releasedate.Text = "Released";
             this.checkbox_releasedate.UseVisualStyleBackColor = true;
             // 
-            // label3
+            // label_Media
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.Color.Green;
-            this.label3.Location = new System.Drawing.Point(87, 4);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(46, 17);
-            this.label3.TabIndex = 12;
-            this.label3.Text = "Media";
+            this.label_Media.AutoSize = true;
+            this.label_Media.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Media.ForeColor = System.Drawing.Color.Green;
+            this.label_Media.Location = new System.Drawing.Point(87, 4);
+            this.label_Media.Name = "label_Media";
+            this.label_Media.Size = new System.Drawing.Size(46, 17);
+            this.label_Media.TabIndex = 12;
+            this.label_Media.Text = "Media";
             // 
-            // label2
+            // label_Metadata
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.ForeColor = System.Drawing.Color.Green;
-            this.label2.Location = new System.Drawing.Point(3, 4);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(66, 17);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Metadata";
+            this.label_Metadata.AutoSize = true;
+            this.label_Metadata.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Metadata.ForeColor = System.Drawing.Color.Green;
+            this.label_Metadata.Location = new System.Drawing.Point(3, 4);
+            this.label_Metadata.Name = "label_Metadata";
+            this.label_Metadata.Size = new System.Drawing.Size(66, 17);
+            this.label_Metadata.TabIndex = 1;
+            this.label_Metadata.Text = "Metadata";
             // 
             // buttonSelectAll
             // 
@@ -504,15 +515,15 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button buttonSelectAll;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label_Metadata;
         private System.Windows.Forms.CheckBox checkbox_image;
         private System.Windows.Forms.CheckBox checkbox_marquee;
         private System.Windows.Forms.CheckBox checkbox_thumbnail;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label_Media;
         private System.Windows.Forms.CheckBox checkbox_video;
         private System.Windows.Forms.CheckBox checkbox_releasedate;
         private System.Windows.Forms.Button buttonSelectNone;
-        private System.Windows.Forms.CheckBox checkBox14;
+        private System.Windows.Forms.CheckBox checkBox_Save;
         private System.Windows.Forms.CheckBox checkBox_OverwriteExisting;
         private System.Windows.Forms.ListBox listBoxLog;
         private System.Windows.Forms.CheckBox checkbox_map;
@@ -520,5 +531,6 @@
         private System.Windows.Forms.CheckBox checkbox_publisher;
         private System.Windows.Forms.CheckBox checkbox_developer;
         private System.Windows.Forms.RadioButton radioScrapeAll;
+        private System.Windows.Forms.Label label2;
     }
 }
