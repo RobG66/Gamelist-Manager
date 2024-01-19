@@ -296,7 +296,7 @@ namespace GamelistManager.form
         {
 
             Thread.Sleep(200);
-            
+
             try
             {
                 if (File.Exists(fileToDownload))

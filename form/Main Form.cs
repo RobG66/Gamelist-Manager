@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using File = System.IO.File;
 
 namespace GamelistManager
@@ -97,9 +96,9 @@ namespace GamelistManager
             var columnIndex = dataGridView1.Columns["desc"].Index;
             object cellValue = dataGridView1.Rows[rowIndex].Cells[columnIndex].Value;
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
-            richTextBox1.Text = itemDescription;
+            richTextBox_description.Text = itemDescription;
 
-            if (splitContainer2.Panel2Collapsed != true)
+            if (splitContainer_EverythingAndMedia.Panel2Collapsed != true)
             {
                 ShowMedia();
             }
@@ -155,9 +154,9 @@ namespace GamelistManager
 
         private void ShowVisibleItemsOnlyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            showAllItemsToolStripMenuItem.Checked = false;
-            ShowHiddenItemsOnlyToolStripMenuItem.Checked = false;
-            ShowVisibleItemsOnlyToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_ShowAllHiddenAndVisible.Checked = false;
+            ToolStripMenuItem_ShowHiddenOnly.Checked = false;
+            ToolStripMenuItem_ShowVisibleOnly.Checked = true;
             string visibilityFilter = "hidden = false OR hidden IS NULL";
             string genreFilter = GetGenreFilter();
             ApplyFilters(visibilityFilter, genreFilter);
@@ -166,9 +165,9 @@ namespace GamelistManager
 
         private void ShowHiddenItemsOnlyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowVisibleItemsOnlyToolStripMenuItem.Checked = false;
-            showAllItemsToolStripMenuItem.Checked = false;
-            ShowHiddenItemsOnlyToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_ShowVisibleOnly.Checked = false;
+            ToolStripMenuItem_ShowAllHiddenAndVisible.Checked = false;
+            ToolStripMenuItem_ShowHiddenOnly.Checked = true;
             string visibilityFilter = "hidden = true";
             string genreFilter = GetGenreFilter();
             ApplyFilters(visibilityFilter, genreFilter);
@@ -177,9 +176,9 @@ namespace GamelistManager
 
         private void ShowAllItemsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowVisibleItemsOnlyToolStripMenuItem.Checked = false;
-            ShowHiddenItemsOnlyToolStripMenuItem.Checked = false;
-            showAllItemsToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_ShowVisibleOnly.Checked = false;
+            ToolStripMenuItem_ShowHiddenOnly.Checked = false;
+            ToolStripMenuItem_ShowAllHiddenAndVisible.Checked = true;
             string visibilityFilter = string.Empty;
             string genreFilter = GetGenreFilter();
             ApplyFilters(visibilityFilter, genreFilter);
@@ -198,18 +197,18 @@ namespace GamelistManager
             // Print the version number
             this.Text = $"Gamelist Manager {version.Major}.{version.Minor}";
 
-            pictureBox1.Image = Properties.Resources.gamelistmanager;
-            splitContainer2.Panel2Collapsed = true;
+            pictureBox_SystemLogo.Image = Properties.Resources.gamelistmanager;
+            splitContainer_EverythingAndMedia.Panel2Collapsed = true;
 
-            foreach (ToolStripMenuItem menuItem in menuStrip1.Items)
+            foreach (ToolStripMenuItem menuItem in menuStrip_MainMenu.Items)
             {
                 menuItem.Enabled = false;
             }
 
-            fileToolStripMenuItem.Enabled = true;
-            reloadGamelistxmlToolStripMenuItem.Enabled = false;
-            saveFileToolStripMenuItem.Enabled = false;
-            RemoteToolStripMenuItem.Enabled = true;
+            ToolStripMenuItem_File.Enabled = true;
+            ToolStripMenuItem_Reload.Enabled = false;
+            ToolStripMenuItem_Save.Enabled = false;
+            ToolStripMenuItem_Remote.Enabled = true;
             LoadLastFilenamesToMenu();
 
         }
@@ -220,7 +219,7 @@ namespace GamelistManager
 
             if (menuItem.Checked == false)
             {
-                splitContainer2.Panel2Collapsed = true;
+                splitContainer_EverythingAndMedia.Panel2Collapsed = true;
 
                 ClearTableLayoutPanel();
                 return;
@@ -228,7 +227,7 @@ namespace GamelistManager
 
             if (dataGridView1.SelectedRows.Count < 1) { return; }
 
-            splitContainer2.Panel2Collapsed = false;
+            splitContainer_EverythingAndMedia.Panel2Collapsed = false;
 
             ShowMedia();
         }
@@ -260,7 +259,7 @@ namespace GamelistManager
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Name = name,
                 Tag = imagePath,
-                ContextMenuStrip = contextMenuStrip1
+                ContextMenuStrip = contextMenuStrip_ImageOptions
             };
 
             return pictureBox;
@@ -297,7 +296,7 @@ namespace GamelistManager
             };
 
             //splitContainer2.Panel2.Controls.Add(TableLayoutPanel1);
-            panel2.Controls.Add(TableLayoutPanel1);
+            panel_MediaBackground.Controls.Add(TableLayoutPanel1);
 
             DataGridViewRow selectedRow = dataGridView1.SelectedRows[0];
 
@@ -464,10 +463,10 @@ namespace GamelistManager
 
             int visibleRowCount = dataGridView1.Rows.Cast<DataGridViewRow>().Count(row => row.Visible);
 
-            labelVisibleCount.Text = (visibleItems).ToString();
-            labelHiddenCount.Text = (hiddenItems).ToString();
-            labelShowingCount.Text = (visibleRowCount).ToString();
-            labelFavoriteCount.Text = (favoriteItems).ToString();
+            label_VisibleCount.Text = (visibleItems).ToString();
+            label_HiddenCount.Text = (hiddenItems).ToString();
+            label_ShowingCount.Text = (visibleRowCount).ToString();
+            label_FavoriteCount.Text = (favoriteItems).ToString();
         }
 
         private void ConvertColumnToBoolean(DataTable dataTable, string columnName)
@@ -744,11 +743,11 @@ namespace GamelistManager
             // Sort Items
             Array.Sort(uniqueValues);
 
-            comboBox1.Items.Clear();
-            comboBox1.Items.Add("<All Genres>");
-            comboBox1.Items.Add("<Empty Genres>");
-            comboBox1.Items.AddRange(uniqueValues);
-            comboBox1.SelectedIndex = 0;
+            comboBox_Genre.Items.Clear();
+            comboBox_Genre.Items.Add("<All Genres>");
+            comboBox_Genre.Items.Add("<Empty Genres>");
+            comboBox_Genre.Items.AddRange(uniqueValues);
+            comboBox_Genre.SelectedIndex = 0;
 
         }
 
@@ -759,12 +758,12 @@ namespace GamelistManager
 
         private void ChangeGenreViaCombobox()
         {
-            if (comboBox1.Enabled == false)
+            if (comboBox_Genre.Enabled == false)
             {
                 return;
             }
-            int index = comboBox1.SelectedIndex;
-            string selectedItem = comboBox1.SelectedItem as string;
+            int index = comboBox_Genre.SelectedIndex;
+            string selectedItem = comboBox_Genre.SelectedItem as string;
 
             string genreFilter = string.Empty;
 
@@ -783,8 +782,8 @@ namespace GamelistManager
             string visibilityFilter = Getvisibilityfilter();
             ApplyFilters(visibilityFilter, genreFilter);
 
-            showAllGenreToolStripMenuItem.Checked = false;
-            showGenreOnlyToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_ShowAllGenres.Checked = false;
+            ToolStripMenuItem_ShowGenreOnly.Checked = true;
 
             UpdateCounters();
 
@@ -792,33 +791,33 @@ namespace GamelistManager
 
         private void ResetForm()
         {
-            statusBar1.Text = XMLFilename;
-            showAllItemsToolStripMenuItem.Checked = true;
-            ShowVisibleItemsOnlyToolStripMenuItem.Checked = false;
-            ShowHiddenItemsOnlyToolStripMenuItem.Checked = false;
-            showAllGenreToolStripMenuItem.Checked = true;
-            showGenreOnlyToolStripMenuItem.Checked = false;
-            verifyRomPathsToolStripMenuItem.Checked = false;
-            ShowMediaToolStripMenuItem.Checked = false;
-            checkBox1.Enabled = true;
-            comboBox1.Enabled = true;
+            statusBar_BottomOfWindow.Text = XMLFilename;
+            ToolStripMenuItem_ShowAllHiddenAndVisible.Checked = true;
+            ToolStripMenuItem_ShowVisibleOnly.Checked = false;
+            ToolStripMenuItem_ShowHiddenOnly.Checked = false;
+            ToolStripMenuItem_ShowAllGenres.Checked = true;
+            ToolStripMenuItem_ShowGenreOnly.Checked = false;
+            ToolStripMenuItem_MissingItems.Checked = false;
+            ToolStripMenuItem_ShowMedia.Checked = false;
+            checkBox_CustomFilter.Enabled = true;
+            comboBox_Genre.Enabled = true;
 
-            foreach (ToolStripMenuItem item in menuStrip1.Items)
+            foreach (ToolStripMenuItem item in menuStrip_MainMenu.Items)
             {
                 item.Enabled = true;
             }
 
-            foreach (var item in columnsToolStripMenuItem.DropDownItems)
+            foreach (var item in ToolStripMenuItem_Columns.DropDownItems)
             {
                 if (item is ToolStripMenuItem toolStripItem)
                 {
                     toolStripItem.Checked = false;
                 }
             }
-            descriptionToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_Description.Checked = true;
 
-            saveFileToolStripMenuItem.Enabled = true;
-            reloadGamelistxmlToolStripMenuItem.Enabled = true;
+            ToolStripMenuItem_Save.Enabled = true;
+            ToolStripMenuItem_Reload.Enabled = true;
 
             string romPath = Path.GetFileName(Path.GetDirectoryName(XMLFilename));
             System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
@@ -826,11 +825,11 @@ namespace GamelistManager
 
             if (image is System.Drawing.Image)
             {
-                pictureBox1.Image = image;
+                pictureBox_SystemLogo.Image = image;
             }
             else
             {
-                pictureBox1.Image = Properties.Resources.gamelistmanager;
+                pictureBox_SystemLogo.Image = Properties.Resources.gamelistmanager;
             }
 
         }
@@ -842,13 +841,13 @@ namespace GamelistManager
                 List<string> lastFilenames = RegistryManager.LoadLastFilenames();
 
                 // Get the "Load Gamelist XML" menu item
-                ToolStripMenuItem loadGamelistMenuItem = loadGamelistxmlToolStripMenuItem;
+                ToolStripMenuItem loadGamelistMenuItem = ToolStripMenuItem_Load;
 
                 // Create a list to store items to remove
                 var itemsToRemove = new List<ToolStripMenuItem>();
 
                 // Identify existing filename sub-menu items to remove
-                foreach (ToolStripMenuItem item in fileToolStripMenuItem.DropDownItems.OfType<ToolStripMenuItem>())
+                foreach (ToolStripMenuItem item in ToolStripMenuItem_File.DropDownItems.OfType<ToolStripMenuItem>())
                 {
                     if (item.Name != null && item.Name.StartsWith("lastfile_"))
                     {
@@ -859,7 +858,7 @@ namespace GamelistManager
                 // Remove existing filename sub-menu items
                 foreach (var item in itemsToRemove)
                 {
-                    fileToolStripMenuItem.DropDownItems.Remove(item);
+                    ToolStripMenuItem_File.DropDownItems.Remove(item);
                 }
 
                 // Add the last filenames as sub-menu items
@@ -868,7 +867,7 @@ namespace GamelistManager
                     ToolStripMenuItem filenameMenuItem = new ToolStripMenuItem(filename);
                     filenameMenuItem.Name = "lastfile_" + filename.Replace(" ", "_"); // Use a unique name for each item
                     filenameMenuItem.Click += FilenameMenuItem_Click;
-                    fileToolStripMenuItem.DropDownItems.Add(filenameMenuItem);
+                    ToolStripMenuItem_File.DropDownItems.Add(filenameMenuItem);
                 }
             }
             catch (Exception ex)
@@ -1009,7 +1008,7 @@ namespace GamelistManager
             var columnIndex = dataGridView1.Columns["genre"].Index;
             object cellValue = dataGridView1.Rows[rowIndex].Cells[columnIndex].Value;
             string genre = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
-            showGenreOnlyToolStripMenuItem.Text = string.IsNullOrEmpty(genre) ? "Show Empty Genre" : "Show Only '" + genre + "' Items";
+            ToolStripMenuItem_ShowGenreOnly.Text = string.IsNullOrEmpty(genre) ? "Show Empty Genre" : "Show Only '" + genre + "' Items";
         }
 
         private void HighlightUnplayableGames(HashSet<string> gameNames)
@@ -1054,9 +1053,9 @@ namespace GamelistManager
 
         private void ShowAllGenreToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            comboBox1.SelectedIndex = 0;
-            showAllGenreToolStripMenuItem.Checked = true;
-            showGenreOnlyToolStripMenuItem.Checked = false;
+            comboBox_Genre.SelectedIndex = 0;
+            ToolStripMenuItem_ShowAllGenres.Checked = true;
+            ToolStripMenuItem_ShowGenreOnly.Checked = false;
         }
 
         private void ShowGenreOnlyToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1073,15 +1072,15 @@ namespace GamelistManager
 
             if (string.IsNullOrEmpty(genre))
             {
-                comboBox1.SelectedIndex = 1;
+                comboBox_Genre.SelectedIndex = 1;
             }
             else
             {
-                comboBox1.Text = genre;
+                comboBox_Genre.Text = genre;
             }
 
-            showAllGenreToolStripMenuItem.Checked = false;
-            showGenreOnlyToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_ShowAllGenres.Checked = false;
+            ToolStripMenuItem_ShowGenreOnly.Checked = true;
             UpdateCounters();
         }
 
@@ -1360,7 +1359,7 @@ namespace GamelistManager
             );
 
             // Since the deleted columns were removed, make sure these are not checked
-            verifyRomPathsToolStripMenuItem.Checked = false;
+            ToolStripMenuItem_MissingItems.Checked = false;
             scraperDatesToolStripMenuItem.Checked = false;
 
             DataSet.Tables[0].AcceptChanges();
@@ -1508,10 +1507,10 @@ namespace GamelistManager
 
         private void VerifyRomPathsToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            if (verifyRomPathsToolStripMenuItem.Checked == true)
+            if (ToolStripMenuItem_MissingItems.Checked == true)
             {
                 dataGridView1.Columns["missing"].Visible = false;
-                verifyRomPathsToolStripMenuItem.Checked = false;
+                ToolStripMenuItem_MissingItems.Checked = false;
                 return;
             }
 
@@ -1522,7 +1521,7 @@ namespace GamelistManager
 
             Cursor.Current = Cursors.WaitCursor;
 
-            verifyRomPathsToolStripMenuItem.Checked = true;
+            ToolStripMenuItem_MissingItems.Checked = true;
 
             // Get the index of the "path" column
 
@@ -1567,7 +1566,7 @@ namespace GamelistManager
             {
                 MessageBox.Show("There are no missing items in this gamelist", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 dataGridView1.Columns["missing"].Visible = false;
-                verifyRomPathsToolStripMenuItem.Checked = false;
+                ToolStripMenuItem_MissingItems.Checked = false;
             }
         }
 
@@ -1631,13 +1630,13 @@ namespace GamelistManager
 
         private void DescriptionToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
-            if (descriptionToolStripMenuItem.Checked)
+            if (ToolStripMenuItem_Description.Checked)
             {
-                splitContainer1.Panel2Collapsed = false;
+                splitContainer_DataGridViewAndTextBox.Panel2Collapsed = false;
             }
             else
             {
-                splitContainer1.Panel2Collapsed = true;
+                splitContainer_DataGridViewAndTextBox.Panel2Collapsed = true;
             }
 
         }
@@ -1689,12 +1688,12 @@ namespace GamelistManager
 
             try
             {
-                statusBar1.Text = "Started XML Import.....";
+                statusBar_BottomOfWindow.Text = "Started XML Import.....";
                 string mameExePath = openFileDialog.FileName;
                 var gameNames = await MameUnplayable.GetFilteredGameNames(mameExePath);
-                statusBar1.Text = "Identifying unplayable games....";
+                statusBar_BottomOfWindow.Text = "Identifying unplayable games....";
                 HighlightUnplayableGames(gameNames);
-                statusBar1.Text = XMLFilename;
+                statusBar_BottomOfWindow.Text = XMLFilename;
                 dataGridView1.Columns["unplayable"].Visible = true;
                 dataGridView1.Columns["unplayable"].SortMode = DataGridViewColumnSortMode.Automatic;
                 dataGridView1.Columns["unplayable"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
@@ -1757,9 +1756,9 @@ namespace GamelistManager
 
         private void FileToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
         {
-            if (saveFileToolStripMenuItem.Enabled == true)
+            if (ToolStripMenuItem_Save.Enabled == true)
             {
-                saveFileToolStripMenuItem.Text = $"Save '{XMLFilename}'";
+                ToolStripMenuItem_Save.Text = $"Save '{XMLFilename}'";
             }
         }
 
@@ -1832,7 +1831,7 @@ namespace GamelistManager
                 return;
             }
 
-            statusBar1.Text = "Checking images...";
+            statusBar_BottomOfWindow.Text = "Checking images...";
 
             ProgressBarInitialize(0, totalFiles);
 
@@ -1880,7 +1879,7 @@ namespace GamelistManager
                 // Update progress bar
                 ProgressBarIncrement();
             }
-            statusBar1.Text = XMLFilename;
+            statusBar_BottomOfWindow.Text = XMLFilename;
 
             if (singleColorImages == 0 && corruptImages == 0 && missingImages == 0)
             {
@@ -1996,7 +1995,7 @@ namespace GamelistManager
 
         private void editToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            string pictureBoxName = contextMenuStrip1.SourceControl.Name;
+            string pictureBoxName = contextMenuStrip_ImageOptions.SourceControl.Name;
             PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
 
             if (pictureBox == null)
@@ -2020,7 +2019,7 @@ namespace GamelistManager
 
         private void toolStripMenuItem2_Click(object sender, EventArgs e)
         {
-            string pictureBoxName = contextMenuStrip1.SourceControl.Name;
+            string pictureBoxName = contextMenuStrip_ImageOptions.SourceControl.Name;
             PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
 
             if (pictureBox == null)
@@ -2150,20 +2149,20 @@ namespace GamelistManager
 
         private void setupSSHToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            richTextBox1.Hide();
+            richTextBox_description.Hide();
             CredentialManager userControl = new CredentialManager();
-            splitContainer1.Panel2.Controls.Add(userControl);
-            menuStrip1.Enabled = false;
+            splitContainer_DataGridViewAndTextBox.Panel2.Controls.Add(userControl);
+            menuStrip_MainMenu.Enabled = false;
             // I could not figure out how to make the richtextbox visible
             // from within the Credential Manager control because it's nested
             // So as a workaround I make an event to handle this.
-            menuStrip1.EnabledChanged += MenuStrip1_EnabledChanged;
+            menuStrip_MainMenu.EnabledChanged += MenuStrip1_EnabledChanged;
         }
 
         private void MenuStrip1_EnabledChanged(object sender, EventArgs e)
         {
-            richTextBox1.Visible = true;
-            menuStrip1.EnabledChanged -= MenuStrip1_EnabledChanged;
+            richTextBox_description.Visible = true;
+            menuStrip_MainMenu.EnabledChanged -= MenuStrip1_EnabledChanged;
         }
 
         private void connectToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2382,7 +2381,7 @@ namespace GamelistManager
             List<MediaObject> mediaList = GetMediaList("video");
             int totalFiles = mediaList.Count;
 
-            statusBar1.Text = "Checking images...";
+            statusBar_BottomOfWindow.Text = "Checking images...";
 
             ProgressBarInitialize(0, totalFiles);
 
@@ -2406,7 +2405,7 @@ namespace GamelistManager
                 ProgressBarIncrement();
             }
 
-            statusBar1.Text = XMLFilename;
+            statusBar_BottomOfWindow.Text = XMLFilename;
 
             ProgressBarReset();
 
@@ -2461,18 +2460,18 @@ namespace GamelistManager
         {
             if (dataGridView1.RowCount == 0) { return; }
 
-            if (checkBox1.Checked == true)
+            if (checkBox_CustomFilter.Checked == true)
             {
-                textBox1.Enabled = true;
-                textBox1.BackColor = SystemColors.Info;
-                comboBox1.Enabled = false;
+                textBox_CustomFilter.Enabled = true;
+                textBox_CustomFilter.BackColor = SystemColors.Info;
+                comboBox_Genre.Enabled = false;
             }
             else
             {
-                textBox1.Enabled = false;
-                textBox1.BackColor = SystemColors.Window;
-                textBox1.Text = "";
-                comboBox1.Enabled = true;
+                textBox_CustomFilter.Enabled = false;
+                textBox_CustomFilter.BackColor = SystemColors.Window;
+                textBox_CustomFilter.Text = "";
+                comboBox_Genre.Enabled = true;
                 ChangeGenreViaCombobox();
 
             }
@@ -2480,7 +2479,7 @@ namespace GamelistManager
 
         private void textBox1_KeyUp(object sender, KeyEventArgs e)
         {
-            string text = textBox1.Text;
+            string text = textBox_CustomFilter.Text;
 
             //selectedItem = selectedItem.Replace("'", "''");
             string genreFilter = $"genre LIKE '*{text}*'";
@@ -2490,7 +2489,7 @@ namespace GamelistManager
 
         private void scrapeItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowMediaToolStripMenuItem.Checked = false;
+            ToolStripMenuItem_ShowMedia.Checked = false;
             Scraper scraper = new Scraper();
             scraper.Owner = this;
             // Set the start position and location
@@ -2534,22 +2533,31 @@ namespace GamelistManager
            .SelectMany(ext => Directory.GetFiles(parentFolderPath, $"*.{ext}"))
            .ToArray();
 
-                foreach (string fileName in filesArray)
-                {
-                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-                    string fileNameWithoutPath = Path.GetFileName(fileName);
-                    DataRow newRow = DataSet.Tables[0].NewRow();
-                    newRow["name"] = fileNameWithoutExtension;
-                    newRow["path"] = $"./{fileNameWithoutPath}";
-                    // Add the new row to the Rows collection of the DataTable
-                    DataSet.Tables[0].Rows.Add(newRow);
+            if (filesArray.Length == 0) 
+            {
+                MessageBox.Show("No additional items were found", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-                }
-                DataSet.Tables[0].AcceptChanges();
 
+            foreach (string fileName in filesArray)
+            {
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+                string fileNameWithoutPath = Path.GetFileName(fileName);
+                DataRow newRow = DataSet.Tables[0].NewRow();
+                newRow["name"] = fileNameWithoutExtension;
+                newRow["path"] = $"./{fileNameWithoutPath}";
+                // Add the new row to the Rows collection of the DataTable
+                DataSet.Tables[0].Rows.Add(newRow);
 
             }
-        
+
+            DataSet.Tables[0].AcceptChanges();
+
+            MessageBox.Show($"{filesArray.Length} items were found and added\nRemember to save if you want to keep these additions", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        }
+
     }
 }
 
