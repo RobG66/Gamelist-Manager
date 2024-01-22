@@ -8,10 +8,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GamelistManager.form
 {
@@ -19,31 +21,32 @@ namespace GamelistManager.form
     {
         private CancellationTokenSource cancellationTokenSource;
         private bool isScraping = false;
+        private GamelistManager gamelistManager;
 
-        public Scraper()
+        public Scraper(GamelistManager owner)
         {
             InitializeComponent();
+            this.gamelistManager = owner;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
-            comboBox1.Enabled = radioScrapeSelected.Checked;
+            comboBox_Scrapers.Enabled = RadioButton_ScrapeSelected.Checked;
         }
 
-        private void saveReminder(bool complete)
+        private void saveReminder(bool canceled)
         {
-
             string finish = null;
             MessageBoxIcon icon = MessageBoxIcon.Information;
 
-            if (complete)
-            {
-                finish = "Scraping Completed!";
-            }
-            else
+            if (canceled)
             {
                 finish = "Scraping Was Cancelled!";
                 icon = MessageBoxIcon.Error;
+            }
+            else
+            {
+                finish = "Scraping Completed!";
             }
 
             if (!checkBox_Save.Checked)
@@ -52,92 +55,89 @@ namespace GamelistManager.form
                 return;
             }
 
-            // Prompt to save here
-
+            gamelistManager.SaveFile();
         }
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            if (!isScraping)
+  
+            List<string> elementsToScrape = new List<string>();
+            foreach (Control control in panel_CheckboxGroup.Controls)
             {
-                DataGridView dgv = ((GamelistManager)this.Owner).MainDataGridView;
-                List<string> romPaths = null;
-
-                if (radioScrapeAll.Checked)
+                if (control is CheckBox checkBox && checkBox.Checked)
                 {
-                    romPaths = dgv.Rows
-                        .Cast<DataGridViewRow>()
-                        .Select(row => row.Cells["path"].Value as string)
-                        .ToList(); // Convert to List<string>
+                    string elementName = checkBox.Name.Replace("checkbox_", "").ToLower();
+                    elementsToScrape.Add(elementName);
                 }
-                else
-                {
-                    romPaths = dgv.SelectedRows
-                        .Cast<DataGridViewRow>()
-                        .Select(row => row.Cells["path"].Value as string)
-                        .ToList(); // Convert to List<string>
-                }
+            }
 
+            if (elementsToScrape.Count == 0)
+            {
+                MessageBox.Show("No metadata selection was made", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
 
-                List<string> elementsToScrape = new List<string>();
-                foreach (Control control in panel2.Controls)
-                {
-                    if (control is CheckBox checkBox && checkBox.Checked)
-                    {
-                        string elementName = checkBox.Name.Replace("checkbox_", "").ToLower();
-                        elementsToScrape.Add(elementName);
-                    }
-                }
+            DataGridView dgv = ((GamelistManager)this.Owner).MainDataGridView;
+            List<string> romPaths = null;
 
-                bool overWriteData = checkBox_OverwriteExisting.Checked;
-
-                progressBar1.Value = 0;
-                progressBar1.Minimum = 0;
-                progressBar1.Maximum = romPaths.Count();
-                progressBar1.Step = 1;
-
-                if (listBoxLog.Items.Count > 0)
-                {
-                    listBoxLog.Items.Clear();
-                }
-
-                // Starting the scraping process
-                isScraping = true;
-                buttonStart.BackColor = Color.FromArgb(255, 128, 128);
-                buttonStart.Text = "Stop";
-
-                // Reset the cancellation token source
-                cancellationTokenSource = new CancellationTokenSource();
-
-                // Call the scraper method asynchronously
-                //await Task.Run(() => ScrapeArcadeDBAsync(cancellationTokenSource.Token));
-                await ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
-
-                // Cleanup after scraping is complete or canceled
-                isScraping = false;
-                buttonStart.BackColor = Color.FromArgb(128, 255, 128);
-                buttonStart.Text = "Start";
-                // True that it finished on its own
-                saveReminder(true);
+            if (RadioButton_ScrapeAll.Checked)
+            {
+                romPaths = dgv.Rows
+                    .Cast<DataGridViewRow>()
+                    .Select(row => row.Cells["path"].Value as string)
+                    .ToList(); // Convert to List<string>
             }
             else
             {
-                // Stopping the scraping process
-                isScraping = false;
-                buttonStart.Text = "Start";
-                buttonStart.BackColor = Color.FromArgb(128, 255, 128);
-                // Cancel the ongoing operation
-                cancellationTokenSource?.Cancel();
-                // False if scrape was cancelled by user
-                saveReminder(false);
+                romPaths = dgv.SelectedRows
+                    .Cast<DataGridViewRow>()
+                    .Select(row => row.Cells["path"].Value as string)
+                    .ToList(); // Convert to List<string>
             }
+
+            bool overWriteData = checkBox_OverwriteExisting.Checked;
+            progressBar_ScrapeProgress.Value = 0;
+            progressBar_ScrapeProgress.Minimum = 0;
+            progressBar_ScrapeProgress.Maximum = romPaths.Count();
+            progressBar_ScrapeProgress.Step = 1;
+
+            if (listBoxLog.Items.Count > 0)
+            {
+                listBoxLog.Items.Clear();
+            }
+
+
+            button_StartStop.Enabled = false;
+            button_Cancel.Enabled = true    ;
+
+            // Reset the cancellation token source
+            cancellationTokenSource = new CancellationTokenSource();
+
+            // Call the scraper method asynchronously
+            //await Task.Run(() => ScrapeArcadeDBAsync(cancellationTokenSource.Token));
+            await ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+
+            // Cleanup after scraping is complete or canceled
+            button_StartStop.Enabled = true;
+            button_Cancel.Enabled = false ; 
+
+            if (cancellationTokenSource.Token.IsCancellationRequested)
+            {
+             
+            }
+
+            saveReminder(cancellationTokenSource.Token.IsCancellationRequested);
+       
         }
 
         private async
         Task
         ScrapeArcadeDBAsync(bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
         {
-            GamelistManager gamelistManager = (GamelistManager)this.Owner;
+
+            int total = romPaths.Count;
+            int count = 0;
+
             DataSet dataSet = gamelistManager.DataSet;
 
             // Batocera and ArcadeDB element names don't always align
@@ -158,13 +158,12 @@ namespace GamelistManager.form
             int batchSize = 50;
 
             string scraperBaseURL = "http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name=";
-            string parentFolderPath = Path.GetDirectoryName(((GamelistManager)this.Owner).XMLFilename);
+            string parentFolderPath = Path.GetDirectoryName(gamelistManager.XMLFilename);
 
             // Start to process selected datagridview rows
             for (int i = 0; i < romPaths.Count; i += batchSize)
             {
-                Thread.Sleep(1000);
-
+          
                 // Take the next batch of roms
                 string[] batchArray = romPaths.Skip(i).Take(batchSize).ToArray();
 
@@ -194,13 +193,40 @@ namespace GamelistManager.form
                     AddToLog($"Exception: {ex.Message}");
                 }
 
+                if (jsonResponse == null)
+                {
+                    AddToLog("Scraper returned no data!");
+                    count = count + batchArray.Length;
+                    continue;
+                }
+
                 // Deserialize the JSON to names and values
-                GameListResponse scraperResponse = JsonConvert.DeserializeObject<GameListResponse>(jsonResponse);
+                GameListResponse scraperResponse = null;
+                try
+                {
+                    scraperResponse = JsonConvert.DeserializeObject<GameListResponse>(jsonResponse);
+                }
+                catch (JsonException ex)
+                {
+                    // Log the exception details
+                    AddToLog($"JSON deserialization error: {ex.Message}");
+                    count = count + batchArray.Length;
+                    continue;
+                }
+
+                if (scraperResponse == null)
+                {
+                    AddToLog("Deserialization failed. The JSON may be invalid or the type is incompatible.");
+                    count = count + batchArray.Length;
+                    continue;
+                }
 
                 // Loop through the returned data and process it
                 for (int j = 0; j < batchArray.Length; j++)
                 {
+                    count++;
                     UpdateProgressBar();
+                    UpdateLabel(count, total);
 
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -214,8 +240,8 @@ namespace GamelistManager.form
 
                     ScraperArcadeDBGameInfo scraperData = scraperResponse.result[j];
 
-                    UpdateLabel($"Scraping: {currentRomName}");
-
+                    AddToLog($"Scraping: {currentRomName}");
+                  
                     // Loop through the Metadata dictionary
                     foreach (var kvp in Metadata)
                     {
@@ -255,6 +281,7 @@ namespace GamelistManager.form
                             }
                             continue;
                         }
+
 
                         // Image handling
                         string remoteDownloadURL = scrapedValue;
@@ -315,20 +342,20 @@ namespace GamelistManager.form
                 {
                     await webClient.DownloadFileTaskAsync(new Uri(url), fileToDownload);
 
-                    Console.WriteLine($"File downloaded successfully: {fileToDownload}");
+                    AddToLog ($"File download OK: {fileToDownload}");
                     return true; // Return true if the download was successful
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error downloading file: {ex.Message}");
+                AddToLog($"File download Fail: {fileToDownload}");
                 return false; // Return false if an exception occurred during the download
             }
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel2.Controls)
+            foreach (Control control in panel_CheckboxGroup.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -341,7 +368,7 @@ namespace GamelistManager.form
 
         private void button3_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel2.Controls)
+            foreach (Control control in panel_CheckboxGroup.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -354,7 +381,7 @@ namespace GamelistManager.form
 
         private void Scraper_Load(object sender, EventArgs e)
         {
-            comboBox1.SelectedIndex = 0;
+            comboBox_Scrapers.SelectedIndex = 0;
         }
 
         private void AddToLog(string logMessage)
@@ -362,40 +389,42 @@ namespace GamelistManager.form
             if (listBoxLog.InvokeRequired)
             {
                 listBoxLog.Invoke(new Action(() => listBoxLog.Items.Add($"{DateTime.Now} - {logMessage}")));
+                listBoxLog.TopIndex = listBoxLog.Items.Count - 1;
             }
             else
             {
-                listBoxLog.Items.Add($"{DateTime.Now} - {logMessage}");
+                listBoxLog.Items.Add($"{logMessage}");
+                listBoxLog.TopIndex = listBoxLog.Items.Count - 1;
             }
         }
 
-        private void UpdateLabel(string text)
+        private void UpdateLabel(int current, int total)
         {
-            if (label1.InvokeRequired)
+            if (label.InvokeRequired)
             {
-                label1.Invoke(new Action(() => label1.Text = text));
+                label.Invoke(new Action(() => UpdateLabel(current, total)));
             }
             else
             {
-                label1.Text = text;
+                label.Text = $"{current * 100 / total}%";
             }
         }
 
         private void UpdateProgressBar()
         {
-            if (progressBar1.InvokeRequired)
+            if (progressBar_ScrapeProgress.InvokeRequired)
             {
-                progressBar1.Invoke(new Action(() => progressBar1.Value++));
+                progressBar_ScrapeProgress.Invoke(new Action(() => progressBar_ScrapeProgress.Value++));
             }
             else
             {
-                progressBar1.Value++;
+                progressBar_ScrapeProgress.Value++;
             }
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBox1.SelectedIndex == 0)
+            if (comboBox_Scrapers.SelectedIndex == 0)
             {
                 // ArcadeDB
                 List<string> availableScraperElements = new List<string>{
@@ -412,7 +441,7 @@ namespace GamelistManager.form
                 "video"
                 };
 
-                foreach (Control control in panel2.Controls)
+                foreach (Control control in panel_CheckboxGroup.Controls)
                 {
 
                     if (control is System.Windows.Forms.CheckBox checkBox)
@@ -432,9 +461,17 @@ namespace GamelistManager.form
 
             }
         }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            cancellationTokenSource?.Cancel();
+            button_Cancel.Enabled = false;
+            AddToLog("Cancelling.....");
+        }
     }
-
-
 }
+
+
+
 
 

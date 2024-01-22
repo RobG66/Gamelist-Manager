@@ -1311,6 +1311,11 @@ namespace GamelistManager
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            SaveFile();
+        }
+
+        public void SaveFile()
+        {
             string destinationFileName = Path.ChangeExtension(XMLFilename, "old");
 
             DialogResult result = MessageBox.Show($"Do you save the file '{XMLFilename}'?\nA backup will be saved as {destinationFileName}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -2490,12 +2495,16 @@ namespace GamelistManager
         private void scrapeItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem_ShowMedia.Checked = false;
-            Scraper scraper = new Scraper();
+
+            Scraper scraper = new Scraper(this);
             scraper.Owner = this;
+
             // Set the start position and location
             scraper.StartPosition = FormStartPosition.Manual;
             scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+
             scraper.ShowDialog();
+
         }
 
         private void findNewItemsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2533,7 +2542,7 @@ namespace GamelistManager
            .SelectMany(ext => Directory.GetFiles(parentFolderPath, $"*.{ext}"))
            .ToArray();
 
-            if (filesArray.Length == 0) 
+            if (filesArray.Length == 0)
             {
                 MessageBox.Show("No additional items were found", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
