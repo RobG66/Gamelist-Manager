@@ -1,5 +1,9 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+Thoughts:
+ Progress is slow with getting ScreenScraper going.  I'm moderately disabled with my hands/arms so doing a lot of keyboard work is extremely difficult for me.  It causes me physical pain too.  But, it helps my emotional state to tinker on this so it is a trade off I guess.  I should slow down a bit though.     
+
+
  Release 3.0 introduces preliminary scraping for Arcade (MAME/FBNeo) via ArcadeDB.  If you notice any problem, please open an issue.
 
  Known limitations:
