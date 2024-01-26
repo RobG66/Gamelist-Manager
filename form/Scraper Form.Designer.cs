@@ -1,4 +1,4 @@
-﻿namespace GamelistManager.form
+﻿namespace GamelistManager
 {
     partial class Scraper
     {
@@ -30,6 +30,11 @@
         {
             this.RadioButton_ScrapeSelected = new System.Windows.Forms.RadioButton();
             this.panel_Everything = new System.Windows.Forms.Panel();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label_progress = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.button_Cancel = new System.Windows.Forms.Button();
             this.RadioButton_ScrapeAll = new System.Windows.Forms.RadioButton();
             this.listBoxLog = new System.Windows.Forms.ListBox();
             this.checkBox_Save = new System.Windows.Forms.CheckBox();
@@ -60,10 +65,6 @@
             this.checkbox_marquee = new System.Windows.Forms.CheckBox();
             this.checkbox_thumbnail = new System.Windows.Forms.CheckBox();
             this.button_StartStop = new System.Windows.Forms.Button();
-            this.button_Cancel = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.panel_Everything.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_MainLogo)).BeginInit();
             this.panel_CheckboxGroup.SuspendLayout();
@@ -76,10 +77,10 @@
             this.RadioButton_ScrapeSelected.Location = new System.Drawing.Point(8, 95);
             this.RadioButton_ScrapeSelected.Margin = new System.Windows.Forms.Padding(1);
             this.RadioButton_ScrapeSelected.Name = "RadioButton_ScrapeSelected";
-            this.RadioButton_ScrapeSelected.Size = new System.Drawing.Size(128, 17);
+            this.RadioButton_ScrapeSelected.Size = new System.Drawing.Size(156, 17);
             this.RadioButton_ScrapeSelected.TabIndex = 0;
             this.RadioButton_ScrapeSelected.TabStop = true;
-            this.RadioButton_ScrapeSelected.Text = "Scrape Selected Only";
+            this.RadioButton_ScrapeSelected.Text = "Scrape Selected Items Only";
             this.RadioButton_ScrapeSelected.UseVisualStyleBackColor = true;
             this.RadioButton_ScrapeSelected.CheckedChanged += new System.EventHandler(this.radioButton1_CheckedChanged);
             // 
@@ -88,8 +89,9 @@
             this.panel_Everything.BackColor = System.Drawing.Color.Transparent;
             this.panel_Everything.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.panel_Everything.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel_Everything.Controls.Add(this.checkBox1);
             this.panel_Everything.Controls.Add(this.label2);
-            this.panel_Everything.Controls.Add(this.label);
+            this.panel_Everything.Controls.Add(this.label_progress);
             this.panel_Everything.Controls.Add(this.label1);
             this.panel_Everything.Controls.Add(this.button_Cancel);
             this.panel_Everything.Controls.Add(this.RadioButton_ScrapeAll);
@@ -106,8 +108,59 @@
             this.panel_Everything.Location = new System.Drawing.Point(0, 0);
             this.panel_Everything.Margin = new System.Windows.Forms.Padding(1);
             this.panel_Everything.Name = "panel_Everything";
-            this.panel_Everything.Size = new System.Drawing.Size(449, 369);
+            this.panel_Everything.Size = new System.Drawing.Size(449, 382);
             this.panel_Everything.TabIndex = 2;
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Location = new System.Drawing.Point(8, 177);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(155, 17);
+            this.checkBox1.TabIndex = 27;
+            this.checkBox1.Text = "Do not scrape hidden items";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(8, 73);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(47, 13);
+            this.label2.TabIndex = 26;
+            this.label2.Text = "Scraper:";
+            // 
+            // label_progress
+            // 
+            this.label_progress.AutoSize = true;
+            this.label_progress.Location = new System.Drawing.Point(185, 251);
+            this.label_progress.Name = "label_progress";
+            this.label_progress.Size = new System.Drawing.Size(21, 13);
+            this.label_progress.TabIndex = 25;
+            this.label_progress.Text = "0%";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(5, 251);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(51, 13);
+            this.label1.TabIndex = 24;
+            this.label1.Text = "Progress:";
+            // 
+            // button_Cancel
+            // 
+            this.button_Cancel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
+            this.button_Cancel.Enabled = false;
+            this.button_Cancel.Location = new System.Drawing.Point(168, 92);
+            this.button_Cancel.Name = "button_Cancel";
+            this.button_Cancel.Size = new System.Drawing.Size(52, 23);
+            this.button_Cancel.TabIndex = 23;
+            this.button_Cancel.Text = "Cancel";
+            this.button_Cancel.UseVisualStyleBackColor = false;
+            this.button_Cancel.Click += new System.EventHandler(this.button1_Click_1);
             // 
             // RadioButton_ScrapeAll
             // 
@@ -123,7 +176,7 @@
             // listBoxLog
             // 
             this.listBoxLog.FormattingEnabled = true;
-            this.listBoxLog.Location = new System.Drawing.Point(3, 250);
+            this.listBoxLog.Location = new System.Drawing.Point(3, 269);
             this.listBoxLog.Name = "listBoxLog";
             this.listBoxLog.Size = new System.Drawing.Size(441, 108);
             this.listBoxLog.TabIndex = 21;
@@ -131,6 +184,8 @@
             // checkBox_Save
             // 
             this.checkBox_Save.AutoSize = true;
+            this.checkBox_Save.Checked = true;
+            this.checkBox_Save.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox_Save.Location = new System.Drawing.Point(8, 156);
             this.checkBox_Save.Name = "checkBox_Save";
             this.checkBox_Save.Size = new System.Drawing.Size(156, 17);
@@ -141,6 +196,8 @@
             // checkBox_OverwriteExisting
             // 
             this.checkBox_OverwriteExisting.AutoSize = true;
+            this.checkBox_OverwriteExisting.Checked = true;
+            this.checkBox_OverwriteExisting.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox_OverwriteExisting.Location = new System.Drawing.Point(8, 137);
             this.checkBox_OverwriteExisting.Name = "checkBox_OverwriteExisting";
             this.checkBox_OverwriteExisting.Size = new System.Drawing.Size(195, 17);
@@ -160,7 +217,7 @@
             // 
             // progressBar_ScrapeProgress
             // 
-            this.progressBar_ScrapeProgress.Location = new System.Drawing.Point(59, 234);
+            this.progressBar_ScrapeProgress.Location = new System.Drawing.Point(59, 251);
             this.progressBar_ScrapeProgress.Margin = new System.Windows.Forms.Padding(1);
             this.progressBar_ScrapeProgress.Name = "progressBar_ScrapeProgress";
             this.progressBar_ScrapeProgress.Size = new System.Drawing.Size(122, 14);
@@ -171,7 +228,8 @@
             this.comboBox_Scrapers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_Scrapers.FormattingEnabled = true;
             this.comboBox_Scrapers.Items.AddRange(new object[] {
-            "ArcadeDB"});
+            "ArcadeDB",
+            "ScreenScraper"});
             this.comboBox_Scrapers.Location = new System.Drawing.Point(59, 70);
             this.comboBox_Scrapers.Margin = new System.Windows.Forms.Padding(1);
             this.comboBox_Scrapers.Name = "comboBox_Scrapers";
@@ -458,53 +516,14 @@
             // button_StartStop
             // 
             this.button_StartStop.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.button_StartStop.Location = new System.Drawing.Point(157, 67);
+            this.button_StartStop.Location = new System.Drawing.Point(168, 67);
             this.button_StartStop.Margin = new System.Windows.Forms.Padding(1);
             this.button_StartStop.Name = "button_StartStop";
-            this.button_StartStop.Size = new System.Drawing.Size(65, 24);
+            this.button_StartStop.Size = new System.Drawing.Size(52, 24);
             this.button_StartStop.TabIndex = 11;
             this.button_StartStop.Text = "Start";
             this.button_StartStop.UseVisualStyleBackColor = false;
             this.button_StartStop.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // button_Cancel
-            // 
-            this.button_Cancel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.button_Cancel.Enabled = false;
-            this.button_Cancel.Location = new System.Drawing.Point(157, 92);
-            this.button_Cancel.Name = "button_Cancel";
-            this.button_Cancel.Size = new System.Drawing.Size(63, 23);
-            this.button_Cancel.TabIndex = 23;
-            this.button_Cancel.Text = "Cancel";
-            this.button_Cancel.UseVisualStyleBackColor = false;
-            this.button_Cancel.Click += new System.EventHandler(this.button1_Click_1);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 234);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 13);
-            this.label1.TabIndex = 24;
-            this.label1.Text = "Progress:";
-            // 
-            // label
-            // 
-            this.label.AutoSize = true;
-            this.label.Location = new System.Drawing.Point(185, 234);
-            this.label.Name = "label";
-            this.label.Size = new System.Drawing.Size(21, 13);
-            this.label.TabIndex = 25;
-            this.label.Text = "0%";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(8, 73);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(47, 13);
-            this.label2.TabIndex = 26;
-            this.label2.Text = "Scraper:";
             // 
             // Scraper
             // 
@@ -512,7 +531,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::GamelistManager.Properties.Resources.background11;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(449, 369);
+            this.ClientSize = new System.Drawing.Size(449, 382);
             this.Controls.Add(this.panel_Everything);
             this.Margin = new System.Windows.Forms.Padding(1);
             this.MaximizeBox = false;
@@ -565,8 +584,9 @@
         private System.Windows.Forms.RadioButton RadioButton_ScrapeAll;
         private System.Windows.Forms.Label label_Note;
         private System.Windows.Forms.Button button_Cancel;
-        private System.Windows.Forms.Label label;
+        private System.Windows.Forms.Label label_progress;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }

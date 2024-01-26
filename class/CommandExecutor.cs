@@ -1,16 +1,18 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
 
+// Runs a command and returns output
+
 namespace GamelistManager
 {
     public class CommandExecutor
     {
-        public static async Task<string> ExecuteCommandAsync(string exePath, string command)
+        public static async Task<string> ExecuteCommandAsync(string exePath, string switches)
         {
             using (Process process = new Process())
             {
                 process.StartInfo.FileName = exePath;
-                process.StartInfo.Arguments = command;
+                process.StartInfo.Arguments = switches;
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.CreateNoWindow = true;
@@ -46,5 +48,4 @@ namespace GamelistManager
             }
         }
     }
-
 }

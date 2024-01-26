@@ -1,5 +1,4 @@
-﻿using GamelistManager.form;
-using LibVLCSharp.Shared;
+﻿using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
 using Renci.SshNet;
 using System;
@@ -14,15 +13,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using File = System.IO.File;
+using System.IO;
 
 namespace GamelistManager
 {
     public partial class GamelistManager : Form
     {
-        public DataSet DataSet { get; private set; }
         private TableLayoutPanel TableLayoutPanel1;
-        public string XMLFilename { get; set; }
         private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
@@ -30,6 +27,8 @@ namespace GamelistManager
         {
             get { return dataGridView1; }
         }
+        public DataSet DataSet { get; set; }
+        public string XMLFilename { get; set; }
 
 
         public GamelistManager()
@@ -37,7 +36,6 @@ namespace GamelistManager
             InitializeComponent();
             DataSet = new DataSet();
         }
-
         private void LoadGamelistXMLToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -65,7 +63,9 @@ namespace GamelistManager
 
             if (successfulLoad == true)
             {
-                LoadLastFilenamesToMenu();
+                RegistryManager.SaveLastOpenedGamelistName(XMLFilename);
+                List<string> recentFiles = RegistryManager.GetRecentFiles();
+                UpdateRecentFilesMenu(recentFiles);
             }
         }
 
@@ -98,7 +98,7 @@ namespace GamelistManager
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             richTextBox_description.Text = itemDescription;
 
-            if (splitContainer_EverythingAndMedia.Panel2Collapsed != true)
+            if (splitContainer_Big.Panel2Collapsed != true)
             {
                 ShowMedia();
             }
@@ -198,7 +198,7 @@ namespace GamelistManager
             this.Text = $"Gamelist Manager {version.Major}.{version.Minor}";
 
             pictureBox_SystemLogo.Image = Properties.Resources.gamelistmanager;
-            splitContainer_EverythingAndMedia.Panel2Collapsed = true;
+            splitContainer_Big.Panel2Collapsed = true;
 
             foreach (ToolStripMenuItem menuItem in menuStrip_MainMenu.Items)
             {
@@ -209,17 +209,47 @@ namespace GamelistManager
             ToolStripMenuItem_Reload.Enabled = false;
             ToolStripMenuItem_Save.Enabled = false;
             ToolStripMenuItem_Remote.Enabled = true;
-            LoadLastFilenamesToMenu();
 
+            List<string> recentFiles = RegistryManager.GetRecentFiles();
+            UpdateRecentFilesMenu(recentFiles);
         }
 
-        private void ShowMediaToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        private void UpdateRecentFilesMenu(List<string> recentFiles)
+        {
+            // Just clear all recent files
+            List<ToolStripMenuItem> itemsToRemove = new List<ToolStripMenuItem>();
+            foreach (ToolStripMenuItem item in ToolStripMenuItem_File.DropDownItems.OfType<ToolStripMenuItem>())
+            {
+                if (item.Name != null && item.Name.StartsWith("lastfile_"))
+                {
+                    itemsToRemove.Add(item);
+                }
+            }
+
+            foreach (ToolStripMenuItem itemToRemove in itemsToRemove)
+            {
+                ToolStripMenuItem_File.DropDownItems.Remove(itemToRemove);
+            }
+
+            // Add the last filenames menu items
+            foreach (string filename in recentFiles)
+            {
+                ToolStripMenuItem filenameMenuItem = new ToolStripMenuItem(filename);
+                filenameMenuItem.Name = "lastfile_" + filename.Replace(" ", "_"); // Use a unique name for each item
+                filenameMenuItem.Click += FilenameMenuItem_Click;
+                ToolStripMenuItem_File.DropDownItems.Add(filenameMenuItem);
+            }
+        }
+    
+
+
+    private void ShowMediaToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
             ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
 
             if (menuItem.Checked == false)
             {
-                splitContainer_EverythingAndMedia.Panel2Collapsed = true;
+                splitContainer_Big.Panel2Collapsed = true;
 
                 ClearTableLayoutPanel();
                 return;
@@ -227,7 +257,7 @@ namespace GamelistManager
 
             if (dataGridView1.SelectedRows.Count < 1) { return; }
 
-            splitContainer_EverythingAndMedia.Panel2Collapsed = false;
+            splitContainer_Big.Panel2Collapsed = false;
 
             ShowMedia();
         }
@@ -554,8 +584,9 @@ namespace GamelistManager
             Cursor.Current = Cursors.WaitCursor;
 
             dataGridView1.DataSource = null;
+            
             DataSet.Reset();
-
+            
             XMLFilename = fileName;
 
             try
@@ -601,7 +632,8 @@ namespace GamelistManager
                 "manual",
                 "magazine",
                 "map",
-                "bezel"
+                "bezel",
+                "md5"
             };
 
             // Add default columns if this is a sparse gamelist.xml file
@@ -613,6 +645,7 @@ namespace GamelistManager
                     DataSet.Tables[0].Columns.Add(columnName, typeof(string));
                 }
             }
+
 
             //Convert true/false columns to boolean
             ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
@@ -642,10 +675,20 @@ namespace GamelistManager
 
             dataGridView1.DataSource = DataSet.Tables[0];
 
-            foreach (DataGridViewColumn col in dataGridView1.Columns)
+            foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
-                col.Visible = false;
-                col.ReadOnly = true;
+                column.Visible = false;
+                column.ReadOnly = true;
+
+                DataGridViewCellStyle headerStyle = new DataGridViewCellStyle
+                {
+                    //ForeColor = Color.Black,
+                    //BackColor = Color.LightBlue,
+                    Font = new Font("Segoe UI Semibold", 9, FontStyle.Bold)
+                };
+
+                column.HeaderCell.Style = headerStyle;
+
             }
 
             //Checking of checkboxes is handled by an on_click event
@@ -679,7 +722,7 @@ namespace GamelistManager
 
             Cursor.Current = Cursors.Default;
 
-            RegistryManager.SaveLastFilename(XMLFilename);
+            RegistryManager.SaveLastOpenedGamelistName(XMLFilename);
 
             return true;
         }
@@ -833,50 +876,7 @@ namespace GamelistManager
             }
 
         }
-        private void LoadLastFilenamesToMenu()
-        {
-            try
-            {
-                // Retrieve the last filenames from the registry
-                List<string> lastFilenames = RegistryManager.LoadLastFilenames();
-
-                // Get the "Load Gamelist XML" menu item
-                ToolStripMenuItem loadGamelistMenuItem = ToolStripMenuItem_Load;
-
-                // Create a list to store items to remove
-                var itemsToRemove = new List<ToolStripMenuItem>();
-
-                // Identify existing filename sub-menu items to remove
-                foreach (ToolStripMenuItem item in ToolStripMenuItem_File.DropDownItems.OfType<ToolStripMenuItem>())
-                {
-                    if (item.Name != null && item.Name.StartsWith("lastfile_"))
-                    {
-                        itemsToRemove.Add(item);
-                    }
-                }
-
-                // Remove existing filename sub-menu items
-                foreach (var item in itemsToRemove)
-                {
-                    ToolStripMenuItem_File.DropDownItems.Remove(item);
-                }
-
-                // Add the last filenames as sub-menu items
-                foreach (string filename in lastFilenames)
-                {
-                    ToolStripMenuItem filenameMenuItem = new ToolStripMenuItem(filename);
-                    filenameMenuItem.Name = "lastfile_" + filename.Replace(" ", "_"); // Use a unique name for each item
-                    filenameMenuItem.Click += FilenameMenuItem_Click;
-                    ToolStripMenuItem_File.DropDownItems.Add(filenameMenuItem);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading last filenames to menu: {ex.Message}");
-            }
-        }
-
-
+       
         private void FilenameMenuItem_Click(object sender, EventArgs e)
         {
             // Handle the click event for the filename menu item
@@ -884,10 +884,12 @@ namespace GamelistManager
             string selectedFilename = filenameMenuItem.Text;
             string selectedItem = filenameMenuItem.Name;
             bool success = LoadXML(selectedFilename);
-            if (success == true && !selectedItem.StartsWith("lastfile_"))
-
+            if (success == true)
             {
-                LoadLastFilenamesToMenu();
+                // This will move it to the top of the list
+                RegistryManager.SaveLastOpenedGamelistName(selectedFilename);
+                List<string> recentFiles = RegistryManager.GetRecentFiles();
+                UpdateRecentFilesMenu(recentFiles);
             }
         }
 
@@ -1011,37 +1013,6 @@ namespace GamelistManager
             ToolStripMenuItem_ShowGenreOnly.Text = string.IsNullOrEmpty(genre) ? "Show Empty Genre" : "Show Only '" + genre + "' Items";
         }
 
-        private void HighlightUnplayableGames(HashSet<string> gameNames)
-        {
-
-            Cursor.Current = Cursors.WaitCursor;
-            var dataTable = DataSet.Tables[0];
-            var columnIndex = dataTable.Columns["path"].Ordinal;
-
-            // Suspend the DataGridView layout to improve performance
-            dataGridView1.SuspendLayout();
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                string originalPath = row[columnIndex].ToString();
-                string path = ExtractPath(originalPath);
-
-                // Check if the path is in the HashSet
-                bool isUnplayable = gameNames.Contains(path);
-
-                // Set the value of the "IsUnplayable" column to true or false
-                row["unplayable"] = isUnplayable;
-            }
-
-            // Resume the DataGridView layout
-            dataGridView1.ResumeLayout();
-
-            // Refresh the DataGridView to update the UI once all changes are made
-            dataGridView1.Refresh();
-
-            Cursor.Current = Cursors.Default;
-        }
-
         public string ExtractPath(string originalPath)
         {
             // Use regex to match the pattern and extract the desired value
@@ -1109,13 +1080,13 @@ namespace GamelistManager
             {
                 setAllItemsVisibleToolStripMenuItem.Text = "Set Item Visible";
                 setAllItemsHiddenToolStripMenuItem.Text = "Set Item Hidden";
-                deleteRowToolStripMenuItem.Text = "Delete Row";
+                ToolStripMenuItem_Delete.Text = "Delete Row";
             }
             else
             {
                 setAllItemsVisibleToolStripMenuItem.Text = "Set Selected Items Visible";
                 setAllItemsHiddenToolStripMenuItem.Text = "Set Selected Items Hidden";
-                deleteRowToolStripMenuItem.Text = "Delete Selected Rows";
+                ToolStripMenuItem_Delete.Text = "Delete Selected Rows";
             }
 
             if (selectedRowCount == 1)
@@ -1236,7 +1207,7 @@ namespace GamelistManager
         {
             bool readonlyBoolean = true;
 
-            if (editRowDataToolStripMenuItem.Checked)
+            if (ToolStripMenuItem_EditRowData.Checked)
             {
                 readonlyBoolean = false;
             }
@@ -1252,7 +1223,7 @@ namespace GamelistManager
             //for proper view updating when a datagridview cell checkbox is 
             //changed and we need to update the form right away
 
-            // Check if the clicked column is the hidden column
+            // Check if the clicked column is the hidden or favorite column
             string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
             if (columnName != "hidden" && columnName != "favorite")
             {
@@ -1365,7 +1336,7 @@ namespace GamelistManager
 
             // Since the deleted columns were removed, make sure these are not checked
             ToolStripMenuItem_MissingItems.Checked = false;
-            scraperDatesToolStripMenuItem.Checked = false;
+            ToolStripMenuItem_ScraperDates.Checked = false;
 
             DataSet.Tables[0].AcceptChanges();
 
@@ -1387,7 +1358,7 @@ namespace GamelistManager
 
             bool isVisible = false;
 
-            if (scraperDatesToolStripMenuItem.Checked)
+            if (ToolStripMenuItem_ScraperDates.Checked)
             {
                 isVisible = true;
             }
@@ -1637,11 +1608,11 @@ namespace GamelistManager
         {
             if (ToolStripMenuItem_Description.Checked)
             {
-                splitContainer_DataGridViewAndTextBox.Panel2Collapsed = false;
+                splitContainer_Small.Panel2Collapsed = false;
             }
             else
             {
-                splitContainer_DataGridViewAndTextBox.Panel2Collapsed = true;
+                splitContainer_Small.Panel2Collapsed = true;
             }
 
         }
@@ -1669,8 +1640,6 @@ namespace GamelistManager
 
             MessageBox.Show(message, "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
             // Set the title of the dialog
@@ -1691,23 +1660,89 @@ namespace GamelistManager
                 return;
             }
 
+            List<string> gameNames = null;
+
             try
             {
                 statusBar_BottomOfWindow.Text = "Started XML Import.....";
                 string mameExePath = openFileDialog.FileName;
-                var gameNames = await MameUnplayable.GetFilteredGameNames(mameExePath);
-                statusBar_BottomOfWindow.Text = "Identifying unplayable games....";
-                HighlightUnplayableGames(gameNames);
-                statusBar_BottomOfWindow.Text = XMLFilename;
-                dataGridView1.Columns["unplayable"].Visible = true;
-                dataGridView1.Columns["unplayable"].SortMode = DataGridViewColumnSortMode.Automatic;
-                dataGridView1.Columns["unplayable"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                gameNames = await MameUnplayable.GetFilteredGameNames(mameExePath);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
+                Cursor.Current = Cursors.Default;
+                statusBar_BottomOfWindow.Text = XMLFilename;
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            if (gameNames == null || gameNames.Count == 0)
+            {
+                MessageBox.Show("No data was returned!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            int unplayableCount = 0;
+
+            Cursor.Current = Cursors.WaitCursor;
+            var dataTable = DataSet.Tables[0];
+            var columnIndex = dataTable.Columns["path"].Ordinal;
+
+            // Suspend the DataGridView layout to improve performance
+            dataGridView1.SuspendLayout();
+
+            statusBar_BottomOfWindow.Text = "Identifying unplayable games....";
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                string originalPath = row[columnIndex].ToString();
+                string path = ExtractPath(originalPath);
+
+                // Set the value of the "IsUnplayable" column to true or false
+                if (gameNames.Contains(path))
+                {
+                    unplayableCount++;
+                    row["unplayable"] = true;
+                }
+                else
+                {
+                    row["unplayable"] = false;
+                }
+            }
+
+            DataSet.Tables[0].AcceptChanges();
+
+            // Resume the DataGridView layout
+            dataGridView1.ResumeLayout();
+
+            // Refresh the DataGridView to update the UI once all changes are made
+            dataGridView1.Refresh();
+
+            Cursor.Current = Cursors.Default;
+
+            statusBar_BottomOfWindow.Text = XMLFilename;
+            dataGridView1.Columns["unplayable"].Visible = true;
+            dataGridView1.Columns["unplayable"].SortMode = DataGridViewColumnSortMode.Automatic;
+            dataGridView1.Columns["unplayable"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+
+            DialogResult result = MessageBox.Show($"There were {unplayableCount} unplayable items found.\nDo you want to set them hidden?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result == DialogResult.No)
+            {
+                return;
+            }
+
+            foreach (DataRow row in DataSet.Tables[0].Rows)
+            {
+                // Check if column x is true
+                if (Convert.ToBoolean(row["unplayable"]))
+                {
+                    row["hidden"] = true;
+                }
+            }
+
+            DataSet.Tables[0].AcceptChanges();
         }
 
         private void ProgressBarInitialize(int minimum, int maximum)
@@ -1774,7 +1809,6 @@ namespace GamelistManager
             if (result == DialogResult.Yes)
             {
                 RegistryManager.ClearRecentFiles();
-                LoadLastFilenamesToMenu();
             }
         }
 
@@ -1823,15 +1857,14 @@ namespace GamelistManager
         }
 
 
-        private void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             List<MediaObject> mediaList = GetMediaList("image");
             int totalFiles = mediaList.Count;
 
-            DialogResult result = MessageBox.Show($"This will check {totalFiles} item images for being single color, missing or corrupt.  This may take a few minutes depending on how many images need to be checked.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dialogResult = MessageBox.Show($"This will check {totalFiles} item images for being single color, missing or corrupt.  This may take a few minutes depending on how many images need to be checked.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            if (result != DialogResult.Yes)
+            if (dialogResult != DialogResult.Yes)
             {
                 return;
             }
@@ -1843,47 +1876,36 @@ namespace GamelistManager
             int missingImages = 0;
             int corruptImages = 0;
             int singleColorImages = 0;
-
-
+            
             foreach (var mediaObject in mediaList)
             {
                 string fileName = mediaObject.FullPath;
                 int rowIndex = mediaObject.RowIndex;
                 int columnIndex = mediaObject.ColumnIndex;
-                bool isSingleColor = false;
+                string result = await ImageChecker.CheckImage(fileName);
 
-                bool fileExists = File.Exists(fileName);
-
-                if (!fileExists)
+                switch (result)
                 {
-                    missingImages++;
-                    mediaObject.Status = "missing";
-                    continue;
-                }
-
-                try
-                {
-                    isSingleColor = ImageProcessor.IsSingleColorImage(fileName);
-                }
-                catch
-                {
-                    corruptImages++;
-                    mediaObject.Status = "corrupt";
-
-                }
-                finally
-                {
-                    if (isSingleColor)
-                    {
+                    case "missing":
+                        missingImages++;
+                        mediaObject.Status = "missing";
+                        break;
+                    case "ok":
+                        break;
+                    case "singlecolor":
                         singleColorImages++;
                         mediaObject.Status = "singlecolor";
-                    }
+                        break;
+                    case "corrupt":
+                        corruptImages++;
+                        mediaObject.Status = "corrupt";
+                        break;
                 }
-
-
+                
                 // Update progress bar
                 ProgressBarIncrement();
             }
+
             statusBar_BottomOfWindow.Text = XMLFilename;
 
             if (singleColorImages == 0 && corruptImages == 0 && missingImages == 0)
@@ -2156,7 +2178,7 @@ namespace GamelistManager
         {
             richTextBox_description.Hide();
             CredentialManager userControl = new CredentialManager();
-            splitContainer_DataGridViewAndTextBox.Panel2.Controls.Add(userControl);
+            splitContainer_Small.Panel2.Controls.Add(userControl);
             menuStrip_MainMenu.Enabled = false;
             // I could not figure out how to make the richtextbox visible
             // from within the Credential Manager control because it's nested
@@ -2496,7 +2518,7 @@ namespace GamelistManager
         {
             ToolStripMenuItem_ShowMedia.Checked = false;
 
-            Scraper scraper = new Scraper(this);
+            Scraper scraper = new Scraper();
             scraper.Owner = this;
 
             // Set the start position and location
@@ -2566,7 +2588,6 @@ namespace GamelistManager
             MessageBox.Show($"{filesArray.Length} items were found and added\nRemember to save if you want to keep these additions", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
-
     }
 }
 

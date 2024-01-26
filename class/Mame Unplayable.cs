@@ -7,7 +7,7 @@ namespace GamelistManager
 {
     public static class MameUnplayable
     {
-        public static async Task<HashSet<string>> GetFilteredGameNames(string mameExePath)
+        public static async Task<List<string>> GetFilteredGameNames(string mameExePath)
         {
             string command = "-listxml";
             string output = await CommandExecutor.ExecuteCommandAsync(mameExePath, command);
@@ -15,7 +15,7 @@ namespace GamelistManager
             var xml = XDocument.Parse(output);
             var machines = xml.Descendants("machine").ToArray();
 
-            var gameNames = new HashSet<string>();
+            var gameNames = new List<string>();
 
             foreach (var machine in machines)
             {
