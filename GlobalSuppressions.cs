@@ -1,0 +1,42 @@
+﻿// This file is used by Code Analysis to maintain SuppressMessage
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given
+// a specific target and scoped to a namespace, type, member, etc.
+
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.buttons_colors")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.cloneof")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.emulator_id")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.emulator_name")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.game_name")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.genre")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.history")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.history_copyright_long")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.history_copyright_short")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.index")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.input_buttons")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.input_controls")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.languages")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.manufacturer")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.nplayers")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.players")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.rate")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.screen_orientation")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.screen_resolution")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.serie")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.short_title")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.status")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.title")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_icon")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_image_cabinet")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_image_flyer")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_image_ingame")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_image_marquee")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_image_title")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_video_shortplay")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_video_shortplay_hd")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.year")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.youtube_video_id")]
+[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBResponse.result")]

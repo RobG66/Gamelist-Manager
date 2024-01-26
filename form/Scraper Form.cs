@@ -1,32 +1,22 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
-namespace GamelistManager.form
+
+namespace GamelistManager
 {
     public partial class Scraper : Form
     {
         private CancellationTokenSource cancellationTokenSource;
-        private bool isScraping = false;
-        private GamelistManager gamelistManager;
+        private static Stopwatch globalStopwatch = new Stopwatch();
 
-        public Scraper(GamelistManager owner)
+        public Scraper()
         {
             InitializeComponent();
-            this.gamelistManager = owner;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
@@ -55,12 +45,13 @@ namespace GamelistManager.form
                 return;
             }
 
+            GamelistManager gamelistManager = new GamelistManager();
             gamelistManager.SaveFile();
         }
 
         private async void button1_Click(object sender, EventArgs e)
         {
-  
+
             List<string> elementsToScrape = new List<string>();
             foreach (Control control in panel_CheckboxGroup.Controls)
             {
@@ -108,250 +99,27 @@ namespace GamelistManager.form
 
 
             button_StartStop.Enabled = false;
-            button_Cancel.Enabled = true    ;
+            button_Cancel.Enabled = true;
+            globalStopwatch.Start();
 
             // Reset the cancellation token source
             cancellationTokenSource = new CancellationTokenSource();
 
             // Call the scraper method asynchronously
             //await Task.Run(() => ScrapeArcadeDBAsync(cancellationTokenSource.Token));
-            await ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+            ScrapeArcadeDB scraper = new ScrapeArcadeDB();
+            await scraper.ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
 
             // Cleanup after scraping is complete or canceled
             button_StartStop.Enabled = true;
-            button_Cancel.Enabled = false ; 
-
-            if (cancellationTokenSource.Token.IsCancellationRequested)
-            {
-             
-            }
+            label_progress.Text = "0%";
+            button_Cancel.Enabled = false;
+            globalStopwatch.Stop();
 
             saveReminder(cancellationTokenSource.Token.IsCancellationRequested);
-       
+
         }
 
-        private async
-        Task
-        ScrapeArcadeDBAsync(bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
-        {
-
-            int total = romPaths.Count;
-            int count = 0;
-
-            DataSet dataSet = gamelistManager.DataSet;
-
-            // Batocera and ArcadeDB element names don't always align
-            // Therefore a dictionary is made to cross reference
-            Dictionary<string, string> Metadata = new Dictionary<string, string>();
-            Metadata.Add("name", "title");
-            Metadata.Add("desc", "history");
-            Metadata.Add("genre", "genre");
-            Metadata.Add("releasedate", "year");
-            Metadata.Add("players", "players");
-            Metadata.Add("rating", "rate");
-            Metadata.Add("lang", "languages");
-            Metadata.Add("publisher", "manufacturer");
-            Metadata.Add("marquee", "url_image_marquee");
-            Metadata.Add("image", "url_image_ingame");
-            Metadata.Add("video", "url_video_shortplay_hd");
-
-            int batchSize = 50;
-
-            string scraperBaseURL = "http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name=";
-            string parentFolderPath = Path.GetDirectoryName(gamelistManager.XMLFilename);
-
-            // Start to process selected datagridview rows
-            for (int i = 0; i < romPaths.Count; i += batchSize)
-            {
-          
-                // Take the next batch of roms
-                string[] batchArray = romPaths.Skip(i).Take(batchSize).ToArray();
-
-                // Construct a semicolon-separated string of ROM names for the current batch
-                string joinedRomNames = string.Join(";", batchArray.Select(path => gamelistManager.ExtractPath(path)));
-
-                // Construct the scraper URL with the batch of ROM names
-                string scraperRequestURL = $"{scraperBaseURL}{(joinedRomNames)}";
-
-                // Declare response string
-                string jsonResponse = null;
-
-                try
-                {
-                    using (HttpClient client = new HttpClient())
-                    {
-                        // Make the HTTP request to get the response as a byte array
-                        byte[] responseBytes = await client.GetByteArrayAsync(scraperRequestURL);
-
-                        // Convert the byte array to a string using a specific encoding (UTF-8 in this case)
-                        jsonResponse = Encoding.UTF8.GetString(responseBytes);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log failure
-                    AddToLog($"Exception: {ex.Message}");
-                }
-
-                if (jsonResponse == null)
-                {
-                    AddToLog("Scraper returned no data!");
-                    count = count + batchArray.Length;
-                    continue;
-                }
-
-                // Deserialize the JSON to names and values
-                GameListResponse scraperResponse = null;
-                try
-                {
-                    scraperResponse = JsonConvert.DeserializeObject<GameListResponse>(jsonResponse);
-                }
-                catch (JsonException ex)
-                {
-                    // Log the exception details
-                    AddToLog($"JSON deserialization error: {ex.Message}");
-                    count = count + batchArray.Length;
-                    continue;
-                }
-
-                if (scraperResponse == null)
-                {
-                    AddToLog("Deserialization failed. The JSON may be invalid or the type is incompatible.");
-                    count = count + batchArray.Length;
-                    continue;
-                }
-
-                // Loop through the returned data and process it
-                for (int j = 0; j < batchArray.Length; j++)
-                {
-                    count++;
-                    UpdateProgressBar();
-                    UpdateLabel(count, total);
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        // Perform cleanup or handle cancellation if needed
-                        AddToLog("Scraping canceled by user.");
-                        return;
-                    }
-
-                    string currentRomPath = batchArray[j];
-                    string currentRomName = gamelistManager.ExtractPath(currentRomPath);
-
-                    ScraperArcadeDBGameInfo scraperData = scraperResponse.result[j];
-
-                    AddToLog($"Scraping: {currentRomName}");
-                  
-                    // Loop through the Metadata dictionary
-                    foreach (var kvp in Metadata)
-                    {
-                        string localPropertyName = kvp.Key;
-                        string remotePropertyName = kvp.Value;
-
-                        if (!elementsToScrape.Contains(localPropertyName))
-                        {
-                            continue;
-                        }
-
-                        // Get the returned property value from its string name
-                        PropertyInfo property = typeof(ScraperArcadeDBGameInfo).GetProperty(remotePropertyName);
-                        string scrapedValue = property.GetValue(scraperData)?.ToString();
-
-                        DataRow tableRow = dataSet.Tables[0].AsEnumerable()
-                            .FirstOrDefault(row => row.Field<string>("path") == currentRomPath);
-
-                        string columnName = localPropertyName;
-                        object cellValueObject = tableRow[columnName];
-                        string cellValueString = (cellValueObject != null) ? cellValueObject.ToString() : string.Empty;
-
-                        // Check for empty scrape value
-                        if (string.IsNullOrEmpty(scrapedValue))
-                        {
-                            continue;
-                        }
-
-                        // If it's not an image property, we stop here
-                        if (!remotePropertyName.Contains("url_"))
-                        {
-                            // Check if we are allowed to overwrite
-                            // Write regardless if the local value is empty
-                            if ((!overWriteData && string.IsNullOrEmpty(cellValueString)) || overWriteData)
-                            {
-                                tableRow[columnName] = scrapedValue;
-                            }
-                            continue;
-                        }
-
-
-                        // Image handling
-                        string remoteDownloadURL = scrapedValue;
-
-                        if (string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            continue;
-                        }
-
-                        // What are we downloading, a video or image?                                     
-                        string fileName = null;
-                        string folderName = null;
-
-                        if (localPropertyName == "video")
-                        {
-                            folderName = "videos";
-                            fileName = $"{currentRomName}-video.mp4";
-                        }
-                        else
-                        {
-                            folderName = "images";
-                            fileName = $"{currentRomName}-{localPropertyName}.png";
-                        }
-
-                        string downloadPath = $"{parentFolderPath}\\{folderName}";
-                        string fileToDownload = $"{downloadPath}\\{fileName}";
-                        bool result = await DownloadFile(overWriteData, fileToDownload, remoteDownloadURL);
-                        // Returns true on success
-                        if (result == true)
-                        {
-                            tableRow[columnName] = $"./{folderName}/{fileName}";
-                        }
-
-                    }
-                }
-            }
-        }
-        private async Task<bool> DownloadFile(bool overWriteData, string fileToDownload, string url)
-        {
-
-            Thread.Sleep(200);
-
-            try
-            {
-                if (File.Exists(fileToDownload))
-                {
-                    if (overWriteData)
-                    {
-                        File.Delete(fileToDownload);
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-
-                using (WebClient webClient = new WebClient())
-                {
-                    await webClient.DownloadFileTaskAsync(new Uri(url), fileToDownload);
-
-                    AddToLog ($"File download OK: {fileToDownload}");
-                    return true; // Return true if the download was successful
-                }
-            }
-            catch
-            {
-                AddToLog($"File download Fail: {fileToDownload}");
-                return false; // Return false if an exception occurred during the download
-            }
-        }
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -384,7 +152,7 @@ namespace GamelistManager.form
             comboBox_Scrapers.SelectedIndex = 0;
         }
 
-        private void AddToLog(string logMessage)
+        public void AddToLog(string logMessage)
         {
             if (listBoxLog.InvokeRequired)
             {
@@ -398,19 +166,29 @@ namespace GamelistManager.form
             }
         }
 
-        private void UpdateLabel(int current, int total)
+        public void UpdateLabel(int current, int total)
         {
-            if (label.InvokeRequired)
+            if (label_progress.InvokeRequired)
             {
-                label.Invoke(new Action(() => UpdateLabel(current, total)));
+                label_progress.Invoke(new Action(() => UpdateLabel(current, total)));
             }
             else
             {
-                label.Text = $"{current * 100 / total}%";
+                double progress = (double)current / total * 100;
+
+                // Assuming you have a global Stopwatch declared outside of this method
+                TimeSpan elapsed = globalStopwatch.Elapsed;
+
+                // Calculate remaining time based on the percentage completed
+                TimeSpan remainingTime = TimeSpan.FromTicks((long)(elapsed.Ticks / (progress / 100)));
+
+                label_progress.Text = $"{progress:F2}% | Remaining Time: {remainingTime.ToString(@"hh\:mm\:ss")}";
             }
         }
 
-        private void UpdateProgressBar()
+
+
+        public void UpdateProgressBar()
         {
             if (progressBar_ScrapeProgress.InvokeRequired)
             {
@@ -428,18 +206,18 @@ namespace GamelistManager.form
             {
                 // ArcadeDB
                 List<string> availableScraperElements = new List<string>{
-                "name",
-                "desc",
-                "genre",
-                "players",
-                "rating",
-                "lang",
-                "releasedate",
-                "publisher",
-                "marquee",
-                "image",
-                "video"
-                };
+            "name",
+            "desc",
+            "genre",
+            "players",
+            "rating",
+            "lang",
+            "releasedate",
+            "publisher",
+            "marquee",
+            "image",
+            "video"
+            };
 
                 foreach (Control control in panel_CheckboxGroup.Controls)
                 {
@@ -467,11 +245,11 @@ namespace GamelistManager.form
             cancellationTokenSource?.Cancel();
             button_Cancel.Enabled = false;
             AddToLog("Cancelling.....");
+            globalStopwatch.Stop();
+            label_progress.Text = "0%";
         }
     }
+
 }
-
-
-
 
 

@@ -119,28 +119,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="class\Scraper ArcadeDB Game Info.cs" />
+    <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\FileTransfer.cs" />
+    <Compile Include="class\ScraperArcadeDB.cs" />
     <Compile Include="class\Mame Unplayable.cs" />
-    <Compile Include="class\Command Executor.cs" />
+    <Compile Include="class\CommandExecutor.cs" />
     <Compile Include="form\Image Handler Form.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="form\Image Handler Form.Designer.cs">
       <DependentUpon>Image Handler Form.cs</DependentUpon>
     </Compile>
-    <Compile Include="class\Image Processor.cs" />
+    <Compile Include="class\ImageChecker.cs" />
     <Compile Include="form\Scraper Form.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="form\Scraper Form.Designer.cs">
       <DependentUpon>Scraper Form.cs</DependentUpon>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="class\Registry Manager.cs" />
+    <Compile Include="class\RegistryManager.cs" />
     <Compile Include="form\Main Form.cs">
       <SubType>Form</SubType>
     </Compile>

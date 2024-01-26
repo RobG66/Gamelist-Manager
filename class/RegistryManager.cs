@@ -2,23 +2,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
+
+// Misc Registry methods in here
 
 namespace GamelistManager
 {
     public static class RegistryManager
     {
-        private const string RegistryKey = @"Software\GamelistManager";
-        private const string LastFilenamesValueName = "LastFilenames";
+       private const string programRegistryKey = @"Software\GamelistManager";
+       private const string filenamesKey = "LastFilenames";
 
 
         public static void ClearRecentFiles()
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryKey, true))
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(programRegistryKey, true))
                 {
                     // Clear the LastFilenames value
-                    key.DeleteValue(LastFilenamesValueName, false);
+                    key.DeleteValue(filenamesKey, false);
                 }
             }
             catch (Exception ex)
@@ -27,34 +30,43 @@ namespace GamelistManager
             }
         }
 
-        public static void SaveLastFilename(string newFilename)
+        public static void SaveLastOpenedGamelistName(string lastFileName)
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryKey, true))
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(programRegistryKey, true))
                 {
-                    string existingFilenamesString = key?.GetValue(LastFilenamesValueName) as string;
+                    string existingFilenamesString = key?.GetValue(filenamesKey) as string;
 
-                    List<string> existingFilenames = !string.IsNullOrEmpty(existingFilenamesString)
+                    int maxFiles = 10;
+
+                    List<string> lastFileNamesList = !string.IsNullOrEmpty(existingFilenamesString)
                         ? existingFilenamesString.Split(',').ToList()
                         : new List<string>();
 
                     // Check if the new filename is already in the list
-                    bool filenameExists = existingFilenames.Any(filename => string.Equals(filename, newFilename, StringComparison.OrdinalIgnoreCase));
+                    bool filenameExists = lastFileNamesList.Any(filename => string.Equals(filename, lastFileName, StringComparison.OrdinalIgnoreCase));
 
                     if (!filenameExists)
                     {
-                        existingFilenames.Insert(0, newFilename);
-
-                        if (existingFilenames.Count > 10)
+                        lastFileNamesList.Insert(0, lastFileName);
+                        if (lastFileNamesList.Count > maxFiles)
                         {
-                            existingFilenames.RemoveAt(existingFilenames.Count - 1);
+                            lastFileNamesList.RemoveAt(lastFileNamesList.Count - 1);
                         }
-
-                        string filenamesString = string.Join(",", existingFilenames);
-
-                        key?.SetValue(LastFilenamesValueName, filenamesString);
                     }
+                    else
+                    {
+                        // Move the existing filename to position 0
+                        lastFileNamesList.Remove(lastFileName);
+                        lastFileNamesList.Insert(0, lastFileName);
+                    }
+
+                    // Combine the list into a string
+                    string filenamesString = string.Join(",", lastFileNamesList);
+
+                    // Save the updated string to the registry
+                    key?.SetValue(filenamesKey, filenamesString);
                 }
             }
             catch (Exception ex)
@@ -62,15 +74,16 @@ namespace GamelistManager
                 Console.WriteLine($"Error saving last filename to registry: {ex.Message}");
             }
         }
-        public static List<string> LoadLastFilenames()
+
+        public static List<string> GetRecentFiles()
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(RegistryKey))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey))
                 {
                     if (key != null)
                     {
-                        string filenamesString = key.GetValue(LastFilenamesValueName) as string;
+                        string filenamesString = key.GetValue(filenamesKey) as string;
 
                         if (!string.IsNullOrEmpty(filenamesString))
                         {
@@ -84,6 +97,7 @@ namespace GamelistManager
                 Console.WriteLine($"Error loading last filenames from registry: {ex.Message}");
             }
 
+            // Returns a list, but it is empty
             return new List<string>();
         }
 
@@ -91,7 +105,7 @@ namespace GamelistManager
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryKey))
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(programRegistryKey))
                 {
                     if (key != null)
                     {
@@ -110,7 +124,7 @@ namespace GamelistManager
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(RegistryKey))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey))
                 {
                     if (key != null)
                     {
