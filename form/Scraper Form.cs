@@ -13,13 +13,15 @@ namespace GamelistManager
     {
         private CancellationTokenSource cancellationTokenSource;
         private static Stopwatch globalStopwatch = new Stopwatch();
+        private GamelistManager gamelistManager;
 
-        public Scraper()
+        public Scraper(GamelistManager owner)
         {
             InitializeComponent();
+            this.gamelistManager = owner;
         }
 
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+    private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
             comboBox_Scrapers.Enabled = RadioButton_ScrapeSelected.Checked;
         }
@@ -45,8 +47,7 @@ namespace GamelistManager
                 return;
             }
 
-            GamelistManager gamelistManager = new GamelistManager();
-            gamelistManager.SaveFile();
+           gamelistManager.SaveFile();
         }
 
         private async void button1_Click(object sender, EventArgs e)
@@ -68,7 +69,8 @@ namespace GamelistManager
                 return;
             }
 
-            DataGridView dgv = ((GamelistManager)this.Owner).MainDataGridView;
+
+            DataGridView dgv = gamelistManager.MainDataGridView;
             List<string> romPaths = null;
 
             if (RadioButton_ScrapeAll.Checked)
@@ -107,7 +109,7 @@ namespace GamelistManager
 
             // Call the scraper method asynchronously
             //await Task.Run(() => ScrapeArcadeDBAsync(cancellationTokenSource.Token));
-            ScrapeArcadeDB scraper = new ScrapeArcadeDB();
+            ScrapeArcadeDB scraper = new ScrapeArcadeDB(gamelistManager,this);
             await scraper.ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
 
             // Cleanup after scraping is complete or canceled

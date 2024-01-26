@@ -13,7 +13,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.IO;
+using  System.IO;
 
 namespace GamelistManager
 {
@@ -2518,15 +2518,13 @@ namespace GamelistManager
         {
             ToolStripMenuItem_ShowMedia.Checked = false;
 
-            Scraper scraper = new Scraper();
-            scraper.Owner = this;
+            Scraper scraper = new Scraper(this);
 
             // Set the start position and location
             scraper.StartPosition = FormStartPosition.Manual;
             scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
 
-            scraper.ShowDialog();
-
+            scraper.Show();
         }
 
         private void findNewItemsToolStripMenuItem_Click(object sender, EventArgs e)
