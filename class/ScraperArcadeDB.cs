@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -9,12 +8,21 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Windows.Forms;
+using System;
 
 namespace GamelistManager
 {
     public class ScrapeArcadeDB
     {
-  
+        private GamelistManager gamelistManagerForm;
+        private Scraper scraperForm;
+        public ScrapeArcadeDB(GamelistManager gamelistManager, Scraper scraper)
+        {
+            this.gamelistManagerForm = gamelistManager;
+            this.scraperForm = scraper;
+        }
+
         public async
         Task
         ScrapeArcadeDBAsync(bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
@@ -22,13 +30,9 @@ namespace GamelistManager
             int total = romPaths.Count;
             int count = 0;
 
-            // Initialize scraperForm to update controls
-            Scraper scraperForm = new Scraper();
-
-            // Access the dataset from main form
-            GamelistManager gamelistManagerForm = new GamelistManager();
-            DataSet DataSet = gamelistManagerForm.DataSet; 
+            DataSet dataSet = gamelistManagerForm.DataSet;
             
+
             // Batocera and ArcadeDB element names don't always align
             // Therefore a dictionary is made to cross reference
             Dictionary<string, string> Metadata = new Dictionary<string, string>();
@@ -63,7 +67,7 @@ namespace GamelistManager
 
                 // Get the JSON response from the website
                 string jsonResponse = await GetJsonResponseAsync(scraperRequestURL, cancellationToken);
-    
+
                 if (jsonResponse == null)
                 {
                     scraperForm.AddToLog("Scraper returned no data!");
@@ -72,17 +76,18 @@ namespace GamelistManager
                 }
 
                 // Deserialize the JSON to names and values
-                ScrapeArcadeDBResponse scraperResponse = await DeserializeJsonAsync<ScrapeArcadeDBResponse>(jsonResponse, cancellationToken);
+                ScrapeArcadeDBResponse deserializedJSON = null;
+                deserializedJSON = await DeserializeJsonAsync<ScrapeArcadeDBResponse>(jsonResponse, cancellationToken);
 
-                if (scraperResponse == null)
+                if (deserializedJSON == null)
                 {
-                    scraperForm.AddToLog("Deserialization failed. The JSON may be invalid or the type is incompatible.");
-                    count = count + batchArray.Length;
+                    scraperForm.AddToLog("JSON deserialization failed!");
+                    count += batchArray.Length;
                     continue;
                 }
 
-                // Loop through the returned data and process it
-                for (int j = 0; j < batchArray.Length; j++)
+                    // Loop through the returned data and process it
+                    for (int j = 0; j < batchArray.Length; j++)
                 {
                     count++;
                     scraperForm.UpdateProgressBar();
@@ -98,8 +103,8 @@ namespace GamelistManager
                     string currentRomPath = batchArray[j];
                     string currentRomName = gamelistManagerForm.ExtractPath(currentRomPath);
 
-                    ScrapeArcadeDBItem scraperData = scraperResponse.result[j];
-
+                    ScrapeArcadeDBItem scraperData = deserializedJSON.result[j];
+             
                     scraperForm.AddToLog($"Scraping: {currentRomName}");
 
                     // Loop through the Metadata dictionary
@@ -114,11 +119,12 @@ namespace GamelistManager
                         }
 
                         // Get the returned property value from its string name
-                        PropertyInfo property = typeof(ScrapeArcadeDB).GetProperty(remotePropertyName);
-                        string scrapedValue = property.GetValue(scraperData)?.ToString();
+                        PropertyInfo property = typeof(ScrapeArcadeDBItem).GetProperty(remotePropertyName);
+                        object propertyValue = property.GetValue(scraperData);
+                        string scrapedValue = propertyValue != null ? propertyValue.ToString() : null;
 
                         // Find the datarow we want to work with
-                        DataRow tableRow = DataSet.Tables[0].AsEnumerable()
+                        DataRow tableRow = dataSet.Tables[0].AsEnumerable()
                             .FirstOrDefault(row => row.Field<string>("path") == currentRomPath);
 
                         // Generate MD5
@@ -212,7 +218,7 @@ namespace GamelistManager
         {
             try
             {
-                return await Task.Run(() => JsonConvert.DeserializeObject<T>(json), cancellationToken);
+                return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
             }
             catch
             {
