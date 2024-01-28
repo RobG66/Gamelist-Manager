@@ -120,10 +120,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\SSHCommander.cs" />
+    <Compile Include="class\CredentialManager.cs" />
     <Compile Include="class\FileTransfer.cs" />
-    <Compile Include="class\ScraperArcadeDB.cs" />
-    <Compile Include="class\Mame Unplayable.cs" />
+    <Compile Include="class\ScrapeScreenScraper.cs" />
+    <Compile Include="class\ScrapeArcadeDB.cs" />
+    <Compile Include="class\GetMameUnplayable.cs" />
     <Compile Include="class\CommandExecutor.cs" />
+    <Compile Include="control\ScreenScraperSetup.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="control\ScreenScraperSetup.Designer.cs">
+      <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
+    </Compile>
     <Compile Include="form\Image Handler Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -152,12 +161,15 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="control\Credential Manager.cs">
+    <Compile Include="control\BatoceraHostSetup.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="control\Credential Manager.Designer.cs">
-      <DependentUpon>Credential Manager.cs</DependentUpon>
+    <Compile Include="control\BatoceraHostSetup.Designer.cs">
+      <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="control\ScreenScraperSetup.resx">
+      <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="form\Image Handler Form.resx">
       <DependentUpon>Image Handler Form.cs</DependentUpon>
     </EmbeddedResource>
@@ -172,8 +184,8 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="control\Credential Manager.resx">
-      <DependentUpon>Credential Manager.cs</DependentUpon>
+    <EmbeddedResource Include="control\BatoceraHostSetup.resx">
+      <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

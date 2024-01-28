@@ -39,4 +39,3 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.url_video_shortplay_hd")]
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.year")]
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBItem.youtube_video_id")]
-[assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~P:GamelistManager.ScrapeArcadeDB.ScrapeArcadeDBResponse.result")]

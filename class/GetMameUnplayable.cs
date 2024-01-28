@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace GamelistManager
 {
-    public static class MameUnplayable
+    public static class GetMameUnplayable
     {
         public static async Task<List<string>> GetFilteredGameNames(string mameExePath)
         {

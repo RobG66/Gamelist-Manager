@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GamelistManager.control;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -21,24 +22,20 @@ namespace GamelistManager
             this.gamelistManager = owner;
         }
 
-    private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
             comboBox_Scrapers.Enabled = RadioButton_ScrapeSelected.Checked;
         }
 
-        private void saveReminder(bool canceled)
+        private void SaveReminder(bool canceled)
         {
-            string finish = null;
+            string finish = "Scraping Completed!";
             MessageBoxIcon icon = MessageBoxIcon.Information;
 
             if (canceled)
             {
                 finish = "Scraping Was Cancelled!";
                 icon = MessageBoxIcon.Error;
-            }
-            else
-            {
-                finish = "Scraping Completed!";
             }
 
             if (!checkBox_Save.Checked)
@@ -47,14 +44,13 @@ namespace GamelistManager
                 return;
             }
 
-           gamelistManager.SaveFile();
+            gamelistManager.SaveFile();
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void Button_Start_Click(object sender, EventArgs e)
         {
-
             List<string> elementsToScrape = new List<string>();
-            foreach (Control control in panel_CheckboxGroup.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 if (control is CheckBox checkBox && checkBox.Checked)
                 {
@@ -108,9 +104,18 @@ namespace GamelistManager
             cancellationTokenSource = new CancellationTokenSource();
 
             // Call the scraper method asynchronously
-            //await Task.Run(() => ScrapeArcadeDBAsync(cancellationTokenSource.Token));
-            ScrapeArcadeDB scraper = new ScrapeArcadeDB(gamelistManager,this);
-            await scraper.ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+            if (comboBox_Scrapers.SelectedIndex == 0)
+            {
+                ScrapeArcadeDB scraper = new ScrapeArcadeDB(gamelistManager, this);
+                await scraper.ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+            }
+            if (comboBox_Scrapers.SelectedIndex == 1)
+            {
+                ScrapeScreenScraper scraper = new ScrapeScreenScraper(gamelistManager, this);
+                await scraper.ScrapeScreenScraperAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+
+            }
+
 
             // Cleanup after scraping is complete or canceled
             button_StartStop.Enabled = true;
@@ -118,14 +123,14 @@ namespace GamelistManager
             button_Cancel.Enabled = false;
             globalStopwatch.Stop();
 
-            saveReminder(cancellationTokenSource.Token.IsCancellationRequested);
+            SaveReminder(cancellationTokenSource.Token.IsCancellationRequested);
 
         }
 
 
-        private void button2_Click(object sender, EventArgs e)
+        private void Button_SelectAll_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_CheckboxGroup.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -136,9 +141,9 @@ namespace GamelistManager
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void Button_SelectNone_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_CheckboxGroup.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -188,8 +193,6 @@ namespace GamelistManager
             }
         }
 
-
-
         public void UpdateProgressBar()
         {
             if (progressBar_ScrapeProgress.InvokeRequired)
@@ -202,53 +205,102 @@ namespace GamelistManager
             }
         }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+
+        private void ComboBox_SelectScraper_SelectedIndexChanged(object sender, EventArgs e)
         {
+            List<string> availableScraperElements = new List<string>();
             if (comboBox_Scrapers.SelectedIndex == 0)
             {
                 // ArcadeDB
-                List<string> availableScraperElements = new List<string>{
-            "name",
-            "desc",
-            "genre",
-            "players",
-            "rating",
-            "lang",
-            "releasedate",
-            "publisher",
-            "marquee",
-            "image",
-            "video"
-            };
+                button_Setup.Enabled = false;
+                availableScraperElements = new List<string>{
+                    "name",
+                    "desc",
+                    "genre",
+                    "players",
+                    "rating",
+                    "lang",
+                    "releasedate",
+                    "publisher",
+                    "marquee",
+                    "image",
+                    "video"
+                };
+            }
 
-                foreach (Control control in panel_CheckboxGroup.Controls)
+            if (comboBox_Scrapers.SelectedIndex == 1)
+            {
+                // ScreenScraper
+                button_Setup.Enabled= true;
+                availableScraperElements = new List<string>{
+                    "name",
+                    "desc",
+                    "genre",
+                    "players",
+                    "rating",
+                    "lang",
+                    "releasedate",
+                    "publisher",
+                    "marquee",
+                    "image",
+                    "video",
+                    "developer"
+                };
+            }
+
+            foreach (Control control in groupBox_checkboxes.Controls)
+            {
+                if (control is System.Windows.Forms.CheckBox checkBox)
                 {
-
-                    if (control is System.Windows.Forms.CheckBox checkBox)
+                    string checkboxShortName = control.Name.Replace("checkbox_", "").ToLower();
+                    if (availableScraperElements.Contains(checkboxShortName))
                     {
-                        string checkboxShortName = control.Name.Replace("checkbox_", "").ToLower();
-                        if (availableScraperElements.Contains(checkboxShortName))
-                        {
-                            checkBox.Enabled = true;
-                        }
+                        checkBox.Enabled = true;
+                    }
 
-                        else
-                        {
-                            checkBox.Enabled = false;
-                        }
+                    else
+                    {
+                        checkBox.Enabled = false;
                     }
                 }
-
             }
         }
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void Button_Stop_Click(object sender, EventArgs e)
         {
             cancellationTokenSource?.Cancel();
             button_Cancel.Enabled = false;
             AddToLog("Cancelling.....");
             globalStopwatch.Stop();
             label_progress.Text = "0%";
+        }
+
+        private void button_Setup_Click(object sender, EventArgs e)
+        {
+            
+            button_StartStop.Enabled = false;
+            comboBox_Scrapers.Enabled = false;
+            
+            groupBox_checkboxes.Visible = false;
+
+            ScreenScraperSetup userControl = new ScreenScraperSetup();
+            panel_small.Controls.Add(userControl);
+
+            userControl.Disposed += ScreenScraperSetup_Disposed;
+
+        }
+
+        private void ScreenScraperSetup_Disposed(object sender, EventArgs e)
+        {
+            ScreenScraperSetup userControl = new ScreenScraperSetup();
+            
+            button_StartStop.Enabled = true;
+            comboBox_Scrapers.Enabled = true;
+
+            groupBox_checkboxes.Visible = true;
+
+            userControl.Disposed -= ScreenScraperSetup_Disposed;
+
         }
     }
 

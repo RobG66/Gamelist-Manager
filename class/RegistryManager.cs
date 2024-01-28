@@ -2,17 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms;
 
-// Misc Registry methods in here
 
 namespace GamelistManager
 {
     public static class RegistryManager
     {
-       private const string programRegistryKey = @"Software\GamelistManager";
-       private const string filenamesKey = "LastFilenames";
-
+        private const string programRegistryKey = @"Software\GamelistManager";
+        private const string filenamesKey = "LastFilenames";
 
         public static void ClearRecentFiles()
         {
