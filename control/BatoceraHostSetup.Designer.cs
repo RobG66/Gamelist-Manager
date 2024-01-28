@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager
 {
-    partial class CredentialManager
+    partial class BatoceraHostSetup
     {
         /// <summary> 
         /// Required designer variable.
@@ -132,7 +132,7 @@
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
-            // CredentialManager
+            // BatoceraHostSetup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -146,9 +146,9 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Name = "CredentialManager";
+            this.Name = "BatoceraHostSetup";
             this.Size = new System.Drawing.Size(164, 183);
-            this.Load += new System.EventHandler(this.UserControl1_Load);
+            this.Load += new System.EventHandler(this.BatoceraHostSetup_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

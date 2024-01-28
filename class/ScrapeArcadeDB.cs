@@ -6,10 +6,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
-using System.Windows.Forms;
-using System;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace GamelistManager
 {
@@ -31,10 +30,7 @@ namespace GamelistManager
             int count = 0;
 
             DataSet dataSet = gamelistManagerForm.DataSet;
-            
 
-            // Batocera and ArcadeDB element names don't always align
-            // Therefore a dictionary is made to cross reference
             Dictionary<string, string> Metadata = new Dictionary<string, string>();
             Metadata.Add("name", "title");
             Metadata.Add("desc", "history");
@@ -60,7 +56,7 @@ namespace GamelistManager
                 string[] batchArray = romPaths.Skip(i).Take(batchSize).ToArray();
 
                 // Construct a semicolon-separated string of ROM names for the current batch
-                string joinedRomNames = string.Join(";", batchArray.Select(path => gamelistManagerForm.ExtractPath(path)));
+                string joinedRomNames = string.Join(";", batchArray.Select(path => gamelistManagerForm.ExtractFileNameNoExtension(path)));
 
                 // Construct the scraper URL with the batch of ROM names
                 string scraperRequestURL = $"{scraperBaseURL}{(joinedRomNames)}";
@@ -86,8 +82,8 @@ namespace GamelistManager
                     continue;
                 }
 
-                    // Loop through the returned data and process it
-                    for (int j = 0; j < batchArray.Length; j++)
+                // Loop through the returned data and process it
+                for (int j = 0; j < batchArray.Length; j++)
                 {
                     count++;
                     scraperForm.UpdateProgressBar();
@@ -101,11 +97,12 @@ namespace GamelistManager
                     }
 
                     string currentRomPath = batchArray[j];
-                    string currentRomName = gamelistManagerForm.ExtractPath(currentRomPath);
+                    string currentRomName = gamelistManagerForm.ExtractFileNameNoExtension(currentRomPath);
+
 
                     ScrapeArcadeDBItem scraperData = deserializedJSON.result[j];
-             
-                    scraperForm.AddToLog($"Scraping: {currentRomName}");
+
+                    scraperForm.AddToLog($"Scraping item {currentRomName}");
 
                     // Loop through the Metadata dictionary
                     foreach (var kvp in Metadata)
@@ -186,12 +183,12 @@ namespace GamelistManager
                         // Returns true on success
                         if (result == true)
                         {
-                            scraperForm.AddToLog($"Downloaded: {fileName}");
+                            scraperForm.AddToLog($"Downloaded {fileName}");
                             tableRow[columnName] = $"./{folderName}/{fileName}";
                         }
                         else
                         {
-                            scraperForm.AddToLog($"Download Fail: {fileName}");
+                            scraperForm.AddToLog($"Failed to download {fileName}");
                         }
                     }
                 }
@@ -265,6 +262,7 @@ namespace GamelistManager
             public string screen_resolution { get; set; }
         }
 
+     
         public class ScrapeArcadeDBResponse
         {
             public List<ScrapeArcadeDBItem> result { get; set; }

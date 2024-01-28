@@ -13,7 +13,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using  System.IO;
 
 namespace GamelistManager
 {
@@ -194,9 +193,10 @@ namespace GamelistManager
             // Get the version information
             Version version = assembly.GetName().Version;
 
-            // Print the version number
+            // Show the version number
             this.Text = $"Gamelist Manager {version.Major}.{version.Minor}";
 
+            // Show the logo
             pictureBox_SystemLogo.Image = Properties.Resources.gamelistmanager;
             splitContainer_Big.Panel2Collapsed = true;
 
@@ -214,9 +214,8 @@ namespace GamelistManager
             UpdateRecentFilesMenu(recentFiles);
         }
 
-        private void UpdateRecentFilesMenu(List<string> recentFiles)
+        private void ClearMenuRecentFiles()
         {
-            // Just clear all recent files
             List<ToolStripMenuItem> itemsToRemove = new List<ToolStripMenuItem>();
             foreach (ToolStripMenuItem item in ToolStripMenuItem_File.DropDownItems.OfType<ToolStripMenuItem>())
             {
@@ -230,20 +229,28 @@ namespace GamelistManager
             {
                 ToolStripMenuItem_File.DropDownItems.Remove(itemToRemove);
             }
+        }
 
-            // Add the last filenames menu items
+        private void AddMenuRecentFiles(List<string> recentFiles)
+        {
             foreach (string filename in recentFiles)
             {
-                ToolStripMenuItem filenameMenuItem = new ToolStripMenuItem(filename);
-                filenameMenuItem.Name = "lastfile_" + filename.Replace(" ", "_"); // Use a unique name for each item
+                ToolStripMenuItem filenameMenuItem = new ToolStripMenuItem(filename)
+                {
+                    Name = "lastfile_" + filename.Replace(" ", "_") // Use a unique name for each item
+                };
                 filenameMenuItem.Click += FilenameMenuItem_Click;
                 ToolStripMenuItem_File.DropDownItems.Add(filenameMenuItem);
             }
         }
-    
 
+        private void UpdateRecentFilesMenu(List<string> recentFiles)
+        {
+            ClearMenuRecentFiles();
+            AddMenuRecentFiles(recentFiles);
+        }
 
-    private void ShowMediaToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        private void ShowMediaToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
             ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
 
@@ -578,35 +585,19 @@ namespace GamelistManager
             }
         }
 
-        public bool LoadXML(string fileName)
+        private void SetupTableColumns()
         {
-
-            Cursor.Current = Cursors.WaitCursor;
-
-            dataGridView1.DataSource = null;
-            
-            DataSet.Reset();
-            
-            XMLFilename = fileName;
-
-            try
-            {
-                DataSet.ReadXml(XMLFilename);
-            }
-
-            catch (Exception ex)
-            {
-                // Handle exceptions appropriately (log, show a message, etc.)
-                MessageBox.Show($"An error occurred loading the file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-
             //Add scraper columns
-
             if (DataSet.Tables.Count > 1)
             {
                 AddScrapColumns(
                 DataSet.Tables[0], DataSet.Tables[1], "scrap_");
+            }
+
+            if (DataSet.Tables.Count == 0)
+            {
+                DataSet.Tables.Add();
+                DataSet.Tables[0].Columns.Add("path", typeof(string));
             }
 
             string[] columnNames = {
@@ -646,7 +637,6 @@ namespace GamelistManager
                 }
             }
 
-
             //Convert true/false columns to boolean
             ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
             ConvertColumnToBoolean(DataSet.Tables[0], "favorite");
@@ -673,8 +663,10 @@ namespace GamelistManager
                 ("lastplayed", 16)
             );
 
-            dataGridView1.DataSource = DataSet.Tables[0];
+        }
 
+        private void SetupDataGridViewColumns()
+        {
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 column.Visible = false;
@@ -714,7 +706,32 @@ namespace GamelistManager
             dataGridView1.Columns["path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["name"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["genre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+        }
 
+        public bool LoadXML(string fileName)
+        {
+
+            Cursor.Current = Cursors.WaitCursor;
+            dataGridView1.DataSource = null;
+            DataSet.Reset();
+
+            XMLFilename = fileName;
+
+            try
+            {
+                DataSet.ReadXml(XMLFilename);
+            }
+
+            catch (Exception ex)
+            {
+                // Handle exceptions appropriately (log, show a message, etc.)
+                MessageBox.Show($"An error occurred loading the file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            SetupTableColumns();
+            dataGridView1.DataSource = DataSet.Tables[0];
+            SetupDataGridViewColumns();
             BuildCombobox();
             SetColumnTags();
             ResetForm();
@@ -876,7 +893,7 @@ namespace GamelistManager
             }
 
         }
-       
+
         private void FilenameMenuItem_Click(object sender, EventArgs e)
         {
             // Handle the click event for the filename menu item
@@ -1013,14 +1030,19 @@ namespace GamelistManager
             ToolStripMenuItem_ShowGenreOnly.Text = string.IsNullOrEmpty(genre) ? "Show Empty Genre" : "Show Only '" + genre + "' Items";
         }
 
-        public string ExtractPath(string originalPath)
+        public string ExtractFileNameNoExtension(string originalPath)
         {
             // Use regex to match the pattern and extract the desired value
             Match match = Regex.Match(originalPath, "/([^/]+)\\.[^/.]+$");
             return match.Success ? match.Groups[1].Value : originalPath;
         }
 
-
+        public string ExtractFileNameWithExtension(string originalPath)
+        {
+            // Use regex to match the pattern and extract the desired value
+            Match match = Regex.Match(originalPath, "/([^/]+\\.[^/.]+)$");
+            return match.Success ? match.Groups[1].Value : originalPath;
+        }
 
         private void ShowAllGenreToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -1666,7 +1688,7 @@ namespace GamelistManager
             {
                 statusBar_BottomOfWindow.Text = "Started XML Import.....";
                 string mameExePath = openFileDialog.FileName;
-                gameNames = await MameUnplayable.GetFilteredGameNames(mameExePath);
+                gameNames = await GetMameUnplayable.GetFilteredGameNames(mameExePath);
             }
             catch (Exception ex)
             {
@@ -1697,7 +1719,7 @@ namespace GamelistManager
             foreach (DataRow row in dataTable.Rows)
             {
                 string originalPath = row[columnIndex].ToString();
-                string path = ExtractPath(originalPath);
+                string path = ExtractFileNameNoExtension(originalPath);
 
                 // Set the value of the "IsUnplayable" column to true or false
                 if (gameNames.Contains(path))
@@ -1805,10 +1827,10 @@ namespace GamelistManager
         private void ClearRecentFilesToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show($"Do you want clear the recent file history?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
             if (result == DialogResult.Yes)
             {
                 RegistryManager.ClearRecentFiles();
+                ClearMenuRecentFiles();
             }
         }
 
@@ -1876,7 +1898,7 @@ namespace GamelistManager
             int missingImages = 0;
             int corruptImages = 0;
             int singleColorImages = 0;
-            
+
             foreach (var mediaObject in mediaList)
             {
                 string fileName = mediaObject.FullPath;
@@ -1901,7 +1923,7 @@ namespace GamelistManager
                         mediaObject.Status = "corrupt";
                         break;
                 }
-                
+
                 // Update progress bar
                 ProgressBarIncrement();
             }
@@ -2058,71 +2080,25 @@ namespace GamelistManager
             Clipboard.SetText(imagePath);
         }
 
-        static (string, string, string) GetCredentials()
-        {
-            string hostName = RegistryManager.ReadRegistryValue("HostName");
-
-            if (hostName == null || hostName == string.Empty)
-            {
-                MessageBox.Show("The batocera hostname is not set.\nPlease use the remote setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return ("connectfailed", null, null);
-            }
-
-            CredentialManager credentialManager = new CredentialManager();
-
-            string userName = string.Empty;
-            string userPassword = string.Empty;
-
-            if (credentialManager.TryReadCredentials(hostName, out NetworkCredential retrievedCredentials))
-            {
-                userName = retrievedCredentials.UserName;
-                userPassword = retrievedCredentials.Password;
-            }
-
-            if (userName == null || userName == string.Empty)
-            {
-                MessageBox.Show("The batocera username is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return (null, null, null);
-            }
-            return (hostName, userName, userPassword);
-        }
-
-
         static string ExecuteSshCommand(string command)
         {
-            var result = GetCredentials();
-            string hostName = result.Item1;
-            string userName = result.Item2;
-            string userPassword = result.Item3;
 
-            if (hostName == null || hostName == string.Empty)
+            string hostName = RegistryManager.ReadRegistryValue("HostName");
+            if (string.IsNullOrEmpty(hostName))
             {
+                MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return "connectfailed";
             }
 
-            string output = string.Empty;
-            using (var client = new SshClient(hostName, userName, userPassword))
+            (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
+
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
-                try
-                {
-                    client.Connect();
-                }
-                catch
-                {
-                    MessageBox.Show($"Could not connect to host {hostName}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return "connectfailed";
-                }
-
-                using (var commandRunner = client.RunCommand(command))
-                {
-                    // Show the server output in a message box
-                    output = commandRunner.Result;
-                }
-
-                client.Disconnect();
-                userPassword = null;
-                return output;
-            }
+                MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "connectfailed";
+            }      
+            string output = SSHCommander.ExecuteSSHCommand(hostName, userName, userPassword,command);   
+            return output;
         }
 
         private void stopEmulationstationToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2176,20 +2152,19 @@ namespace GamelistManager
 
         private void setupSSHToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            BatoceraHostSetup userControl = new BatoceraHostSetup();
             richTextBox_description.Hide();
-            CredentialManager userControl = new CredentialManager();
             splitContainer_Small.Panel2.Controls.Add(userControl);
+            userControl.Disposed += BatoceraHostSetup_Disposed;
             menuStrip_MainMenu.Enabled = false;
-            // I could not figure out how to make the richtextbox visible
-            // from within the Credential Manager control because it's nested
-            // So as a workaround I make an event to handle this.
-            menuStrip_MainMenu.EnabledChanged += MenuStrip1_EnabledChanged;
         }
 
-        private void MenuStrip1_EnabledChanged(object sender, EventArgs e)
+        private void BatoceraHostSetup_Disposed(object sender, EventArgs e)
         {
+            BatoceraHostSetup userControl = new BatoceraHostSetup();
             richTextBox_description.Visible = true;
-            menuStrip_MainMenu.EnabledChanged -= MenuStrip1_EnabledChanged;
+            menuStrip_MainMenu.Enabled = true;
+            userControl.Disposed -= BatoceraHostSetup_Disposed;
         }
 
         private void connectToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2202,17 +2177,14 @@ namespace GamelistManager
                 return;
             }
 
-            CredentialManager credentialManager = new CredentialManager();
+            (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
 
-            string userName = string.Empty;
-            string userPassword = string.Empty;
-
-            if (credentialManager.TryReadCredentials(hostName, out NetworkCredential retrievedCredentials))
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword)) 
             {
-                userName = retrievedCredentials.UserName;
-                userPassword = retrievedCredentials.Password;
-            }
+                MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
+                return;
+            }
 
             string sshPath = "C:\\Windows\\System32\\OpenSSH\\ssh.exe"; // Path to ssh.exe on Windows
 
@@ -2312,20 +2284,23 @@ namespace GamelistManager
 
         private void MapNetworkDrive()
         {
-            var result = GetCredentials();
-            string hostName = result.Item1;
-            string userName = result.Item2;
-            string userPassword = result.Item3;
-
-            if (hostName == null || hostName == string.Empty)
+            string hostName = RegistryManager.ReadRegistryValue("HostName");
+            if (string.IsNullOrEmpty(hostName))
             {
+                MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
+            (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
+            {
+                MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
             string networkShareToCheck = $"\\\\{hostName}\\share";
 
             bool isMapped = DriveMappingChecker.IsShareMapped(networkShareToCheck);
-
 
             if (isMapped == true)
             {
@@ -2483,7 +2458,7 @@ namespace GamelistManager
             }
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void CheckBox_CustomFilter_CheckedChanged(object sender, EventArgs e)
         {
             if (dataGridView1.RowCount == 0) { return; }
 
@@ -2514,7 +2489,7 @@ namespace GamelistManager
             ApplyFilters(visibilityFilter, genreFilter);
         }
 
-        private void scrapeItemToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItem_Scraper_Click(object sender, EventArgs e)
         {
             ToolStripMenuItem_ShowMedia.Checked = false;
 
@@ -2584,6 +2559,52 @@ namespace GamelistManager
             DataSet.Tables[0].AcceptChanges();
 
             MessageBox.Show($"{filesArray.Length} items were found and added\nRemember to save if you want to keep these additions", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        }
+
+        private void ToolStripMenuItem_ClearAllData_Click(object sender, EventArgs e)
+        {
+
+            DialogResult result = MessageBox.Show("This will clear all data except for path and name columns\nAre you sure you want to proceed?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            // Make sure media is closed!!
+            ToolStripMenuItem_ShowMedia.Checked = false;
+
+            var pathList = new List<string>();
+            var nameList = new List<string>();
+
+            // Iterate through the rows of the source table and populate the lists
+            foreach (DataRow sourceRow in DataSet.Tables[0].Rows)
+            {
+                pathList.Add(sourceRow["path"].ToString());
+                nameList.Add(sourceRow["name"].ToString());
+            }
+
+            dataGridView1.DataSource = null;
+
+            DataSet = new DataSet();
+            SetupTableColumns();
+
+            for (int i = 0; i < pathList.Count; i++)
+            {
+                DataRow newRow = DataSet.Tables[0].NewRow();
+                newRow["path"] = pathList[i];
+                newRow["name"] = ExtractFileNameNoExtension(pathList[i]);
+                DataSet.Tables[0].Rows.Add(newRow);
+            }
+
+            dataGridView1.DataSource = DataSet.Tables[0];
+            SetupDataGridViewColumns();
+            BuildCombobox();
+            SetColumnTags();
+            ResetForm();
+            UpdateCounters();
+
 
         }
     }

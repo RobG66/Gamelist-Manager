@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
+using System.Security.Cryptography;
 namespace GamelistManager
 {
     public static class ChecksumCreator
-{
+    {
         public static string CreateMD5(string filePath)
         {
             using (var md5 = MD5.Create())
