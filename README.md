@@ -1,6 +1,10 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
 Thoughts:
+
+Jan 27th
+ Lots of refactoring as things evolve.  Moving some classes outside of form source and adding more modularity where it makes sense.  ScreenScraper scraping is somewhat working, but I still need to implement media downloading for it.  I'll worry about 'threading' later when it's more complete.       
+
  Progress is slow with getting ScreenScraper going.  I'm moderately disabled with my hands/arms so doing a lot of keyboard work is extremely difficult for me.  It causes me physical pain too.  But, it helps my emotional state to tinker on this so it is a trade off I guess.  I should slow down a bit though.     
 
 
