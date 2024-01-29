@@ -50,7 +50,7 @@ namespace GamelistManager
         private async void Button_Start_Click(object sender, EventArgs e)
         {
             List<string> elementsToScrape = new List<string>();
-            foreach (Control control in panel_small.Controls)
+            foreach (Control control in groupBox_checkboxes.Controls)
             {
                 if (control is CheckBox checkBox && checkBox.Checked)
                 {
@@ -98,6 +98,7 @@ namespace GamelistManager
 
             button_StartStop.Enabled = false;
             button_Cancel.Enabled = true;
+            globalStopwatch.Reset();
             globalStopwatch.Start();
 
             // Reset the cancellation token source
@@ -116,6 +117,8 @@ namespace GamelistManager
 
             }
 
+            string elapsedTime = $"{globalStopwatch.Elapsed.TotalMinutes:F0} minutes and { globalStopwatch.Elapsed.Seconds } seconds";
+            MessageBox.Show($"Finished scraping {romPaths.Count} items in {elapsedTime}");
 
             // Cleanup after scraping is complete or canceled
             button_StartStop.Enabled = true;
@@ -130,7 +133,7 @@ namespace GamelistManager
 
         private void Button_SelectAll_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_small.Controls)
+            foreach (Control control in groupBox_checkboxes.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -143,7 +146,7 @@ namespace GamelistManager
 
         private void Button_SelectNone_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_small.Controls)
+            foreach (Control control in groupBox_checkboxes.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
