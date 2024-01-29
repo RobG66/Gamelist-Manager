@@ -48,7 +48,7 @@ namespace GamelistManager
             string region = "wor";
 
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
-            string gameinfo = "jeuInfos.php?devid=robg77&devpassword=4dLRXRHWT0y&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
+            
             string parentFolderPath = Path.GetDirectoryName(gamelistManagerForm.XMLFilename);
             string folderName = Path.GetFileName(parentFolderPath);
             int systemID = GetSystemId(folderName);
