@@ -64,6 +64,26 @@ namespace GamelistManager.control
             }
             textbox_ScreenScraperName.Text = userName;
             textbox_ScreenScraperPassword.Text = userPassword;
+
+            comboBox_BoxSource.SelectedIndex = 0;
+            comboBox_ImageSource.SelectedIndex = 0;
+            comboBox_LogoSource.SelectedIndex = 0;
+
+        }
+
+        private void comboBox_ImageSource_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            button1.Enabled = true;
+        }
+
+        private void comboBox_BoxSource_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            button1.Enabled = true;
+        }
+
+        private void comboBox_LogoSource_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            button1.Enabled = true;
         }
     }
 }
