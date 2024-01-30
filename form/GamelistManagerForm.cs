@@ -16,21 +16,95 @@ using System.Windows.Forms;
 
 namespace GamelistManager
 {
-    public partial class GamelistManager : Form
+
+    public partial class GamelistManagerForm : Form
     {
         private TableLayoutPanel TableLayoutPanel1;
         private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
-        public DataGridView MainDataGridView
+        private DataSet DataSet = GamelistManagerForm.SharedData.DataSet;
+        private string XMLFilename = GamelistManagerForm.SharedData.XMLFilename;
+        private DataGridView datagridview = GamelistManagerForm.SharedData.dataGridView1;
+
+        public static class SharedData
         {
-            get { return dataGridView1; }
+            public static DataSet DataSet { get; set; }
+            public static string XMLFilename { get; set; }
+            public static DataGridView dataGridView1 { get; }
+
         }
-        public DataSet DataSet { get; set; }
-        public string XMLFilename { get; set; }
 
+        public void SaveFile()
+        {
 
-        public GamelistManager()
+            string destinationFileName = Path.ChangeExtension(XMLFilename, "old");
+
+            DialogResult result = MessageBox.Show($"Do you save the file '{XMLFilename}'?\nA backup will be saved as {destinationFileName}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            // Since columns were removed, make sure these are not checked
+            ToolStripMenuItem_MissingItems.Checked = false;
+            ToolStripMenuItem_ScraperDates.Checked = false;
+
+            Cursor.Current = Cursors.WaitCursor;
+
+            // Remove all temporary and empty columns
+            DataTable dataTable = DataSet.Tables[0];
+            for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
+            {
+                DataGridViewColumn column = dataGridView1.Columns[i];
+                string columnName = column.Name;
+
+                // Remove from the DataGridView
+                if (column.Tag != null && column.Tag.ToString() == "temp")
+                {
+                    dataGridView1.Columns.RemoveAt(i);
+                }
+
+                // Check if the column exists in the DataTable
+                if (dataTable.Columns.Contains(columnName))
+                {
+                    // Check if all values in the column are null
+                    bool allNull = dataTable.AsEnumerable().All(row => row.IsNull(columnName));
+
+                    // If all values are null, remove the column
+                    if (allNull)
+                    {
+                        dataTable.Columns.Remove(columnName);
+                    }
+                }
+            }
+
+            // Set a few ordinals
+            // Tidy up
+            SetColumnOrdinals(DataSet.Tables[0],
+               ("name", 0),
+               ("path", 1),
+               ("genre", 2),
+               ("hidden", 3)
+           );
+
+            DataSet.Tables[0].AcceptChanges();
+
+            File.Copy(XMLFilename, destinationFileName, true);
+
+            DataSet.WriteXml(XMLFilename);
+
+            Cursor.Current = Cursors.Default;
+            // Reload after save
+            LoadXML(XMLFilename);
+
+            MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
+
+        }
+    
+
+    public GamelistManagerForm()
         {
             InitializeComponent();
             DataSet = new DataSet();
@@ -911,7 +985,7 @@ namespace GamelistManager
         }
 
 
-        private void SetColumnOrdinals(DataTable dataTable, params (string columnName, int ordinal)[] columns)
+        public static void SetColumnOrdinals(DataTable dataTable, params (string columnName, int ordinal)[] columns)
         {
             foreach (var (columnName, ordinal) in columns)
             {
@@ -1305,74 +1379,6 @@ namespace GamelistManager
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFile();
-        }
-
-        public void SaveFile()
-        {
-            string destinationFileName = Path.ChangeExtension(XMLFilename, "old");
-
-            DialogResult result = MessageBox.Show($"Do you save the file '{XMLFilename}'?\nA backup will be saved as {destinationFileName}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-            {
-                return;
-            }
-
-            Cursor.Current = Cursors.WaitCursor;
-
-            // Remove all temporary and empty columns
-            DataTable dataTable = DataSet.Tables[0];
-            for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
-            {
-                DataGridViewColumn column = dataGridView1.Columns[i];
-                string columnName = column.Name;
-
-                // Remove from the DataGridView
-                if (column.Tag != null && column.Tag.ToString() == "temp")
-                {
-                    dataGridView1.Columns.RemoveAt(i);
-                }
-
-                // Check if the column exists in the DataTable
-                if (dataTable.Columns.Contains(columnName))
-                {
-                    // Check if all values in the column are null
-                    bool allNull = dataTable.AsEnumerable().All(row => row.IsNull(columnName));
-
-                    // If all values are null, remove the column
-                    if (allNull)
-                    {
-                        dataTable.Columns.Remove(columnName);
-                    }
-                }
-            }
-
-            // Set a few ordinals
-            // Tidy up
-            SetColumnOrdinals(DataSet.Tables[0],
-                ("name", 0),
-                ("path", 1),
-                ("genre", 2),
-                ("hidden", 3)
-            );
-
-            // Since the deleted columns were removed, make sure these are not checked
-            ToolStripMenuItem_MissingItems.Checked = false;
-            ToolStripMenuItem_ScraperDates.Checked = false;
-
-            DataSet.Tables[0].AcceptChanges();
-
-            File.Copy(XMLFilename, destinationFileName, true);
-
-            DataSet.WriteXml(XMLFilename);
-
-            Cursor.Current = Cursors.Default;
-            // Reload after save
-            LoadXML(XMLFilename);
-
-            MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
-
-
         }
 
         private void ScraperDatesToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
@@ -2493,7 +2499,7 @@ namespace GamelistManager
         {
             ToolStripMenuItem_ShowMedia.Checked = false;
 
-            Scraper scraper = new Scraper(this);
+            ScraperForm scraper = new ScraperForm();
 
             // Set the start position and location
             scraper.StartPosition = FormStartPosition.Manual;

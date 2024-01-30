@@ -14,13 +14,10 @@ namespace GamelistManager
 {
     public class ScrapeArcadeDB
     {
-        private GamelistManager gamelistManagerForm;
-        private Scraper scraperForm;
-        public ScrapeArcadeDB(GamelistManager gamelistManager, Scraper scraper)
-        {
-            this.gamelistManagerForm = gamelistManager;
-            this.scraperForm = scraper;
-        }
+        ScraperForm scraperForm = new ScraperForm();
+        GamelistManagerForm gamelistManager = new GamelistManagerForm();
+        DataSet dataSet = GamelistManagerForm.SharedData.DataSet;
+        string XMLFileName = GamelistManagerForm.SharedData.XMLFilename;
 
         public async
         Task
@@ -28,8 +25,6 @@ namespace GamelistManager
         {
             int total = romPaths.Count;
             int count = 0;
-
-            DataSet dataSet = gamelistManagerForm.DataSet;
 
             Dictionary<string, string> Metadata = new Dictionary<string, string>();
             Metadata.Add("name", "title");
@@ -47,7 +42,7 @@ namespace GamelistManager
             int batchSize = 50;
 
             string scraperBaseURL = "http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name=";
-            string parentFolderPath = Path.GetDirectoryName(gamelistManagerForm.XMLFilename);
+            string parentFolderPath = Path.GetDirectoryName(XMLFileName);
 
             // Start to process selected datagridview rows
             for (int i = 0; i < romPaths.Count; i += batchSize)
@@ -56,7 +51,7 @@ namespace GamelistManager
                 string[] batchArray = romPaths.Skip(i).Take(batchSize).ToArray();
 
                 // Construct a semicolon-separated string of ROM names for the current batch
-                string joinedRomNames = string.Join(";", batchArray.Select(path => gamelistManagerForm.ExtractFileNameNoExtension(path)));
+                string joinedRomNames = string.Join(";", batchArray.Select(path => gamelistManager.ExtractFileNameNoExtension(path)));
 
                 // Construct the scraper URL with the batch of ROM names
                 string scraperRequestURL = $"{scraperBaseURL}{(joinedRomNames)}";
@@ -97,8 +92,7 @@ namespace GamelistManager
                     }
 
                     string currentRomPath = batchArray[j];
-                    string currentRomName = gamelistManagerForm.ExtractFileNameNoExtension(currentRomPath);
-
+                    string currentRomName = gamelistManager.ExtractFileNameNoExtension(currentRomPath);
 
                     ScrapeArcadeDBItem scraperData = deserializedJSON.result[j];
 

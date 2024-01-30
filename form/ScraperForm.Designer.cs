@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager
 {
-    partial class Scraper
+    partial class ScraperForm
     {
         /// <summary>
         /// Required designer variable.
@@ -525,7 +525,7 @@
             this.button_StartStop.UseVisualStyleBackColor = false;
             this.button_StartStop.Click += new System.EventHandler(this.Button_Start_Click);
             // 
-            // Scraper
+            // ScraperForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
