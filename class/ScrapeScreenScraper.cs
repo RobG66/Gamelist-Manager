@@ -10,18 +10,16 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Extensions.Configuration;
+using Renci.SshNet.Messages.Transport;
 
 namespace GamelistManager
 {
     public class ScrapeScreenScraper
     {
-        private GamelistManager gamelistManagerForm;
-        private Scraper scraperForm;
-        public ScrapeScreenScraper(GamelistManager gamelistManager, Scraper scraper)
-        {
-            this.gamelistManagerForm = gamelistManager;
-            this.scraperForm = scraper;
-        }
+
+        ScraperForm scraperForm = new ScraperForm();
+        GamelistManagerForm gamelistManager = new GamelistManagerForm();
 
         public static string GetCellValueAsString(DataRow row, string columnName)
         {
@@ -42,14 +40,18 @@ namespace GamelistManager
         {
             int total = romPaths.Count;
 
-            DataSet dataSet = gamelistManagerForm.DataSet;
+            DataSet dataSet = GamelistManagerForm.SharedData.DataSet;
+            string XMLFilename = GamelistManagerForm.SharedData.XMLFilename;
 
             string language = "en";
             string region = "wor";
 
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
+            //string gameinfo = $"jeuInfos.php?devid={devID}&devpassword={devPassword}&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
+
+            //MessageBox.Show(gameinfo);
             
-            string parentFolderPath = Path.GetDirectoryName(gamelistManagerForm.XMLFilename);
+            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
             string folderName = Path.GetFileName(parentFolderPath);
             int systemID = GetSystemId(folderName);
 
@@ -61,9 +63,9 @@ namespace GamelistManager
                     scraperForm.AddToLog("Scraping canceled by user.");
                     return;
                 }
-
+                string gameinfo = "";
                 string currentRomPath = romPaths[i];
-                string currentRomName = gamelistManagerForm.ExtractFileNameWithExtension(currentRomPath);
+                string currentRomName = gamelistManager.ExtractFileNameWithExtension(currentRomPath);
                 string scraperRequestURL = $"{scraperBaseURL}{(gameinfo)}";
                 string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
 

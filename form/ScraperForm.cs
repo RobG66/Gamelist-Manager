@@ -4,22 +4,23 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 
 
 namespace GamelistManager
 {
-    public partial class Scraper : Form
+    public partial class ScraperForm : Form
     {
         private CancellationTokenSource cancellationTokenSource;
         private static Stopwatch globalStopwatch = new Stopwatch();
-        private GamelistManager gamelistManager;
+        private DataGridView dataGridView = GamelistManagerForm.SharedData.dataGridView1;
+        GamelistManagerForm gamelistManager = new GamelistManagerForm();
 
-        public Scraper(GamelistManager owner)
+        public ScraperForm()
         {
             InitializeComponent();
-            this.gamelistManager = owner;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
@@ -66,19 +67,18 @@ namespace GamelistManager
             }
 
 
-            DataGridView dgv = gamelistManager.MainDataGridView;
             List<string> romPaths = null;
 
             if (RadioButton_ScrapeAll.Checked)
             {
-                romPaths = dgv.Rows
+                romPaths = dataGridView.Rows
                     .Cast<DataGridViewRow>()
                     .Select(row => row.Cells["path"].Value as string)
                     .ToList(); // Convert to List<string>
             }
             else
             {
-                romPaths = dgv.SelectedRows
+                romPaths = dataGridView.SelectedRows
                     .Cast<DataGridViewRow>()
                     .Select(row => row.Cells["path"].Value as string)
                     .ToList(); // Convert to List<string>
@@ -107,13 +107,14 @@ namespace GamelistManager
             // Call the scraper method asynchronously
             if (comboBox_Scrapers.SelectedIndex == 0)
             {
-                ScrapeArcadeDB scraper = new ScrapeArcadeDB(gamelistManager, this);
+                ScrapeArcadeDB scraper = new ScrapeArcadeDB();
                 await scraper.ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
             }
             if (comboBox_Scrapers.SelectedIndex == 1)
             {
-                ScrapeScreenScraper scraper = new ScrapeScreenScraper(gamelistManager, this);
-                await scraper.ScrapeScreenScraperAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+
+                //ScrapeScreenScraper scraper = new ScrapeScreenScraper(null, null, null, null);
+                //await scraper.ScrapeScreenScraperAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
 
             }
 

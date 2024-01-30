@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager
 {
-    partial class GamelistManager
+    partial class GamelistManagerForm
     {
         /// <summary>
         /// Required designer variable.
@@ -31,7 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GamelistManager));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GamelistManagerForm));
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.richTextBox_description = new System.Windows.Forms.RichTextBox();
             this.comboBox_Genre = new System.Windows.Forms.ComboBox();
@@ -1034,7 +1034,7 @@
             this.statusBar_BottomOfWindow.TabIndex = 6;
             this.statusBar_BottomOfWindow.Text = "Ready";
             // 
-            // GamelistManager
+            // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
