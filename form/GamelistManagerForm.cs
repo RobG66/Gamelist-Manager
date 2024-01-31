@@ -102,9 +102,9 @@ namespace GamelistManager
             MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
 
         }
-    
 
-    public GamelistManagerForm()
+
+        public GamelistManagerForm()
         {
             InitializeComponent();
             DataSet = new DataSet();
@@ -353,13 +353,20 @@ namespace GamelistManager
             }
             else
             {
-                try
+                if (name == "manual")
                 {
-                    image = System.Drawing.Image.FromFile(imagePath);
+                    image = Properties.Resources.manual;
                 }
-                catch
+                else
                 {
-                    image = Properties.Resources.loaderror;
+                    try
+                    {
+                        image = System.Drawing.Image.FromFile(imagePath);
+                    }
+                    catch
+                    {
+                        image = Properties.Resources.loaderror;
+                    }
                 }
             }
 
@@ -1013,15 +1020,10 @@ namespace GamelistManager
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 // Check if the column has the tag 'image'
-                if (column.Tag != null && column.Tag.ToString() == "image")
+                if (column.Tag != null && (column.Tag.ToString() == "image" || column.Tag.ToString() == "video"))
                 {
-                    // Set the column's visibility to true
-                    column.Visible = visible;
-                }
-                if (column.Name != null && column.Name.ToString() == "video")
-                {
-                    // Set the column's visibility to true
-                    column.Visible = visible;
+                    bool isColumnEmpty = DataSet.Tables[0].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
+                    column.Visible = isColumnEmpty ? !visible : visible;
                 }
             }
 
@@ -1229,10 +1231,24 @@ namespace GamelistManager
             {
                 return;
             }
-            foreach (DataGridViewRow row in dataGridView1.SelectedRows)
+
+
+            List<string> selectedFileList = dataGridView1.SelectedRows
+            .Cast<DataGridViewRow>()
+            .Select(selectedRow => selectedRow.Cells["path"].Value?.ToString())
+            .Where(filePath => !string.IsNullOrEmpty(filePath))
+            .ToList();
+
+            var rowsToRemove = DataSet.Tables[0].AsEnumerable()
+            .Where(row => selectedFileList.Contains(row.Field<string>("path")))
+            .ToList();
+
+            foreach (var rowToRemove in rowsToRemove)
             {
-                dataGridView1.Rows.RemoveAt(row.Index);
+                DataSet.Tables[0].Rows.Remove(rowToRemove);
             }
+
+            DataSet.AcceptChanges();
 
             UpdateCounters();
 
@@ -2102,8 +2118,8 @@ namespace GamelistManager
             {
                 MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return "connectfailed";
-            }      
-            string output = SSHCommander.ExecuteSSHCommand(hostName, userName, userPassword,command);   
+            }
+            string output = SSHCommander.ExecuteSSHCommand(hostName, userName, userPassword, command);
             return output;
         }
 
@@ -2185,7 +2201,7 @@ namespace GamelistManager
 
             (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
 
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword)) 
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
                 MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
@@ -2303,7 +2319,7 @@ namespace GamelistManager
                 MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            
+
             string networkShareToCheck = $"\\\\{hostName}\\share";
 
             bool isMapped = DriveMappingChecker.IsShareMapped(networkShareToCheck);
@@ -2518,12 +2534,13 @@ namespace GamelistManager
                 return;
             }
 
-            List<string> uniqueFileExtensions = new List<string>();
-            foreach (DataRow row in DataSet.Tables[0].Rows)
-            {
-                // Assuming the "path" column contains file paths
-                string path = row["path"] as string;
+            List<string> fileList = DataSet.Tables[0].AsEnumerable()
+                                            .Select(row => ExtractFileNameWithExtension(row.Field<string>("path")))
+                                            .ToList();
 
+            List<string> uniqueFileExtensions = new List<string>();
+            foreach (string path in fileList)
+            {
                 if (!string.IsNullOrEmpty(path))
                 {
                     // Extract the file extension using Path.GetExtension
@@ -2535,36 +2552,35 @@ namespace GamelistManager
                 }
             }
 
-            string[] uniqueExtensions = uniqueFileExtensions.ToArray();
-
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
 
-            string[] filesArray = uniqueExtensions
-           .SelectMany(ext => Directory.GetFiles(parentFolderPath, $"*.{ext}"))
-           .ToArray();
+            List<string> newFileList = uniqueFileExtensions
+                .SelectMany(ext => Directory.GetFiles(parentFolderPath, $"*.{ext}"))
+                .Select(file => Path.GetFileName(file))
+                .ToList();
 
-            if (filesArray.Length == 0)
+            newFileList.RemoveAll(file => fileList.Contains(file, StringComparer.OrdinalIgnoreCase));
+
+            if (newFileList.Count == 0)
             {
                 MessageBox.Show("No additional items were found", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-
-            foreach (string fileName in filesArray)
+            foreach (string path in newFileList)
             {
-                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-                string fileNameWithoutPath = Path.GetFileName(fileName);
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
+                string fileNameWithoutPath = Path.GetFileName(path);
                 DataRow newRow = DataSet.Tables[0].NewRow();
                 newRow["name"] = fileNameWithoutExtension;
                 newRow["path"] = $"./{fileNameWithoutPath}";
                 // Add the new row to the Rows collection of the DataTable
                 DataSet.Tables[0].Rows.Add(newRow);
-
             }
 
             DataSet.Tables[0].AcceptChanges();
 
-            MessageBox.Show($"{filesArray.Length} items were found and added\nRemember to save if you want to keep these additions", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"{newFileList.Count} items were found and added\nRemember to save if you want to keep these additions", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
 
@@ -2613,7 +2629,23 @@ namespace GamelistManager
 
 
         }
+
+        private void textBox_CustomFilter_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+            if (e.KeyChar == '\b' || e.KeyChar == '\u007F' || e.KeyChar == ' ' || e.KeyChar == '/')
+            {
+                return;
+            }
+
+            // Allow only characters 'a' to 'z' (both upper and lower case) and digits '0' to '9'
+            if (!char.IsLetterOrDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
     }
+   
 }
 
 
