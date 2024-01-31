@@ -42,11 +42,9 @@
             this.label_Hidden = new System.Windows.Forms.Label();
             this.splitContainer_Big = new System.Windows.Forms.SplitContainer();
             this.panel_BelowDataGridView = new System.Windows.Forms.Panel();
-            this.textBox_CustomFilter = new System.Windows.Forms.TextBox();
             this.checkBox_CustomFilter = new System.Windows.Forms.CheckBox();
             this.label_GenrePicker = new System.Windows.Forms.Label();
             this.label_Visible = new System.Windows.Forms.Label();
-            this.pictureBox_SystemLogo = new System.Windows.Forms.PictureBox();
             this.label_FavoriteCount = new System.Windows.Forms.Label();
             this.label_Favorite = new System.Windows.Forms.Label();
             this.splitContainer_Small = new System.Windows.Forms.SplitContainer();
@@ -131,19 +129,21 @@
             this.ToolStripMenuItem_EditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.statusBar_BottomOfWindow = new System.Windows.Forms.StatusBar();
+            this.textBox_CustomFilter = new System.Windows.Forms.TextBox();
+            this.pictureBox_SystemLogo = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Big)).BeginInit();
             this.splitContainer_Big.Panel1.SuspendLayout();
             this.splitContainer_Big.Panel2.SuspendLayout();
             this.splitContainer_Big.SuspendLayout();
             this.panel_BelowDataGridView.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Small)).BeginInit();
             this.splitContainer_Small.Panel1.SuspendLayout();
             this.splitContainer_Small.Panel2.SuspendLayout();
             this.splitContainer_Small.SuspendLayout();
             this.menuStrip_MainMenu.SuspendLayout();
             this.contextMenuStrip_ImageOptions.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).BeginInit();
             this.SuspendLayout();
             // 
             // dataGridView1
@@ -306,26 +306,16 @@
             this.panel_BelowDataGridView.Size = new System.Drawing.Size(652, 48);
             this.panel_BelowDataGridView.TabIndex = 12;
             // 
-            // textBox_CustomFilter
-            // 
-            this.textBox_CustomFilter.Enabled = false;
-            this.textBox_CustomFilter.Location = new System.Drawing.Point(514, 24);
-            this.textBox_CustomFilter.MaxLength = 20;
-            this.textBox_CustomFilter.Name = "textBox_CustomFilter";
-            this.textBox_CustomFilter.Size = new System.Drawing.Size(100, 20);
-            this.textBox_CustomFilter.TabIndex = 16;
-            this.textBox_CustomFilter.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyUp);
-            // 
             // checkBox_CustomFilter
             // 
             this.checkBox_CustomFilter.AutoSize = true;
             this.checkBox_CustomFilter.Enabled = false;
             this.checkBox_CustomFilter.ForeColor = System.Drawing.Color.DarkBlue;
-            this.checkBox_CustomFilter.Location = new System.Drawing.Point(424, 26);
+            this.checkBox_CustomFilter.Location = new System.Drawing.Point(378, 26);
             this.checkBox_CustomFilter.Name = "checkBox_CustomFilter";
-            this.checkBox_CustomFilter.Size = new System.Drawing.Size(89, 17);
+            this.checkBox_CustomFilter.Size = new System.Drawing.Size(120, 17);
             this.checkBox_CustomFilter.TabIndex = 15;
-            this.checkBox_CustomFilter.Text = "Custom Filter:";
+            this.checkBox_CustomFilter.Text = "Genre Search Filter:";
             this.checkBox_CustomFilter.UseVisualStyleBackColor = true;
             this.checkBox_CustomFilter.CheckedChanged += new System.EventHandler(this.CheckBox_CustomFilter_CheckedChanged);
             // 
@@ -352,15 +342,6 @@
             this.label_Visible.Size = new System.Drawing.Size(44, 15);
             this.label_Visible.TabIndex = 3;
             this.label_Visible.Text = "Visible:";
-            // 
-            // pictureBox_SystemLogo
-            // 
-            this.pictureBox_SystemLogo.Location = new System.Drawing.Point(2, 2);
-            this.pictureBox_SystemLogo.Name = "pictureBox_SystemLogo";
-            this.pictureBox_SystemLogo.Size = new System.Drawing.Size(180, 43);
-            this.pictureBox_SystemLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox_SystemLogo.TabIndex = 14;
-            this.pictureBox_SystemLogo.TabStop = false;
             // 
             // label_FavoriteCount
             // 
@@ -450,40 +431,40 @@
             // ToolStripMenuItem_Load
             // 
             this.ToolStripMenuItem_Load.Name = "ToolStripMenuItem_Load";
-            this.ToolStripMenuItem_Load.Size = new System.Drawing.Size(180, 22);
+            this.ToolStripMenuItem_Load.Size = new System.Drawing.Size(166, 22);
             this.ToolStripMenuItem_Load.Text = "Load Gamelist";
             this.ToolStripMenuItem_Load.Click += new System.EventHandler(this.LoadGamelistXMLToolStripMenuItem_Click);
             // 
             // ToolStripMenuItem_Reload
             // 
             this.ToolStripMenuItem_Reload.Name = "ToolStripMenuItem_Reload";
-            this.ToolStripMenuItem_Reload.Size = new System.Drawing.Size(180, 22);
+            this.ToolStripMenuItem_Reload.Size = new System.Drawing.Size(166, 22);
             this.ToolStripMenuItem_Reload.Text = "Reload Gamelist";
             this.ToolStripMenuItem_Reload.Click += new System.EventHandler(this.ReloadGamelistxmlToolStripMenuItem_Click);
             // 
             // ToolStripMenuItem_Save
             // 
             this.ToolStripMenuItem_Save.Name = "ToolStripMenuItem_Save";
-            this.ToolStripMenuItem_Save.Size = new System.Drawing.Size(180, 22);
+            this.ToolStripMenuItem_Save.Size = new System.Drawing.Size(166, 22);
             this.ToolStripMenuItem_Save.Text = "Save Gamelist";
             this.ToolStripMenuItem_Save.Click += new System.EventHandler(this.SaveFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator13
             // 
             this.toolStripSeparator13.Name = "toolStripSeparator13";
-            this.toolStripSeparator13.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator13.Size = new System.Drawing.Size(163, 6);
             // 
             // ToolStripMenuItem_Clear
             // 
             this.ToolStripMenuItem_Clear.Name = "ToolStripMenuItem_Clear";
-            this.ToolStripMenuItem_Clear.Size = new System.Drawing.Size(180, 22);
+            this.ToolStripMenuItem_Clear.Size = new System.Drawing.Size(166, 22);
             this.ToolStripMenuItem_Clear.Text = "Clear Recent Files";
             this.ToolStripMenuItem_Clear.Click += new System.EventHandler(this.ClearRecentFilesToolStripMenuItem_Click_1);
             // 
             // toolStripSeparator12
             // 
             this.toolStripSeparator12.Name = "toolStripSeparator12";
-            this.toolStripSeparator12.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator12.Size = new System.Drawing.Size(163, 6);
             // 
             // ToolStripMenuItem_View
             // 
@@ -1014,7 +995,7 @@
             // 
             this.ToolStripMenuItem_EditImage.Name = "ToolStripMenuItem_EditImage";
             this.ToolStripMenuItem_EditImage.Size = new System.Drawing.Size(199, 22);
-            this.ToolStripMenuItem_EditImage.Text = "Edit Image";
+            this.ToolStripMenuItem_EditImage.Text = "View / Edit Item";
             this.ToolStripMenuItem_EditImage.Click += new System.EventHandler(this.editToolStripMenuItem1_Click);
             // 
             // progressBar1
@@ -1034,6 +1015,26 @@
             this.statusBar_BottomOfWindow.TabIndex = 6;
             this.statusBar_BottomOfWindow.Text = "Ready";
             // 
+            // textBox_CustomFilter
+            // 
+            this.textBox_CustomFilter.Enabled = false;
+            this.textBox_CustomFilter.Location = new System.Drawing.Point(509, 24);
+            this.textBox_CustomFilter.MaxLength = 20;
+            this.textBox_CustomFilter.Name = "textBox_CustomFilter";
+            this.textBox_CustomFilter.Size = new System.Drawing.Size(138, 20);
+            this.textBox_CustomFilter.TabIndex = 16;
+            this.textBox_CustomFilter.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_CustomFilter_KeyPress);
+            this.textBox_CustomFilter.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyUp);
+            // 
+            // pictureBox_SystemLogo
+            // 
+            this.pictureBox_SystemLogo.Location = new System.Drawing.Point(2, 2);
+            this.pictureBox_SystemLogo.Name = "pictureBox_SystemLogo";
+            this.pictureBox_SystemLogo.Size = new System.Drawing.Size(180, 43);
+            this.pictureBox_SystemLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox_SystemLogo.TabIndex = 14;
+            this.pictureBox_SystemLogo.TabStop = false;
+            // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1047,7 +1048,7 @@
             this.MainMenuStrip = this.menuStrip_MainMenu;
             this.Margin = new System.Windows.Forms.Padding(1);
             this.MinimumSize = new System.Drawing.Size(401, 220);
-            this.Name = "GamelistManager";
+            this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
@@ -1057,7 +1058,6 @@
             this.splitContainer_Big.ResumeLayout(false);
             this.panel_BelowDataGridView.ResumeLayout(false);
             this.panel_BelowDataGridView.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).EndInit();
             this.splitContainer_Small.Panel1.ResumeLayout(false);
             this.splitContainer_Small.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Small)).EndInit();
@@ -1065,6 +1065,7 @@
             this.menuStrip_MainMenu.ResumeLayout(false);
             this.menuStrip_MainMenu.PerformLayout();
             this.contextMenuStrip_ImageOptions.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1161,7 +1162,6 @@
         private System.Windows.Forms.SplitContainer splitContainer_Small;
         private System.Windows.Forms.StatusBar statusBar_BottomOfWindow;
         private System.Windows.Forms.PictureBox pictureBox_SystemLogo;
-        private System.Windows.Forms.TextBox textBox_CustomFilter;
         private System.Windows.Forms.CheckBox checkBox_CustomFilter;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_Scraper;
         private System.Windows.Forms.ToolStripMenuItem scrapeItemToolStripMenuItem;
@@ -1170,6 +1170,7 @@
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_FindNewItems;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator20;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ClearAllData;
+        private System.Windows.Forms.TextBox textBox_CustomFilter;
     }
 }
 
