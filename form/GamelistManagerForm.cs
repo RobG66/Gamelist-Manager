@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -23,24 +24,21 @@ namespace GamelistManager
         private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
-        private DataSet DataSet = GamelistManagerForm.SharedData.DataSet;
-        private string XMLFilename = GamelistManagerForm.SharedData.XMLFilename;
-        private DataGridView datagridview = GamelistManagerForm.SharedData.dataGridView1;
+        private DataSet dataSet;
+        private string XMLFilename;
 
-        public static class SharedData
+        public GamelistManagerForm()
         {
-            public static DataSet DataSet { get; set; }
-            public static string XMLFilename { get; set; }
-            public static DataGridView dataGridView1 { get; }
-
+            InitializeComponent();
+            dataSet = new DataSet();
         }
 
-        public void SaveFile()
+        public void SaveFile(string filename)
         {
 
-            string destinationFileName = Path.ChangeExtension(XMLFilename, "old");
+            string oldFilename = Path.ChangeExtension(filename, "old");
 
-            DialogResult result = MessageBox.Show($"Do you save the file '{XMLFilename}'?\nA backup will be saved as {destinationFileName}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show($"Do you save the file '{filename}'?\nA backup will be saved as {oldFilename}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
@@ -54,7 +52,7 @@ namespace GamelistManager
             Cursor.Current = Cursors.WaitCursor;
 
             // Remove all temporary and empty columns
-            DataTable dataTable = DataSet.Tables[0];
+            DataTable dataTable = dataSet.Tables[0];
             for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
             {
                 DataGridViewColumn column = dataGridView1.Columns[i];
@@ -82,33 +80,29 @@ namespace GamelistManager
 
             // Set a few ordinals
             // Tidy up
-            SetColumnOrdinals(DataSet.Tables[0],
+            SetColumnOrdinals(dataSet.Tables[0],
                ("name", 0),
                ("path", 1),
                ("genre", 2),
                ("hidden", 3)
            );
 
-            DataSet.Tables[0].AcceptChanges();
+            dataSet.Tables[0].AcceptChanges();
 
-            File.Copy(XMLFilename, destinationFileName, true);
+            File.Copy(filename, oldFilename, true);
 
-            DataSet.WriteXml(XMLFilename);
+            dataSet.WriteXml(filename);
 
             Cursor.Current = Cursors.Default;
             // Reload after save
-            LoadXML(XMLFilename);
+            LoadXML(filename);
 
             MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
 
         }
 
+    
 
-        public GamelistManagerForm()
-        {
-            InitializeComponent();
-            DataSet = new DataSet();
-        }
         private void LoadGamelistXMLToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -130,13 +124,14 @@ namespace GamelistManager
             {
                 return;
             }
+ 
+            string filename = openFileDialog.FileName;
 
-            XMLFilename = openFileDialog.FileName;
-            bool successfulLoad = LoadXML(XMLFilename);
+            bool successfulLoad = LoadXML(filename);
 
             if (successfulLoad == true)
             {
-                RegistryManager.SaveLastOpenedGamelistName(XMLFilename);
+                RegistryManager.SaveLastOpenedGamelistName(filename);
                 List<string> recentFiles = RegistryManager.GetRecentFiles();
                 UpdateRecentFilesMenu(recentFiles);
             }
@@ -144,7 +139,6 @@ namespace GamelistManager
 
         private void ApplyFilters(string visibilityFilter, string genreFilter)
         {
-            DataTable dataTable = (DataTable)dataGridView1.DataSource;
             // Merge the genre filter with the visibility filter using "AND" if both are not empty
             string mergedFilter;
             if ((!string.IsNullOrEmpty(genreFilter) && !string.IsNullOrEmpty(visibilityFilter)))
@@ -158,8 +152,7 @@ namespace GamelistManager
 
             // Set the modified RowFilter
 
-            dataTable.DefaultView.RowFilter = mergedFilter;
-
+            dataSet.Tables[0].DefaultView.RowFilter = mergedFilter;
         }
 
         private void DataGridView1_SelectionChanged(object sender, EventArgs e)
@@ -180,11 +173,8 @@ namespace GamelistManager
 
         private string GetGenreFilter()
         {
-            // Get the DataTable bound to the DataGridView
-            DataTable dataTable = (DataTable)dataGridView1.DataSource;
-
             // Get the current row filter
-            string currentFilter = dataTable.DefaultView.RowFilter;
+            string currentFilter = dataSet.Tables[0].DefaultView.RowFilter;
 
             // Check if there's an existing genre filter
             bool hasGenreFilter = currentFilter.Contains("genre");
@@ -204,11 +194,9 @@ namespace GamelistManager
 
         private string Getvisibilityfilter()
         {
-            // Get the DataTable bound to the DataGridView
-            DataTable dataTable = (DataTable)dataGridView1.DataSource;
-
+          
             // Get the current row filter
-            string currentFilter = dataTable.DefaultView.RowFilter;
+            string currentFilter = dataSet.Tables[0].DefaultView.RowFilter;
 
             // Check if there's an existing visibility filter
             bool hasVisibilityFilter = currentFilter.Contains("hidden");
@@ -568,15 +556,15 @@ namespace GamelistManager
 
         private void UpdateCounters()
         {
-            int hiddenItems = DataSet.Tables[0].AsEnumerable()
+            int hiddenItems = dataSet.Tables[0].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") == true);
 
             // Count rows where "hidden" is false
-            int visibleItems = DataSet.Tables[0].AsEnumerable()
+            int visibleItems = dataSet.Tables[0].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") != true);
 
             // Count rows where "hidden" is false
-            int favoriteItems = DataSet.Tables[0].AsEnumerable()
+            int favoriteItems = dataSet.Tables[0].AsEnumerable()
             .Count(row => row.Field<bool?>("favorite") == true);
 
             int visibleRowCount = dataGridView1.Rows.Cast<DataGridViewRow>().Count(row => row.Visible);
@@ -669,16 +657,16 @@ namespace GamelistManager
         private void SetupTableColumns()
         {
             //Add scraper columns
-            if (DataSet.Tables.Count > 1)
+            if (dataSet.Tables.Count > 1)
             {
                 AddScrapColumns(
-                DataSet.Tables[0], DataSet.Tables[1], "scrap_");
+                dataSet.Tables[0], dataSet.Tables[1], "scrap_");
             }
 
-            if (DataSet.Tables.Count == 0)
+            if (dataSet.Tables.Count == 0)
             {
-                DataSet.Tables.Add();
-                DataSet.Tables[0].Columns.Add("path", typeof(string));
+                dataSet.Tables.Add();
+                dataSet.Tables[0].Columns.Add("path", typeof(string));
             }
 
             string[] columnNames = {
@@ -711,20 +699,20 @@ namespace GamelistManager
             // Add default columns if this is a sparse gamelist.xml file
             foreach (string columnName in columnNames)
             {
-                if (!DataSet.Tables[0].Columns.Contains(columnName))
+                if (!dataSet.Tables[0].Columns.Contains(columnName))
                 {
                     // If the column doesn't exist, add it to the DataTable
-                    DataSet.Tables[0].Columns.Add(columnName, typeof(string));
+                    dataSet.Tables[0].Columns.Add(columnName, typeof(string));
                 }
             }
 
             //Convert true/false columns to boolean
-            ConvertColumnToBoolean(DataSet.Tables[0], "hidden");
-            ConvertColumnToBoolean(DataSet.Tables[0], "favorite");
+            ConvertColumnToBoolean(dataSet.Tables[0], "hidden");
+            ConvertColumnToBoolean(dataSet.Tables[0], "favorite");
 
-            DataSet.Tables[0].Columns.Add("unplayable", typeof(bool));
-            DataSet.Tables[0].Columns.Add("missing", typeof(bool));
-            SetColumnOrdinals(DataSet.Tables[0],
+            dataSet.Tables[0].Columns.Add("unplayable", typeof(bool));
+            dataSet.Tables[0].Columns.Add("missing", typeof(bool));
+            SetColumnOrdinals(dataSet.Tables[0],
                 ("missing", 0),
                 ("unplayable", 1),
                 ("hidden", 2),
@@ -794,13 +782,11 @@ namespace GamelistManager
 
             Cursor.Current = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
-            DataSet.Reset();
-
-            XMLFilename = fileName;
+            dataSet.Reset();
 
             try
             {
-                DataSet.ReadXml(XMLFilename);
+                dataSet.ReadXml(fileName);
             }
 
             catch (Exception ex)
@@ -810,8 +796,12 @@ namespace GamelistManager
                 return false;
             }
 
+            XMLFilename = fileName;
+            
             SetupTableColumns();
-            dataGridView1.DataSource = DataSet.Tables[0];
+            
+            dataGridView1.DataSource = dataSet.Tables[0];
+            
             SetupDataGridViewColumns();
             BuildCombobox();
             SetColumnTags();
@@ -1022,7 +1012,7 @@ namespace GamelistManager
                 // Check if the column has the tag 'image'
                 if (column.Tag != null && (column.Tag.ToString() == "image" || column.Tag.ToString() == "video"))
                 {
-                    bool isColumnEmpty = DataSet.Tables[0].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
+                    bool isColumnEmpty = dataSet.Tables[0].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
                     column.Visible = isColumnEmpty ? !visible : visible;
                 }
             }
@@ -1239,16 +1229,16 @@ namespace GamelistManager
             .Where(filePath => !string.IsNullOrEmpty(filePath))
             .ToList();
 
-            var rowsToRemove = DataSet.Tables[0].AsEnumerable()
+            var rowsToRemove = dataSet.Tables[0].AsEnumerable()
             .Where(row => selectedFileList.Contains(row.Field<string>("path")))
             .ToList();
 
             foreach (var rowToRemove in rowsToRemove)
             {
-                DataSet.Tables[0].Rows.Remove(rowToRemove);
+                dataSet.Tables[0].Rows.Remove(rowToRemove);
             }
 
-            DataSet.AcceptChanges();
+            dataSet.AcceptChanges();
 
             UpdateCounters();
 
@@ -1283,7 +1273,7 @@ namespace GamelistManager
         private void SetVisibilityByItemValue(string colname, string colvalue, bool hiddenValue)
         {
 
-            DataTable dataTable = DataSet.Tables[0];
+            DataTable dataTable = dataSet.Tables[0];
 
             var rowsToUpdate = dataTable.AsEnumerable()
                 .Where(row =>
@@ -1371,8 +1361,8 @@ namespace GamelistManager
 
             string path = (string)pathValue;
 
-            // Find the corresponding row in the DataSet
-            DataRow[] rows = DataSet.Tables[0].Select($"path = '{path}'");
+            // Find the corresponding row in the dataSet
+            DataRow[] rows = dataSet.Tables[0].Select($"path = '{path}'");
 
             if (rows.Length > 0)
             {
@@ -1394,7 +1384,7 @@ namespace GamelistManager
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFile();
+            SaveFile(XMLFilename);
         }
 
         private void ScraperDatesToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
@@ -1463,7 +1453,7 @@ namespace GamelistManager
                 string pathValue = selectedRow.Cells["path"].Value.ToString();
 
                 // Find the corresponding row in table0
-                DataRow[] rowsInTable0 = DataSet.Tables[0].Select($"path = '{pathValue}'");
+                DataRow[] rowsInTable0 = dataSet.Tables[0].Select($"path = '{pathValue}'");
 
                 // Check if a matching row is found
                 if (rowsInTable0.Length > 0)
@@ -1472,7 +1462,7 @@ namespace GamelistManager
                     int gameId = Convert.ToInt32(rowsInTable0[0]["game_id"]);
 
                     // Find and update or add rows in table1 with matching game_id
-                    DataRow[] rowsToUpdate = DataSet.Tables[1].Select($"game_id = {gameId}");
+                    DataRow[] rowsToUpdate = dataSet.Tables[1].Select($"game_id = {gameId}");
                     if (rowsToUpdate.Length > 0)
                     {
                         // Update the date field or remove the row
@@ -1491,15 +1481,15 @@ namespace GamelistManager
                     else
                     {
                         // Add a new row to table1
-                        DataRow newRow = DataSet.Tables[1].NewRow();
+                        DataRow newRow = dataSet.Tables[1].NewRow();
                         newRow["game_id"] = gameId;
                         newRow["date"] = (date == string.Empty) ? DBNull.Value : (object)date;
-                        DataSet.Tables[1].Rows.Add(newRow);
+                        dataSet.Tables[1].Rows.Add(newRow);
                     }
                 }
             }
 
-            DataSet.Tables[1].AcceptChanges();
+            dataSet.Tables[1].AcceptChanges();
 
             MessageBox.Show("Scraper dates have been updated!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -1535,7 +1525,7 @@ namespace GamelistManager
             }
 
             int missingCount = 0;
-            int totalItemCount = DataSet.Tables[0].Rows.Count;
+            int totalItemCount = dataSet.Tables[0].Rows.Count;
 
             ProgressBarInitialize(0, totalItemCount);
 
@@ -1547,7 +1537,7 @@ namespace GamelistManager
 
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
             // Loop through each row in the DataTable
-            foreach (DataRow row in DataSet.Tables[0].Rows)
+            foreach (DataRow row in dataSet.Tables[0].Rows)
             {
                 // Access the "path" column value for each row
                 string itemPath = row["path"].ToString();
@@ -1730,7 +1720,7 @@ namespace GamelistManager
             int unplayableCount = 0;
 
             Cursor.Current = Cursors.WaitCursor;
-            var dataTable = DataSet.Tables[0];
+            var dataTable = dataSet.Tables[0];
             var columnIndex = dataTable.Columns["path"].Ordinal;
 
             // Suspend the DataGridView layout to improve performance
@@ -1755,7 +1745,7 @@ namespace GamelistManager
                 }
             }
 
-            DataSet.Tables[0].AcceptChanges();
+            dataSet.Tables[0].AcceptChanges();
 
             // Resume the DataGridView layout
             dataGridView1.ResumeLayout();
@@ -1777,7 +1767,7 @@ namespace GamelistManager
                 return;
             }
 
-            foreach (DataRow row in DataSet.Tables[0].Rows)
+            foreach (DataRow row in dataSet.Tables[0].Rows)
             {
                 // Check if column x is true
                 if (Convert.ToBoolean(row["unplayable"]))
@@ -1786,7 +1776,7 @@ namespace GamelistManager
                 }
             }
 
-            DataSet.Tables[0].AcceptChanges();
+            dataSet.Tables[0].AcceptChanges();
         }
 
         private void ProgressBarInitialize(int minimum, int maximum)
@@ -2516,11 +2506,12 @@ namespace GamelistManager
             ToolStripMenuItem_ShowMedia.Checked = false;
 
             ScraperForm scraper = new ScraperForm();
-
-            // Set the start position and location
+            scraper.Owner = this;
+            scraper.XMLFilename = XMLFilename;
+            scraper.dataSet = dataSet;
+            scraper.dataGridView = dataGridView1;
             scraper.StartPosition = FormStartPosition.Manual;
             scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
-
             scraper.Show();
         }
 
@@ -2534,7 +2525,7 @@ namespace GamelistManager
                 return;
             }
 
-            List<string> fileList = DataSet.Tables[0].AsEnumerable()
+            List<string> fileList = dataSet.Tables[0].AsEnumerable()
                                             .Select(row => ExtractFileNameWithExtension(row.Field<string>("path")))
                                             .ToList();
 
@@ -2571,14 +2562,14 @@ namespace GamelistManager
             {
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
                 string fileNameWithoutPath = Path.GetFileName(path);
-                DataRow newRow = DataSet.Tables[0].NewRow();
+                DataRow newRow = dataSet.Tables[0].NewRow();
                 newRow["name"] = fileNameWithoutExtension;
                 newRow["path"] = $"./{fileNameWithoutPath}";
                 // Add the new row to the Rows collection of the DataTable
-                DataSet.Tables[0].Rows.Add(newRow);
+                dataSet.Tables[0].Rows.Add(newRow);
             }
 
-            DataSet.Tables[0].AcceptChanges();
+            dataSet.Tables[0].AcceptChanges();
 
             MessageBox.Show($"{newFileList.Count} items were found and added\nRemember to save if you want to keep these additions", "Notice:", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -2601,7 +2592,7 @@ namespace GamelistManager
             var nameList = new List<string>();
 
             // Iterate through the rows of the source table and populate the lists
-            foreach (DataRow sourceRow in DataSet.Tables[0].Rows)
+            foreach (DataRow sourceRow in dataSet.Tables[0].Rows)
             {
                 pathList.Add(sourceRow["path"].ToString());
                 nameList.Add(sourceRow["name"].ToString());
@@ -2609,18 +2600,18 @@ namespace GamelistManager
 
             dataGridView1.DataSource = null;
 
-            DataSet = new DataSet();
+            dataSet = new DataSet();
             SetupTableColumns();
 
             for (int i = 0; i < pathList.Count; i++)
             {
-                DataRow newRow = DataSet.Tables[0].NewRow();
+                DataRow newRow = dataSet.Tables[0].NewRow();
                 newRow["path"] = pathList[i];
                 newRow["name"] = ExtractFileNameNoExtension(pathList[i]);
-                DataSet.Tables[0].Rows.Add(newRow);
+                dataSet.Tables[0].Rows.Add(newRow);
             }
 
-            dataGridView1.DataSource = DataSet.Tables[0];
+            dataGridView1.DataSource = dataSet.Tables[0];
             SetupDataGridViewColumns();
             BuildCombobox();
             SetColumnTags();

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace GamelistManager
@@ -15,8 +16,11 @@ namespace GamelistManager
     {
         private CancellationTokenSource cancellationTokenSource;
         private static Stopwatch globalStopwatch = new Stopwatch();
-        private DataGridView dataGridView = GamelistManagerForm.SharedData.dataGridView1;
-        GamelistManagerForm gamelistManager = new GamelistManagerForm();
+        public string XMLFilename { get; set; }
+        public DataSet dataSet { get; set; }
+        public DataGridView dataGridView { get; set; }
+      
+        public ListBox scraperLog => listBoxLog;
 
         public ScraperForm()
         {
@@ -44,11 +48,11 @@ namespace GamelistManager
                 MessageBox.Show($"{finish}", "Notice:", MessageBoxButtons.OK, icon);
                 return;
             }
-
-            gamelistManager.SaveFile();
+            GamelistManagerForm gamelistManagerForm = new GamelistManagerForm();
+            gamelistManagerForm.SaveFile(XMLFilename);
         }
 
-        private async void Button_Start_Click(object sender, EventArgs e)
+        public async void Button_Start_Click(object sender, EventArgs e)
         {
             List<string> elementsToScrape = new List<string>();
             foreach (Control control in groupBox_checkboxes.Controls)
@@ -95,20 +99,20 @@ namespace GamelistManager
                 listBoxLog.Items.Clear();
             }
 
-
             button_StartStop.Enabled = false;
             button_Cancel.Enabled = true;
             globalStopwatch.Reset();
             globalStopwatch.Start();
 
+     
             // Reset the cancellation token source
             cancellationTokenSource = new CancellationTokenSource();
-
+          
             // Call the scraper method asynchronously
             if (comboBox_Scrapers.SelectedIndex == 0)
             {
-                ScrapeArcadeDB scraper = new ScrapeArcadeDB();
-                await scraper.ScrapeArcadeDBAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+                ScrapeArcadeDB scraper = new ScrapeArcadeDB(this);
+                await scraper.ScrapeArcadeDBAsync(XMLFilename, dataSet, overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
             }
             if (comboBox_Scrapers.SelectedIndex == 1)
             {
@@ -128,7 +132,6 @@ namespace GamelistManager
             globalStopwatch.Stop();
 
             SaveReminder(cancellationTokenSource.Token.IsCancellationRequested);
-
         }
 
 
