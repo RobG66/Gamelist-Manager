@@ -35,12 +35,9 @@ namespace GamelistManager
 
         public async
         Task
-        ScrapeScreenScraperAsync(bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
+        ScrapeScreenScraperAsync(string XMLFilename, DataSet dataSet, bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
         {
             int total = romPaths.Count;
-
-            DataSet dataSet = GamelistManagerForm.SharedData.DataSet;
-            string XMLFilename = GamelistManagerForm.SharedData.XMLFilename;
 
             string language = "en";
             string region = "wor";
