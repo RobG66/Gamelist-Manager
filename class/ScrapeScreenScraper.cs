@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 
 // this is not done yet!
 
@@ -16,21 +20,13 @@ namespace GamelistManager
 {
     public class ScrapeScreenScraper
     {
-
         ScraperForm scraperForm = new ScraperForm();
-        GamelistManagerForm gamelistManager = new GamelistManagerForm();
+        GamelistManagerForm gamelistManagerForm = new GamelistManagerForm();
 
-        public static string GetCellValueAsString(DataRow row, string columnName)
+        public ScrapeScreenScraper(ScraperForm scraperForm)
         {
-            if (row != null && row.Table.Columns.Contains(columnName))
-            {
-                object cellValueObject = row[columnName];
-                return (cellValueObject != null) ? cellValueObject.ToString() : string.Empty;
-            }
-            else
-            {
-                return string.Empty;
-            }
+            this.scraperForm = scraperForm ?? throw new ArgumentNullException(nameof(scraperForm));
+            this.gamelistManagerForm = gamelistManagerForm ?? throw new ArgumentNullException(nameof(gamelistManagerForm));
         }
 
         public async
@@ -38,30 +34,36 @@ namespace GamelistManager
         ScrapeScreenScraperAsync(string XMLFilename, DataSet dataSet, bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
         {
             int total = romPaths.Count;
-
+            int count = 0;
             string language = "en";
             string region = "wor";
+            string regionFallback = "ss";
+            string languageFallback = "en";
 
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
-            //string gameinfo = $"jeuInfos.php?devid={devID}&devpassword={devPassword}&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
 
-            //MessageBox.Show(gameinfo);
-            
+           
+            string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
+      
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
             string folderName = Path.GetFileName(parentFolderPath);
             int systemID = GetSystemId(folderName);
 
             for (int i = 0; i < romPaths.Count; i++)
             {
+                count++;
+                scraperForm.UpdateProgressBar();
+                scraperForm.UpdateLabel(count, total);
+
                 if (cancellationToken.IsCancellationRequested)
                 {
                     // Perform cleanup or handle cancellation if needed
                     scraperForm.AddToLog("Scraping canceled by user.");
                     return;
                 }
-                string gameinfo = "";
+              
                 string currentRomPath = romPaths[i];
-                string currentRomName = gamelistManager.ExtractFileNameWithExtension(currentRomPath);
+                string currentRomName = gamelistManagerForm.ExtractFileNameWithExtension(currentRomPath);
                 string scraperRequestURL = $"{scraperBaseURL}{(gameinfo)}";
                 string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
 
@@ -84,7 +86,6 @@ namespace GamelistManager
                 scraperRequestURL = scraperRequestURL.Replace("username", "robg77");
                 scraperRequestURL = scraperRequestURL.Replace("userpassword", "Zippy111");
 
-
                 // Get the XML response from the website
                 XmlDocument xmlResponse = await GetXMLResponseAsync(scraperRequestURL, cancellationToken);
 
@@ -95,96 +96,145 @@ namespace GamelistManager
                 }
 
                 scraperForm.AddToLog($"Scraping item {currentRomName}");
-                Dictionary<string, string> Metadata = new Dictionary<string, string>();
-                Metadata.Add("publisher", xmlResponse.SelectSingleNode("/Data/jeu/editeur")?.InnerText);
-                Metadata.Add("developer", xmlResponse.SelectSingleNode("/Data/jeu/developpeur")?.InnerText);
-                Metadata.Add("players", xmlResponse.SelectSingleNode("/Data/jeu/joueurs")?.InnerText);
-                Metadata.Add("desc", xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{language}']")?.InnerText);
 
-                XmlNode namesNode = xmlResponse.SelectSingleNode("/Data/jeu/noms");
-                string name = ParseNames(namesNode, region);
+                string value = null;
 
-                if (!string.IsNullOrEmpty(name))
+                foreach (string element in elementsToScrape)
                 {
-                    Metadata.Add("name", name);
-                }
-
-                XmlNode genresNode = xmlResponse.SelectSingleNode("/Data/jeu/genres");
-                if (genresNode != null)
-                {
-                    string genre = ParseGenres(genresNode, language);
-
-                    if (!string.IsNullOrEmpty(genre))
+                    switch (element)
                     {
-                        Metadata.Add("genre", genre);
-                    }
-                }
+                        case "publisher":
+                            value = xmlResponse.SelectSingleNode("/Data/jeu/editeur")?.InnerText;
+                            if (string.IsNullOrEmpty(tableRow["publisher"]?.ToString()) || overWriteData)
+                            {
+                              tableRow["publisher"] = value;
+                            }
+                            break;
 
-                string rating = xmlResponse.SelectSingleNode("/Data/jeu/note")?.InnerText;
-                if (!string.IsNullOrEmpty(rating))
-                {
-                    rating = ProcessRating(rating);
-                    Metadata.Add("rating", rating);
-                }
+                        case "developer":
+                            value = xmlResponse.SelectSingleNode("/Data/jeu/developpeur")?.InnerText;
+                            if (string.IsNullOrEmpty(tableRow["developer"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["developer"] = value;
+                            }
+                            break;
 
-                string releasedate = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{region}']")?.InnerText;
-                if (!string.IsNullOrEmpty(releasedate))
-                {
-                    releasedate = ConvertToISO8601(releasedate);
-                    Metadata.Add("releasedate", releasedate);
-                }
+                        case "players":
+                            value = xmlResponse.SelectSingleNode("/Data/jeu/joueurs")?.InnerText;
+                            if (string.IsNullOrEmpty(tableRow["players"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["players"] = value;
+                            }
+                            break;
 
-                // Loop through the new Metadata
-                foreach (var kvp in Metadata)
-                {
-                    string propertyName = kvp.Key;
-                    string propertyValue = kvp.Value;
-                    if (!elementsToScrape.Contains(propertyName))
-                    {
-                        continue;
-                    }
+                        case "rating":
+                            value = xmlResponse.SelectSingleNode("/Data/jeu/note")?.InnerText;
+                            ProcessRating(value);
+                            if (string.IsNullOrEmpty(tableRow["rating"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["players"] = value;
+                            }
+                            break;
 
-                    string originalPropertyValue = GetCellValueAsString(tableRow, propertyName);
-                    {
-                        // Check if we are allowed to overwrite
-                        // Write regardless if the local value is empty
-                        if ((!overWriteData && string.IsNullOrEmpty(originalPropertyValue)) || overWriteData)
-                        {
-                            tableRow[propertyName] = propertyValue;
-                        }
+                        case "desc":
+                            value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{language}']")?.InnerText;
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{languageFallback}']")?.InnerText;
+                            }
+
+                            if (string.IsNullOrEmpty(tableRow["desc"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["desc"] = value;
+                            }
+                            break;
+
+                        case "name":
+                            XmlNode namesNode = xmlResponse.SelectSingleNode("/Data/jeu/noms");
+                            value = ParseNames(namesNode, region);
+
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                value = ParseNames(namesNode, regionFallback);
+                            }
+
+                            if (string.IsNullOrEmpty(tableRow["name"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["name"] = value;
+                            }
+                            break;
+
+                        case "genre":
+                            XmlNode genresNode = xmlResponse.SelectSingleNode("/Data/jeu/genres");
+                            value = ParseGenres(genresNode, language);
+
+                            if (!string.IsNullOrEmpty(value))
+                            {
+                                value = ParseGenres(genresNode, languageFallback);
+                            }
+
+                            if (string.IsNullOrEmpty(tableRow["genre"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["genre"] = value;
+                            }
+                            break;
+
+                        case "releasedate":
+                            value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{region}']")?.InnerText;
+                            if (string.IsNullOrEmpty(value)) 
+                            {
+                                value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{regionFallback}']")?.InnerText;
+                            }
+                            if (string.IsNullOrEmpty(tableRow["releasedate"]?.ToString()) || overWriteData)
+                            {
+                                 string releasedate = ConvertToISO8601(value);
+                                 tableRow["releasedate"] = releasedate;
+                            }
+                            break;
                     }
 
                 }
             }
         }
+
         private string ParseNames(XmlNode namesElement, string region)
         {
-            var nameElements = namesElement?.SelectNodes($"nom[@region='{region}']");
+            if (namesElement == null) {  return null; }
 
-            if (nameElements?.Count > 0)
+            var names = namesElement?.SelectNodes($"nom[@region='{region}']");
+
+            if (names.Count != 1)
             {
-                // Choose the fallback region if the specified region is not found
-                string fallbackRegion = "ss";
-
-                // Find the name based on the specified region or fallback region
-                var primaryName = nameElements
-                    .Cast<XmlNode>()
-                    .FirstOrDefault(e => e.InnerText != null && !string.IsNullOrWhiteSpace(e.InnerText));
-
-                if (primaryName != null)
-                {
-                    return primaryName.InnerText;
-                }
-
-                // If the specified region is not found, try the fallback region
-                var fallbackName = namesElement.SelectSingleNode($"nom[@region='{fallbackRegion}']");
-
-                if (fallbackName != null)
-                {
-                    return fallbackName.InnerText;
-                }
+                return null;
             }
-            return string.Empty;
+            return names[0].InnerText;
+        }
+
+        static List<Dictionary<string, string>> SearchMedia(XmlDocument xmlDoc, string parent, string region, string type)
+        {
+            List<Dictionary<string, string>> matchingEntries = new List<Dictionary<string, string>>();
+
+            XmlNodeList mediaNodes = xmlDoc.SelectNodes($"//media[@parent='{parent}' and @region='{region}' and @type='{type}']");
+
+            foreach (XmlNode mediaNode in mediaNodes)
+            {
+                Dictionary<string, string> entry = new Dictionary<string, string>
+            {
+                { "type", mediaNode.Attributes["type"].Value },
+                { "parent", mediaNode.Attributes["parent"].Value },
+                { "region", mediaNode.Attributes["region"].Value },
+                { "crc", mediaNode.Attributes["crc"].Value },
+                { "md5", mediaNode.Attributes["md5"].Value },
+                { "sha1", mediaNode.Attributes["sha1"].Value },
+                { "size", mediaNode.Attributes["size"].Value },
+                { "format", mediaNode.Attributes["format"].Value },
+                { "url", mediaNode.InnerText }
+            };
+
+                matchingEntries.Add(entry);
+            }
+
+            return matchingEntries;
         }
 
         private List<string> GetMediaTypes()
@@ -201,6 +251,8 @@ namespace GamelistManager
 
         private string ProcessRating(string rating)
         {
+            if (rating == null) { return null; }
+
             int ratingvalue = int.Parse(rating);
             if (ratingvalue == 0)
             {
@@ -475,7 +527,21 @@ namespace GamelistManager
             {"zxspectrum",76}
         };
 
-        public static string ConvertToISO8601(string dateString)
+        private string GetCellValueAsString(DataRow row, string columnName)
+        {
+            if (row != null && row.Table.Columns.Contains(columnName))
+            {
+                object cellValueObject = row[columnName];
+                return (cellValueObject != null) ? cellValueObject.ToString() : string.Empty;
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+
+        private string ConvertToISO8601(string dateString)
         {
             try
             {
