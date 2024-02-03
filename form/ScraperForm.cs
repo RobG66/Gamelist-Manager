@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace GamelistManager
@@ -117,8 +115,8 @@ namespace GamelistManager
             if (comboBox_Scrapers.SelectedIndex == 1)
             {
 
-                //ScrapeScreenScraper scraper = new ScrapeScreenScraper(null, null, null, null);
-                //await scraper.ScrapeScreenScraperAsync(overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
+                ScrapeScreenScraper scraper = new ScrapeScreenScraper(this);
+                await scraper.ScrapeScreenScraperAsync(XMLFilename, dataSet, overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
 
             }
 
@@ -251,7 +249,9 @@ namespace GamelistManager
                     "marquee",
                     "image",
                     "video",
-                    "developer"
+                    "developer",
+                    "map",
+                    "manual"
                 };
             }
 
