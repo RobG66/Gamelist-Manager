@@ -110,6 +110,13 @@ namespace GamelistManager
                     {
                         string localPropertyName = kvp.Key;
                         string remotePropertyName = kvp.Value;
+                        string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                 
+                        if (!File.Exists(fullRomPath))
+                        {
+                            scraperForm.AddToLog($"File {fullRomPath} is missing!");
+                            continue;
+                        }
 
                         if (!elementsToScrape.Contains(localPropertyName))
                         {
@@ -127,8 +134,7 @@ namespace GamelistManager
 
                         // Generate MD5
                         string md5 = null;
-                        string fullPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-                        md5 = ChecksumCreator.CreateMD5(fullPath);
+                        md5 = ChecksumCreator.CreateMD5(fullRomPath);
                         tableRow["md5"] = md5;
 
                         string columnName = localPropertyName;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlTypes;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -35,25 +35,24 @@ namespace GamelistManager
         {
             int total = romPaths.Count;
             int count = 0;
-            string language = "en";
-            string region = "wor";
-            string regionFallback = "ss";
-            string languageFallback = "en";
+            string preferredLanguage = "en";
+            string preferredRegion = "wor";
+            string backupLanguage = "en";
+            string backupRegion = "us";
 
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
 
-           
             string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
-      
+
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
             string folderName = Path.GetFileName(parentFolderPath);
             int systemID = GetSystemId(folderName);
 
             for (int i = 0; i < romPaths.Count; i++)
             {
-                count++;
                 scraperForm.UpdateProgressBar();
                 scraperForm.UpdateLabel(count, total);
+                count++;
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -61,12 +60,17 @@ namespace GamelistManager
                     scraperForm.AddToLog("Scraping canceled by user.");
                     return;
                 }
-              
+
                 string currentRomPath = romPaths[i];
                 string currentRomName = gamelistManagerForm.ExtractFileNameWithExtension(currentRomPath);
                 string scraperRequestURL = $"{scraperBaseURL}{(gameinfo)}";
                 string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
 
+                if (!File.Exists(fullRomPath))
+                {
+                    scraperForm.AddToLog($"File {fullRomPath} is missing!");
+                    continue;
+                }
 
                 // Find the datarow we want to scrape data for
                 DataRow tableRow = dataSet.Tables[0].AsEnumerable()
@@ -97,6 +101,32 @@ namespace GamelistManager
 
                 scraperForm.AddToLog($"Scraping item {currentRomName}");
 
+                string regionToScrape = preferredRegion;
+
+                // Get the region for the rom
+                // Very inconsistent data to work with
+                string romRegions = xmlResponse.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText;
+                if (!string.IsNullOrEmpty(romRegions))
+                {
+                    string[] regions = romRegions.Split(',');
+                    
+                    int regionCount = regions.Length;
+                    if (!regions.Contains(preferredRegion))
+                    {
+                        regionToScrape = backupRegion;
+                        if (!regions.Contains(backupRegion))
+                        {
+                            // take the last one, usually the right choice?
+                            regionToScrape = regions[(regions.Length - 1)];
+                        }
+                    }
+                }
+                else
+                {
+                    // I don't know.....
+                    regionToScrape = "us";
+                }
+
                 string value = null;
 
                 foreach (string element in elementsToScrape)
@@ -107,7 +137,7 @@ namespace GamelistManager
                             value = xmlResponse.SelectSingleNode("/Data/jeu/editeur")?.InnerText;
                             if (string.IsNullOrEmpty(tableRow["publisher"]?.ToString()) || overWriteData)
                             {
-                              tableRow["publisher"] = value;
+                                tableRow["publisher"] = value;
                             }
                             break;
 
@@ -127,20 +157,40 @@ namespace GamelistManager
                             }
                             break;
 
+                        case "region":
+                            if (string.IsNullOrEmpty(tableRow["region"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["region"] = regionToScrape;
+                            }
+                            break;
+
+
+                        case "lang":
+                            value = xmlResponse.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText;
+                            if (string.IsNullOrEmpty(tableRow["lang"]?.ToString()) || overWriteData)
+                            {
+                                if (string.IsNullOrEmpty(value))
+                                {
+                                    value = preferredLanguage;
+                                }
+                                tableRow["lang"] = value;
+                            }
+                            break;
+
                         case "rating":
                             value = xmlResponse.SelectSingleNode("/Data/jeu/note")?.InnerText;
-                            ProcessRating(value);
+                            string rating = ProcessRating(value);
                             if (string.IsNullOrEmpty(tableRow["rating"]?.ToString()) || overWriteData)
                             {
-                                tableRow["players"] = value;
+                                tableRow["rating"] = rating;
                             }
                             break;
 
                         case "desc":
-                            value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{language}']")?.InnerText;
+                            value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{preferredLanguage}']")?.InnerText;
                             if (string.IsNullOrEmpty(value))
                             {
-                                value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{languageFallback}']")?.InnerText;
+                                value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{backupLanguage}']")?.InnerText;
                             }
 
                             if (string.IsNullOrEmpty(tableRow["desc"]?.ToString()) || overWriteData)
@@ -151,13 +201,7 @@ namespace GamelistManager
 
                         case "name":
                             XmlNode namesNode = xmlResponse.SelectSingleNode("/Data/jeu/noms");
-                            value = ParseNames(namesNode, region);
-
-                            if (!string.IsNullOrEmpty(value))
-                            {
-                                value = ParseNames(namesNode, regionFallback);
-                            }
-
+                            value = ParseNames(namesNode, regionToScrape);
                             if (string.IsNullOrEmpty(tableRow["name"]?.ToString()) || overWriteData)
                             {
                                 tableRow["name"] = value;
@@ -166,13 +210,12 @@ namespace GamelistManager
 
                         case "genre":
                             XmlNode genresNode = xmlResponse.SelectSingleNode("/Data/jeu/genres");
-                            value = ParseGenres(genresNode, language);
+                            value = ParseGenres(genresNode, preferredLanguage);
 
                             if (!string.IsNullOrEmpty(value))
                             {
-                                value = ParseGenres(genresNode, languageFallback);
+                                value = ParseGenres(genresNode, backupLanguage);
                             }
-
                             if (string.IsNullOrEmpty(tableRow["genre"]?.ToString()) || overWriteData)
                             {
                                 tableRow["genre"] = value;
@@ -180,21 +223,40 @@ namespace GamelistManager
                             break;
 
                         case "releasedate":
-                            value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{region}']")?.InnerText;
-                            if (string.IsNullOrEmpty(value)) 
-                            {
-                                value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{regionFallback}']")?.InnerText;
-                            }
+                            value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{regionToScrape}']")?.InnerText;
                             if (string.IsNullOrEmpty(tableRow["releasedate"]?.ToString()) || overWriteData)
                             {
-                                 string releasedate = ConvertToISO8601(value);
-                                 tableRow["releasedate"] = releasedate;
+                                string releasedate = ConvertToISO8601(value);
+                                tableRow["releasedate"] = releasedate;
                             }
                             break;
-                    }
 
+                        case "manual":
+                            XmlNode xmlNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
+                            value = ParseMedia("manuel",xmlNode, regionToScrape);
+                            if (string.IsNullOrEmpty(tableRow["manual"]?.ToString()) || overWriteData)
+                            {
+                                tableRow["manual"] = value;
+                                
+                            }
+
+                            break;
+                    }
                 }
             }
+
+        }
+
+        private string ParseMedia(string mediaType, XmlNode mediaElement, string region)
+        {
+            if (mediaElement == null) { return null; }
+            var media = mediaElement?.SelectNodes($"media[@type='{mediaType}' and @region='{region}']");
+
+            if (media.Count != 1)
+            {
+                return null;
+            }
+            return media[0].InnerText;
         }
 
         private string ParseNames(XmlNode namesElement, string region)
@@ -543,6 +605,10 @@ namespace GamelistManager
 
         private string ConvertToISO8601(string dateString)
         {
+            if(string.IsNullOrEmpty(dateString))
+            {
+                return null;
+            }
             try
             {
                 DateTime date;
