@@ -241,8 +241,7 @@
             this.comboBox_Scrapers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_Scrapers.FormattingEnabled = true;
             this.comboBox_Scrapers.Items.AddRange(new object[] {
-            "ArcadeDB",
-            "ScreenScraper"});
+            "ArcadeDB"});
             this.comboBox_Scrapers.Location = new System.Drawing.Point(59, 70);
             this.comboBox_Scrapers.Margin = new System.Windows.Forms.Padding(1);
             this.comboBox_Scrapers.Name = "comboBox_Scrapers";
