@@ -40,6 +40,9 @@ namespace GamelistManager
             string backupLanguage = "en";
             string backupRegion = "us";
 
+            string devId = "";
+            string devPassword = "";
+
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
 
             string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
