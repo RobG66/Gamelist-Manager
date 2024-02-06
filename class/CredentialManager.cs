@@ -1,13 +1,10 @@
-﻿using System.Net;
-using System.Windows.Forms;
-using CredentialManagement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+﻿using CredentialManagement;
 
 namespace GamelistManager
 {
     public class CredentialManager
     {
-        public static (string,string) GetCredentials(string credentialName)
+        public static (string, string) GetCredentials(string credentialName)
         {
             string userName = string.Empty;
             string userPassword = string.Empty;

@@ -1,18 +1,14 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
-using System.Xml.Linq;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 
 // this is not done yet!
 
@@ -112,7 +108,7 @@ namespace GamelistManager
                 if (!string.IsNullOrEmpty(romRegions))
                 {
                     string[] regions = romRegions.Split(',');
-                    
+
                     int regionCount = regions.Length;
                     if (!regions.Contains(preferredRegion))
                     {
@@ -236,11 +232,11 @@ namespace GamelistManager
 
                         case "manual":
                             XmlNode xmlNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
-                            value = ParseMedia("manuel",xmlNode, regionToScrape);
+                            value = ParseMedia("manuel", xmlNode, regionToScrape);
                             if (string.IsNullOrEmpty(tableRow["manual"]?.ToString()) || overWriteData)
                             {
                                 tableRow["manual"] = value;
-                                
+
                             }
 
                             break;
@@ -264,7 +260,7 @@ namespace GamelistManager
 
         private string ParseNames(XmlNode namesElement, string region)
         {
-            if (namesElement == null) {  return null; }
+            if (namesElement == null) { return null; }
 
             var names = namesElement?.SelectNodes($"nom[@region='{region}']");
 
@@ -304,10 +300,10 @@ namespace GamelistManager
 
         private List<string> GetMediaTypes()
         {
-              List<string> mediaTypes = new List<string>
+            List<string> mediaTypes = new List<string>
         {
             "ss", "fanart", "video", "video-normalized", "themehs", "marquee", "screenmarquee",
-            "screenmarqueesmall", "manuel", "flyer", "steamgrid", "wheel", "wheel-carbon", 
+            "screenmarqueesmall", "manuel", "flyer", "steamgrid", "wheel", "wheel-carbon",
             "wheel-steel", "box-2D", "box-2D-side", "box-2D-back", "box-texture", "box-3D",
             "bezel-4-3", "bezel-16-9", "mixrbv1", "mixrbv2", "pictoliste", "pictomonochrome", "pictocouleur"
         };
@@ -358,7 +354,7 @@ namespace GamelistManager
             }
             catch (Exception)
             {
-                return null; 
+                return null;
             }
         }
 
@@ -608,7 +604,7 @@ namespace GamelistManager
 
         private string ConvertToISO8601(string dateString)
         {
-            if(string.IsNullOrEmpty(dateString))
+            if (string.IsNullOrEmpty(dateString))
             {
                 return null;
             }

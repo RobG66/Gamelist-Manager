@@ -1,6 +1,5 @@
 ﻿using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
-using Renci.SshNet;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,11 +7,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GamelistManager
@@ -33,9 +32,13 @@ namespace GamelistManager
             dataSet = new DataSet();
         }
 
+        private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFile(XMLFilename);
+        }
+
         public void SaveFile(string filename)
         {
-
             string oldFilename = Path.ChangeExtension(filename, "old");
 
             DialogResult result = MessageBox.Show($"Do you save the file '{filename}'?\nA backup will be saved as {oldFilename}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -45,14 +48,12 @@ namespace GamelistManager
                 return;
             }
 
-            // Since columns were removed, make sure these are not checked
             ToolStripMenuItem_MissingItems.Checked = false;
             ToolStripMenuItem_ScraperDates.Checked = false;
 
             Cursor.Current = Cursors.WaitCursor;
 
             // Remove all temporary and empty columns
-            DataTable dataTable = dataSet.Tables[0];
             for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
             {
                 DataGridViewColumn column = dataGridView1.Columns[i];
@@ -61,25 +62,19 @@ namespace GamelistManager
                 // Remove from the DataGridView
                 if (column.Tag != null && column.Tag.ToString() == "temp")
                 {
-                    dataGridView1.Columns.RemoveAt(i);
+                    dataSet.Tables[0].Columns.Remove(columnName);
+                    continue;
                 }
 
-                // Check if the column exists in the DataTable
-                if (dataTable.Columns.Contains(columnName))
+                bool allNull = dataSet.Tables[0].AsEnumerable().All(row => row.IsNull(columnName));
+                // If all values are null, remove the column
+                if (allNull)
                 {
-                    // Check if all values in the column are null
-                    bool allNull = dataTable.AsEnumerable().All(row => row.IsNull(columnName));
-
-                    // If all values are null, remove the column
-                    if (allNull)
-                    {
-                        dataTable.Columns.Remove(columnName);
-                    }
+                    dataSet.Tables[0].Columns.Remove(columnName);
                 }
             }
 
-            // Set a few ordinals
-            // Tidy up
+            // Set a few ordinals to tidy up
             SetColumnOrdinals(dataSet.Tables[0],
                ("name", 0),
                ("path", 1),
@@ -87,13 +82,14 @@ namespace GamelistManager
                ("hidden", 3)
            );
 
-            dataSet.Tables[0].AcceptChanges();
+            dataSet.AcceptChanges();
 
             File.Copy(filename, oldFilename, true);
 
             dataSet.WriteXml(filename);
 
             Cursor.Current = Cursors.Default;
+
             // Reload after save
             LoadXML(filename);
 
@@ -101,32 +97,21 @@ namespace GamelistManager
 
         }
 
-    
+
 
         private void LoadGamelistXMLToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            // Set the title of the dialog
             openFileDialog.Title = "Select a Gamelist";
-
-            // Set the initial directory (optional)
-            //openFileDialog.InitialDirectory = "C:\\";
-
-            // Set the filter for the type of files to be displayed
             openFileDialog.Filter = "XML Files (*.xml)|*.xml|All Files (*.*)|*.*";
-
-            // Set the default file extension (optional)
             openFileDialog.DefaultExt = "xml";
 
-            // Display the dialog and check if the user clicked OK
             if (openFileDialog.ShowDialog() != DialogResult.OK)
             {
                 return;
             }
- 
-            string filename = openFileDialog.FileName;
 
+            string filename = openFileDialog.FileName;
             bool successfulLoad = LoadXML(filename);
 
             if (successfulLoad == true)
@@ -151,7 +136,6 @@ namespace GamelistManager
             }
 
             // Set the modified RowFilter
-
             dataSet.Tables[0].DefaultView.RowFilter = mergedFilter;
         }
 
@@ -164,11 +148,11 @@ namespace GamelistManager
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             richTextBox_description.Text = itemDescription;
 
+            // If media is being shown, update that view
             if (splitContainer_Big.Panel2Collapsed != true)
             {
                 ShowMedia();
             }
-
         }
 
         private string GetGenreFilter()
@@ -192,9 +176,9 @@ namespace GamelistManager
             return genreFilter;
         }
 
-        private string Getvisibilityfilter()
+        private string GetVisibilityFilter()
         {
-          
+
             // Get the current row filter
             string currentFilter = dataSet.Tables[0].DefaultView.RowFilter;
 
@@ -712,6 +696,7 @@ namespace GamelistManager
 
             dataSet.Tables[0].Columns.Add("unplayable", typeof(bool));
             dataSet.Tables[0].Columns.Add("missing", typeof(bool));
+
             SetColumnOrdinals(dataSet.Tables[0],
                 ("missing", 0),
                 ("unplayable", 1),
@@ -732,6 +717,7 @@ namespace GamelistManager
                 ("lastplayed", 16)
             );
 
+            dataSet.AcceptChanges();
         }
 
         private void SetupDataGridViewColumns()
@@ -797,11 +783,11 @@ namespace GamelistManager
             }
 
             XMLFilename = fileName;
-            
+
             SetupTableColumns();
-            
+
             dataGridView1.DataSource = dataSet.Tables[0];
-            
+
             SetupDataGridViewColumns();
             BuildCombobox();
             SetColumnTags();
@@ -910,7 +896,7 @@ namespace GamelistManager
                 genreFilter = $"genre = '{selectedItem}'";
             }
 
-            string visibilityFilter = Getvisibilityfilter();
+            string visibilityFilter = GetVisibilityFilter();
             ApplyFilters(visibilityFilter, genreFilter);
 
             ToolStripMenuItem_ShowAllGenres.Checked = false;
@@ -1381,12 +1367,6 @@ namespace GamelistManager
 
         }
 
-
-        private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveFile(XMLFilename);
-        }
-
         private void ScraperDatesToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
 
@@ -1515,9 +1495,10 @@ namespace GamelistManager
             SetScraperDate(iso8601Format);
         }
 
-        private void VerifyRomPathsToolStripMenuItem_Click_1(object sender, EventArgs e)
+        private async void VerifyRomPathsToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            if (ToolStripMenuItem_MissingItems.Checked == true)
+
+            if (ToolStripMenuItem_MissingItems.Checked)
             {
                 dataGridView1.Columns["missing"].Visible = false;
                 ToolStripMenuItem_MissingItems.Checked = false;
@@ -1527,47 +1508,45 @@ namespace GamelistManager
             int missingCount = 0;
             int totalItemCount = dataSet.Tables[0].Rows.Count;
 
-            ProgressBarInitialize(0, totalItemCount);
-
             Cursor.Current = Cursors.WaitCursor;
 
             ToolStripMenuItem_MissingItems.Checked = true;
-
-            // Get the index of the "path" column
-
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-            // Loop through each row in the DataTable
-            foreach (DataRow row in dataSet.Tables[0].Rows)
+
+            await Task.Run(() =>
             {
-                // Access the "path" column value for each row
-                string itemPath = row["path"].ToString();
-                string fullPath = Path.Combine(parentFolderPath, itemPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                List<DataRow> rowsToUpdate = new List<DataRow>();
 
-                bool missing = File.Exists(fullPath);
-
-                //Some paths are actually folders, not files, so check for a folder name
-                //Consider it not missing if the folder exists
-                //Too many variations of how games are setup
-                if (!missing)
+                // Loop through each row in the DataTable
+                Parallel.ForEach(dataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
                 {
-                    missing = Directory.Exists(fullPath);
-                }
-                // Set the "FileExists" column value based on file existence
+                    string itemPath = row["path"].ToString();
+                    string fullPath = Path.Combine(parentFolderPath, itemPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
 
-                if (missing == false)
+                    bool missing = File.Exists(fullPath) || Directory.Exists(fullPath);
+
+                    if (!missing)
+                    {
+                        Interlocked.Increment(ref missingCount);
+                        // Accumulate the rows that need to be updated
+                        lock (rowsToUpdate)
+                        {
+                            rowsToUpdate.Add(row);
+                        }
+                    }
+                });
+
+                foreach (DataRow rowToUpdate in rowsToUpdate)
                 {
-                    missingCount++;
-                    row["missing"] = true;
+                    rowToUpdate["missing"] = true;
                 }
-
-                ProgressBarIncrement();
-            }
+            });
 
             Cursor.Current = Cursors.Default;
-            ProgressBarReset();
+
             if (missingCount > 0)
             {
-                MessageBox.Show("There are " + missingCount.ToString() + " missing items in this gamelist", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information); ;
+                MessageBox.Show($"There are {missingCount} missing items in this gamelist", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 dataGridView1.Columns["missing"].Visible = true;
                 dataGridView1.Columns["missing"].SortMode = DataGridViewColumnSortMode.Automatic;
                 dataGridView1.Columns["missing"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
@@ -1579,6 +1558,7 @@ namespace GamelistManager
                 ToolStripMenuItem_MissingItems.Checked = false;
             }
         }
+
 
         private void SetAllItemsVisibleToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -1651,9 +1631,8 @@ namespace GamelistManager
 
         }
 
-        private async void MAMEHighlightUnplayableToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItem_MameUnplayable_Click(object sender, EventArgs e)
         {
-
             string parentFolderName = Path.GetFileName(Path.GetDirectoryName(XMLFilename));
 
             if (parentFolderName != "mame")
@@ -1662,6 +1641,11 @@ namespace GamelistManager
                 return;
             }
 
+            IdentifyUnplayable();
+        }
+
+        private async void IdentifyUnplayable()
+        {
 
             string message = "This will identify games that are not playable according to the following rules:\n\n" +
             "isbios = yes\n" +
@@ -1696,18 +1680,23 @@ namespace GamelistManager
 
             List<string> gameNames = null;
 
+            Cursor.Current = Cursors.WaitCursor;
+            menuStrip_MainMenu.Enabled = false;
+            panel_BelowDataGridView.Enabled = false;
+
             try
             {
                 statusBar_BottomOfWindow.Text = "Started XML Import.....";
                 string mameExePath = openFileDialog.FileName;
-                gameNames = await GetMameUnplayable.GetFilteredGameNames(mameExePath);
+                gameNames = await Task.Run(() => GetMameUnplayable.GetFilteredGameNames(mameExePath));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
                 Cursor.Current = Cursors.Default;
                 statusBar_BottomOfWindow.Text = XMLFilename;
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                menuStrip_MainMenu.Enabled = true;
+                panel_BelowDataGridView.Enabled = true;
                 return;
             }
 
@@ -1719,33 +1708,44 @@ namespace GamelistManager
 
             int unplayableCount = 0;
 
-            Cursor.Current = Cursors.WaitCursor;
-            var dataTable = dataSet.Tables[0];
-            var columnIndex = dataTable.Columns["path"].Ordinal;
-
             // Suspend the DataGridView layout to improve performance
             dataGridView1.SuspendLayout();
 
             statusBar_BottomOfWindow.Text = "Identifying unplayable games....";
-
-            foreach (DataRow row in dataTable.Rows)
+            // Loop through each row in the DataTable
+            await Task.Run(() =>
             {
-                string originalPath = row[columnIndex].ToString();
-                string path = ExtractFileNameNoExtension(originalPath);
+                List<DataRow> rowsToUpdate = new List<DataRow>();
 
-                // Set the value of the "IsUnplayable" column to true or false
-                if (gameNames.Contains(path))
+                // Loop through each row in the DataTable
+                Parallel.ForEach(dataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
                 {
-                    unplayableCount++;
-                    row["unplayable"] = true;
-                }
-                else
-                {
-                    row["unplayable"] = false;
-                }
-            }
+                    string originalPath = row["path"].ToString();
+                    string path = ExtractFileNameNoExtension(originalPath);
 
-            dataSet.Tables[0].AcceptChanges();
+                    // Set the value of the "unplayable" column to true or false
+                    if (gameNames.Contains(path))
+                    {
+                        Interlocked.Increment(ref unplayableCount);
+                        // Accumulate the rows that need to be updated
+                        lock (rowsToUpdate)
+                        {
+                            rowsToUpdate.Add(row);
+                        }
+                    }
+                });
+
+                // Update the 'unplayable' column for all accumulated rows outside the parallel loop
+                foreach (DataRow rowToUpdate in rowsToUpdate)
+                {
+                    rowToUpdate["unplayable"] = true;
+                }
+            });
+
+            menuStrip_MainMenu.Enabled = true;
+            panel_BelowDataGridView.Enabled = true;
+
+            dataSet.AcceptChanges();
 
             // Resume the DataGridView layout
             dataGridView1.ResumeLayout();
@@ -1770,63 +1770,16 @@ namespace GamelistManager
             foreach (DataRow row in dataSet.Tables[0].Rows)
             {
                 // Check if column x is true
-                if (Convert.ToBoolean(row["unplayable"]))
+                object unplayableValue = row["unplayable"];
+                if (unplayableValue != DBNull.Value && Convert.ToBoolean(unplayableValue))
                 {
                     row["hidden"] = true;
                 }
             }
 
-            dataSet.Tables[0].AcceptChanges();
+            dataSet.AcceptChanges();
         }
 
-        private void ProgressBarInitialize(int minimum, int maximum)
-        {
-            if (progressBar1.InvokeRequired)
-            {
-                progressBar1.Invoke((MethodInvoker)delegate
-                {
-                    progressBar1.Minimum = minimum;
-                    progressBar1.Maximum = maximum;
-                    progressBar1.Value = minimum;
-                });
-            }
-            else
-            {
-                progressBar1.Minimum = minimum;
-                progressBar1.Maximum = maximum;
-                progressBar1.Value = minimum;
-            }
-        }
-
-        private void ProgressBarReset()
-        {
-            if (progressBar1.InvokeRequired)
-            {
-                progressBar1.Invoke((MethodInvoker)delegate
-                {
-                    progressBar1.Value = progressBar1.Minimum;
-                });
-            }
-            else
-            {
-                progressBar1.Value = progressBar1.Minimum;
-            }
-        }
-
-        private void ProgressBarIncrement()
-        {
-            if (progressBar1.InvokeRequired)
-            {
-                progressBar1.Invoke((MethodInvoker)delegate
-                {
-                    progressBar1.Value++;
-                });
-            }
-            else
-            {
-                progressBar1.Value++;
-            }
-        }
 
         private void FileToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
         {
@@ -1846,188 +1799,18 @@ namespace GamelistManager
             }
         }
 
-        public class MediaObject
+        private void ToolStripMenuItem_CheckImages_Click(object sender, EventArgs e)
         {
-            public string FullPath { get; set; }
-            public int RowIndex { get; set; }
-            public int ColumnIndex { get; set; }
-            public string Status { get; set; }
-        }
-
-        private List<MediaObject> GetMediaList(string mediaType)
-        {
-            List<MediaObject> mediaList = new List<MediaObject>();
-
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
-            {
-                // Check if the column tag is set to "image"
-                if (column.Tag != null && column.Tag.ToString() == mediaType)
-                {
-                    foreach (DataGridViewRow row in dataGridView1.Rows)
-                    {
-                        // Access the cell in the specified column
-                        DataGridViewCell cell = row.Cells[column.Index];
-
-                        string cellPathValue = cell.Value?.ToString();
-                        if (!string.IsNullOrEmpty(cellPathValue))
-                        {
-                            // Build file list
-                            string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-                            mediaList.Add(new MediaObject
-                            {
-                                FullPath = fullPath,
-                                RowIndex = row.Index,
-                                ColumnIndex = column.Index,
-                                Status = string.Empty
-                            });
-                        }
-                    }
-                }
-            }
-
-            return mediaList;
-        }
-
-
-        private async void CheckForSingleColorImagesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            List<MediaObject> mediaList = GetMediaList("image");
-            int totalFiles = mediaList.Count;
-
-            DialogResult dialogResult = MessageBox.Show($"This will check {totalFiles} item images for being single color, missing or corrupt.  This may take a few minutes depending on how many images need to be checked.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (dialogResult != DialogResult.Yes)
-            {
-                return;
-            }
-
-            statusBar_BottomOfWindow.Text = "Checking images...";
-
-            ProgressBarInitialize(0, totalFiles);
-
-            int missingImages = 0;
-            int corruptImages = 0;
-            int singleColorImages = 0;
-
-            foreach (var mediaObject in mediaList)
-            {
-                string fileName = mediaObject.FullPath;
-                int rowIndex = mediaObject.RowIndex;
-                int columnIndex = mediaObject.ColumnIndex;
-                string result = await ImageChecker.CheckImage(fileName);
-
-                switch (result)
-                {
-                    case "missing":
-                        missingImages++;
-                        mediaObject.Status = "missing";
-                        break;
-                    case "ok":
-                        break;
-                    case "singlecolor":
-                        singleColorImages++;
-                        mediaObject.Status = "singlecolor";
-                        break;
-                    case "corrupt":
-                        corruptImages++;
-                        mediaObject.Status = "corrupt";
-                        break;
-                }
-
-                // Update progress bar
-                ProgressBarIncrement();
-            }
-
-            statusBar_BottomOfWindow.Text = XMLFilename;
-
-            if (singleColorImages == 0 && corruptImages == 0 && missingImages == 0)
-            {
-                MessageBox.Show("No bad or missing images were found", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            bool boolResult = false;
-            int intResult = 0;
-
-            ProgressBarReset();
-
-            Popup1 popupForm = new Popup1(corruptImages, singleColorImages, missingImages);
-            // Set the start position and location for the instance of Popup1
+            MediaCheckForm popupForm = new MediaCheckForm(parentFolderPath, dataGridView1);
+            // Set the start position and location for the instance of MediaCheckForm
             popupForm.StartPosition = FormStartPosition.Manual;
             popupForm.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
             popupForm.ShowDialog();
-
-            // Handle the result and other logic as needed
-            boolResult = popupForm.BoolResult;
-            intResult = popupForm.intResult;
-
-            if (boolResult == false)
-            {
-                return;
-            }
-
-            // Make a filtered list where Status isn't empty
-            List<MediaObject> filteredMediaObjects = mediaList.Where(obj => !string.IsNullOrEmpty(obj.Status)).ToList();
-
-            if (intResult == 1)
-            {
-                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_images.csv";
-                if (ExportToCSV(filteredMediaObjects, csvFileName))
-                {
-                    MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show($"There was an error saving file '{csvFileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-
-            foreach (var mediaObject in filteredMediaObjects)
-            {
-                string fileName = mediaObject.FullPath;
-                int rowIndex = mediaObject.RowIndex;
-                int columnIndex = mediaObject.ColumnIndex;
-                string status = mediaObject.Status;
-
-                switch (intResult)
-                {
-                    case 2:
-                        try
-                        {
-                            File.Delete(fileName);
-                        }
-                        catch
-                        {
-                            //catch exception - if we care?
-                        }
-                        break;
-                    case 3:
-                        string oldFilePath = fileName;
-                        string newFileNamePrefix = "bad-";
-                        string directory = Path.GetDirectoryName(oldFilePath);
-                        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldFilePath);
-                        string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}");
-                        try
-                        {
-                            File.Move(oldFilePath, newFilePath);
-                        }
-                        catch
-                        {
-                            // Catch exception - if we care?
-                        }
-                        break;
-                }
-                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
-            }
         }
 
 
-
-
-
-        static bool ExportToCSV(List<MediaObject> mediaObjects, string filePath)
+        static bool ExportToCSV(List<MediaListObject> mediaObjects, string filePath)
         {
             try
             {
@@ -2390,85 +2173,6 @@ namespace GamelistManager
 
 
 
-        private void checkForMissingVideosToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            List<MediaObject> mediaList = GetMediaList("video");
-            int totalFiles = mediaList.Count;
-
-            statusBar_BottomOfWindow.Text = "Checking images...";
-
-            ProgressBarInitialize(0, totalFiles);
-
-            int missingVideos = 0;
-
-            foreach (var mediaObject in mediaList)
-            {
-                string fileName = mediaObject.FullPath;
-                int rowIndex = mediaObject.RowIndex;
-                int columnIndex = mediaObject.ColumnIndex;
-
-                bool fileExists = File.Exists(fileName);
-
-                if (!fileExists)
-                {
-                    missingVideos++;
-                    mediaObject.Status = "missing";
-                }
-
-                // Update progress bar
-                ProgressBarIncrement();
-            }
-
-            statusBar_BottomOfWindow.Text = XMLFilename;
-
-            ProgressBarReset();
-
-            if (missingVideos == 0)
-            {
-                MessageBox.Show("There are no missing videos", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            string are = "are";
-            string videos = "videos";
-            if (missingVideos == 1)
-            {
-                are = "is";
-                videos = "video";
-            }
-
-            DialogResult result = MessageBox.Show($"There {are} {missingVideos} missing {videos}.  Do you want to clear these paths?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-            {
-                return;
-            }
-
-            // Make a filtered list where Status isn't empty
-            List<MediaObject> filteredMediaObjects = mediaList.Where(obj => !string.IsNullOrEmpty(obj.Status)).ToList();
-
-            DialogResult result2 = MessageBox.Show($"Would like a list created first?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result2 == DialogResult.Yes)
-            {
-                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "missing_videos.csv";
-                if (ExportToCSV(filteredMediaObjects, csvFileName))
-                {
-                    MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
-                {
-                    MessageBox.Show($"There was an error saving file '{csvFileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-
-            foreach (var mediaObject in filteredMediaObjects)
-            {
-                int rowIndex = mediaObject.RowIndex;
-                int columnIndex = mediaObject.ColumnIndex;
-                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
-            }
-        }
 
         private void CheckBox_CustomFilter_CheckedChanged(object sender, EventArgs e)
         {
@@ -2497,7 +2201,7 @@ namespace GamelistManager
 
             //selectedItem = selectedItem.Replace("'", "''");
             string genreFilter = $"genre LIKE '*{text}*'";
-            string visibilityFilter = Getvisibilityfilter();
+            string visibilityFilter = GetVisibilityFilter();
             ApplyFilters(visibilityFilter, genreFilter);
         }
 
@@ -2592,10 +2296,10 @@ namespace GamelistManager
             var nameList = new List<string>();
 
             // Iterate through the rows of the source table and populate the lists
-            foreach (DataRow sourceRow in dataSet.Tables[0].Rows)
+            foreach (DataRow row in dataSet.Tables[0].Rows)
             {
-                pathList.Add(sourceRow["path"].ToString());
-                nameList.Add(sourceRow["name"].ToString());
+                pathList.Add(row["path"].ToString());
+                nameList.Add(row["name"].ToString());
             }
 
             dataGridView1.DataSource = null;
@@ -2635,8 +2339,10 @@ namespace GamelistManager
                 e.Handled = true;
             }
         }
+
+
     }
-   
+
 }
 
 

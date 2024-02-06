@@ -9,8 +9,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml.Linq;
 
 namespace GamelistManager
 {
@@ -27,12 +25,12 @@ namespace GamelistManager
 
         public async
         Task
-        ScrapeArcadeDBAsync(string XMLFilename,DataSet dataSet, bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
+        ScrapeArcadeDBAsync(string XMLFilename, DataSet dataSet, bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
         {
             int total = romPaths.Count;
             int count = 0;
 
-        
+
             Dictionary<string, string> Metadata = new Dictionary<string, string>();
             Metadata.Add("name", "title");
             Metadata.Add("desc", "history");
@@ -111,7 +109,7 @@ namespace GamelistManager
                         string localPropertyName = kvp.Key;
                         string remotePropertyName = kvp.Value;
                         string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-                 
+
                         if (!File.Exists(fullRomPath))
                         {
                             scraperForm.AddToLog($"File {fullRomPath} is missing!");
@@ -269,7 +267,7 @@ namespace GamelistManager
             public string screen_resolution { get; set; }
         }
 
-     
+
         public class ScrapeArcadeDBResponse
         {
             public List<ScrapeArcadeDBItem> result { get; set; }

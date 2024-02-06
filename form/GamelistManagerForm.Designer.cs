@@ -42,9 +42,11 @@
             this.label_Hidden = new System.Windows.Forms.Label();
             this.splitContainer_Big = new System.Windows.Forms.SplitContainer();
             this.panel_BelowDataGridView = new System.Windows.Forms.Panel();
+            this.textBox_CustomFilter = new System.Windows.Forms.TextBox();
             this.checkBox_CustomFilter = new System.Windows.Forms.CheckBox();
             this.label_GenrePicker = new System.Windows.Forms.Label();
             this.label_Visible = new System.Windows.Forms.Label();
+            this.pictureBox_SystemLogo = new System.Windows.Forms.PictureBox();
             this.label_FavoriteCount = new System.Windows.Forms.Label();
             this.label_Favorite = new System.Windows.Forms.Label();
             this.splitContainer_Small = new System.Windows.Forms.SplitContainer();
@@ -127,23 +129,20 @@
             this.contextMenuStrip_ImageOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ToolStripMenuItem_CopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem_EditImage = new System.Windows.Forms.ToolStripMenuItem();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.statusBar_BottomOfWindow = new System.Windows.Forms.StatusBar();
-            this.textBox_CustomFilter = new System.Windows.Forms.TextBox();
-            this.pictureBox_SystemLogo = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Big)).BeginInit();
             this.splitContainer_Big.Panel1.SuspendLayout();
             this.splitContainer_Big.Panel2.SuspendLayout();
             this.splitContainer_Big.SuspendLayout();
             this.panel_BelowDataGridView.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Small)).BeginInit();
             this.splitContainer_Small.Panel1.SuspendLayout();
             this.splitContainer_Small.Panel2.SuspendLayout();
             this.splitContainer_Small.SuspendLayout();
             this.menuStrip_MainMenu.SuspendLayout();
             this.contextMenuStrip_ImageOptions.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).BeginInit();
             this.SuspendLayout();
             // 
             // dataGridView1
@@ -306,6 +305,17 @@
             this.panel_BelowDataGridView.Size = new System.Drawing.Size(652, 48);
             this.panel_BelowDataGridView.TabIndex = 12;
             // 
+            // textBox_CustomFilter
+            // 
+            this.textBox_CustomFilter.Enabled = false;
+            this.textBox_CustomFilter.Location = new System.Drawing.Point(509, 24);
+            this.textBox_CustomFilter.MaxLength = 20;
+            this.textBox_CustomFilter.Name = "textBox_CustomFilter";
+            this.textBox_CustomFilter.Size = new System.Drawing.Size(138, 20);
+            this.textBox_CustomFilter.TabIndex = 16;
+            this.textBox_CustomFilter.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_CustomFilter_KeyPress);
+            this.textBox_CustomFilter.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyUp);
+            // 
             // checkBox_CustomFilter
             // 
             this.checkBox_CustomFilter.AutoSize = true;
@@ -342,6 +352,15 @@
             this.label_Visible.Size = new System.Drawing.Size(44, 15);
             this.label_Visible.TabIndex = 3;
             this.label_Visible.Text = "Visible:";
+            // 
+            // pictureBox_SystemLogo
+            // 
+            this.pictureBox_SystemLogo.Location = new System.Drawing.Point(2, 2);
+            this.pictureBox_SystemLogo.Name = "pictureBox_SystemLogo";
+            this.pictureBox_SystemLogo.Size = new System.Drawing.Size(180, 43);
+            this.pictureBox_SystemLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox_SystemLogo.TabIndex = 14;
+            this.pictureBox_SystemLogo.TabStop = false;
             // 
             // label_FavoriteCount
             // 
@@ -824,7 +843,7 @@
             this.ToolStripMenuItem_MameUnplayable.Name = "ToolStripMenuItem_MameUnplayable";
             this.ToolStripMenuItem_MameUnplayable.Size = new System.Drawing.Size(251, 22);
             this.ToolStripMenuItem_MameUnplayable.Text = "MAME: Identify Unplayable";
-            this.ToolStripMenuItem_MameUnplayable.Click += new System.EventHandler(this.MAMEHighlightUnplayableToolStripMenuItem_Click);
+            this.ToolStripMenuItem_MameUnplayable.Click += new System.EventHandler(this.ToolStripMenuItem_MameUnplayable_Click);
             // 
             // toolStripSeparator18
             // 
@@ -836,14 +855,13 @@
             this.ToolStripMenuItem_CheckForBadImages.Name = "ToolStripMenuItem_CheckForBadImages";
             this.ToolStripMenuItem_CheckForBadImages.Size = new System.Drawing.Size(251, 22);
             this.ToolStripMenuItem_CheckForBadImages.Text = "Check For Bad Or Missing Images";
-            this.ToolStripMenuItem_CheckForBadImages.Click += new System.EventHandler(this.CheckForSingleColorImagesToolStripMenuItem_Click);
+            this.ToolStripMenuItem_CheckForBadImages.Click += new System.EventHandler(this.ToolStripMenuItem_CheckImages_Click);
             // 
             // ToolStripMenuItem_CheckForMissingVideos
             // 
             this.ToolStripMenuItem_CheckForMissingVideos.Name = "ToolStripMenuItem_CheckForMissingVideos";
             this.ToolStripMenuItem_CheckForMissingVideos.Size = new System.Drawing.Size(251, 22);
             this.ToolStripMenuItem_CheckForMissingVideos.Text = "Check For Missing Videos";
-            this.ToolStripMenuItem_CheckForMissingVideos.Click += new System.EventHandler(this.checkForMissingVideosToolStripMenuItem_Click);
             // 
             // toolStripSeparator19
             // 
@@ -998,14 +1016,6 @@
             this.ToolStripMenuItem_EditImage.Text = "View / Edit Item";
             this.ToolStripMenuItem_EditImage.Click += new System.EventHandler(this.editToolStripMenuItem1_Click);
             // 
-            // progressBar1
-            // 
-            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar1.Location = new System.Drawing.Point(517, 278);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(113, 17);
-            this.progressBar1.TabIndex = 7;
-            // 
             // statusBar_BottomOfWindow
             // 
             this.statusBar_BottomOfWindow.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -1015,32 +1025,11 @@
             this.statusBar_BottomOfWindow.TabIndex = 6;
             this.statusBar_BottomOfWindow.Text = "Ready";
             // 
-            // textBox_CustomFilter
-            // 
-            this.textBox_CustomFilter.Enabled = false;
-            this.textBox_CustomFilter.Location = new System.Drawing.Point(509, 24);
-            this.textBox_CustomFilter.MaxLength = 20;
-            this.textBox_CustomFilter.Name = "textBox_CustomFilter";
-            this.textBox_CustomFilter.Size = new System.Drawing.Size(138, 20);
-            this.textBox_CustomFilter.TabIndex = 16;
-            this.textBox_CustomFilter.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox_CustomFilter_KeyPress);
-            this.textBox_CustomFilter.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyUp);
-            // 
-            // pictureBox_SystemLogo
-            // 
-            this.pictureBox_SystemLogo.Location = new System.Drawing.Point(2, 2);
-            this.pictureBox_SystemLogo.Name = "pictureBox_SystemLogo";
-            this.pictureBox_SystemLogo.Size = new System.Drawing.Size(180, 43);
-            this.pictureBox_SystemLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox_SystemLogo.TabIndex = 14;
-            this.pictureBox_SystemLogo.TabStop = false;
-            // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(652, 296);
-            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.splitContainer_Big);
             this.Controls.Add(this.menuStrip_MainMenu);
             this.Controls.Add(this.statusBar_BottomOfWindow);
@@ -1058,6 +1047,7 @@
             this.splitContainer_Big.ResumeLayout(false);
             this.panel_BelowDataGridView.ResumeLayout(false);
             this.panel_BelowDataGridView.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).EndInit();
             this.splitContainer_Small.Panel1.ResumeLayout(false);
             this.splitContainer_Small.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Small)).EndInit();
@@ -1065,7 +1055,6 @@
             this.menuStrip_MainMenu.ResumeLayout(false);
             this.menuStrip_MainMenu.PerformLayout();
             this.contextMenuStrip_ImageOptions.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_SystemLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1134,7 +1123,6 @@
         private System.Windows.Forms.ComboBox comboBox_Genre;
         private System.Windows.Forms.Label label_GenrePicker;
         private System.Windows.Forms.Panel panel_BelowDataGridView;
-        private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_Clear;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;

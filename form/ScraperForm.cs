@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using System.IO;
 
 
 namespace GamelistManager
@@ -18,7 +17,7 @@ namespace GamelistManager
         public string XMLFilename { get; set; }
         public DataSet dataSet { get; set; }
         public DataGridView dataGridView { get; set; }
-      
+
         public ListBox scraperLog => listBoxLog;
 
         public ScraperForm()
@@ -103,10 +102,10 @@ namespace GamelistManager
             globalStopwatch.Reset();
             globalStopwatch.Start();
 
-     
+
             // Reset the cancellation token source
             cancellationTokenSource = new CancellationTokenSource();
-          
+
             // Call the scraper method asynchronously
             if (comboBox_Scrapers.SelectedIndex == 0)
             {
@@ -121,7 +120,7 @@ namespace GamelistManager
 
             }
 
-            string elapsedTime = $"{globalStopwatch.Elapsed.TotalMinutes:F0} minutes and { globalStopwatch.Elapsed.Seconds } seconds";
+            string elapsedTime = $"{globalStopwatch.Elapsed.TotalMinutes:F0} minutes and {globalStopwatch.Elapsed.Seconds} seconds";
             MessageBox.Show($"Finished scraping {romPaths.Count} items in {elapsedTime}");
 
             // Cleanup after scraping is complete or canceled
@@ -237,7 +236,7 @@ namespace GamelistManager
             if (comboBox_Scrapers.SelectedIndex == 1)
             {
                 // ScreenScraper
-                button_Setup.Enabled= true;
+                button_Setup.Enabled = true;
                 availableScraperElements = new List<string>{
                     "name",
                     "desc",
@@ -286,10 +285,10 @@ namespace GamelistManager
 
         private void button_Setup_Click(object sender, EventArgs e)
         {
-            
+
             button_StartStop.Enabled = false;
             comboBox_Scrapers.Enabled = false;
-            
+
             groupBox_checkboxes.Visible = false;
 
             ScreenScraperSetup userControl = new ScreenScraperSetup();
@@ -302,7 +301,7 @@ namespace GamelistManager
         private void ScreenScraperSetup_Disposed(object sender, EventArgs e)
         {
             ScreenScraperSetup userControl = new ScreenScraperSetup();
-            
+
             button_StartStop.Enabled = true;
             comboBox_Scrapers.Enabled = true;
 

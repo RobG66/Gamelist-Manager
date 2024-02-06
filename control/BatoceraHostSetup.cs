@@ -1,6 +1,4 @@
-﻿using CredentialManagement;
-using System;
-using System.Net;
+﻿using System;
 using System.Windows.Forms;
 
 namespace GamelistManager
@@ -26,7 +24,7 @@ namespace GamelistManager
 
         private void button2_Click(object sender, EventArgs e)
         {
-           this.Dispose();
+            this.Dispose();
         }
 
         private void BatoceraHostSetup_Load(object sender, EventArgs e)
@@ -35,9 +33,9 @@ namespace GamelistManager
 
             if (string.IsNullOrEmpty(hostName))
             {
-               return;
+                return;
             }
-            
+
             (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
 
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))

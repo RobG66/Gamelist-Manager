@@ -1,6 +1,6 @@
-﻿namespace GamelistManager.form
+﻿namespace GamelistManager
 {
-    partial class ProgressBarForm
+    partial class FloatingProgressBarForm
     {
         /// <summary>
         /// Required designer variable.

@@ -158,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\MediaListObject.cs" />
     <Compile Include="class\SSHCommander.cs" />
     <Compile Include="class\CredentialManager.cs" />
     <Compile Include="class\FileTransfer.cs" />
@@ -171,11 +172,17 @@
     <Compile Include="control\ScreenScraperSetup.Designer.cs">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
     </Compile>
-    <Compile Include="form\Image Handler Form.cs">
+    <Compile Include="form\FloatingProgressBarForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="form\Image Handler Form.Designer.cs">
-      <DependentUpon>Image Handler Form.cs</DependentUpon>
+    <Compile Include="form\FloatingProgressBarForm.Designer.cs">
+      <DependentUpon>FloatingProgressBarForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="form\MediaCheckForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="form\MediaCheckForm.Designer.cs">
+      <DependentUpon>MediaCheckForm.cs</DependentUpon>
     </Compile>
     <Compile Include="class\ImageChecker.cs" />
     <Compile Include="form\ScraperForm.cs">
@@ -208,8 +215,11 @@
     <EmbeddedResource Include="control\ScreenScraperSetup.resx">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="form\Image Handler Form.resx">
-      <DependentUpon>Image Handler Form.cs</DependentUpon>
+    <EmbeddedResource Include="form\FloatingProgressBarForm.resx">
+      <DependentUpon>FloatingProgressBarForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="form\MediaCheckForm.resx">
+      <DependentUpon>MediaCheckForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="form\ScraperForm.resx">
       <DependentUpon>ScraperForm.cs</DependentUpon>
@@ -846,6 +856,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\manual.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background2.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets')" />
