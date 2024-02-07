@@ -2,6 +2,11 @@
 
 Thoughts:
 
+February 3rd
+
+ A new 3.1 release and a few minor hiccups getting things updated on master branch.  I may remove the work in progress branch because it makes the whole source control experience more convoluted for me.  I'm not an expert on this :)  The 3.1 release contains fixes, improvements and a few new features.  Screenscraper scraping is still work in progress, but it is coming along.  I'm doing all of this as my way of contributing to the Batocera community and I hope at least a few people find use of it.  If you have an issue or find a bug, let me know and create an issue thingy.
+ 
+
 Jan 27th
 
  Lots of refactoring as things evolve.  Moving some classes outside of form source and adding more modularity where it makes sense.  ScreenScraper scraping is somewhat working, but I still need to implement media downloading for it.  I'll worry about 'threading' later when it's more complete.       
