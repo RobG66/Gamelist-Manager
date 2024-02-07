@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -17,6 +18,7 @@ namespace GamelistManager
         string parentFolderPath;
         DataGridView dataGridView1;
         List<MediaListObject> mediaList;
+        List<MediaListObject> badMediaList;
         private static Stopwatch globalStopwatch = new Stopwatch();
         int missingCount;
         int corruptCount;
@@ -28,6 +30,7 @@ namespace GamelistManager
             dataGridView1 = dgv;
             parentFolderPath = path;
             mediaList = new List<MediaListObject>();
+            badMediaList = new List<MediaListObject>();
             singleColorCount = 0;
             corruptCount = 0;
             missingCount = 0;
@@ -68,12 +71,86 @@ namespace GamelistManager
 
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Close();
+
+            if (radioButton_ExportCSV.Checked)
+            {
+                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_images.csv";
+                if (ExportToCSV(mediaList, csvFileName))
+                {
+                    MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                else
+                {
+                    MessageBox.Show($"There was an error saving file '{csvFileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
+            foreach (var mediaObject in mediaList)
+            {
+                string fileName = mediaObject.FullPath;
+                int rowIndex = mediaObject.RowIndex;
+                int columnIndex = mediaObject.ColumnIndex;
+                string status = mediaObject.Status;
+
+                switch (0)
+                {
+                    case 2:
+                        try
+                        {
+                            File.Delete(fileName);
+                        }
+                        catch
+                        {
+                            //catch exception - if we care?
+                        }
+                        break;
+                    case 3:
+                        string oldFilePath = fileName;
+                        string newFileNamePrefix = "bad-";
+                        string directory = Path.GetDirectoryName(oldFilePath);
+                        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldFilePath);
+                        string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}");
+                        try
+                        {
+                            File.Move(oldFilePath, newFilePath);
+                        }
+                        catch
+                        {
+                            // Catch exception - if we care?
+                        }
+                        break;
+                }
+                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
+            }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        static bool ExportToCSV(List<MediaListObject> mediaObjects, string filePath)
         {
-            this.Close();
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    // Write header
+                    writer.WriteLine("FullPath,Status");
+
+                    // Write records
+                    foreach (var mediaObject in mediaObjects)
+                    {
+                        writer.WriteLine($"{mediaObject.FullPath},{mediaObject.Status}");
+                    }
+                }
+                // Return success!
+                return true;
+            }
+
+            catch
+            {
+                // Return failure
+                return false;
+            }
+
         }
 
         private void MediaCheckForm_Load(object sender, EventArgs e)
@@ -125,6 +202,7 @@ namespace GamelistManager
 
         private async Task CheckMedia(CancellationToken cancellationToken)
         {
+   
             int totalFiles = mediaList.Count;
             int count = 0;
 
@@ -136,6 +214,8 @@ namespace GamelistManager
             singleColorCount = 0;
             corruptCount = 0;
             missingCount = 0;
+            
+            ConcurrentBag<MediaListObject> badMediaList = new ConcurrentBag<MediaListObject>();
 
             await Task.Run(() =>
             {
@@ -151,10 +231,9 @@ namespace GamelistManager
                     string fileName = item.FullPath;
                     int rowIndex = item.RowIndex;
                     int columnIndex = item.ColumnIndex;
-
-                    string result = ImageChecker.CheckImage(fileName);
-                    //string result = ImageChecker.CheckImage(fileName);
-
+                    string result = null;
+                    result = ImageChecker.CheckImage(fileName);
+          
                     switch (result)
                     {
                         case "missing":
@@ -171,7 +250,14 @@ namespace GamelistManager
                             Interlocked.Increment(ref corruptCount);
                             item.Status = "corrupt";
                             break;
+                        default:
+                            if (result != "ok") 
+                            {
+                                badMediaList.Add(item);
+                            }
+                            break;
                     }
+
                     Interlocked.Increment(ref count);
                     UpdateLabels(count, totalFiles, missingCount, corruptCount, singleColorCount);
                     UpdateProgressBar();

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -109,6 +110,14 @@ namespace GamelistManager
             // Call the scraper method asynchronously
             if (comboBox_Scrapers.SelectedIndex == 0)
             {
+                string parentFolderName = Path.GetFileName(Path.GetDirectoryName(XMLFilename));
+                if (parentFolderName != "mame" && parentFolderName != "fbneo")
+                {
+                    MessageBox.Show("This doesn't appear to be a gamelist for Mame or FBNeo!\n" +
+                        "You cannot scrape this gamelist with ArcadeDB.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 ScrapeArcadeDB scraper = new ScrapeArcadeDB(this);
                 await scraper.ScrapeArcadeDBAsync(XMLFilename, dataSet, overWriteData, elementsToScrape, romPaths, cancellationTokenSource.Token);
             }

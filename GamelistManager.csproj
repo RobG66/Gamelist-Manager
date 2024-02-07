@@ -172,12 +172,6 @@
     <Compile Include="control\ScreenScraperSetup.Designer.cs">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
     </Compile>
-    <Compile Include="form\FloatingProgressBarForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="form\FloatingProgressBarForm.Designer.cs">
-      <DependentUpon>FloatingProgressBarForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="form\MediaCheckForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -214,9 +208,6 @@
     </Compile>
     <EmbeddedResource Include="control\ScreenScraperSetup.resx">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="form\FloatingProgressBarForm.resx">
-      <DependentUpon>FloatingProgressBarForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="form\MediaCheckForm.resx">
       <DependentUpon>MediaCheckForm.cs</DependentUpon>

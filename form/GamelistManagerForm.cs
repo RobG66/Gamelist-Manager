@@ -981,25 +981,21 @@ namespace GamelistManager
 
         private void MediaPathsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
-
-            bool visible;
-            if (menuItem.Checked)
-            {
-                visible = true;
-            }
-            else
-            {
-                visible = false;
-            }
-
+        
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 // Check if the column has the tag 'image'
                 if (column.Tag != null && (column.Tag.ToString() == "image" || column.Tag.ToString() == "video"))
                 {
                     bool isColumnEmpty = dataSet.Tables[0].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
-                    column.Visible = isColumnEmpty ? !visible : visible;
+                    if (!isColumnEmpty && ToolStripMenuItem_MediaPaths.Checked == true)
+                    {
+                        column.Visible = true;
+                    }
+                    else
+                    {
+                        column.Visible = false; 
+                    }
                 }
             }
 
@@ -1802,40 +1798,13 @@ namespace GamelistManager
         private void ToolStripMenuItem_CheckImages_Click(object sender, EventArgs e)
         {
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-            MediaCheckForm popupForm = new MediaCheckForm(parentFolderPath, dataGridView1);
+            MediaCheckForm mediaCheckForm = new MediaCheckForm(parentFolderPath, dataGridView1);
             // Set the start position and location for the instance of MediaCheckForm
-            popupForm.StartPosition = FormStartPosition.Manual;
-            popupForm.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
-            popupForm.ShowDialog();
+            mediaCheckForm.StartPosition = FormStartPosition.Manual;
+            mediaCheckForm.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+            mediaCheckForm.ShowDialog();
         }
 
-
-        static bool ExportToCSV(List<MediaListObject> mediaObjects, string filePath)
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(filePath))
-                {
-                    // Write header
-                    writer.WriteLine("FullPath,Status");
-
-                    // Write records
-                    foreach (var mediaObject in mediaObjects)
-                    {
-                        writer.WriteLine($"{mediaObject.FullPath},{mediaObject.Status}");
-                    }
-                }
-                // Return success!
-                return true;
-            }
-
-            catch
-            {
-                // Return failure
-                return false;
-            }
-
-        }
 
         private void editToolStripMenuItem1_Click(object sender, EventArgs e)
         {
@@ -2207,8 +2176,8 @@ namespace GamelistManager
 
         private void ToolStripMenuItem_Scraper_Click(object sender, EventArgs e)
         {
+           
             ToolStripMenuItem_ShowMedia.Checked = false;
-
             ScraperForm scraper = new ScraperForm();
             scraper.Owner = this;
             scraper.XMLFilename = XMLFilename;
@@ -2216,7 +2185,7 @@ namespace GamelistManager
             scraper.dataGridView = dataGridView1;
             scraper.StartPosition = FormStartPosition.Manual;
             scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
-            scraper.Show();
+            scraper.ShowDialog();
         }
 
         private void findNewItemsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2340,7 +2309,7 @@ namespace GamelistManager
             }
         }
 
-
+      
     }
 
 }

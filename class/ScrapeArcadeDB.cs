@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace GamelistManager
 {
@@ -144,6 +145,31 @@ namespace GamelistManager
                         {
                             continue;
                         }
+
+                        // Fix rating
+                        if (columnName == "rating")
+                        {
+                            string convertedRating = null;
+
+                            if (scrapedValue == "100")
+                            {
+                                convertedRating = "1";
+                            }
+
+                            if (scrapedValue == "0")
+                            {
+                                // Don't even bother with a zero rating
+                                return;
+                            }
+
+                            if (convertedRating == null) {
+                                scrapedValue = "." + scrapedValue.TrimStart('0');
+                            }
+                            else
+                            {
+                                scrapedValue = convertedRating;
+                            }
+                        }    
 
                         // If it's not an image property, we stop here
                         if (!remotePropertyName.Contains("url_"))

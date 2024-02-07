@@ -28,11 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
-            this.radioButton3 = new System.Windows.Forms.RadioButton();
-            this.radioButton2 = new System.Windows.Forms.RadioButton();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
+            this.radioButton_Rename = new System.Windows.Forms.RadioButton();
+            this.radioButton_Delete = new System.Windows.Forms.RadioButton();
+            this.radioButton_ExportCSV = new System.Windows.Forms.RadioButton();
             this.button_Start = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -56,17 +55,6 @@
             this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
-            // button2
-            // 
-            this.button2.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.button2.Location = new System.Drawing.Point(96, 103);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 10;
-            this.button2.Text = "Cancel";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("Segoe UI", 8.25F);
@@ -78,40 +66,40 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // radioButton3
+            // radioButton_Rename
             // 
-            this.radioButton3.AutoSize = true;
-            this.radioButton3.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton3.Location = new System.Drawing.Point(3, 78);
-            this.radioButton3.Name = "radioButton3";
-            this.radioButton3.Size = new System.Drawing.Size(248, 17);
-            this.radioButton3.TabIndex = 8;
-            this.radioButton3.Text = "Rename with a \'bad-\' prefix and clear paths";
-            this.radioButton3.UseVisualStyleBackColor = true;
+            this.radioButton_Rename.AutoSize = true;
+            this.radioButton_Rename.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButton_Rename.Location = new System.Drawing.Point(3, 78);
+            this.radioButton_Rename.Name = "radioButton_Rename";
+            this.radioButton_Rename.Size = new System.Drawing.Size(248, 17);
+            this.radioButton_Rename.TabIndex = 8;
+            this.radioButton_Rename.Text = "Rename with a \'bad-\' prefix and clear paths";
+            this.radioButton_Rename.UseVisualStyleBackColor = true;
             // 
-            // radioButton2
+            // radioButton_Delete
             // 
-            this.radioButton2.AutoSize = true;
-            this.radioButton2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton2.Location = new System.Drawing.Point(3, 54);
-            this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(140, 17);
-            this.radioButton2.TabIndex = 7;
-            this.radioButton2.Text = "Delete and clear paths";
-            this.radioButton2.UseVisualStyleBackColor = true;
+            this.radioButton_Delete.AutoSize = true;
+            this.radioButton_Delete.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButton_Delete.Location = new System.Drawing.Point(3, 54);
+            this.radioButton_Delete.Name = "radioButton_Delete";
+            this.radioButton_Delete.Size = new System.Drawing.Size(140, 17);
+            this.radioButton_Delete.TabIndex = 7;
+            this.radioButton_Delete.Text = "Delete and clear paths";
+            this.radioButton_Delete.UseVisualStyleBackColor = true;
             // 
-            // radioButton1
+            // radioButton_ExportCSV
             // 
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Checked = true;
-            this.radioButton1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton1.Location = new System.Drawing.Point(3, 30);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(113, 17);
-            this.radioButton1.TabIndex = 6;
-            this.radioButton1.TabStop = true;
-            this.radioButton1.Text = "Export list to CSV";
-            this.radioButton1.UseVisualStyleBackColor = true;
+            this.radioButton_ExportCSV.AutoSize = true;
+            this.radioButton_ExportCSV.Checked = true;
+            this.radioButton_ExportCSV.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButton_ExportCSV.Location = new System.Drawing.Point(3, 30);
+            this.radioButton_ExportCSV.Name = "radioButton_ExportCSV";
+            this.radioButton_ExportCSV.Size = new System.Drawing.Size(113, 17);
+            this.radioButton_ExportCSV.TabIndex = 6;
+            this.radioButton_ExportCSV.TabStop = true;
+            this.radioButton_ExportCSV.Text = "Export list to CSV";
+            this.radioButton_ExportCSV.UseVisualStyleBackColor = true;
             // 
             // button_Start
             // 
@@ -173,11 +161,10 @@
             this.panel2.BackColor = System.Drawing.Color.Transparent;
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel2.Controls.Add(this.label1);
-            this.panel2.Controls.Add(this.radioButton1);
-            this.panel2.Controls.Add(this.radioButton2);
-            this.panel2.Controls.Add(this.radioButton3);
+            this.panel2.Controls.Add(this.radioButton_ExportCSV);
+            this.panel2.Controls.Add(this.radioButton_Delete);
+            this.panel2.Controls.Add(this.radioButton_Rename);
             this.panel2.Controls.Add(this.button1);
-            this.panel2.Controls.Add(this.button2);
             this.panel2.Enabled = false;
             this.panel2.Location = new System.Drawing.Point(12, 159);
             this.panel2.Name = "panel2";
@@ -361,11 +348,10 @@
         }
 
         #endregion
-        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.RadioButton radioButton3;
-        private System.Windows.Forms.RadioButton radioButton2;
-        private System.Windows.Forms.RadioButton radioButton1;
+        private System.Windows.Forms.RadioButton radioButton_Rename;
+        private System.Windows.Forms.RadioButton radioButton_Delete;
+        private System.Windows.Forms.RadioButton radioButton_ExportCSV;
         private System.Windows.Forms.Button button_Start;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Panel panel1;

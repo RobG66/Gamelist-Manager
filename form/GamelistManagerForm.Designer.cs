@@ -107,7 +107,6 @@
             this.ToolStripMenuItem_MameUnplayable = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator18 = new System.Windows.Forms.ToolStripSeparator();
             this.ToolStripMenuItem_CheckForBadImages = new System.Windows.Forms.ToolStripMenuItem();
-            this.ToolStripMenuItem_CheckForMissingVideos = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator19 = new System.Windows.Forms.ToolStripSeparator();
             this.ToolStripMenuItem_FindNewItems = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem_Remote = new System.Windows.Forms.ToolStripMenuItem();
@@ -831,7 +830,6 @@
             this.ToolStripMenuItem_MameUnplayable,
             this.toolStripSeparator18,
             this.ToolStripMenuItem_CheckForBadImages,
-            this.ToolStripMenuItem_CheckForMissingVideos,
             this.toolStripSeparator19,
             this.ToolStripMenuItem_FindNewItems});
             this.ToolStripMenuItem_Tools.Name = "ToolStripMenuItem_Tools";
@@ -841,37 +839,32 @@
             // ToolStripMenuItem_MameUnplayable
             // 
             this.ToolStripMenuItem_MameUnplayable.Name = "ToolStripMenuItem_MameUnplayable";
-            this.ToolStripMenuItem_MameUnplayable.Size = new System.Drawing.Size(251, 22);
+            this.ToolStripMenuItem_MameUnplayable.Size = new System.Drawing.Size(246, 22);
             this.ToolStripMenuItem_MameUnplayable.Text = "MAME: Identify Unplayable";
             this.ToolStripMenuItem_MameUnplayable.Click += new System.EventHandler(this.ToolStripMenuItem_MameUnplayable_Click);
             // 
             // toolStripSeparator18
             // 
             this.toolStripSeparator18.Name = "toolStripSeparator18";
-            this.toolStripSeparator18.Size = new System.Drawing.Size(248, 6);
+            this.toolStripSeparator18.Size = new System.Drawing.Size(243, 6);
             // 
             // ToolStripMenuItem_CheckForBadImages
             // 
+            this.ToolStripMenuItem_CheckForBadImages.Enabled = false;
             this.ToolStripMenuItem_CheckForBadImages.Name = "ToolStripMenuItem_CheckForBadImages";
-            this.ToolStripMenuItem_CheckForBadImages.Size = new System.Drawing.Size(251, 22);
-            this.ToolStripMenuItem_CheckForBadImages.Text = "Check For Bad Or Missing Images";
+            this.ToolStripMenuItem_CheckForBadImages.Size = new System.Drawing.Size(246, 22);
+            this.ToolStripMenuItem_CheckForBadImages.Text = "Check For Bad Or Missing Media";
             this.ToolStripMenuItem_CheckForBadImages.Click += new System.EventHandler(this.ToolStripMenuItem_CheckImages_Click);
-            // 
-            // ToolStripMenuItem_CheckForMissingVideos
-            // 
-            this.ToolStripMenuItem_CheckForMissingVideos.Name = "ToolStripMenuItem_CheckForMissingVideos";
-            this.ToolStripMenuItem_CheckForMissingVideos.Size = new System.Drawing.Size(251, 22);
-            this.ToolStripMenuItem_CheckForMissingVideos.Text = "Check For Missing Videos";
             // 
             // toolStripSeparator19
             // 
             this.toolStripSeparator19.Name = "toolStripSeparator19";
-            this.toolStripSeparator19.Size = new System.Drawing.Size(248, 6);
+            this.toolStripSeparator19.Size = new System.Drawing.Size(243, 6);
             // 
             // ToolStripMenuItem_FindNewItems
             // 
             this.ToolStripMenuItem_FindNewItems.Name = "ToolStripMenuItem_FindNewItems";
-            this.ToolStripMenuItem_FindNewItems.Size = new System.Drawing.Size(251, 22);
+            this.ToolStripMenuItem_FindNewItems.Size = new System.Drawing.Size(246, 22);
             this.ToolStripMenuItem_FindNewItems.Text = "Find New Items";
             this.ToolStripMenuItem_FindNewItems.Click += new System.EventHandler(this.findNewItemsToolStripMenuItem_Click);
             // 
@@ -989,7 +982,7 @@
             // scrapeItemToolStripMenuItem
             // 
             this.scrapeItemToolStripMenuItem.Name = "scrapeItemToolStripMenuItem";
-            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.scrapeItemToolStripMenuItem.Text = "Scrape Item";
             this.scrapeItemToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItem_Scraper_Click);
             // 
@@ -1146,7 +1139,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator17;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShutdownBatocera;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_MapDrive;
-        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_CheckForMissingVideos;
         private System.Windows.Forms.SplitContainer splitContainer_Small;
         private System.Windows.Forms.StatusBar statusBar_BottomOfWindow;
         private System.Windows.Forms.PictureBox pictureBox_SystemLogo;
