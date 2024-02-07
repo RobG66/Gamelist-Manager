@@ -86,8 +86,8 @@ namespace GamelistManager
                 scraperRequestURL = scraperRequestURL.Replace("9999", systemID.ToString());
                 scraperRequestURL = scraperRequestURL.Replace("romname", currentRomName);
                 scraperRequestURL = scraperRequestURL.Replace("md5value", md5);
-                scraperRequestURL = scraperRequestURL.Replace("username", "robg77");
-                scraperRequestURL = scraperRequestURL.Replace("userpassword", "Zippy111");
+                scraperRequestURL = scraperRequestURL.Replace("username", "");
+                scraperRequestURL = scraperRequestURL.Replace("userpassword", "");
 
                 // Get the XML response from the website
                 XmlDocument xmlResponse = await GetXMLResponseAsync(scraperRequestURL, cancellationToken);
