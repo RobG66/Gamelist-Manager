@@ -129,6 +129,8 @@
             this.ToolStripMenuItem_CopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem_EditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar_BottomOfWindow = new System.Windows.Forms.StatusBar();
+            this.toolStripSeparator21 = new System.Windows.Forms.ToolStripSeparator();
+            this.quickScrapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Big)).BeginInit();
             this.splitContainer_Big.Panel1.SuspendLayout();
@@ -850,7 +852,6 @@
             // 
             // ToolStripMenuItem_CheckForBadImages
             // 
-            this.ToolStripMenuItem_CheckForBadImages.Enabled = false;
             this.ToolStripMenuItem_CheckForBadImages.Name = "ToolStripMenuItem_CheckForBadImages";
             this.ToolStripMenuItem_CheckForBadImages.Size = new System.Drawing.Size(246, 22);
             this.ToolStripMenuItem_CheckForBadImages.Text = "Check For Bad Or Missing Media";
@@ -974,7 +975,9 @@
             // ToolStripMenuItem_Scraper
             // 
             this.ToolStripMenuItem_Scraper.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.scrapeItemToolStripMenuItem});
+            this.scrapeItemToolStripMenuItem,
+            this.toolStripSeparator21,
+            this.quickScrapeToolStripMenuItem});
             this.ToolStripMenuItem_Scraper.Name = "ToolStripMenuItem_Scraper";
             this.ToolStripMenuItem_Scraper.Size = new System.Drawing.Size(58, 20);
             this.ToolStripMenuItem_Scraper.Text = "Scraper";
@@ -983,7 +986,7 @@
             // 
             this.scrapeItemToolStripMenuItem.Name = "scrapeItemToolStripMenuItem";
             this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.scrapeItemToolStripMenuItem.Text = "Scrape Item";
+            this.scrapeItemToolStripMenuItem.Text = "Scraper";
             this.scrapeItemToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItem_Scraper_Click);
             // 
             // contextMenuStrip_ImageOptions
@@ -1018,6 +1021,18 @@
             this.statusBar_BottomOfWindow.TabIndex = 6;
             this.statusBar_BottomOfWindow.Text = "Ready";
             // 
+            // toolStripSeparator21
+            // 
+            this.toolStripSeparator21.Name = "toolStripSeparator21";
+            this.toolStripSeparator21.Size = new System.Drawing.Size(177, 6);
+            // 
+            // quickScrapeToolStripMenuItem
+            // 
+            this.quickScrapeToolStripMenuItem.Name = "quickScrapeToolStripMenuItem";
+            this.quickScrapeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.quickScrapeToolStripMenuItem.Text = "Quick Scrape";
+            this.quickScrapeToolStripMenuItem.Click += new System.EventHandler(this.quickScrapeToolStripMenuItem_Click);
+            // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1029,7 +1044,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip_MainMenu;
             this.Margin = new System.Windows.Forms.Padding(1);
-            this.MinimumSize = new System.Drawing.Size(401, 220);
+            this.MinimumSize = new System.Drawing.Size(668, 335);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -1151,6 +1166,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator20;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ClearAllData;
         private System.Windows.Forms.TextBox textBox_CustomFilter;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator21;
+        private System.Windows.Forms.ToolStripMenuItem quickScrapeToolStripMenuItem;
     }
 }
 

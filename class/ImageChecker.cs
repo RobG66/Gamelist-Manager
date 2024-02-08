@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.IO;
+using static System.Net.Mime.MediaTypeNames;
 
 // Check if an image is single color or corrupt
 
@@ -20,7 +21,7 @@ namespace GamelistManager
             try
             {
                 using (Bitmap bitmap = new Bitmap(imagePath))
-                {
+                 {
                     Color firstPixelColor = bitmap.GetPixel(0, 0);
                     for (int x = 0; x < bitmap.Width; x++)
                     {

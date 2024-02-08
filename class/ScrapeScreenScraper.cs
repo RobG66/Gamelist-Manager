@@ -18,11 +18,19 @@ namespace GamelistManager
     {
         ScraperForm scraperForm = new ScraperForm();
         GamelistManagerForm gamelistManagerForm = new GamelistManagerForm();
+        string userName;
+        string userPassword;
 
         public ScrapeScreenScraper(ScraperForm scraperForm)
         {
             this.scraperForm = scraperForm ?? throw new ArgumentNullException(nameof(scraperForm));
             this.gamelistManagerForm = gamelistManagerForm ?? throw new ArgumentNullException(nameof(gamelistManagerForm));
+            (userName, userPassword) = CredentialManager.GetCredentials("ScreenScraper");
+
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
+            {
+                return;
+            }
         }
 
         public async
@@ -36,16 +44,15 @@ namespace GamelistManager
             string backupLanguage = "en";
             string backupRegion = "us";
 
-            string devId = "";
-            string devPassword = "";
-
-            string scraperBaseURL = "https://www.screenscraper.fr/api2/";
-
-            string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=zzz&output=xml&ssid=username&sspassword=userpassword&md5=md5value&systemeid=9999&romtype=rom&romnom=romname";
-
             string parentFolderPath = Path.GetDirectoryName(XMLFilename);
             string folderName = Path.GetFileName(parentFolderPath);
             int systemID = GetSystemId(folderName);
+
+            string devId = "robg77";
+            string devPassword = "4dLRXRHWT0y";
+
+            string scraperBaseURL = "https://www.screenscraper.fr/api2/";
+            string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={userName}&sspassword={userPassword}&systemeid={systemID}&romtype=rom&romnom=";
 
             for (int i = 0; i < romPaths.Count; i++)
             {
@@ -61,8 +68,6 @@ namespace GamelistManager
                 }
 
                 string currentRomPath = romPaths[i];
-                string currentRomName = gamelistManagerForm.ExtractFileNameWithExtension(currentRomPath);
-                string scraperRequestURL = $"{scraperBaseURL}{(gameinfo)}";
                 string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
 
                 if (!File.Exists(fullRomPath))
@@ -76,18 +81,15 @@ namespace GamelistManager
                  .FirstOrDefault(row => row.Field<string>("path") == currentRomPath);
 
                 // Generate MD5 if it doesn't exist
-                string md5 = GetCellValueAsString(tableRow, "md5");
+                string md5 = tableRow["md5"].ToString();
                 if (md5 != null)
                 {
                     md5 = ChecksumCreator.CreateMD5(fullRomPath);
                     tableRow["md5"] = md5;
                 }
 
-                scraperRequestURL = scraperRequestURL.Replace("9999", systemID.ToString());
-                scraperRequestURL = scraperRequestURL.Replace("romname", currentRomName);
-                scraperRequestURL = scraperRequestURL.Replace("md5value", md5);
-                scraperRequestURL = scraperRequestURL.Replace("username", "");
-                scraperRequestURL = scraperRequestURL.Replace("userpassword", "");
+                string currentRomName = gamelistManagerForm.ExtractFileNameWithExtension(currentRomPath);
+                string scraperRequestURL = $"{scraperBaseURL}{(gameinfo)}{currentRomName}";
 
                 // Get the XML response from the website
                 XmlDocument xmlResponse = await GetXMLResponseAsync(scraperRequestURL, cancellationToken);
@@ -99,35 +101,15 @@ namespace GamelistManager
                 }
 
                 scraperForm.AddToLog($"Scraping item {currentRomName}");
-
                 string regionToScrape = preferredRegion;
 
-                // Get the region for the rom
-                // Very inconsistent data to work with
+                // Regions are so messy to deal with
                 string romRegions = xmlResponse.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText;
-                if (!string.IsNullOrEmpty(romRegions))
-                {
-                    string[] regions = romRegions.Split(',');
-
-                    int regionCount = regions.Length;
-                    if (!regions.Contains(preferredRegion))
-                    {
-                        regionToScrape = backupRegion;
-                        if (!regions.Contains(backupRegion))
-                        {
-                            // take the last one, usually the right choice?
-                            regionToScrape = regions[(regions.Length - 1)];
-                        }
-                    }
-                }
-                else
-                {
-                    // I don't know.....
-                    regionToScrape = "us";
-                }
+                regionToScrape = ParseRegions(preferredRegion, backupRegion, romRegions);
 
                 string value = null;
-
+                XmlNode mediasNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
+               
                 foreach (string element in elementsToScrape)
                 {
                     switch (element)
@@ -231,32 +213,89 @@ namespace GamelistManager
                             break;
 
                         case "manual":
-                            XmlNode xmlNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
-                            value = ParseMedia("manuel", xmlNode, regionToScrape);
-                            if (string.IsNullOrEmpty(tableRow["manual"]?.ToString()) || overWriteData)
+                            string folderLocation = "images";
+                            string localType = "manual";
+                            string remoteType = "manuel";
+                            // if we cannot overwrite, do not continue
+                            if ((!string.IsNullOrEmpty(tableRow[localType].ToString()) && overWriteData == false) || mediasNode == null)
                             {
-                                tableRow["manual"] = value;
-
+                                continue;
+                            }
+                            
+                            string region = regionToScrape;
+                            (string remoteDownloadURL, string format) = ParseMedia(remoteType, mediasNode, regionToScrape);
+                          
+                            // If there's no media, do not continue
+                            if (remoteDownloadURL == null)
+                            {
+                                continue;
                             }
 
+                            string fileName = $"{Path.GetFileNameWithoutExtension(currentRomName)}-{localType}.{format}";
+                            string fileToDownload = $"{parentFolderPath}\\{folderLocation}\\{fileName}";
+                            bool downloadResult = await FileTransfer.DownloadFile(overWriteData, fileToDownload, remoteDownloadURL);
+                            if (downloadResult)
+                            {
+                                scraperForm.AddToLog($"Downloaded {fileName}");
+                                tableRow[localType] = $"./{folderName}/{fileName}";
+                            }
+                            else
+                            {
+                                scraperForm.AddToLog($"Failed to download {fileName}");
+                            }
                             break;
                     }
                 }
             }
-
         }
-
-        private string ParseMedia(string mediaType, XmlNode mediaElement, string region)
+        
+        private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
         {
-            if (mediaElement == null) { return null; }
-            var media = mediaElement?.SelectNodes($"media[@type='{mediaType}' and @region='{region}']");
+            if (xmlMedias == null) { return (null, null); }
 
-            if (media.Count != 1)
+            var media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{region}']");
+
+            if (media == null)
             {
-                return null;
+                return (null, null);
             }
-            return media[0].InnerText;
+
+            string url = media.InnerText;
+            string format = media.Attributes["format"]?.Value;
+               
+            return (url, format);
         }
+
+        private string ParseRegions(string preferredRegion, string backupRegion, string romRegions)
+        {
+            // Get the region for the rom
+            // Very inconsistent data to work with
+
+            string regionToScrape = null;
+
+            if (!string.IsNullOrEmpty(romRegions))
+            {
+                string[] regions = romRegions.Split(',');
+
+                int regionCount = regions.Length;
+                if (!regions.Contains(preferredRegion))
+                {
+                    regionToScrape = backupRegion;
+                    if (!regions.Contains(backupRegion))
+                    {
+                        // take the last one, usually the right choice?
+                        regionToScrape = regions[(regions.Length - 1)];
+                    }
+                }
+            }
+            else
+            {
+                // I don't know.....
+                regionToScrape = "us";
+            }
+            return regionToScrape;
+        }
+
 
         private string ParseNames(XmlNode namesElement, string region)
         {
@@ -269,45 +308,6 @@ namespace GamelistManager
                 return null;
             }
             return names[0].InnerText;
-        }
-
-        static List<Dictionary<string, string>> SearchMedia(XmlDocument xmlDoc, string parent, string region, string type)
-        {
-            List<Dictionary<string, string>> matchingEntries = new List<Dictionary<string, string>>();
-
-            XmlNodeList mediaNodes = xmlDoc.SelectNodes($"//media[@parent='{parent}' and @region='{region}' and @type='{type}']");
-
-            foreach (XmlNode mediaNode in mediaNodes)
-            {
-                Dictionary<string, string> entry = new Dictionary<string, string>
-            {
-                { "type", mediaNode.Attributes["type"].Value },
-                { "parent", mediaNode.Attributes["parent"].Value },
-                { "region", mediaNode.Attributes["region"].Value },
-                { "crc", mediaNode.Attributes["crc"].Value },
-                { "md5", mediaNode.Attributes["md5"].Value },
-                { "sha1", mediaNode.Attributes["sha1"].Value },
-                { "size", mediaNode.Attributes["size"].Value },
-                { "format", mediaNode.Attributes["format"].Value },
-                { "url", mediaNode.InnerText }
-            };
-
-                matchingEntries.Add(entry);
-            }
-
-            return matchingEntries;
-        }
-
-        private List<string> GetMediaTypes()
-        {
-            List<string> mediaTypes = new List<string>
-        {
-            "ss", "fanart", "video", "video-normalized", "themehs", "marquee", "screenmarquee",
-            "screenmarqueesmall", "manuel", "flyer", "steamgrid", "wheel", "wheel-carbon",
-            "wheel-steel", "box-2D", "box-2D-side", "box-2D-back", "box-texture", "box-3D",
-            "bezel-4-3", "bezel-16-9", "mixrbv1", "mixrbv2", "pictoliste", "pictomonochrome", "pictocouleur"
-        };
-            return mediaTypes;
         }
 
         private string ProcessRating(string rating)
@@ -587,20 +587,6 @@ namespace GamelistManager
             {"zx81",77},
             {"zxspectrum",76}
         };
-
-        private string GetCellValueAsString(DataRow row, string columnName)
-        {
-            if (row != null && row.Table.Columns.Contains(columnName))
-            {
-                object cellValueObject = row[columnName];
-                return (cellValueObject != null) ? cellValueObject.ToString() : string.Empty;
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-
 
         private string ConvertToISO8601(string dateString)
         {

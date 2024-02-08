@@ -918,6 +918,7 @@ namespace GamelistManager
             ToolStripMenuItem_ShowMedia.Checked = false;
             checkBox_CustomFilter.Enabled = true;
             comboBox_Genre.Enabled = true;
+            checkBox_CustomFilter.Checked = false;
 
             foreach (ToolStripMenuItem item in menuStrip_MainMenu.Items)
             {
@@ -2140,9 +2141,6 @@ namespace GamelistManager
             }
         }
 
-
-
-
         private void CheckBox_CustomFilter_CheckedChanged(object sender, EventArgs e)
         {
             if (dataGridView1.RowCount == 0) { return; }
@@ -2309,7 +2307,10 @@ namespace GamelistManager
             }
         }
 
-      
+        private void quickScrapeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
 }
