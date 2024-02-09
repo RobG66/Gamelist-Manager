@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -66,7 +65,7 @@ namespace GamelistManager
                             }
 
                             fullPath = CleanFileName(fullPath);
-                            
+
                             mediaList.Add(new MediaListObject
                             {
                                 FullPath = fullPath,
@@ -92,9 +91,9 @@ namespace GamelistManager
 
             return cleanedFileName;
         }
-    
 
-    private void button1_Click(object sender, EventArgs e)
+
+        private void button1_Click(object sender, EventArgs e)
         {
             List<MediaListObject> badMediaListAsList = badMediaList.ToList();
 
@@ -193,7 +192,8 @@ namespace GamelistManager
             globalStopwatch.Reset();
             globalStopwatch.Start();
             label_MissingCount.Text = "0";
-            if (radioButton_Images.Checked) { 
+            if (radioButton_Images.Checked)
+            {
                 label_CorruptCount.Text = "0";
                 label_SingleColorCount.Text = "0";
             }
@@ -207,7 +207,7 @@ namespace GamelistManager
             {
                 mediaType = "video";
             }
-           
+
             await CheckMedia(mediaType, cancellationTokenSource.Token);
 
             button_Stop.Enabled = false;
@@ -221,14 +221,14 @@ namespace GamelistManager
                 return;
             }
 
-            if (badMediaList == null || badMediaList.Count ==0)
+            if (badMediaList == null || badMediaList.Count == 0)
             {
                 MessageBox.Show("No bad media was found.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             panel2.Enabled = true;
-            
+
         }
 
         private void StopCheckingMedia()
@@ -242,7 +242,7 @@ namespace GamelistManager
 
         private async Task CheckMedia(string mediaType, CancellationToken cancellationToken)
         {
-   
+
             int totalFiles = mediaList.Count;
             int count = 0;
 
@@ -271,7 +271,7 @@ namespace GamelistManager
                     string fileName = item.FullPath;
                     int rowIndex = item.RowIndex;
                     int columnIndex = item.ColumnIndex;
-                   
+
                     string result = null;
 
                     if (mediaType == "image")
@@ -403,6 +403,6 @@ namespace GamelistManager
             StopCheckingMedia();
         }
 
-       
+
     }
 }

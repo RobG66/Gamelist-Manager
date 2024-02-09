@@ -982,7 +982,7 @@ namespace GamelistManager
 
         private void MediaPathsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-        
+
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 // Check if the column has the tag 'image'
@@ -995,7 +995,7 @@ namespace GamelistManager
                     }
                     else
                     {
-                        column.Visible = false; 
+                        column.Visible = false;
                     }
                 }
             }
@@ -2174,7 +2174,7 @@ namespace GamelistManager
 
         private void ToolStripMenuItem_Scraper_Click(object sender, EventArgs e)
         {
-           
+
             ToolStripMenuItem_ShowMedia.Checked = false;
             ScraperForm scraper = new ScraperForm();
             scraper.Owner = this;
