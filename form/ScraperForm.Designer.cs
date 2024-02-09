@@ -148,7 +148,7 @@
             // label_progress
             // 
             this.label_progress.AutoSize = true;
-            this.label_progress.Location = new System.Drawing.Point(185, 251);
+            this.label_progress.Location = new System.Drawing.Point(170, 251);
             this.label_progress.Name = "label_progress";
             this.label_progress.Size = new System.Drawing.Size(21, 13);
             this.label_progress.TabIndex = 25;
@@ -233,7 +233,7 @@
             this.progressBar_ScrapeProgress.Location = new System.Drawing.Point(59, 251);
             this.progressBar_ScrapeProgress.Margin = new System.Windows.Forms.Padding(1);
             this.progressBar_ScrapeProgress.Name = "progressBar_ScrapeProgress";
-            this.progressBar_ScrapeProgress.Size = new System.Drawing.Size(122, 14);
+            this.progressBar_ScrapeProgress.Size = new System.Drawing.Size(105, 14);
             this.progressBar_ScrapeProgress.TabIndex = 12;
             // 
             // comboBox_Scrapers
@@ -291,7 +291,7 @@
             // 
             // label_Note
             // 
-            this.label_Note.Location = new System.Drawing.Point(90, 206);
+            this.label_Note.Location = new System.Drawing.Point(90, 193);
             this.label_Note.Name = "label_Note";
             this.label_Note.Size = new System.Drawing.Size(106, 44);
             this.label_Note.TabIndex = 22;
@@ -348,7 +348,7 @@
             // button_SelectNone
             // 
             this.button_SelectNone.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.button_SelectNone.Location = new System.Drawing.Point(93, 180);
+            this.button_SelectNone.Location = new System.Drawing.Point(93, 167);
             this.button_SelectNone.Margin = new System.Windows.Forms.Padding(1);
             this.button_SelectNone.Name = "button_SelectNone";
             this.button_SelectNone.Size = new System.Drawing.Size(76, 23);
@@ -420,7 +420,7 @@
             // button_SelectAll
             // 
             this.button_SelectAll.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.button_SelectAll.Location = new System.Drawing.Point(93, 157);
+            this.button_SelectAll.Location = new System.Drawing.Point(93, 144);
             this.button_SelectAll.Margin = new System.Windows.Forms.Padding(1);
             this.button_SelectAll.Name = "button_SelectAll";
             this.button_SelectAll.Size = new System.Drawing.Size(76, 23);
