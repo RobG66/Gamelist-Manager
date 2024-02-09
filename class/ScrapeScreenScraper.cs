@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Renci.SshNet.Messages.Authentication;
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 
 // this is not done yet!
@@ -13,7 +16,19 @@ namespace GamelistManager
 {
     public class ScrapeScreenScraper
     {
-        public async Task<Dictionary<string, string>> ScrapeScreenScraperAsync(string userId, string userPassword, string devId, string devPassword, string region, string language, string romName, string systemID, string folderPath, List<string> elementsToScrape)
+        public async Task<Dictionary<string, string>> ScrapeScreenScraperAsync(
+            string userId,
+            string userPassword,
+            string devId,
+            string devPassword,
+            string region,
+            string language,
+            string romName,
+            string systemID,
+            string folderPath,
+            bool overwrite,
+            List<string> elementsToScrape
+        )
         {
             // Build an empty dictionary to start
             Dictionary<string, string> scraperData = new Dictionary<string, string>();
@@ -111,6 +126,25 @@ namespace GamelistManager
                         string releasedate = ConvertToISO8601(value);
                         scraperData["releasedate"] = releasedate;
                         break;
+
+                    case "manual":
+                        string folderName = "images";
+                        string localType = "manual";
+                        string remoteType = "manuel";
+                        
+                        (string remoteDownloadURL, string fileFormat) = ParseMedia(remoteType, mediasNode, regionToScrape);
+                        string filenameToDownload = $"{Path.GetFileNameWithoutExtension(romName)}-{localType}.{fileFormat}";
+                        if (remoteDownloadURL != null)
+                        {
+                            string downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            MessageBox.Show(downloadPath);
+                            bool downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
                 }
             }
             return scraperData;
@@ -135,28 +169,28 @@ namespace GamelistManager
 
         private string ParseRegions(string region, string romRegions)
         {
-            string regionToScrape = null;
+            string regionPriority = "eu,us,ss,uk,wor,jp,au,ame,de,cus,cn,kr,asi,br,sp,fr,gr,it,no,dk,nz,nl,pl,ru,se,tw,ca";
+
             if (!string.IsNullOrEmpty(romRegions))
             {
                 string[] regions = romRegions.Split(',');
+                if (regions.Contains(region))
+                {
+                    return region;
+                }
+                
+                region = "us";
+                
                 if (!regions.Contains(region))
                 {
-                    region = "wor";
-                    if (!regions.Contains(region))
-                    {
-                        // take the last one, usually the right choice?
-                        regionToScrape = regions[(regions.Length - 1)];
-                    }
+                    // take the last one, usually the right choice?
+                    return regions[(regions.Length - 1)];
                 }
             }
-            else
-            {
-                // I don't know.....
-                regionToScrape = "us";
-            }
-            return regionToScrape;
+            
+            // I don't know.....
+            return "wor";
         }
-
 
         private string ParseNames(XmlNode namesElement, string region)
         {
@@ -207,6 +241,10 @@ namespace GamelistManager
 
         private string ParseGenres(XmlNode genresElement, string language)
         {
+            if (genresElement == null)
+            {
+                return null;
+            }
             var genreElements = genresElement.SelectNodes("genre")
                 .Cast<XmlNode>()
                 .Where(e => e.Attributes?["langue"]?.Value == language)
@@ -232,7 +270,7 @@ namespace GamelistManager
                 }
             }
 
-            return string.Empty;
+            return null;
         }
 
         private string ConvertToISO8601(string dateString)

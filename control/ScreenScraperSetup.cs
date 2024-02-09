@@ -68,6 +68,8 @@ namespace GamelistManager.control
             comboBox_BoxSource.SelectedIndex = 0;
             comboBox_ImageSource.SelectedIndex = 0;
             comboBox_LogoSource.SelectedIndex = 0;
+            comboBox_Region.SelectedIndex = 37;
+            combox_Language.SelectedIndex = 0;
 
         }
 
