@@ -38,7 +38,7 @@ namespace GamelistManager
         {
             // Make a list of elements to scrape
             List<string> elementsToScrape = new List<string>();
-            foreach (Control control in groupBox_checkboxes.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 if (control is CheckBox checkBox && checkBox.Checked)
                 {
@@ -140,7 +140,15 @@ namespace GamelistManager
             //SaveReminder(cancellationTokenSource.Token.IsCancellationRequested);
         }
 
-        public async Task<bool> ScrapeByScreenScraperAsync(string folderPath, string systemId, string userId, string userPassword, List<string> elementList, List<string> romList, bool overwrite)
+        public async Task<bool> ScrapeByScreenScraperAsync(
+        string folderPath,
+        string systemId,
+        string userId,
+        string userPassword,
+        List<string> elementList,
+        List<string> romList,
+        bool overwrite
+        )
         {
             GamelistManagerForm gamelistManagerForm = new GamelistManagerForm();
 
@@ -184,8 +192,23 @@ namespace GamelistManager
                             // Remove ./ characters from rom name
                             string romName = gamelistManagerForm.ExtractFileNameWithExtension(rom);
 
+
+                            AddToLog($"Scraping rom '{romName}'");
+
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
-                            Dictionary<string, string> result = await scraper.ScrapeScreenScraperAsync(userId, userPassword, devId, devPassword, region, language, romName, systemId, folderPath, elementList);
+                            Dictionary<string, string> result = await scraper.ScrapeScreenScraperAsync(
+                               userId,
+                               userPassword,
+                               devId,
+                               devPassword,
+                               region,
+                               language,
+                               romName,
+                               systemId,
+                               folderPath,
+                               overwrite,
+                               elementList
+                           );
 
                             if (result == null)
                             {
@@ -250,7 +273,7 @@ namespace GamelistManager
 
         private void Button_SelectAll_Click(object sender, EventArgs e)
         {
-            foreach (Control control in groupBox_checkboxes.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -263,7 +286,7 @@ namespace GamelistManager
 
         private void Button_SelectNone_Click(object sender, EventArgs e)
         {
-            foreach (Control control in groupBox_checkboxes.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -393,7 +416,7 @@ namespace GamelistManager
                 };
             }
 
-            foreach (Control control in groupBox_checkboxes.Controls)
+            foreach (Control control in panel_small.Controls)
             {
                 if (control is System.Windows.Forms.CheckBox checkBox)
                 {
@@ -426,7 +449,7 @@ namespace GamelistManager
             button_StartStop.Enabled = false;
             comboBox_Scrapers.Enabled = false;
 
-            groupBox_checkboxes.Visible = false;
+            panel_small.Visible = false;
 
             ScreenScraperSetup userControl = new ScreenScraperSetup();
             panel_small.Controls.Add(userControl);
@@ -442,7 +465,7 @@ namespace GamelistManager
             button_StartStop.Enabled = true;
             comboBox_Scrapers.Enabled = true;
 
-            groupBox_checkboxes.Visible = true;
+            panel_small.Visible = true;
 
             userControl.Disposed -= ScreenScraperSetup_Disposed;
 

@@ -15,7 +15,6 @@ namespace GamelistManager
 
     public partial class MediaCheckForm : Form
     {
-        GamelistManagerForm gamelistManagerForm;
         string parentFolderPath;
         DataGridView dataGridView1;
         List<MediaListObject> mediaList;
