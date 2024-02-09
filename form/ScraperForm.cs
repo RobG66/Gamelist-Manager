@@ -154,8 +154,8 @@ namespace GamelistManager
             int count = 1;
             int total = romList.Count;
 
-            string devId = "robg77";
-            string devPassword = "4dLRXRHWT0y";
+            string devId = "";
+            string devPassword = "";
             string region = "us";
             string language = "en";
 
