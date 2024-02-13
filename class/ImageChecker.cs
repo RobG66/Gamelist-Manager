@@ -5,7 +5,7 @@ using System.IO;
 
 namespace GamelistManager
 {
-    internal class ImageChecker
+    internal static class ImageChecker
     {
         public static string CheckImage(string imagePath)
         {

@@ -1,232 +1,173 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace GamelistManager
 {
+
     public class ScrapeArcadeDB
     {
-        ScraperForm scraperForm = new ScraperForm();
-        GamelistManagerForm gamelistManagerForm = new GamelistManagerForm();
-
-        public ScrapeArcadeDB(ScraperForm scraperForm)
+        public async Task<Dictionary<string, string>> ScrapeArcadeDBAsync(
+        string romName,
+        string folderPath,
+        bool overwrite,
+        List<string> elementsToScrape
+        )
         {
-            this.scraperForm = scraperForm ?? throw new ArgumentNullException(nameof(scraperForm));
-            this.gamelistManagerForm = gamelistManagerForm ?? throw new ArgumentNullException(nameof(gamelistManagerForm));
-        }
-
-        public async
-        Task
-        ScrapeArcadeDBAsync(string XMLFilename, DataSet dataSet, bool overWriteData, List<string> elementsToScrape, List<string> romPaths, CancellationToken cancellationToken)
-        {
-            int total = romPaths.Count;
-            int count = 0;
-
-
-            Dictionary<string, string> Metadata = new Dictionary<string, string>();
-            Metadata.Add("name", "title");
-            Metadata.Add("desc", "history");
-            Metadata.Add("genre", "genre");
-            Metadata.Add("releasedate", "year");
-            Metadata.Add("players", "players");
-            Metadata.Add("rating", "rate");
-            Metadata.Add("lang", "languages");
-            Metadata.Add("publisher", "manufacturer");
-            Metadata.Add("marquee", "url_image_marquee");
-            Metadata.Add("image", "url_image_ingame");
-            Metadata.Add("video", "url_video_shortplay_hd");
-
-            int batchSize = 50;
-
-            string scraperBaseURL = "http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name=";
-            string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-
-            // Start to process selected datagridview rows
-            for (int i = 0; i < romPaths.Count; i += batchSize)
+            // Build a dictionary from the elements we are going to scrape
+            Dictionary<string, string> scraperData = new Dictionary<string, string>();
+            foreach (var propertyName in elementsToScrape)
             {
-                // Take the next batch of roms
-                string[] batchArray = romPaths.Skip(i).Take(batchSize).ToArray();
+                scraperData[propertyName] = null;
+            }
 
-                // Construct a semicolon-separated string of ROM names for the current batch
-                string joinedRomNames = string.Join(";", batchArray.Select(path => gamelistManagerForm.ExtractFileNameNoExtension(path)));
+            
+            string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
+            string scraperURL = $"http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name={romNameNoExtension}";
+            string jsonResponse = await GetJsonResponseAsync(scraperURL);
 
-                // Construct the scraper URL with the batch of ROM names
-                string scraperRequestURL = $"{scraperBaseURL}{(joinedRomNames)}";
+         
 
-                // Get the JSON response from the website
-                string jsonResponse = await GetJsonResponseAsync(scraperRequestURL, cancellationToken);
+            if (jsonResponse == null)
+            {
+                return null;
+            }
 
-                if (jsonResponse == null)
+            ScrapeResult scrapeResult = JsonConvert.DeserializeObject<ScrapeResult>(jsonResponse);
+
+            if (scrapeResult.Result.Count == 0)
+            {
+                return null;
+            }
+
+            // Build MD5
+            string fullRomPath = $"{folderPath}\\{romName}";
+            string md5 = ChecksumCreator.CreateMD5(fullRomPath);
+            scraperData["md5"] = md5;
+
+            GameInfo ScrapedGameInfo = scrapeResult.Result[0];
+            string remoteDownloadURL = null;
+            string folderName = null;
+            string fileName = null;
+            string downloadPath = null;
+            string fileToDownload = null;
+            bool result = false;
+
+            foreach (string element in elementsToScrape)
+            {
+                switch (element)
                 {
-                    scraperForm.AddToLog("Scraper returned no data!");
-                    count += batchArray.Length;
-                    continue;
-                }
+                    case "publisher":
+                        scraperData["publisher"] = ScrapedGameInfo.manufacturer;
+                        break;
 
-                // Deserialize the JSON to names and values
-                ScrapeArcadeDBResponse deserializedJSON = null;
-                deserializedJSON = await DeserializeJsonAsync<ScrapeArcadeDBResponse>(jsonResponse, cancellationToken);
+                        case "players":
+                        scraperData["players"] = ScrapedGameInfo.players.ToString();
+                        break;
 
-                if (deserializedJSON == null)
-                {
-                    scraperForm.AddToLog("JSON deserialization failed!");
-                    count += batchArray.Length;
-                    continue;
-                }
+                    case "lang":
+                        scraperData["lang"] = ScrapedGameInfo.languages;
+                        break;
 
-                // Loop through the returned data and process it
-                for (int j = 0; j < batchArray.Length; j++)
-                {
-                    count++;
-                    scraperForm.UpdateProgressBar();
-                    scraperForm.UpdateLabel(count, total);
-
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        // Perform cleanup or handle cancellation if needed
-                        scraperForm.AddToLog("Scraping canceled by user.");
-                        return;
-                    }
-
-                    string currentRomPath = batchArray[j];
-                    string currentRomName = gamelistManagerForm.ExtractFileNameNoExtension(currentRomPath);
-
-                    ScrapeArcadeDBItem scraperData = deserializedJSON.result[j];
-
-                    scraperForm.AddToLog($"Scraping item {currentRomName}");
-
-                    // Loop through the Metadata dictionary
-                    foreach (var kvp in Metadata)
-                    {
-                        string localPropertyName = kvp.Key;
-                        string remotePropertyName = kvp.Value;
-                        string fullRomPath = Path.Combine(parentFolderPath, currentRomPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-                        if (!File.Exists(fullRomPath))
+                    case "rating":
+                        int rating = ScrapedGameInfo.rate;
+                        string convertedRating = null;
+                        if (rating == 100)
                         {
-                            scraperForm.AddToLog($"File {fullRomPath} is missing!");
-                            continue;
+                            convertedRating = "1";
                         }
+                        if (rating >0 && rating <100)
+                        {
+                            convertedRating = "." + rating.ToString().TrimStart('0');
+                        }
+                        scraperData["rating"] = convertedRating;
+                        break;
 
-                        if (!elementsToScrape.Contains(localPropertyName))
+                    case "desc":
+                        scraperData["desc"] = ScrapedGameInfo.history;
+                        break;
+
+                    case "name":
+                        scraperData["name"] = ScrapedGameInfo.title;
+                        break;
+
+                    case "genre":
+                        scraperData["genre"] = ScrapedGameInfo.genre;
+                        break;
+
+                    case "releasedate":
+                        scraperData["releasedate"] = ConvertToISO8601(ScrapedGameInfo.year);
+                        break;
+
+                    case "image":
+                        remoteDownloadURL = ScrapedGameInfo.url_image_ingame;
+                        if (remoteDownloadURL == null)
                         {
                             continue;
                         }
+                        folderName = "images";
+                        fileName = $"{romNameNoExtension}-image.png";
+                        downloadPath = $"{folderPath}\\{folderName}";
+                        fileToDownload = $"{downloadPath}\\{fileName}";
+                        result = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
+                        if (result)
+                        {
+                            scraperData["image"] = $"./{folderName}/{fileName}";
+                        }
+                        break;
 
-                        // Get the returned property value from its string name
-                        PropertyInfo property = typeof(ScrapeArcadeDBItem).GetProperty(remotePropertyName);
-                        object propertyValue = property.GetValue(scraperData);
-                        string scrapedValue = propertyValue != null ? propertyValue.ToString() : null;
+                    case "thumbnail":
+                      
+                        break;
 
-                        // Find the datarow we want to work with
-                        DataRow tableRow = dataSet.Tables[0].AsEnumerable()
-                            .FirstOrDefault(row => row.Field<string>("path") == currentRomPath);
-
-                        // Generate MD5
-                        string md5 = null;
-                        md5 = ChecksumCreator.CreateMD5(fullRomPath);
-                        tableRow["md5"] = md5;
-
-                        string columnName = localPropertyName;
-                        object cellValueObject = tableRow[columnName];
-                        string cellValueString = (cellValueObject != null) ? cellValueObject.ToString() : string.Empty;
-
-                        // Check for empty scrape value
-                        if (string.IsNullOrEmpty(scrapedValue))
+                    case "marquee":
+                        remoteDownloadURL = ScrapedGameInfo.url_image_marquee;
+                        if (remoteDownloadURL == null)
                         {
                             continue;
                         }
-
-                        // Fix rating
-                        if (columnName == "rating")
+                        folderName = "images";
+                        fileName = $"{romNameNoExtension}-marquee.png";
+                        downloadPath = $"{folderPath}\\{folderName}";
+                        fileToDownload = $"{downloadPath}\\{fileName}";
+                        result = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
+                        if (result)
                         {
-                            string convertedRating = null;
-
-                            if (scrapedValue == "100")
-                            {
-                                convertedRating = "1";
-                            }
-
-                            if (scrapedValue == "0")
-                            {
-                                // Don't even bother with a zero rating
-                                return;
-                            }
-
-                            if (convertedRating == null)
-                            {
-                                scrapedValue = "." + scrapedValue.TrimStart('0');
-                            }
-                            else
-                            {
-                                scrapedValue = convertedRating;
-                            }
+                            scraperData["marquee"] = $"./{folderName}/{fileName}";
                         }
+                        break;
 
-                        // If it's not an image property, we stop here
-                        if (!remotePropertyName.Contains("url_"))
+                    case "video":
+                        remoteDownloadURL = ScrapedGameInfo.url_video_shortplay_hd;
+                        if (remoteDownloadURL == null)
                         {
-                            // Check if we are allowed to overwrite
-                            // Write regardless if the local value is empty
-                            if ((!overWriteData && string.IsNullOrEmpty(cellValueString)) || overWriteData)
-                            {
-                                tableRow[columnName] = scrapedValue;
-                            }
-                            continue;
+                            remoteDownloadURL = ScrapedGameInfo.url_video_shortplay;
                         }
-
-
-                        // Image URL handling
-                        string remoteDownloadURL = scrapedValue;
-
-                        if (string.IsNullOrEmpty(remoteDownloadURL))
+                        if (remoteDownloadURL == null)
                         {
                             continue;
                         }
-
-                        // What are we downloading, a video or image?                                     
-                        string fileName = null;
-                        string folderName = null;
-
-                        if (localPropertyName == "video")
+                        folderName = "videos";
+                        fileName = $"{romNameNoExtension}-video.mp4";
+                        downloadPath = $"{folderPath}\\{folderName}";
+                        fileToDownload = $"{downloadPath}\\{fileName}";
+                        result = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
+                        if (result)
                         {
-                            folderName = "videos";
-                            fileName = $"{currentRomName}-video.mp4";
+                            scraperData["video"] = $"./{folderName}/{fileName}";
                         }
-                        else
-                        {
-                            folderName = "images";
-                            fileName = $"{currentRomName}-{localPropertyName}.png";
-                        }
-
-                        // Setup the download
-                        string downloadPath = $"{parentFolderPath}\\{folderName}";
-                        string fileToDownload = $"{downloadPath}\\{fileName}";
-                        bool result = await FileTransfer.DownloadFile(overWriteData, fileToDownload, remoteDownloadURL);
-                        // Returns true on success
-                        if (result == true)
-                        {
-                            scraperForm.AddToLog($"Downloaded {fileName}");
-                            tableRow[columnName] = $"./{folderName}/{fileName}";
-                        }
-                        else
-                        {
-                            scraperForm.AddToLog($"Failed to download {fileName}");
-                        }
-                    }
+                        break;
                 }
             }
+            return scraperData;
         }
 
-        private async Task<string> GetJsonResponseAsync(string url, CancellationToken cancellationToken)
+        private async Task<string> GetJsonResponseAsync(string url)
         {
             try
             {
@@ -242,20 +183,35 @@ namespace GamelistManager
             }
         }
 
-        private async Task<T> DeserializeJsonAsync<T>(string json, CancellationToken cancellationToken)
+        private string ConvertToISO8601(string dateString)
         {
+            if (string.IsNullOrEmpty(dateString))
+            {
+                return null;
+            }
             try
             {
-                return await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
+                DateTime date;
+                string format = dateString.Contains("-") ? "yyyy-MM-dd" : "yyyy";
+
+                if (DateTime.TryParseExact(dateString, format, null, System.Globalization.DateTimeStyles.None, out date))
+                {
+                    return date.ToString("yyyy-MM-ddTHH:mm:ss");
+                }
+                else
+                {
+                    return string.Empty;
+                }
             }
             catch
             {
-                return default;
+                return string.Empty;
             }
         }
+    
 
 
-        public class ScrapeArcadeDBItem
+        public class GameInfo
         {
             public int index { get; set; }
             public string url { get; set; }
@@ -293,12 +249,11 @@ namespace GamelistManager
             public string screen_resolution { get; set; }
         }
 
-
-        public class ScrapeArcadeDBResponse
+        public class ScrapeResult
         {
-            public List<ScrapeArcadeDBItem> result { get; set; }
+            public int Release { get; set; }
+            public List<GameInfo> Result { get; set; }
         }
-
     }
 
 }

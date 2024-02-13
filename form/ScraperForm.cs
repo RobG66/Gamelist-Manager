@@ -3,90 +3,151 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
 namespace GamelistManager
 {
     public partial class ScraperForm : Form
     {
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private CancellationToken cancellationToken;
-
+        private GamelistManagerForm gamelistManagerForm;
+        private ScreenScraperSetup screenScraperSetup;
+        private ScraperPreview scraperPreview;
+        private CancellationTokenSource cancellationTokenSource;
+        public CancellationToken cancellationToken => cancellationTokenSource.Token;
         private static Stopwatch globalStopwatch = new Stopwatch();
-        public string XMLFilename { get; set; }
-        public DataSet dataSet { get; set; }
-        public DataGridView dataGridView { get; set; }
+        private int scraperCount;
+        private bool scraperFinished;
+        private int totalCount;
+        private int scrapeErrors;
 
-        public ScraperForm()
+        public ScraperForm(GamelistManagerForm form)
         {
             InitializeComponent();
-            cancellationToken = cancellationTokenSource.Token;
+            screenScraperSetup = new ScreenScraperSetup();
+            scraperPreview = new ScraperPreview();
+            cancellationTokenSource = new CancellationTokenSource();
+            scraperCount = 0;
+            totalCount = 0;
+            scrapeErrors = 0;
+            scraperFinished = false;
+            gamelistManagerForm = form;
         }
 
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        private List<string> GetElementsToScrape()
         {
-            comboBox_Scrapers.Enabled = RadioButton_ScrapeSelected.Checked;
-        }
-
-
-        public async void Button_Start_Click(object sender, EventArgs e)
-        {
-            // Make a list of elements to scrape
-            List<string> elementsToScrape = new List<string>();
-            foreach (Control control in panel_small.Controls)
+            List<string> elements = new List<string>();
+            foreach (Control control in panel_Checkboxes.Controls)
             {
-                if (control is CheckBox checkBox && checkBox.Checked)
+                if (control is CheckBox checkBox && checkBox.Checked && checkBox.Enabled)
                 {
                     string elementName = checkBox.Name.Replace("checkbox_", "").ToLower();
-                    elementsToScrape.Add(elementName);
+                    elements.Add(elementName);
                 }
             }
-            if (elementsToScrape.Count == 0)
-            {
-                MessageBox.Show("No metadata selection was made", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                return;
-            }
+            return elements;
+        }
 
-            // Make a list of roms to scrape
+        private List<string> GetRomsToScrape()
+        {
+            // Make a list of romPaths to scrape
             List<string> romPaths = null;
             if (RadioButton_ScrapeAll.Checked)
             {
-                romPaths = dataGridView.Rows
+                romPaths = gamelistManagerForm.dataGridView.Rows
                     .Cast<DataGridViewRow>()
                     .Select(row => row.Cells["path"].Value as string)
                     .ToList(); // Convert to List<string>
             }
             else
             {
-                romPaths = dataGridView.SelectedRows
+                romPaths = gamelistManagerForm.dataGridView.SelectedRows
                     .Cast<DataGridViewRow>()
                     .Select(row => row.Cells["path"].Value as string)
                     .ToList(); // Convert to List<string>
             }
+            return romPaths;
+        }
 
-            // Get overwrite value
-            bool overWriteData = checkBox_OverwriteExisting.Checked;
-
+        private (List<string> elements, List<string> romPaths) PreScrapeSetup()
+        {
             // Clear Log
             if (listBoxLog.Items.Count > 0)
             {
                 listBoxLog.Items.Clear();
             }
 
+            // Form settings
+            panel_ScraperOptions.Enabled = false;
             button_StartStop.Enabled = false;
             button_Cancel.Enabled = true;
+            button_Setup.Enabled = false;
             globalStopwatch.Reset();
             globalStopwatch.Start();
+            panel_Checkboxes.Visible = false;
+            panel_small.Controls.Add(scraperPreview);
 
+            // List creation
+            List<string> elements = GetElementsToScrape();
+            List<string> romPaths = GetRomsToScrape();
+
+            // Global scrape counter variables
+            scraperCount = 0;
+            totalCount = romPaths.Count;
+            scrapeErrors = 0;
+
+            // Reset progressbar
+            progressBar_ScrapeProgress.Value = 0;
+            progressBar_ScrapeProgress.Minimum = 0;
+            progressBar_ScrapeProgress.Step = 1;
+            progressBar_ScrapeProgress.Maximum = totalCount;
+
+            // Reset cancellation tokensource
+            cancellationTokenSource = new CancellationTokenSource();
+
+            // Return lists
+            return (elements, romPaths);
+        }
+
+
+        private void PostScrapeCleanup()
+        {
+            // Cleanup
+            panel_ScraperOptions.Enabled = true;
+            button_StartStop.Enabled = true;
+            button_Cancel.Enabled = false;
+            button_Setup.Enabled = true;
+            globalStopwatch.Stop();
+            label_progress.Text = "0%";
+            panel_Checkboxes.Visible = true;
+            panel_small.Controls.Remove(scraperPreview);
+        }
+
+        private async void StartScraper()
+        {
+            (List<string> elements, List<string> romPaths) = PreScrapeSetup();
+
+            if (elements.Count == 0)
+            {
+                MessageBox.Show("No metadata selection was made", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                PostScrapeCleanup();
+                return;
+            }
+
+            // Set some variables
+            bool overWriteData = checkBox_OverwriteExisting.Checked;
+            string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+            string parentFolderName = Path.GetFileName(parentFolderPath);
+            bool scraperFinished = false;
+
+            // ScreenScraper Specific
             if (comboBox_Scrapers.SelectedIndex == 1)
             {
                 // Get the system Id
-                string parentFolderName = Path.GetFileName(Path.GetDirectoryName(XMLFilename));
                 SystemIdResolver resolver = new SystemIdResolver();
                 int systemId = resolver.ResolveSystemId(parentFolderName);
                 if (systemId == 0)
@@ -103,42 +164,147 @@ namespace GamelistManager
                     return;
                 }
 
-                string parentFolderPath = Path.GetDirectoryName(XMLFilename);
-                bool scraperFinished = false;
-
                 try
                 {
-                    scraperFinished = await ScrapeByScreenScraperAsync(parentFolderPath, systemId.ToString(), userId, userPassword, elementsToScrape, romPaths, overWriteData);
+                    scraperFinished = await ScrapeByScreenScraperAsync(parentFolderPath, systemId.ToString(), userId, userPassword, elements, romPaths, overWriteData);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"An error has occured!\n{ex.Message}", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                if (scraperFinished)
-                {
-                    AddToLog("Scraping completed!");
-                }
-                else
-                {
-                    AddToLog("Scraping cancelled!");
-                    return;
                 }
 
             }
 
+            // ArcadeDB Specific
+            if (comboBox_Scrapers.SelectedIndex == 0)
+            {
+                if (parentFolderName != "mame" && parentFolderName != "fbneo")
+                {
+                    MessageBox.Show("This doesn't appear to be a gamelist for Mame or FBNeo!\n" +
+                   "You cannot scrape this gamelist with ArcadeDB.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                try
+                {
+                    scraperFinished = await ScrapeByArcadeDBAsync(parentFolderPath, elements, romPaths, overWriteData);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"An error has occured!\n{ex.Message}", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            if (scraperFinished)
+            {
+                AddToLog("Scraping completed!");
+            }
+            else
+            {
+                AddToLog("Scraping cancelled!");
+            }
+
+            SharedData.DataSet.AcceptChanges();
+
             string elapsedTime = $"{globalStopwatch.Elapsed.TotalMinutes:F0} minutes and {globalStopwatch.Elapsed.Seconds} seconds";
-            MessageBox.Show($"Finished scraping {romPaths.Count} items in {elapsedTime}");
+            MessageBox.Show($"Finished scraping {scraperCount} items in {elapsedTime}");
 
-            // Cleanup after scraping is complete or canceled
-            button_StartStop.Enabled = true;
-            label_progress.Text = "0%";
-            button_Cancel.Enabled = false;
-            globalStopwatch.Stop();
+            if (checkBox_Save.Checked)
+            {
+                SaveReminder();
+            }
 
-            //SaveReminder(cancellationTokenSource.Token.IsCancellationRequested);
+            PostScrapeCleanup();
         }
+
+        private void SaveReminder()
+        {
+            gamelistManagerForm.SaveFile(SharedData.XMLFilename);
+        }
+
+        public async Task<bool> ScrapeByArcadeDBAsync(
+        string folderPath,
+        List<string> elementList,
+        List<string> romList,
+        bool overwrite
+        )
+        {
+            ScrapeArcadeDB scrapeArcadeDB = new ScrapeArcadeDB();
+
+            try
+            {
+                foreach (string romName in romList)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    AddToLog($"Scraping rom '{romName}'");
+                    Interlocked.Increment(ref scraperCount);
+                    UpdateLabel(scraperCount, totalCount, scrapeErrors);
+                    UpdateProgressBar();
+
+                    Dictionary<string, string> result = await scrapeArcadeDB.ScrapeArcadeDBAsync(
+                       romName,
+                       folderPath,
+                       overwrite,
+                       elementList
+                   );
+
+                    if (result == null)
+                    {
+                        // Handle error, if needed
+                        AddToLog($"Error scraping '{romName}'");
+                        Interlocked.Increment(ref scrapeErrors);
+                        UpdateProgressBar();
+                        UpdateLabel(scraperCount, totalCount, scrapeErrors);
+                        continue;
+                    }
+
+                    string marquee = result["marquee"];
+                    string screenshot = result["image"];
+                    if (!string.IsNullOrEmpty(marquee))
+                    {
+                        string imageFileName1 = Path.GetFileName(marquee);
+                        string imageFileName2 = Path.GetFileName(screenshot);
+                        string imagePath1 = $"{folderPath}\\images\\{imageFileName1}";
+                        string imagePath2 = $"{folderPath}\\images\\{imageFileName2}";
+                        this.Invoke((MethodInvoker)delegate
+                        {
+                            // Assuming this control has access to UpdatePictureBox method
+                            scraperPreview.UpdatePictureBox(imagePath1, imagePath2);
+                        });
+                    }
+
+                    lock (SharedData.DatasetLock)
+                    {
+                        DataRow tableRow = SharedData.DataSet.Tables[0].AsEnumerable()
+                         .FirstOrDefault(r => r.Field<string>("path") == romName);
+                        // Process scraped items
+                        foreach (var scrapedItem in result)
+                        {
+                            string elementName = scrapedItem.Key;
+                            string elementValue = scrapedItem.Value;
+                            if (string.IsNullOrEmpty(elementValue))
+                            {
+                                continue;
+                            }
+
+                            string cellvalue = tableRow[elementName].ToString();
+
+                            if ((!string.IsNullOrEmpty(cellvalue) && overwrite) || string.IsNullOrEmpty(cellvalue))
+                            {
+                                tableRow[elementName] = elementValue;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Handle cancellation
+                return false; // Scraper was cancelled
+            }
+            return true;
+        }
+    
 
         public async Task<bool> ScrapeByScreenScraperAsync(
         string folderPath,
@@ -150,50 +316,45 @@ namespace GamelistManager
         bool overwrite
         )
         {
-            GamelistManagerForm gamelistManagerForm = new GamelistManagerForm();
-
-            cancellationTokenSource = new CancellationTokenSource();
-            cancellationToken = cancellationTokenSource.Token;
-
-            progressBar_ScrapeProgress.Value = 0;
-            progressBar_ScrapeProgress.Minimum = 0;
-            progressBar_ScrapeProgress.Maximum = romList.Count();
-            progressBar_ScrapeProgress.Step = 1;
-            int count = 1;
-            int total = romList.Count;
+            string boxSource = RegistryManager.ReadRegistryValue("BoxSource");
+            string imageSource = RegistryManager.ReadRegistryValue("ImageSource");
+            string logoSource = RegistryManager.ReadRegistryValue("LogoSource");
+            string region = RegistryManager.ReadRegistryValue("Region");
+            string language = RegistryManager.ReadRegistryValue("language");
 
             string devId = "";
             string devPassword = "";
-            string region = "us";
-            string language = "en";
 
             // Set the maximum number of concurrent tasks
-            int maxConcurrency = 1; // Adjust the number as needed
+            string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
+            int maxC = 1;
+            if (!string.IsNullOrEmpty(maxThreadsValue))
+            {
+                maxC = int.Parse(maxThreadsValue);
+            }
+
+            int maxConcurrency = maxC; // Adjust the number as needed
             SemaphoreSlim semaphoreSlim = new SemaphoreSlim(maxConcurrency);
 
             // Create a list to store the tasks
             List<Task> tasks = new List<Task>();
 
-            object dataSetLock = new object();
-
             try
             {
-                foreach (string rom in romList)
+                foreach (string romName in romList)
                 {
                     // Check cancelation token
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     await semaphoreSlim.WaitAsync(); // Wait until there's room to proceed
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     tasks.Add(Task.Run(async () =>
                     {
                         try
                         {
-                            // Remove ./ characters from rom name
-                            string romName = gamelistManagerForm.ExtractFileNameWithExtension(rom);
-
-
                             AddToLog($"Scraping rom '{romName}'");
+                            Interlocked.Increment(ref scraperCount);
+                            UpdateLabel(scraperCount, totalCount, scrapeErrors);
+                            UpdateProgressBar();
 
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
                             Dictionary<string, string> result = await scraper.ScrapeScreenScraperAsync(
@@ -207,40 +368,50 @@ namespace GamelistManager
                                systemId,
                                folderPath,
                                overwrite,
-                               elementList
+                               elementList,
+                               boxSource,
+                               imageSource,
+                               logoSource
                            );
 
                             if (result == null)
                             {
                                 // Handle error, if needed
                                 AddToLog($"Error scraping '{romName}'");
+                                Interlocked.Increment(ref scrapeErrors);
+                                UpdateProgressBar();
+                                UpdateLabel(scraperCount, totalCount, scrapeErrors);
                                 return;
                             }
 
-                            AddToLog($"Scraped rom '{romName}'");
-
-                            // Update progress
-                            Interlocked.Increment(ref count);
-                            UpdateProgressBar();
-                            UpdateLabel(count, total);
-
-                            // Lock the dataset so we can update it safely
-                            lock (dataSetLock)
+                            string marquee = result["marquee"];
+                            string screenshot = result["image"];
+                            if (!string.IsNullOrEmpty(marquee))
                             {
+                                string imageFileName1 = Path.GetFileName(marquee);
+                                string imageFileName2 = Path.GetFileName(screenshot);
+                                string imagePath1 = $"{folderPath}\\images\\{imageFileName1}";
+                                string imagePath2 = $"{folderPath}\\images\\{imageFileName2}";
+                                this.Invoke((MethodInvoker)delegate
+                                {
+                                    // Assuming this control has access to UpdatePictureBox method
+                                    scraperPreview.UpdatePictureBox(imagePath1, imagePath2);
+                                });
+                            }
+
+                            lock (SharedData.DatasetLock)
+                            {
+                                DataRow tableRow = SharedData.DataSet.Tables[0].AsEnumerable()
+                                 .FirstOrDefault(r => r.Field<string>("path") == romName);
                                 // Process scraped items
                                 foreach (var scrapedItem in result)
                                 {
                                     string elementName = scrapedItem.Key;
                                     string elementValue = scrapedItem.Value;
-
                                     if (string.IsNullOrEmpty(elementValue))
                                     {
                                         continue;
                                     }
-
-                                    // Find the table row we need using rom as the key
-                                    DataRow tableRow = dataSet.Tables[0].AsEnumerable()
-                                        .FirstOrDefault(row => row.Field<string>("path") == rom);
 
                                     string cellvalue = tableRow[elementName].ToString();
 
@@ -270,10 +441,9 @@ namespace GamelistManager
             }
         }
 
-
         private void Button_SelectAll_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_small.Controls)
+            foreach (Control control in panel_Checkboxes.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -286,7 +456,7 @@ namespace GamelistManager
 
         private void Button_SelectNone_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_small.Controls)
+            foreach (Control control in panel_Checkboxes.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -300,6 +470,22 @@ namespace GamelistManager
         private void Scraper_Load(object sender, EventArgs e)
         {
             comboBox_Scrapers.SelectedIndex = 1;
+
+            (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
+            {
+                button_StartStop.Enabled = false;
+            }
+
+            string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
+            System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
+            //Image image = LoadImageFromResource(romPath);
+
+            if (image is System.Drawing.Image)
+            {
+                pictureBox1.Image = image;
+            }
+
         }
 
         public void AddToLog(string logMessage)
@@ -320,23 +506,23 @@ namespace GamelistManager
             }
         }
 
-        public void UpdateLabel(int current, int total)
-        {
-            if (label_progress == null) return; // Add null check
+        private DateTime startTime = DateTime.Now;
 
-            if (label_progress.InvokeRequired)
+        public void UpdateLabel(int current, int total, int errors)
+        {
+            if (label_progress == null || label_Counts == null) return;
+
+            if (label_progress.InvokeRequired || label_Counts.InvokeRequired)
             {
-                label_progress.Invoke(new Action(() => UpdateLabel(current, total)));
+                label_progress.Invoke(new Action(() => UpdateLabel(current, total, errors)));
             }
             else
             {
                 double progress = (double)current / total * 100;
 
-                TimeSpan elapsed = globalStopwatch.Elapsed;
+                TimeSpan elapsed = DateTime.Now - startTime;
 
-                // Calculate remaining time based on the moving average of the progress and elapsed time
-                double averageProgressRate = elapsed.TotalMilliseconds / progress;
-                double remainingMilliseconds = (total - current) * averageProgressRate;
+                double remainingMilliseconds = (elapsed.TotalMilliseconds / progress) * (100 - progress);
                 TimeSpan remainingTime = TimeSpan.FromMilliseconds(remainingMilliseconds);
 
                 // Display only non-zero components
@@ -355,6 +541,9 @@ namespace GamelistManager
                 remainingTimeString += $"{remainingTime.Seconds:D2}s";
 
                 label_progress.Text = $"{progress:F0}% | Remaining Time: {remainingTimeString}";
+
+                // Update the label_Counts with the current count and totalCount count
+                label_Counts.Text = $"Count:{current}/{total} | Errors:{errors}";
             }
         }
 
@@ -412,11 +601,12 @@ namespace GamelistManager
                     "developer",
                     "map",
                     "region",
-                    "manual"
+                    "manual",
+                    "thumbnail"
                 };
             }
 
-            foreach (Control control in panel_small.Controls)
+            foreach (Control control in panel_Checkboxes.Controls)
             {
                 if (control is System.Windows.Forms.CheckBox checkBox)
                 {
@@ -438,39 +628,43 @@ namespace GamelistManager
         {
             cancellationTokenSource.Cancel();
             button_Cancel.Enabled = false;
-            AddToLog("Cancelling.....");
+            AddToLog("Cancelling scraper task......");
             globalStopwatch.Stop();
             label_progress.Text = "0%";
         }
 
         private void button_Setup_Click(object sender, EventArgs e)
         {
-
             button_StartStop.Enabled = false;
-            comboBox_Scrapers.Enabled = false;
+            button_Setup.Enabled = false;
+            panel_ScraperOptions.Enabled = false;
 
-            panel_small.Visible = false;
+            panel_Checkboxes.Visible = false;
 
             ScreenScraperSetup userControl = new ScreenScraperSetup();
             panel_small.Controls.Add(userControl);
 
-            userControl.Disposed += ScreenScraperSetup_Disposed;
 
+            userControl.Disposed += ScreenScraperSetup_Disposed;
         }
 
         private void ScreenScraperSetup_Disposed(object sender, EventArgs e)
         {
             ScreenScraperSetup userControl = new ScreenScraperSetup();
 
+            panel_ScraperOptions.Enabled = true;
             button_StartStop.Enabled = true;
-            comboBox_Scrapers.Enabled = true;
-
-            panel_small.Visible = true;
+            button_Setup.Enabled = true;
+            panel_Checkboxes.Visible = true;
 
             userControl.Disposed -= ScreenScraperSetup_Disposed;
 
         }
 
+        private void button_StartStop_Click(object sender, EventArgs e)
+        {
+            StartScraper();
+        }
     }
 
 }

@@ -125,12 +125,12 @@
             this.ToolStripMenuItem_ShutdownBatocera = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem_Scraper = new System.Windows.Forms.ToolStripMenuItem();
             this.scrapeItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator21 = new System.Windows.Forms.ToolStripSeparator();
+            this.quickScrapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip_ImageOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ToolStripMenuItem_CopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuItem_EditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar_BottomOfWindow = new System.Windows.Forms.StatusBar();
-            this.toolStripSeparator21 = new System.Windows.Forms.ToolStripSeparator();
-            this.quickScrapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Big)).BeginInit();
             this.splitContainer_Big.Panel1.SuspendLayout();
@@ -156,7 +156,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -172,7 +172,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(508, 119);
+            this.dataGridView1.Size = new System.Drawing.Size(509, 175);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -185,7 +185,7 @@
             this.richTextBox_description.Location = new System.Drawing.Point(0, 0);
             this.richTextBox_description.Name = "richTextBox_description";
             this.richTextBox_description.ReadOnly = true;
-            this.richTextBox_description.Size = new System.Drawing.Size(137, 119);
+            this.richTextBox_description.Size = new System.Drawing.Size(138, 175);
             this.richTextBox_description.TabIndex = 0;
             this.richTextBox_description.Text = "";
             // 
@@ -279,8 +279,8 @@
             // splitContainer_Big.Panel2
             // 
             this.splitContainer_Big.Panel2.Controls.Add(this.panel_MediaBackground);
-            this.splitContainer_Big.Size = new System.Drawing.Size(652, 252);
-            this.splitContainer_Big.SplitterDistance = 169;
+            this.splitContainer_Big.Size = new System.Drawing.Size(654, 337);
+            this.splitContainer_Big.SplitterDistance = 225;
             this.splitContainer_Big.TabIndex = 3;
             // 
             // panel_BelowDataGridView
@@ -301,9 +301,9 @@
             this.panel_BelowDataGridView.Controls.Add(this.label_Favorite);
             this.panel_BelowDataGridView.Controls.Add(this.label_Showing);
             this.panel_BelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel_BelowDataGridView.Location = new System.Drawing.Point(0, 121);
+            this.panel_BelowDataGridView.Location = new System.Drawing.Point(0, 177);
             this.panel_BelowDataGridView.Name = "panel_BelowDataGridView";
-            this.panel_BelowDataGridView.Size = new System.Drawing.Size(652, 48);
+            this.panel_BelowDataGridView.Size = new System.Drawing.Size(654, 48);
             this.panel_BelowDataGridView.TabIndex = 12;
             // 
             // textBox_CustomFilter
@@ -401,8 +401,8 @@
             // splitContainer_Small.Panel2
             // 
             this.splitContainer_Small.Panel2.Controls.Add(this.richTextBox_description);
-            this.splitContainer_Small.Size = new System.Drawing.Size(649, 119);
-            this.splitContainer_Small.SplitterDistance = 508;
+            this.splitContainer_Small.Size = new System.Drawing.Size(651, 175);
+            this.splitContainer_Small.SplitterDistance = 509;
             this.splitContainer_Small.TabIndex = 2;
             // 
             // panel_MediaBackground
@@ -412,7 +412,7 @@
             this.panel_MediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel_MediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panel_MediaBackground.Name = "panel_MediaBackground";
-            this.panel_MediaBackground.Size = new System.Drawing.Size(652, 79);
+            this.panel_MediaBackground.Size = new System.Drawing.Size(654, 108);
             this.panel_MediaBackground.TabIndex = 0;
             // 
             // menuStrip_MainMenu
@@ -429,7 +429,7 @@
             this.menuStrip_MainMenu.Location = new System.Drawing.Point(0, 0);
             this.menuStrip_MainMenu.Name = "menuStrip_MainMenu";
             this.menuStrip_MainMenu.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip_MainMenu.Size = new System.Drawing.Size(652, 24);
+            this.menuStrip_MainMenu.Size = new System.Drawing.Size(654, 24);
             this.menuStrip_MainMenu.TabIndex = 5;
             this.menuStrip_MainMenu.Text = "menuStrip1";
             // 
@@ -985,9 +985,21 @@
             // scrapeItemToolStripMenuItem
             // 
             this.scrapeItemToolStripMenuItem.Name = "scrapeItemToolStripMenuItem";
-            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.scrapeItemToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
             this.scrapeItemToolStripMenuItem.Text = "Scraper";
             this.scrapeItemToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItem_Scraper_Click);
+            // 
+            // toolStripSeparator21
+            // 
+            this.toolStripSeparator21.Name = "toolStripSeparator21";
+            this.toolStripSeparator21.Size = new System.Drawing.Size(140, 6);
+            // 
+            // quickScrapeToolStripMenuItem
+            // 
+            this.quickScrapeToolStripMenuItem.Name = "quickScrapeToolStripMenuItem";
+            this.quickScrapeToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
+            this.quickScrapeToolStripMenuItem.Text = "Quick Scrape";
+            this.quickScrapeToolStripMenuItem.Click += new System.EventHandler(this.quickScrapeToolStripMenuItem_Click);
             // 
             // contextMenuStrip_ImageOptions
             // 
@@ -1015,36 +1027,24 @@
             // statusBar_BottomOfWindow
             // 
             this.statusBar_BottomOfWindow.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusBar_BottomOfWindow.Location = new System.Drawing.Point(0, 276);
+            this.statusBar_BottomOfWindow.Location = new System.Drawing.Point(0, 361);
             this.statusBar_BottomOfWindow.Name = "statusBar_BottomOfWindow";
-            this.statusBar_BottomOfWindow.Size = new System.Drawing.Size(652, 20);
+            this.statusBar_BottomOfWindow.Size = new System.Drawing.Size(654, 20);
             this.statusBar_BottomOfWindow.TabIndex = 6;
             this.statusBar_BottomOfWindow.Text = "Ready";
-            // 
-            // toolStripSeparator21
-            // 
-            this.toolStripSeparator21.Name = "toolStripSeparator21";
-            this.toolStripSeparator21.Size = new System.Drawing.Size(177, 6);
-            // 
-            // quickScrapeToolStripMenuItem
-            // 
-            this.quickScrapeToolStripMenuItem.Name = "quickScrapeToolStripMenuItem";
-            this.quickScrapeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.quickScrapeToolStripMenuItem.Text = "Quick Scrape";
-            this.quickScrapeToolStripMenuItem.Click += new System.EventHandler(this.quickScrapeToolStripMenuItem_Click);
             // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(652, 296);
+            this.ClientSize = new System.Drawing.Size(654, 381);
             this.Controls.Add(this.splitContainer_Big);
             this.Controls.Add(this.menuStrip_MainMenu);
             this.Controls.Add(this.statusBar_BottomOfWindow);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip_MainMenu;
-            this.Margin = new System.Windows.Forms.Padding(1);
-            this.MinimumSize = new System.Drawing.Size(668, 335);
+            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.MinimumSize = new System.Drawing.Size(670, 420);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.Load += new System.EventHandler(this.Form1_Load);

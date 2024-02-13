@@ -45,7 +45,9 @@
             this.label_Region = new System.Windows.Forms.Label();
             this.comboBox_Region = new System.Windows.Forms.ComboBox();
             this.label_Language = new System.Windows.Forms.Label();
-            this.combox_Language = new System.Windows.Forms.ComboBox();
+            this.comboBox_Language = new System.Windows.Forms.ComboBox();
+            this.label_MaxThreads = new System.Windows.Forms.Label();
+            this.comboBox_MaxThreads = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // checkBox1
@@ -61,18 +63,18 @@
             // 
             // label5
             // 
-            this.label5.AutoSize = true;
             this.label5.ForeColor = System.Drawing.Color.Red;
-            this.label5.Location = new System.Drawing.Point(5, 244);
+            this.label5.Location = new System.Drawing.Point(142, 6);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(223, 13);
+            this.label5.Size = new System.Drawing.Size(73, 80);
             this.label5.TabIndex = 20;
-            this.label5.Text = "*Credentials are saved in Credential Manager*";
+            this.label5.Text = "Credentials are saved in Windows Credential Manager";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // button2
             // 
             this.button2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.button2.Location = new System.Drawing.Point(78, 214);
+            this.button2.Location = new System.Drawing.Point(76, 235);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(64, 23);
             this.button2.TabIndex = 19;
@@ -83,7 +85,7 @@
             // button1
             // 
             this.button1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.button1.Location = new System.Drawing.Point(8, 214);
+            this.button1.Location = new System.Drawing.Point(8, 235);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(64, 23);
             this.button1.TabIndex = 18;
@@ -122,9 +124,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(6, 12);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(131, 13);
+            this.label2.Size = new System.Drawing.Size(109, 13);
             this.label2.TabIndex = 13;
-            this.label2.Text = "ScreenScraper UserName";
+            this.label2.Text = "ScreenScraper Name";
             // 
             // comboBox_ImageSource
             // 
@@ -263,11 +265,11 @@
             this.label_Language.TabIndex = 31;
             this.label_Language.Text = "Preferred Language";
             // 
-            // combox_Language
+            // comboBox_Language
             // 
-            this.combox_Language.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.combox_Language.FormattingEnabled = true;
-            this.combox_Language.Items.AddRange(new object[] {
+            this.comboBox_Language.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_Language.FormattingEnabled = true;
+            this.comboBox_Language.Items.AddRange(new object[] {
             "en: English",
             "de: German",
             "zh: Chinese",
@@ -288,17 +290,58 @@
             "sv: Swedish",
             "cz: Czech",
             "tr: Turkish"});
-            this.combox_Language.Location = new System.Drawing.Point(108, 187);
-            this.combox_Language.Name = "combox_Language";
-            this.combox_Language.Size = new System.Drawing.Size(107, 21);
-            this.combox_Language.TabIndex = 30;
+            this.comboBox_Language.Location = new System.Drawing.Point(108, 187);
+            this.comboBox_Language.Name = "comboBox_Language";
+            this.comboBox_Language.Size = new System.Drawing.Size(107, 21);
+            this.comboBox_Language.TabIndex = 30;
+            // 
+            // label_MaxThreads
+            // 
+            this.label_MaxThreads.AutoSize = true;
+            this.label_MaxThreads.Location = new System.Drawing.Point(6, 213);
+            this.label_MaxThreads.Name = "label_MaxThreads";
+            this.label_MaxThreads.Size = new System.Drawing.Size(95, 13);
+            this.label_MaxThreads.TabIndex = 33;
+            this.label_MaxThreads.Text = "Max Thread Count";
+            // 
+            // comboBox_MaxThreads
+            // 
+            this.comboBox_MaxThreads.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_MaxThreads.FormattingEnabled = true;
+            this.comboBox_MaxThreads.Items.AddRange(new object[] {
+            "en: English",
+            "de: German",
+            "zh: Chinese",
+            "ko: Korean",
+            "da: Danish",
+            "es: Spanish",
+            "fi: Finnish",
+            "fr: French",
+            "hu: Hungarian",
+            "it: Italian",
+            "ja: Japanese",
+            "nl: Dutch",
+            "no: Norwegian",
+            "pl: Polish",
+            "pt: Portuguese",
+            "ru: Russian",
+            "sk: Slovakian",
+            "sv: Swedish",
+            "cz: Czech",
+            "tr: Turkish"});
+            this.comboBox_MaxThreads.Location = new System.Drawing.Point(108, 210);
+            this.comboBox_MaxThreads.Name = "comboBox_MaxThreads";
+            this.comboBox_MaxThreads.Size = new System.Drawing.Size(107, 21);
+            this.comboBox_MaxThreads.TabIndex = 32;
             // 
             // ScreenScraperSetup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label_MaxThreads);
+            this.Controls.Add(this.comboBox_MaxThreads);
             this.Controls.Add(this.label_Language);
-            this.Controls.Add(this.combox_Language);
+            this.Controls.Add(this.comboBox_Language);
             this.Controls.Add(this.label_Region);
             this.Controls.Add(this.comboBox_Region);
             this.Controls.Add(this.label6);
@@ -342,6 +385,8 @@
         private System.Windows.Forms.Label label_Region;
         private System.Windows.Forms.ComboBox comboBox_Region;
         private System.Windows.Forms.Label label_Language;
-        private System.Windows.Forms.ComboBox combox_Language;
+        private System.Windows.Forms.ComboBox comboBox_Language;
+        private System.Windows.Forms.Label label_MaxThreads;
+        private System.Windows.Forms.ComboBox comboBox_MaxThreads;
     }
 }
