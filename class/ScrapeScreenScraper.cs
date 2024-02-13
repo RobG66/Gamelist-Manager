@@ -1,64 +1,71 @@
-﻿using Renci.SshNet.Messages.Authentication;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
-
-// this is not done yet!
 
 namespace GamelistManager
 {
     public class ScrapeScreenScraper
     {
         public async Task<Dictionary<string, string>> ScrapeScreenScraperAsync(
-            string userId,
-            string userPassword,
-            string devId,
-            string devPassword,
-            string region,
-            string language,
-            string romName,
-            string systemID,
-            string folderPath,
-            bool overwrite,
-            List<string> elementsToScrape
-        )
+                string userId,
+                string userPassword,
+                string devId,
+                string devPassword,
+                string region,
+                string language,
+                string romName,
+                string systemID,
+                string folderPath,
+                bool overwrite,
+                List<string> elementsToScrape,
+                string boxSource,
+                string imageSource,
+                string logoSource
+            )
+
         {
-            // Build an empty dictionary to start
+            // Build a dictionary from the elements we are going to scrape
             Dictionary<string, string> scraperData = new Dictionary<string, string>();
             foreach (var propertyName in elementsToScrape)
             {
                 scraperData[propertyName] = null;
             }
 
+            string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
             string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}&romtype=rom&romnom=";
 
+            // Build MD5
             string fullRomPath = $"{folderPath}\\{romName}";
             string md5 = ChecksumCreator.CreateMD5(fullRomPath);
             scraperData["md5"] = md5;
 
-            string scraperRequestURL = $"{scraperBaseURL}{(gameinfo)}{romName}";
-
             // Get the XML response from the website
-            XmlDocument xmlResponse = await GetXMLResponseAsync(scraperRequestURL);
+            string scraperRequestURL = $"{scraperBaseURL}{gameinfo}{romName}";
+            XMLResponder xmlResponder = new XMLResponder();
+            XmlNode xmlResponse = await xmlResponder.GetXMLResponseAsync(scraperRequestURL);
 
             if (xmlResponse == null)
             {
                 return null;
             }
 
-            // Regions are so messy to deal with
-            string romRegions = xmlResponse.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText;
-            string regionToScrape = ParseRegions(region, romRegions);
-
             string value = null;
+            string folderName = null;
+            string localType = null;
+            string remoteType = null;
+            string remoteDownloadURL = null;
+            string filenameToDownload = null;
+            string downloadPath = null;
+            string fileFormat = null;
+            string firstRomRegion = null;
+            bool downloadSuccess = false;
+
+            // Media node, we only need to select it once
             XmlNode mediasNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
 
             foreach (string element in elementsToScrape)
@@ -80,13 +87,12 @@ namespace GamelistManager
                         scraperData["players"] = value;
                         break;
 
-                    case "region":
-                        scraperData["region"] = regionToScrape;
-                        break;
-
-
                     case "lang":
                         value = xmlResponse.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText;
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            value = "en";
+                        }
                         scraperData["lang"] = value;
                         break;
 
@@ -100,6 +106,7 @@ namespace GamelistManager
                         value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{language}']")?.InnerText;
                         if (string.IsNullOrEmpty(value))
                         {
+                            // Fallback to english
                             value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='en']")?.InnerText;
                         }
                         scraperData["desc"] = value;
@@ -107,7 +114,7 @@ namespace GamelistManager
 
                     case "name":
                         XmlNode namesNode = xmlResponse.SelectSingleNode("/Data/jeu/noms");
-                        value = ParseNames(namesNode, regionToScrape);
+                        value = ParseNames(namesNode, region);
                         scraperData["name"] = value;
                         break;
 
@@ -121,24 +128,118 @@ namespace GamelistManager
                         scraperData["genre"] = value;
                         break;
 
+                    case "region":
+                        string romRegions = xmlResponse.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText;
+                        firstRomRegion = null;
+                        if (romRegions != null)
+                        {
+                            firstRomRegion = romRegions.Split(',')[0].Trim();
+                        }
+                        scraperData["region"] = firstRomRegion;
+                        break;
+
+
                     case "releasedate":
-                        value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{regionToScrape}']")?.InnerText;
+                        value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{firstRomRegion}']")?.InnerText;
                         string releasedate = ConvertToISO8601(value);
                         scraperData["releasedate"] = releasedate;
                         break;
 
                     case "manual":
-                        string folderName = "images";
-                        string localType = "manual";
-                        string remoteType = "manuel";
-                        
-                        (string remoteDownloadURL, string fileFormat) = ParseMedia(remoteType, mediasNode, regionToScrape);
-                        string filenameToDownload = $"{Path.GetFileNameWithoutExtension(romName)}-{localType}.{fileFormat}";
+                        folderName = "manuals";
+                        localType = "manual";
+                        remoteType = "manuel";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
-                            string downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
-                            MessageBox.Show(downloadPath);
-                            bool downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
+
+                    case "image":
+                        // ss = screenshot
+                        remoteType = "ss";
+                        if (imageSource.ToLower() == "screenshot title")
+                        {
+                            remoteType = "sstitle";
+                        }
+                        folderName = "images";
+                        localType = "image";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
+
+                    case "thumbnail":
+                        remoteType = "box-2D";
+                        if (boxSource.ToLower() == "box 3d")
+                        {
+                            remoteType = "box-3D";
+                        }
+                        folderName = "images";
+                        localType = "thumbnail";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
+
+                    case "marquee":
+                        remoteType = "wheel";
+                        if (logoSource.ToLower() == "marquee")
+                        {
+                            remoteType = "screenmarquee";
+                        }
+                        folderName = "images";
+                        localType = "marquee";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
+
+
+                    case "video":
+                        folderName = "videos";
+                        localType = "video";
+                        (remoteDownloadURL, fileFormat) = ParseVideo(mediasNode);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
                             if (downloadSuccess == true)
                             {
                                 scraperData[localType] = $"./{folderName}/{filenameToDownload}";
@@ -150,11 +251,46 @@ namespace GamelistManager
             return scraperData;
         }
 
+
+        private (string Url, string Format) ParseVideo(XmlNode XmlElement)
+        {
+            if (XmlElement == null) { return (null, null); }
+
+            var media = XmlElement.SelectSingleNode($"//media[@type='video-normalized']");
+            if (media == null)
+            {
+                media = XmlElement.SelectSingleNode($"//media[@type='video']");
+            }
+
+            if (media != null)
+            {
+                string url = media.InnerText;
+                string format = media.Attributes["format"]?.Value;
+                return (url, format);
+            }
+
+            return (null, null);
+        }
+
+
         private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
         {
             if (xmlMedias == null) { return (null, null); }
 
-            var media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{region}']");
+            // User selected region and backups
+            string[] regions = { region, "eu", "us", "ss", "uk", "wor" };
+
+            var media = (XmlNode)null;
+
+            foreach (string currentRegion in regions)
+            {
+                // Find first matching region
+                media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{currentRegion}']");
+                if (media != null)
+                {
+                    break;
+                }
+            }
 
             if (media == null)
             {
@@ -163,46 +299,33 @@ namespace GamelistManager
 
             string url = media.InnerText;
             string format = media.Attributes["format"]?.Value;
-
             return (url, format);
-        }
-
-        private string ParseRegions(string region, string romRegions)
-        {
-            string regionPriority = "eu,us,ss,uk,wor,jp,au,ame,de,cus,cn,kr,asi,br,sp,fr,gr,it,no,dk,nz,nl,pl,ru,se,tw,ca";
-
-            if (!string.IsNullOrEmpty(romRegions))
-            {
-                string[] regions = romRegions.Split(',');
-                if (regions.Contains(region))
-                {
-                    return region;
-                }
-                
-                region = "us";
-                
-                if (!regions.Contains(region))
-                {
-                    // take the last one, usually the right choice?
-                    return regions[(regions.Length - 1)];
-                }
-            }
-            
-            // I don't know.....
-            return "wor";
         }
 
         private string ParseNames(XmlNode namesElement, string region)
         {
             if (namesElement == null) { return null; }
 
-            var names = namesElement?.SelectNodes($"nom[@region='{region}']");
+            // User selected region and backups
+            string[] regions = { region, "eu", "us", "ss", "uk", "wor" };
 
-            if (names.Count != 1)
+            var name = (XmlNode)null;
+
+            foreach (string currentRegion in regions)
+            {
+                name = namesElement.SelectSingleNode($"nom[@region='{currentRegion}']");
+                if (name != null)
+                {
+                    break;
+                }
+            }
+
+            if (name == null)
             {
                 return null;
             }
-            return names[0].InnerText;
+
+            return name.InnerText;
         }
 
         private string ProcessRating(string rating)
@@ -216,27 +339,6 @@ namespace GamelistManager
             }
             float ratingValFloat = ratingvalue / 20.0f;
             return ratingValFloat.ToString();
-        }
-
-        private async Task<XmlDocument> GetXMLResponseAsync(string url)
-        {
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    byte[] responseBytes = await client.GetByteArrayAsync(url);
-                    string responseString = Encoding.UTF8.GetString(responseBytes);
-
-                    XmlDocument xmlDoc = new XmlDocument();
-                    xmlDoc.LoadXml(responseString);
-
-                    return xmlDoc;
-                }
-            }
-            catch (Exception)
-            {
-                return null;
-            }
         }
 
         private string ParseGenres(XmlNode genresElement, string language)

@@ -158,6 +158,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\SharedData.cs" />
+    <Compile Include="class\XMLResponder.cs" />
     <Compile Include="class\ScreenScraperSystems.cs" />
     <Compile Include="class\MediaListObject.cs" />
     <Compile Include="class\SSHCommander.cs" />
@@ -172,6 +174,12 @@
     </Compile>
     <Compile Include="control\ScreenScraperSetup.Designer.cs">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="control\ScraperPreview.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="control\ScraperPreview.Designer.cs">
+      <DependentUpon>ScraperPreview.cs</DependentUpon>
     </Compile>
     <Compile Include="form\MediaCheckForm.cs">
       <SubType>Form</SubType>
@@ -209,6 +217,9 @@
     </Compile>
     <EmbeddedResource Include="control\ScreenScraperSetup.resx">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="control\ScraperPreview.resx">
+      <DependentUpon>ScraperPreview.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="form\MediaCheckForm.resx">
       <DependentUpon>MediaCheckForm.cs</DependentUpon>

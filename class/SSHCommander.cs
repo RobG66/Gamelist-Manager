@@ -2,7 +2,7 @@
 
 namespace GamelistManager
 {
-    internal class SSHCommander
+    internal static class SSHCommander
     {
         public static string ExecuteSSHCommand(string hostName, string userID, string userPassword, string command)
         {

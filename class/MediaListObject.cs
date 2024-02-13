@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager
 {
-    public class MediaListObject
+    internal class MediaListObject
     {
         public string FullPath { get; set; }
         public int RowIndex { get; set; }

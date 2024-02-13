@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+
 namespace GamelistManager
 {
-    public static class ChecksumCreator
+    internal static class ChecksumCreator
     {
         public static string CreateMD5(string filePath)
         {
