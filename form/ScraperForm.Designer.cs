@@ -71,6 +71,7 @@
             this.button_SelectNone = new System.Windows.Forms.Button();
             this.checkbox_marquee = new System.Windows.Forms.CheckBox();
             this.checkbox_lang = new System.Windows.Forms.CheckBox();
+            this.checkbox_bezel = new System.Windows.Forms.CheckBox();
             this.panel_Everything.SuspendLayout();
             this.panel_ScraperOptions.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -334,6 +335,7 @@
             // 
             // panel_Checkboxes
             // 
+            this.panel_Checkboxes.Controls.Add(this.checkbox_bezel);
             this.panel_Checkboxes.Controls.Add(this.label3);
             this.panel_Checkboxes.Controls.Add(this.button_SelectAll);
             this.panel_Checkboxes.Controls.Add(this.label_Note);
@@ -374,7 +376,7 @@
             // button_SelectAll
             // 
             this.button_SelectAll.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.button_SelectAll.Location = new System.Drawing.Point(104, 156);
+            this.button_SelectAll.Location = new System.Drawing.Point(104, 175);
             this.button_SelectAll.Margin = new System.Windows.Forms.Padding(1);
             this.button_SelectAll.Name = "button_SelectAll";
             this.button_SelectAll.Size = new System.Drawing.Size(76, 23);
@@ -385,7 +387,7 @@
             // 
             // label_Note
             // 
-            this.label_Note.Location = new System.Drawing.Point(101, 205);
+            this.label_Note.Location = new System.Drawing.Point(101, 224);
             this.label_Note.Name = "label_Note";
             this.label_Note.Size = new System.Drawing.Size(117, 31);
             this.label_Note.TabIndex = 22;
@@ -562,7 +564,7 @@
             // button_SelectNone
             // 
             this.button_SelectNone.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-            this.button_SelectNone.Location = new System.Drawing.Point(104, 179);
+            this.button_SelectNone.Location = new System.Drawing.Point(104, 198);
             this.button_SelectNone.Margin = new System.Windows.Forms.Padding(1);
             this.button_SelectNone.Name = "button_SelectNone";
             this.button_SelectNone.Size = new System.Drawing.Size(76, 23);
@@ -594,6 +596,18 @@
             this.checkbox_lang.TabIndex = 8;
             this.checkbox_lang.Text = "Language";
             this.checkbox_lang.UseVisualStyleBackColor = true;
+            // 
+            // checkbox_bezel
+            // 
+            this.checkbox_bezel.AutoSize = true;
+            this.checkbox_bezel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+            this.checkbox_bezel.Location = new System.Drawing.Point(105, 156);
+            this.checkbox_bezel.Margin = new System.Windows.Forms.Padding(1);
+            this.checkbox_bezel.Name = "checkbox_bezel";
+            this.checkbox_bezel.Size = new System.Drawing.Size(52, 17);
+            this.checkbox_bezel.TabIndex = 24;
+            this.checkbox_bezel.Text = "Bezel";
+            this.checkbox_bezel.UseVisualStyleBackColor = true;
             // 
             // ScraperForm
             // 
@@ -671,5 +685,6 @@
         private System.Windows.Forms.Label label_Counts;
         private System.Windows.Forms.Panel panel_ScraperOptions;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.CheckBox checkbox_bezel;
     }
 }

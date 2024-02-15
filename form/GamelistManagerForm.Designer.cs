@@ -156,7 +156,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -172,7 +172,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(509, 175);
+            this.dataGridView1.Size = new System.Drawing.Size(509, 174);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -185,7 +185,7 @@
             this.richTextBox_description.Location = new System.Drawing.Point(0, 0);
             this.richTextBox_description.Name = "richTextBox_description";
             this.richTextBox_description.ReadOnly = true;
-            this.richTextBox_description.Size = new System.Drawing.Size(138, 175);
+            this.richTextBox_description.Size = new System.Drawing.Size(138, 174);
             this.richTextBox_description.TabIndex = 0;
             this.richTextBox_description.Text = "";
             // 
@@ -280,7 +280,7 @@
             // 
             this.splitContainer_Big.Panel2.Controls.Add(this.panel_MediaBackground);
             this.splitContainer_Big.Size = new System.Drawing.Size(654, 337);
-            this.splitContainer_Big.SplitterDistance = 225;
+            this.splitContainer_Big.SplitterDistance = 224;
             this.splitContainer_Big.TabIndex = 3;
             // 
             // panel_BelowDataGridView
@@ -301,7 +301,7 @@
             this.panel_BelowDataGridView.Controls.Add(this.label_Favorite);
             this.panel_BelowDataGridView.Controls.Add(this.label_Showing);
             this.panel_BelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel_BelowDataGridView.Location = new System.Drawing.Point(0, 177);
+            this.panel_BelowDataGridView.Location = new System.Drawing.Point(0, 176);
             this.panel_BelowDataGridView.Name = "panel_BelowDataGridView";
             this.panel_BelowDataGridView.Size = new System.Drawing.Size(654, 48);
             this.panel_BelowDataGridView.TabIndex = 12;
@@ -401,7 +401,7 @@
             // splitContainer_Small.Panel2
             // 
             this.splitContainer_Small.Panel2.Controls.Add(this.richTextBox_description);
-            this.splitContainer_Small.Size = new System.Drawing.Size(651, 175);
+            this.splitContainer_Small.Size = new System.Drawing.Size(651, 174);
             this.splitContainer_Small.SplitterDistance = 509;
             this.splitContainer_Small.TabIndex = 2;
             // 
@@ -412,7 +412,7 @@
             this.panel_MediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel_MediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panel_MediaBackground.Name = "panel_MediaBackground";
-            this.panel_MediaBackground.Size = new System.Drawing.Size(654, 108);
+            this.panel_MediaBackground.Size = new System.Drawing.Size(654, 109);
             this.panel_MediaBackground.TabIndex = 0;
             // 
             // menuStrip_MainMenu
@@ -1043,7 +1043,7 @@
             this.Controls.Add(this.statusBar_BottomOfWindow);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip_MainMenu;
-            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.Margin = new System.Windows.Forms.Padding(1);
             this.MinimumSize = new System.Drawing.Size(670, 420);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";

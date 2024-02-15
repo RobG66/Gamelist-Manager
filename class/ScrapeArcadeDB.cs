@@ -5,7 +5,6 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace GamelistManager
 {
@@ -26,12 +25,9 @@ namespace GamelistManager
                 scraperData[propertyName] = null;
             }
 
-            
             string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
             string scraperURL = $"http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name={romNameNoExtension}";
             string jsonResponse = await GetJsonResponseAsync(scraperURL);
-
-         
 
             if (jsonResponse == null)
             {
@@ -66,7 +62,7 @@ namespace GamelistManager
                         scraperData["publisher"] = ScrapedGameInfo.manufacturer;
                         break;
 
-                        case "players":
+                    case "players":
                         scraperData["players"] = ScrapedGameInfo.players.ToString();
                         break;
 
@@ -81,7 +77,7 @@ namespace GamelistManager
                         {
                             convertedRating = "1";
                         }
-                        if (rating >0 && rating <100)
+                        if (rating > 0 && rating < 100)
                         {
                             convertedRating = "." + rating.ToString().TrimStart('0');
                         }
@@ -122,7 +118,7 @@ namespace GamelistManager
                         break;
 
                     case "thumbnail":
-                      
+
                         break;
 
                     case "marquee":
@@ -208,7 +204,7 @@ namespace GamelistManager
                 return string.Empty;
             }
         }
-    
+
 
 
         public class GameInfo

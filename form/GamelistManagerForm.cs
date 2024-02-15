@@ -3,6 +3,7 @@ using LibVLCSharp.WinForms;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -13,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace GamelistManager
 {
@@ -89,6 +91,51 @@ namespace GamelistManager
 
             File.Copy(filename, oldFilename, true);
             SharedData.DataSet.WriteXml(filename);
+
+            //Update scrap elements.  Easier to do with XML than DataSet 
+            if (SharedData.ScrapedList.Count > 0)
+            {
+                XDocument xdoc = XDocument.Load(filename);
+
+                foreach (ScraperData scraperData in SharedData.ScrapedList)
+                {
+                    string romName = scraperData.Item;
+                    string source = scraperData.Source;
+                    string time = scraperData.ScrapeTime;
+
+                    // Find the game element with the matching path
+                    XElement targetGameElement = xdoc.Descendants("gameList").Elements("game")
+                    .FirstOrDefault(e => e.Element("path")?.Value == $"./{romName}");
+
+                    if (targetGameElement != null)
+                    {
+                        // Get or create the specific scrap element based on its name
+                        XElement targetScrapElement = targetGameElement.Elements("scrap")
+                            .FirstOrDefault(e => e.Attribute("name")?.Value == source);
+
+                        if (targetScrapElement == null)
+                        {
+                            // If the scrap element does not exist, create a new one
+                            targetScrapElement = new XElement("scrap",
+                                new XAttribute("name", source),
+                                new XAttribute("date", time));
+
+                            // Add the new scrap element to the game element
+                            targetGameElement.Add(targetScrapElement);
+                        }
+                        else
+                        {
+                            // Update existing properties
+                            targetScrapElement.SetAttributeValue("date", time);
+                        }
+                    }
+                }
+
+                // Save updated XML with scraper information
+                xdoc.Save(filename);
+                SharedData.ScrapedList.Clear();
+                xdoc = null;
+            }
 
             Cursor.Current = Cursors.Default;
 
@@ -610,59 +657,17 @@ namespace GamelistManager
 
         }
 
-        static void AddScrapColumns(DataTable mainTable, DataTable scrapTable, string columnPrefix)
-        {
-            // Check if the tables and common key column exist
-            if (mainTable == null || scrapTable == null || !mainTable.Columns.Contains("game_Id") || !scrapTable.Columns.Contains("game_Id"))
-            {
-                return;
-            }
-
-            // Add scrap columns to the main table using the game_id key
-            foreach (DataRow mainRow in mainTable.Rows)
-            {
-                // Extract the game_id key value
-                object gameId = mainRow["game_Id"];
-
-                // Find the corresponding scrap rows in the second table
-                DataRow[] matchingScrapRows = scrapTable.Select($"game_Id = {gameId}");
-
-                // Add scrap columns to the main row
-                foreach (DataRow matchingScrapRow in matchingScrapRows)
-                {
-                    // Generate the column name with the prefix
-                    string columnName = $"{columnPrefix}{matchingScrapRow["name"]}";
-
-                    // Check if the column already exists in the main table, if not, add it
-                    if (!mainTable.Columns.Contains(columnName))
-                    {
-                        mainTable.Columns.Add(columnName.ToLower(), typeof(string));
-                    }
-
-                    // Set the value in the main row
-                    mainRow[columnName] = matchingScrapRow["date"];
-                }
-            }
-        }
-
         private void SetupTableColumns()
         {
-            //Add scraper columns
-            if (SharedData.DataSet.Tables.Count > 1)
-            {
-                AddScrapColumns(
-                SharedData.DataSet.Tables[0], SharedData.DataSet.Tables[1], "scrap_");
-            }
-
             if (SharedData.DataSet.Tables.Count == 0)
             {
                 SharedData.DataSet.Tables.Add();
                 SharedData.DataSet.Tables[0].Columns.Add("path", typeof(string));
             }
 
+            // Standard gamelist.xml elements
             string[] columnNames = {
                 "name",
-                "sortname",
                 "desc",
                 "rating",
                 "releasedate",
@@ -684,10 +689,9 @@ namespace GamelistManager
                 "magazine",
                 "map",
                 "bezel",
-                "md5"
+                "md5",
             };
 
-            // Add default columns if this is a sparse gamelist.xml file
             foreach (string columnName in columnNames)
             {
                 if (!SharedData.DataSet.Tables[0].Columns.Contains(columnName))
@@ -696,6 +700,8 @@ namespace GamelistManager
                     SharedData.DataSet.Tables[0].Columns.Add(columnName, typeof(string));
                 }
             }
+
+            SetupScrapColumns();
 
             //Convert true/false columns to boolean
             ConvertColumnToBoolean(SharedData.DataSet.Tables[0], "hidden");
@@ -733,6 +739,40 @@ namespace GamelistManager
             SharedData.DataSet.AcceptChanges();
         }
 
+        private void SetupScrapColumns()
+        {
+            if (SharedData.DataSet.Tables.Count == 1)
+            {
+                return;
+            }
+
+            // Add scrap columns to the main table using the game_id key
+            foreach (DataRow mainRow in SharedData.DataSet.Tables[0].Rows)
+            {
+                // Extract the game_id key value
+                object gameId = mainRow["game_Id"];
+
+                // Find the corresponding scrap rows in the second table
+                DataRow[] matchingScrapRows = SharedData.DataSet.Tables[1].Select($"game_Id = {gameId}");
+
+                // Add scrap columns to the main row
+                foreach (DataRow matchingScrapRow in matchingScrapRows)
+                {
+                    // Generate the column name with the prefix
+                    string columnName = $"scrap_{matchingScrapRow["name"]}";
+
+                    // Check if the column already exists in the main table, if not, add it
+                    if (!SharedData.DataSet.Tables[0].Columns.Contains(columnName))
+                    {
+                        SharedData.DataSet.Tables[0].Columns.Add(columnName.ToLower(), typeof(string));
+                    }
+
+                    // Set the value in the main row
+                    mainRow[columnName] = matchingScrapRow["date"];
+                }
+            }
+        }
+
         private void SetupDataGridViewColumns()
         {
             foreach (DataGridViewColumn column in dataGridView1.Columns)
@@ -748,7 +788,6 @@ namespace GamelistManager
                 };
 
                 column.HeaderCell.Style = headerStyle;
-
             }
 
             //Checking of checkboxes is handled by an on_click event
@@ -841,7 +880,7 @@ namespace GamelistManager
             string[] imageTypes = {
             "image",
             "marquee",
-            "thumb",
+            "thumbnail",
             "fanart",
             "titleshot",
             "manual",
