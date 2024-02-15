@@ -2,6 +2,13 @@
 
 Thoughts:
 
+February 14th
+
+ A new release is coming soon with full, thread capable screen scraper support.  Media type selection is also modelled directly like the choices in Batocera with multi-language support.  The program itself is English, but you can scrape other languages and regions if you wish.  A lot of time and effort went into getting it far so I hope at least a few people find it useful.    
+
+ ![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/17f2cd6f-d168-4985-8a61-660c0bb2b320)
+
+
 February 3rd
 
  A new 3.1 release and a few minor hiccups getting things updated on master branch.  I may remove the work in progress branch because it makes the whole source control experience more convoluted for me.  I'm not an expert on this :)  The 3.1 release contains fixes, improvements and a few new features.  Screenscraper scraping is still work in progress, but it is coming along.  I'm doing all of this as my way of contributing to the Batocera community and I hope at least a few people find use of it.  If you have an issue or find a bug, let me know and create an issue thingy.
