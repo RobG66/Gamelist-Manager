@@ -6,7 +6,7 @@ February 14th
 
  A new release is coming soon with full, thread capable screen scraper support.  Media type selection is also modelled directly like the choices in Batocera with multi-language support.  The program itself is English, but you can scrape other languages and regions if you wish.  A lot of time and effort went into getting it far so I hope at least a few people find it useful.    
 
- ![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/17f2cd6f-d168-4985-8a61-660c0bb2b320)
+![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/c4e10fe0-4e05-44a0-a939-06c0b770ed96)
 
 
 February 3rd
