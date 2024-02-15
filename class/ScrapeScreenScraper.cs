@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace GamelistManager
@@ -45,7 +46,7 @@ namespace GamelistManager
             scraperData["md5"] = md5;
 
             // Get the XML response from the website
-            string scraperRequestURL = $"{scraperBaseURL}{gameinfo}{romName}";
+            string scraperRequestURL = $"{scraperBaseURL}{gameinfo}{romNameNoExtension}";
             XMLResponder xmlResponder = new XMLResponder();
             XmlNode xmlResponse = await xmlResponder.GetXMLResponseAsync(scraperRequestURL);
 
@@ -138,11 +139,28 @@ namespace GamelistManager
                         scraperData["region"] = firstRomRegion;
                         break;
 
-
                     case "releasedate":
                         value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{firstRomRegion}']")?.InnerText;
                         string releasedate = ConvertToISO8601(value);
                         scraperData["releasedate"] = releasedate;
+                        break;
+
+                    case "bezel":
+                        folderName = "images";
+                        localType = "bezel";
+                        remoteType = "bezel-16-9";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
                         break;
 
                     case "manual":
@@ -172,7 +190,6 @@ namespace GamelistManager
                         }
                         folderName = "images";
                         localType = "image";
-
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
@@ -194,7 +211,7 @@ namespace GamelistManager
                         }
                         folderName = "images";
                         localType = "thumbnail";
-
+                        
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
