@@ -17,12 +17,6 @@ Jan 27th
 
  I'm moderately disabled with my hands/arms so doing a lot of keyboard work is extremely difficult for me.  It causes me physical pain too.  But, it helps my emotional state to tinker on this so it is a trade off I guess.  I should slow down a bit though.     
 
-
- Release 3.0 introduces preliminary scraping for Arcade (MAME/FBNeo) via ArcadeDB.  If you notice any problem, please open an issue.
-
- Known limitations:
-  - Last scraper date is not set (yet)
-  - ArcadeDB scraping is limited in what it provides for images and metadata, but it is quick.
   
 ![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/bc72b184-4ed0-4727-9fdc-474ec075a355)
 
