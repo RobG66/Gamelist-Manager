@@ -206,7 +206,7 @@ namespace GamelistManager
 
                     case "thumbnail":
                         remoteType = "box-2D";
-                        if (boxSource.ToLower() == "box 3d")
+                        if (imageSource.ToLower() == "box 3d")
                         {
                             remoteType = "box-3D";
                         }

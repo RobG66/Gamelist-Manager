@@ -270,10 +270,15 @@ namespace GamelistManager
         )
         {
             string boxSource = RegistryManager.ReadRegistryValue("BoxSource");
+            boxSource = boxSource ?? string.Empty;
             string imageSource = RegistryManager.ReadRegistryValue("ImageSource");
+            imageSource = imageSource ?? string.Empty;
             string logoSource = RegistryManager.ReadRegistryValue("LogoSource");
+            logoSource = logoSource ?? string.Empty;
             string region = RegistryManager.ReadRegistryValue("Region");
+            region = region ?? "us";
             string language = RegistryManager.ReadRegistryValue("language");
+            language = language ?? "en";
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
 
