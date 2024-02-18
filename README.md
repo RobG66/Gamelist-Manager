@@ -2,13 +2,11 @@
 
 Thoughts:
 
-February 14th
+February 18th
 
- A new release is coming soon with full, thread capable screen scraper support.  Media type selection is also modelled directly like the choices in Batocera with multi-language support.  The program itself is English, but you can scrape other languages and regions if you wish.  A lot of time and effort went into getting it far so I hope at least a few people find it useful.    
+ Version 4 is now released!  A major update with multi threaded capable scraping from ScreenScraper now included.  Many other fixes and enhancements.  Grab it from the releases.
 
-![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/c4e10fe0-4e05-44a0-a939-06c0b770ed96)
-
-
+ 
 February 3rd
 
  A new 3.1 release and a few minor hiccups getting things updated on master branch.  I may remove the work in progress branch because it makes the whole source control experience more convoluted for me.  I'm not an expert on this :)  The 3.1 release contains fixes, improvements and a few new features.  Screenscraper scraping is still work in progress, but it is coming along.  I'm doing all of this as my way of contributing to the Batocera community and I hope at least a few people find use of it.  If you have an issue or find a bug, let me know and create an issue thingy.
@@ -47,7 +45,7 @@ It offers functionality to:
 - View and change favorites easily
 - Fast sorting and filtering by genre and visibility values
 - Identify missing roms
-- Identify and clean up missing, single color or corrupt images
+- Identify and clean up missing, single color or corrupt images and missing videos
 - View game media with video playback
 - Edit or delete items from the gamelist
 - Clear or update scraper dates
@@ -57,7 +55,7 @@ It offers functionality to:
 - Map a network drive assistance
 - Open images in default editor
 - Create a terminal session to your Batocera host (openSSH)
-- Scrape????  Who knows?!  I'm now tinkering with that.
+- Scrap from Screen Scraper or Arcade DB.  Multi thread capable!
 - Save your cleaned up gamelist!
 
 The primary method of use requires mapping a network drive to the share  \\batocera\share.  The default credentials are user:root, password:linux.  The program can now securely store your credentials and assist you mapping a network drive if you like.
