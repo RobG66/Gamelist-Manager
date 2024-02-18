@@ -1,12 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+
 namespace GamelistManager
 {
-    public static class ChecksumCreator
+    internal static class ChecksumCreator
     {
         public static string CreateMD5(string filePath)
         {
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
             using (var md5 = MD5.Create())
             {
                 using (var stream = File.OpenRead(filePath))

@@ -2,80 +2,124 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace GamelistManager
 {
 
     public partial class MediaCheckForm : Form
     {
-        GamelistManagerForm gamelistManagerForm;
+        private GamelistManagerForm gamelistManagerForm;
         string parentFolderPath;
-        DataGridView dataGridView1;
         List<MediaListObject> mediaList;
-        List<MediaListObject> badMediaList;
+        ConcurrentBag<MediaListObject> badMediaList;
         private static Stopwatch globalStopwatch = new Stopwatch();
-        int missingCount;
-        int corruptCount;
-        int singleColorCount;
-
-        public MediaCheckForm(string path, DataGridView dgv)
+        private int missingVideoCount;
+        private int missingImageCount;
+        private int corruptImageCount;
+        private int singleColorImageCount;
+        private int totalMediaCount;
+        private int currentCount;
+        private CancellationTokenSource cancellationTokenSource;
+        public CancellationToken cancellationToken => cancellationTokenSource.Token;
+        
+        public MediaCheckForm(GamelistManagerForm form)
         {
             InitializeComponent();
-            dataGridView1 = dgv;
-            parentFolderPath = path;
+            gamelistManagerForm = form;
+            parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
             mediaList = new List<MediaListObject>();
-            badMediaList = new List<MediaListObject>();
-            singleColorCount = 0;
-            corruptCount = 0;
-            missingCount = 0;
+            badMediaList = new ConcurrentBag<MediaListObject>();
+            singleColorImageCount = 0;
+            corruptImageCount = 0;
+            missingImageCount = 0;
+            missingVideoCount = 0;
+            totalMediaCount = 0;
+            currentCount = 0;
+            cancellationTokenSource = new CancellationTokenSource();
         }
 
-        private List<MediaListObject> GetMediaList(string mediaType)
+        private List<MediaListObject> GetMediaList()
         {
             mediaList = new List<MediaListObject>();
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
+
+            foreach (DataGridViewColumn column in gamelistManagerForm.DataGridView.Columns)
             {
                 // Check if the column tag is set to "image"
-                if (column.Tag != null && column.Tag.ToString() == mediaType)
-                {
-                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                if (column.Tag != null)
+                { 
+                    string columnTag = column.Tag.ToString();
+                    if (columnTag == "image" || columnTag == "video")
                     {
+                      foreach (DataGridViewRow row in gamelistManagerForm.DataGridView.Rows)
+                        {
                         // Access the cell in the specified column
                         DataGridViewCell cell = row.Cells[column.Index];
 
                         string cellPathValue = cell.Value?.ToString();
-                        if (!string.IsNullOrEmpty(cellPathValue))
-                        {
-                            // Build file list
-                            string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-                            mediaList.Add(new MediaListObject
+                            if (!string.IsNullOrEmpty(cellPathValue))
                             {
-                                FullPath = fullPath,
-                                RowIndex = row.Index,
-                                ColumnIndex = column.Index,
-                                Status = string.Empty
-                            });
-                        }
+                                // Build file list
+                                string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                                string extension = Path.GetExtension(fullPath);
+
+                                // Skip PDF Media
+                                // Will revisit this later
+                                if (extension != null && extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+
+                                // Validate the path is valid before adding to list
+                                char[] invalidChars = Path.GetInvalidFileNameChars();
+                                bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
+                                
+                                if (badPath) {
+                                    continue;
+                                }
+
+                                mediaList.Add(new MediaListObject
+                                {
+                                    FullPath = fullPath,
+                                    Type = columnTag,
+                                    RowIndex = row.Index,
+                                    ColumnIndex = column.Index,
+                                    Status = string.Empty
+                                });
+                            }
+                      }
                     }
+
                 }
             }
             return mediaList;
         }
 
+        static string CleanFileName(string fileName)
+        {
+            // Define a regular expression to match illegal characters in filenames
+            char[] invalidChars = Path.GetInvalidFileNameChars().Except(new char[] { ':', '\\', '/' }).ToArray();
+            string illegalCharactersPattern = "[" + Regex.Escape(new string(invalidChars)) + "]";
+
+            // Replace illegal characters with an empty string
+            string cleanedFileName = Regex.Replace(fileName, illegalCharactersPattern, "");
+
+            return cleanedFileName;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
+            List<MediaListObject> badMediaListAsList = badMediaList.ToList();
 
-            if (radioButton_ExportCSV.Checked)
+            if (radioButtonExportCSV.Checked)
             {
-                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_images.csv";
-                if (ExportToCSV(mediaList, csvFileName))
+                string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_media.csv";
+                if (ExportToCSV(badMediaListAsList, csvFileName))
                 {
                     MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
@@ -87,43 +131,46 @@ namespace GamelistManager
                 }
             }
 
-            foreach (var mediaObject in mediaList)
+            foreach (var mediaObject in badMediaList)
             {
                 string fileName = mediaObject.FullPath;
                 int rowIndex = mediaObject.RowIndex;
                 int columnIndex = mediaObject.ColumnIndex;
-                string status = mediaObject.Status;
-
-                switch (0)
+                if (radioButtonDelete.Checked)
                 {
-                    case 2:
-                        try
-                        {
-                            File.Delete(fileName);
-                        }
-                        catch
-                        {
-                            //catch exception - if we care?
-                        }
-                        break;
-                    case 3:
-                        string oldFilePath = fileName;
-                        string newFileNamePrefix = "bad-";
-                        string directory = Path.GetDirectoryName(oldFilePath);
-                        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldFilePath);
-                        string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}");
-                        try
-                        {
-                            File.Move(oldFilePath, newFilePath);
-                        }
-                        catch
-                        {
-                            // Catch exception - if we care?
-                        }
-                        break;
+                    try
+                    {
+                        File.Delete(fileName);
+                    }
+                    catch
+                    {
+                        //nothing?
+                    }
                 }
-                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
+                if (radioButtonRename.Checked)
+                {
+                    string shortname = Path.GetFileName(fileName);
+                    string directory = Path.GetDirectoryName(fileName);
+                    string newFilePath = Path.Combine(directory, $"bad-{shortname}");
+                    try
+                    {
+                        File.Move(fileName, newFilePath);
+                    }
+                    catch
+                    {
+                        // Catch exception - if we care?
+                    }
+
+                }
+                gamelistManagerForm.DataGridView.Rows[rowIndex].Cells[columnIndex].Value = null; // DBNull.Value;
             }
+            GetMediaCount();
+            panelManageMedia.Enabled = false;
+            SharedData.IsDataChanged = true;
+
+            MessageBox.Show("Cleanup Completed! Don't forget to save these changes.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+
         }
 
         static bool ExportToCSV(List<MediaListObject> mediaObjects, string filePath)
@@ -155,67 +202,87 @@ namespace GamelistManager
 
         private void MediaCheckForm_Load(object sender, EventArgs e)
         {
-            radioButton_Images.Checked = true;
+            panelCheckMedia.Enabled = false;
+            Cursor.Current = Cursors.WaitCursor;
+            GetMediaCount();
+            Cursor.Current = Cursors.Default;
+            panelCheckMedia.Enabled = true;
         }
 
-        private CancellationTokenSource cancellationTokenSource;
 
         private async void button_Start_Click(object sender, EventArgs e)
         {
-            // Start button clicked
-            button_Start.Enabled = false;
-            button_Stop.Enabled = true;
-            globalStopwatch.Reset();
-            globalStopwatch.Start();
-            label_CorruptCount.Text = "0";
-            label_MissingCount.Text = "0";
-            label_SingleColorCount.Text = "0";
-            panel2.Enabled = false;
-
-            cancellationTokenSource = new CancellationTokenSource();
-          
-            await CheckMedia(cancellationTokenSource.Token);
-
-            button_Stop.Enabled = false;
-            globalStopwatch.Stop();
-            globalStopwatch.Reset();
-            button_Start.Enabled = true;
-
-            if (cancellationTokenSource.IsCancellationRequested)
+            if (listBoxLog.Items.Count > 0)
             {
-                MessageBox.Show("Image checking operation was canceled.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                listBoxLog.Items.Clear();
             }
 
-            panel2.Enabled = true;
-            
+            buttonStart.Enabled = false;
+            buttonStop.Enabled = true;
+            globalStopwatch.Reset();
+            globalStopwatch.Start();
+            labelMissingImageCount.Text = "0";
+            labelCorruptImageCount.Text = "0";
+            labelSingleColorImageCount.Text = "0";
+            labelMissingVideosCount.Text = "0";
+
+            panelManageMedia.Enabled = false;
+
+            cancellationTokenSource = new CancellationTokenSource();
+
+            try
+            {
+                // Asynchronously check media with cancellation support
+                await CheckMedia();
+            }
+            catch (OperationCanceledException)
+            {
+                // The operation was canceled
+                AddToLog("Media check was cancelled!");
+                MessageBox.Show("Media checking operation was canceled.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            finally
+            {
+                // Enable UI elements and reset the stopwatch
+                buttonStop.Enabled = false;
+                globalStopwatch.Stop();
+                globalStopwatch.Reset();
+                buttonStart.Enabled = true;
+            }
+
+                if (badMediaList == null || badMediaList.Count == 0)
+                {
+                    MessageBox.Show("No bad media was found.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                panelManageMedia.Enabled = true;
         }
 
         private void StopCheckingMedia()
         {
-            if (cancellationTokenSource != null)
-            {
-                // Cancel the operation if it's still running
-                cancellationTokenSource.Cancel();
-            }
+            // Cancel the operation if it's still running
+            cancellationTokenSource?.Cancel();
         }
 
-        private async Task CheckMedia(CancellationToken cancellationToken)
+        private async Task CheckMedia()
         {
-   
-            int totalFiles = mediaList.Count;
-            int count = 0;
+
+            totalMediaCount = mediaList.Count;
+            currentCount = 0;
 
             progressBar1.Minimum = 0;
-            progressBar1.Maximum = totalFiles;
+            progressBar1.Maximum = totalMediaCount;
             progressBar1.Step = 1;
             progressBar1.Value = 0;
 
-            singleColorCount = 0;
-            corruptCount = 0;
-            missingCount = 0;
-            
-            ConcurrentBag<MediaListObject> badMediaList = new ConcurrentBag<MediaListObject>();
+            singleColorImageCount = 0;
+            corruptImageCount = 0;
+            missingImageCount = 0;
+            missingVideoCount = 0;
+
+            badMediaList = new ConcurrentBag<MediaListObject>();
 
             await Task.Run(() =>
             {
@@ -231,51 +298,68 @@ namespace GamelistManager
                     string fileName = item.FullPath;
                     int rowIndex = item.RowIndex;
                     int columnIndex = item.ColumnIndex;
+                    string mediaType = item.Type;
+                    string shortFileName = Path.GetFileName(fileName);
+
                     string result = null;
-                    result = ImageChecker.CheckImage(fileName);
-          
+
+                    if (mediaType == "image")
+                    {
+                        result = ImageChecker.CheckImage(fileName);
+                    }
+                    else if (mediaType == "video")
+                    {
+                        result = File.Exists(fileName) ? "ok" : "missing";
+                    }
+
                     switch (result)
                     {
                         case "missing":
-                            Interlocked.Increment(ref missingCount);
+                            if (mediaType == "image")
+                            {
+                                Interlocked.Increment(ref missingImageCount);
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref missingVideoCount);
+                            }
                             item.Status = "missing";
+                            badMediaList.Add(item);
+                            AddToLog($"Missing {mediaType}: {shortFileName}");
                             break;
                         case "ok":
                             break;
                         case "singlecolor":
-                            Interlocked.Increment(ref singleColorCount);
+                            Interlocked.Increment(ref singleColorImageCount);
                             item.Status = "singlecolor";
+                            badMediaList.Add(item);
+                            AddToLog($"Single Color Image: {shortFileName}");
                             break;
                         case "corrupt":
-                            Interlocked.Increment(ref corruptCount);
+                            Interlocked.Increment(ref corruptImageCount);
                             item.Status = "corrupt";
-                            break;
-                        default:
-                            if (result != "ok") 
-                            {
-                                badMediaList.Add(item);
-                            }
+                            badMediaList.Add(item);
+                            AddToLog($"Corrupt Image: {shortFileName}");
                             break;
                     }
 
-                    Interlocked.Increment(ref count);
-                    UpdateLabels(count, totalFiles, missingCount, corruptCount, singleColorCount);
+                    Interlocked.Increment(ref currentCount);
+                    UpdateLabels();
                     UpdateProgressBar();
                 });
             });
-
             return;
         }
-
-        public void UpdateLabels(int current, int total, int missing, int corrupt, int singleColor)
+        
+        public void UpdateLabels()
         {
-            if (label_progress.InvokeRequired)
+            if (labelProgress.InvokeRequired)
             {
-                label_progress.Invoke(new Action(() => UpdateLabels(current, total, missing, corrupt, singleColor)));
+                labelProgress.Invoke(new Action(() => UpdateLabels()));
             }
             else
             {
-                double progress = (double)current / total * 100;
+                double progress = (double)currentCount / totalMediaCount * 100;
 
                 // Assuming you have a global Stopwatch declared outside of this method
                 TimeSpan elapsed = globalStopwatch.Elapsed;
@@ -297,11 +381,12 @@ namespace GamelistManager
 
                 remainingTimeString += $"{remainingTime.Seconds}s";
 
-                label_progress.Text = $"{progress:F0}%"; // | Remaining Time: {remainingTimeString}";
+                labelProgress.Text = $"{progress:F0}%"; // | Remaining Time: {remainingTimeString}";
 
-                label_MissingCount.Text = missing.ToString();
-                label_CorruptCount.Text = corrupt.ToString();
-                label_SingleColorCount.Text = singleColor.ToString();
+                labelMissingImageCount.Text = missingImageCount.ToString();
+                labelCorruptImageCount.Text = corruptImageCount.ToString();
+                labelSingleColorImageCount.Text = singleColorImageCount.ToString();
+                labelMissingVideosCount.Text = missingVideoCount.ToString();
             }
         }
 
@@ -316,21 +401,21 @@ namespace GamelistManager
                 progressBar1.PerformStep();
             }
         }
-        private void radioButton_Images_CheckedChanged(object sender, EventArgs e)
+  
+        private void GetMediaCount()
         {
-            Cursor.Current = Cursors.WaitCursor;
+            panelManageMedia.Enabled = false;
+            labelCorruptImageCount.Text = "0";
+            labelMissingImageCount.Text = "0";
+            labelSingleColorImageCount.Text = "0";
 
-            string mediaType = "image";
-            if (radioButton_Videos.Checked)
-            {
-                mediaType = "video";
-            }
+            mediaList = GetMediaList();
+           
+            int image = mediaList.Count(media => media.Type == "image");
+            int video = mediaList.Count(media => media.Type == "video");
 
-            mediaList = GetMediaList(mediaType);
-            int totalitems = mediaList.Count;
-            label2.Text = $"There are {totalitems} {mediaType}s in this gamelist";
-
-            Cursor.Current = Cursors.Default;
+            labelTotalImagesCount.Text = image.ToString();
+            labelTotalVideosCount.Text = video.ToString();
         }
 
         private void MediaCheckForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -347,5 +432,24 @@ namespace GamelistManager
         {
             StopCheckingMedia();
         }
+
+        public void AddToLog(string logMessage)
+        {
+            Action updateListBox = () =>
+            {
+                listBoxLog.Items.Add($"{logMessage}");
+                listBoxLog.TopIndex = listBoxLog.Items.Count - 1;
+            };
+
+            if (listBoxLog.InvokeRequired)
+            {
+                listBoxLog.Invoke(updateListBox);
+            }
+            else
+            {
+                updateListBox();
+            }
+        }
+
     }
 }

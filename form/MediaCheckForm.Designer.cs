@@ -28,289 +28,330 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
-            this.radioButton_Rename = new System.Windows.Forms.RadioButton();
-            this.radioButton_Delete = new System.Windows.Forms.RadioButton();
-            this.radioButton_ExportCSV = new System.Windows.Forms.RadioButton();
-            this.button_Start = new System.Windows.Forms.Button();
+            this.buttonCleanup = new System.Windows.Forms.Button();
+            this.radioButtonRename = new System.Windows.Forms.RadioButton();
+            this.radioButtonDelete = new System.Windows.Forms.RadioButton();
+            this.radioButtonExportCSV = new System.Windows.Forms.RadioButton();
+            this.buttonStart = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.radioButton_Videos = new System.Windows.Forms.RadioButton();
-            this.radioButton_Images = new System.Windows.Forms.RadioButton();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label_progress = new System.Windows.Forms.Label();
-            this.label_Missing = new System.Windows.Forms.Label();
-            this.label_MissingCount = new System.Windows.Forms.Label();
-            this.label_CorruptCount = new System.Windows.Forms.Label();
-            this.label_Corrupt = new System.Windows.Forms.Label();
-            this.label_SingleColorCount = new System.Windows.Forms.Label();
-            this.label_SingleColor = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.button_Stop = new System.Windows.Forms.Button();
-            this.panel1.SuspendLayout();
-            this.panel2.SuspendLayout();
-            this.panel3.SuspendLayout();
+            this.panelManageMedia = new System.Windows.Forms.Panel();
+            this.labelManageBadMedia = new System.Windows.Forms.Label();
+            this.labelInstruction = new System.Windows.Forms.Label();
+            this.labelProgress = new System.Windows.Forms.Label();
+            this.labelMissingImages = new System.Windows.Forms.Label();
+            this.labelMissingImageCount = new System.Windows.Forms.Label();
+            this.labelCorruptImageCount = new System.Windows.Forms.Label();
+            this.labelCorruptImages = new System.Windows.Forms.Label();
+            this.labelSingleColorImageCount = new System.Windows.Forms.Label();
+            this.labelSingleColorImages = new System.Windows.Forms.Label();
+            this.panelCheckMedia = new System.Windows.Forms.Panel();
+            this.labelMissingVideos = new System.Windows.Forms.Label();
+            this.labelMissingVideosCount = new System.Windows.Forms.Label();
+            this.labelVideos = new System.Windows.Forms.Label();
+            this.labelTotalVideosCount = new System.Windows.Forms.Label();
+            this.labelImages = new System.Windows.Forms.Label();
+            this.labelTotalImagesCount = new System.Windows.Forms.Label();
+            this.buttonStop = new System.Windows.Forms.Button();
+            this.listBoxLog = new System.Windows.Forms.ListBox();
+            this.panelManageMedia.SuspendLayout();
+            this.panelCheckMedia.SuspendLayout();
             this.SuspendLayout();
             // 
-            // button1
+            // buttonCleanup
             // 
-            this.button1.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.button1.Location = new System.Drawing.Point(3, 103);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 9;
-            this.button1.Text = "OK";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.buttonCleanup.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(128)))));
+            this.buttonCleanup.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.buttonCleanup.Location = new System.Drawing.Point(237, 8);
+            this.buttonCleanup.Name = "buttonCleanup";
+            this.buttonCleanup.Size = new System.Drawing.Size(75, 23);
+            this.buttonCleanup.TabIndex = 9;
+            this.buttonCleanup.Text = "Cleanup";
+            this.buttonCleanup.UseVisualStyleBackColor = false;
+            this.buttonCleanup.Click += new System.EventHandler(this.button1_Click);
             // 
-            // radioButton_Rename
+            // radioButtonRename
             // 
-            this.radioButton_Rename.AutoSize = true;
-            this.radioButton_Rename.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton_Rename.Location = new System.Drawing.Point(3, 78);
-            this.radioButton_Rename.Name = "radioButton_Rename";
-            this.radioButton_Rename.Size = new System.Drawing.Size(248, 17);
-            this.radioButton_Rename.TabIndex = 8;
-            this.radioButton_Rename.Text = "Rename with a \'bad-\' prefix and clear paths";
-            this.radioButton_Rename.UseVisualStyleBackColor = true;
+            this.radioButtonRename.AutoSize = true;
+            this.radioButtonRename.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButtonRename.Location = new System.Drawing.Point(3, 78);
+            this.radioButtonRename.Name = "radioButtonRename";
+            this.radioButtonRename.Size = new System.Drawing.Size(248, 17);
+            this.radioButtonRename.TabIndex = 8;
+            this.radioButtonRename.Text = "Rename with a \'bad-\' prefix and clear paths";
+            this.radioButtonRename.UseVisualStyleBackColor = true;
             // 
-            // radioButton_Delete
+            // radioButtonDelete
             // 
-            this.radioButton_Delete.AutoSize = true;
-            this.radioButton_Delete.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton_Delete.Location = new System.Drawing.Point(3, 54);
-            this.radioButton_Delete.Name = "radioButton_Delete";
-            this.radioButton_Delete.Size = new System.Drawing.Size(140, 17);
-            this.radioButton_Delete.TabIndex = 7;
-            this.radioButton_Delete.Text = "Delete and clear paths";
-            this.radioButton_Delete.UseVisualStyleBackColor = true;
+            this.radioButtonDelete.AutoSize = true;
+            this.radioButtonDelete.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButtonDelete.Location = new System.Drawing.Point(3, 54);
+            this.radioButtonDelete.Name = "radioButtonDelete";
+            this.radioButtonDelete.Size = new System.Drawing.Size(140, 17);
+            this.radioButtonDelete.TabIndex = 7;
+            this.radioButtonDelete.Text = "Delete and clear paths";
+            this.radioButtonDelete.UseVisualStyleBackColor = true;
             // 
-            // radioButton_ExportCSV
+            // radioButtonExportCSV
             // 
-            this.radioButton_ExportCSV.AutoSize = true;
-            this.radioButton_ExportCSV.Checked = true;
-            this.radioButton_ExportCSV.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButton_ExportCSV.Location = new System.Drawing.Point(3, 30);
-            this.radioButton_ExportCSV.Name = "radioButton_ExportCSV";
-            this.radioButton_ExportCSV.Size = new System.Drawing.Size(113, 17);
-            this.radioButton_ExportCSV.TabIndex = 6;
-            this.radioButton_ExportCSV.TabStop = true;
-            this.radioButton_ExportCSV.Text = "Export list to CSV";
-            this.radioButton_ExportCSV.UseVisualStyleBackColor = true;
+            this.radioButtonExportCSV.AutoSize = true;
+            this.radioButtonExportCSV.Checked = true;
+            this.radioButtonExportCSV.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButtonExportCSV.Location = new System.Drawing.Point(3, 30);
+            this.radioButtonExportCSV.Name = "radioButtonExportCSV";
+            this.radioButtonExportCSV.Size = new System.Drawing.Size(113, 17);
+            this.radioButtonExportCSV.TabIndex = 6;
+            this.radioButtonExportCSV.TabStop = true;
+            this.radioButtonExportCSV.Text = "Export list to CSV";
+            this.radioButtonExportCSV.UseVisualStyleBackColor = true;
             // 
-            // button_Start
+            // buttonStart
             // 
-            this.button_Start.BackColor = System.Drawing.Color.Lime;
-            this.button_Start.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.button_Start.Location = new System.Drawing.Point(12, 86);
-            this.button_Start.Name = "button_Start";
-            this.button_Start.Size = new System.Drawing.Size(75, 23);
-            this.button_Start.TabIndex = 13;
-            this.button_Start.Text = "Start";
-            this.button_Start.UseVisualStyleBackColor = false;
-            this.button_Start.Click += new System.EventHandler(this.button_Start_Click);
+            this.buttonStart.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.buttonStart.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.buttonStart.Location = new System.Drawing.Point(3, 51);
+            this.buttonStart.Name = "buttonStart";
+            this.buttonStart.Size = new System.Drawing.Size(75, 23);
+            this.buttonStart.TabIndex = 13;
+            this.buttonStart.Text = "Start";
+            this.buttonStart.UseVisualStyleBackColor = false;
+            this.buttonStart.Click += new System.EventHandler(this.button_Start_Click);
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(12, 128);
+            this.progressBar1.Location = new System.Drawing.Point(3, 99);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(400, 23);
+            this.progressBar1.Size = new System.Drawing.Size(315, 23);
             this.progressBar1.TabIndex = 14;
             // 
-            // panel1
+            // panelManageMedia
             // 
-            this.panel1.BackColor = System.Drawing.Color.Transparent;
-            this.panel1.Controls.Add(this.radioButton_Videos);
-            this.panel1.Controls.Add(this.radioButton_Images);
-            this.panel1.Location = new System.Drawing.Point(12, 30);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(132, 25);
-            this.panel1.TabIndex = 15;
+            this.panelManageMedia.BackColor = System.Drawing.Color.Transparent;
+            this.panelManageMedia.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelManageMedia.Controls.Add(this.labelManageBadMedia);
+            this.panelManageMedia.Controls.Add(this.radioButtonExportCSV);
+            this.panelManageMedia.Controls.Add(this.radioButtonDelete);
+            this.panelManageMedia.Controls.Add(this.radioButtonRename);
+            this.panelManageMedia.Controls.Add(this.buttonCleanup);
+            this.panelManageMedia.Enabled = false;
+            this.panelManageMedia.Location = new System.Drawing.Point(2, 140);
+            this.panelManageMedia.Name = "panelManageMedia";
+            this.panelManageMedia.Size = new System.Drawing.Size(323, 107);
+            this.panelManageMedia.TabIndex = 16;
             // 
-            // radioButton_Videos
+            // labelManageBadMedia
             // 
-            this.radioButton_Videos.AutoSize = true;
-            this.radioButton_Videos.Enabled = false;
-            this.radioButton_Videos.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.radioButton_Videos.Location = new System.Drawing.Point(69, 6);
-            this.radioButton_Videos.Name = "radioButton_Videos";
-            this.radioButton_Videos.Size = new System.Drawing.Size(60, 17);
-            this.radioButton_Videos.TabIndex = 1;
-            this.radioButton_Videos.TabStop = true;
-            this.radioButton_Videos.Text = "Videos";
-            this.radioButton_Videos.UseVisualStyleBackColor = true;
+            this.labelManageBadMedia.AutoSize = true;
+            this.labelManageBadMedia.BackColor = System.Drawing.Color.Transparent;
+            this.labelManageBadMedia.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelManageBadMedia.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelManageBadMedia.Location = new System.Drawing.Point(3, 8);
+            this.labelManageBadMedia.Name = "labelManageBadMedia";
+            this.labelManageBadMedia.Size = new System.Drawing.Size(109, 15);
+            this.labelManageBadMedia.TabIndex = 18;
+            this.labelManageBadMedia.Text = "Manage Bad Media";
             // 
-            // radioButton_Images
+            // labelInstruction
             // 
-            this.radioButton_Images.AutoSize = true;
-            this.radioButton_Images.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.radioButton_Images.Location = new System.Drawing.Point(4, 6);
-            this.radioButton_Images.Name = "radioButton_Images";
-            this.radioButton_Images.Size = new System.Drawing.Size(61, 17);
-            this.radioButton_Images.TabIndex = 0;
-            this.radioButton_Images.TabStop = true;
-            this.radioButton_Images.Text = "Images";
-            this.radioButton_Images.UseVisualStyleBackColor = true;
-            this.radioButton_Images.CheckedChanged += new System.EventHandler(this.radioButton_Images_CheckedChanged);
+            this.labelInstruction.AutoSize = true;
+            this.labelInstruction.BackColor = System.Drawing.Color.Transparent;
+            this.labelInstruction.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.labelInstruction.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.labelInstruction.Location = new System.Drawing.Point(180, 83);
+            this.labelInstruction.Name = "labelInstruction";
+            this.labelInstruction.Size = new System.Drawing.Size(138, 13);
+            this.labelInstruction.TabIndex = 17;
+            this.labelInstruction.Text = "Click Start to check media";
             // 
-            // panel2
+            // labelProgress
             // 
-            this.panel2.BackColor = System.Drawing.Color.Transparent;
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.label1);
-            this.panel2.Controls.Add(this.radioButton_ExportCSV);
-            this.panel2.Controls.Add(this.radioButton_Delete);
-            this.panel2.Controls.Add(this.radioButton_Rename);
-            this.panel2.Controls.Add(this.button1);
-            this.panel2.Enabled = false;
-            this.panel2.Location = new System.Drawing.Point(12, 159);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(400, 134);
-            this.panel2.TabIndex = 16;
+            this.labelProgress.AutoSize = true;
+            this.labelProgress.BackColor = System.Drawing.Color.Transparent;
+            this.labelProgress.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.labelProgress.Location = new System.Drawing.Point(9, 83);
+            this.labelProgress.Name = "labelProgress";
+            this.labelProgress.Size = new System.Drawing.Size(22, 13);
+            this.labelProgress.TabIndex = 26;
+            this.labelProgress.Text = "0%";
             // 
-            // label1
+            // labelMissingImages
             // 
-            this.label1.AutoSize = true;
-            this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.Font = new System.Drawing.Font("Segoe UI", 9F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label1.Location = new System.Drawing.Point(3, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(112, 15);
-            this.label1.TabIndex = 18;
-            this.label1.Text = "Manage Bad Media";
+            this.labelMissingImages.AutoSize = true;
+            this.labelMissingImages.BackColor = System.Drawing.Color.Transparent;
+            this.labelMissingImages.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelMissingImages.Location = new System.Drawing.Point(194, 25);
+            this.labelMissingImages.Name = "labelMissingImages";
+            this.labelMissingImages.Size = new System.Drawing.Size(82, 13);
+            this.labelMissingImages.TabIndex = 27;
+            this.labelMissingImages.Text = "Missing Images:";
             // 
-            // label3
+            // labelMissingImageCount
             // 
-            this.label3.AutoSize = true;
-            this.label3.BackColor = System.Drawing.Color.Transparent;
-            this.label3.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.label3.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label3.Location = new System.Drawing.Point(9, 67);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(177, 13);
-            this.label3.TabIndex = 17;
-            this.label3.Text = "Click Start button to check media";
+            this.labelMissingImageCount.AutoSize = true;
+            this.labelMissingImageCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelMissingImageCount.ForeColor = System.Drawing.Color.Red;
+            this.labelMissingImageCount.Location = new System.Drawing.Point(278, 25);
+            this.labelMissingImageCount.Name = "labelMissingImageCount";
+            this.labelMissingImageCount.Size = new System.Drawing.Size(13, 13);
+            this.labelMissingImageCount.TabIndex = 28;
+            this.labelMissingImageCount.Text = "0";
             // 
-            // label2
+            // labelCorruptImageCount
             // 
-            this.label2.AutoSize = true;
-            this.label2.BackColor = System.Drawing.Color.Transparent;
-            this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.label2.Location = new System.Drawing.Point(9, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(39, 13);
-            this.label2.TabIndex = 12;
-            this.label2.Text = "Count";
+            this.labelCorruptImageCount.AutoSize = true;
+            this.labelCorruptImageCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelCorruptImageCount.ForeColor = System.Drawing.Color.Red;
+            this.labelCorruptImageCount.Location = new System.Drawing.Point(278, 41);
+            this.labelCorruptImageCount.Name = "labelCorruptImageCount";
+            this.labelCorruptImageCount.Size = new System.Drawing.Size(13, 13);
+            this.labelCorruptImageCount.TabIndex = 30;
+            this.labelCorruptImageCount.Text = "0";
             // 
-            // label_progress
+            // labelCorruptImages
             // 
-            this.label_progress.AutoSize = true;
-            this.label_progress.BackColor = System.Drawing.Color.Transparent;
-            this.label_progress.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.label_progress.Location = new System.Drawing.Point(13, 112);
-            this.label_progress.Name = "label_progress";
-            this.label_progress.Size = new System.Drawing.Size(22, 13);
-            this.label_progress.TabIndex = 26;
-            this.label_progress.Text = "0%";
+            this.labelCorruptImages.AutoSize = true;
+            this.labelCorruptImages.BackColor = System.Drawing.Color.Transparent;
+            this.labelCorruptImages.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelCorruptImages.Location = new System.Drawing.Point(195, 41);
+            this.labelCorruptImages.Name = "labelCorruptImages";
+            this.labelCorruptImages.Size = new System.Drawing.Size(81, 13);
+            this.labelCorruptImages.TabIndex = 29;
+            this.labelCorruptImages.Text = "Corrupt Images:";
             // 
-            // label_Missing
+            // labelSingleColorImageCount
             // 
-            this.label_Missing.AutoSize = true;
-            this.label_Missing.BackColor = System.Drawing.Color.Transparent;
-            this.label_Missing.ForeColor = System.Drawing.Color.MidnightBlue;
-            this.label_Missing.Location = new System.Drawing.Point(29, 18);
-            this.label_Missing.Name = "label_Missing";
-            this.label_Missing.Size = new System.Drawing.Size(45, 13);
-            this.label_Missing.TabIndex = 27;
-            this.label_Missing.Text = "Missing:";
+            this.labelSingleColorImageCount.AutoSize = true;
+            this.labelSingleColorImageCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelSingleColorImageCount.ForeColor = System.Drawing.Color.Red;
+            this.labelSingleColorImageCount.Location = new System.Drawing.Point(278, 57);
+            this.labelSingleColorImageCount.Name = "labelSingleColorImageCount";
+            this.labelSingleColorImageCount.Size = new System.Drawing.Size(13, 13);
+            this.labelSingleColorImageCount.TabIndex = 32;
+            this.labelSingleColorImageCount.Text = "0";
             // 
-            // label_MissingCount
+            // labelSingleColorImages
             // 
-            this.label_MissingCount.AutoSize = true;
-            this.label_MissingCount.BackColor = System.Drawing.Color.Transparent;
-            this.label_MissingCount.ForeColor = System.Drawing.Color.Red;
-            this.label_MissingCount.Location = new System.Drawing.Point(77, 18);
-            this.label_MissingCount.Name = "label_MissingCount";
-            this.label_MissingCount.Size = new System.Drawing.Size(13, 13);
-            this.label_MissingCount.TabIndex = 28;
-            this.label_MissingCount.Text = "0";
+            this.labelSingleColorImages.AutoSize = true;
+            this.labelSingleColorImages.BackColor = System.Drawing.Color.Transparent;
+            this.labelSingleColorImages.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelSingleColorImages.Location = new System.Drawing.Point(173, 57);
+            this.labelSingleColorImages.Name = "labelSingleColorImages";
+            this.labelSingleColorImages.Size = new System.Drawing.Size(103, 13);
+            this.labelSingleColorImages.TabIndex = 31;
+            this.labelSingleColorImages.Text = "Single Color Images:";
             // 
-            // label_CorruptCount
+            // panelCheckMedia
             // 
-            this.label_CorruptCount.AutoSize = true;
-            this.label_CorruptCount.BackColor = System.Drawing.Color.Transparent;
-            this.label_CorruptCount.ForeColor = System.Drawing.Color.Red;
-            this.label_CorruptCount.Location = new System.Drawing.Point(77, 44);
-            this.label_CorruptCount.Name = "label_CorruptCount";
-            this.label_CorruptCount.Size = new System.Drawing.Size(13, 13);
-            this.label_CorruptCount.TabIndex = 30;
-            this.label_CorruptCount.Text = "0";
+            this.panelCheckMedia.BackColor = System.Drawing.Color.Transparent;
+            this.panelCheckMedia.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelCheckMedia.Controls.Add(this.labelMissingVideos);
+            this.panelCheckMedia.Controls.Add(this.labelMissingVideosCount);
+            this.panelCheckMedia.Controls.Add(this.labelVideos);
+            this.panelCheckMedia.Controls.Add(this.labelTotalVideosCount);
+            this.panelCheckMedia.Controls.Add(this.labelImages);
+            this.panelCheckMedia.Controls.Add(this.labelTotalImagesCount);
+            this.panelCheckMedia.Controls.Add(this.buttonStop);
+            this.panelCheckMedia.Controls.Add(this.labelMissingImages);
+            this.panelCheckMedia.Controls.Add(this.progressBar1);
+            this.panelCheckMedia.Controls.Add(this.labelSingleColorImageCount);
+            this.panelCheckMedia.Controls.Add(this.labelProgress);
+            this.panelCheckMedia.Controls.Add(this.labelMissingImageCount);
+            this.panelCheckMedia.Controls.Add(this.labelInstruction);
+            this.panelCheckMedia.Controls.Add(this.labelSingleColorImages);
+            this.panelCheckMedia.Controls.Add(this.labelCorruptImages);
+            this.panelCheckMedia.Controls.Add(this.labelCorruptImageCount);
+            this.panelCheckMedia.Controls.Add(this.buttonStart);
+            this.panelCheckMedia.Location = new System.Drawing.Point(2, 5);
+            this.panelCheckMedia.Name = "panelCheckMedia";
+            this.panelCheckMedia.Size = new System.Drawing.Size(323, 130);
+            this.panelCheckMedia.TabIndex = 33;
             // 
-            // label_Corrupt
+            // labelMissingVideos
             // 
-            this.label_Corrupt.AutoSize = true;
-            this.label_Corrupt.BackColor = System.Drawing.Color.Transparent;
-            this.label_Corrupt.ForeColor = System.Drawing.Color.MidnightBlue;
-            this.label_Corrupt.Location = new System.Drawing.Point(30, 44);
-            this.label_Corrupt.Name = "label_Corrupt";
-            this.label_Corrupt.Size = new System.Drawing.Size(44, 13);
-            this.label_Corrupt.TabIndex = 29;
-            this.label_Corrupt.Text = "Corrupt:";
+            this.labelMissingVideos.AutoSize = true;
+            this.labelMissingVideos.BackColor = System.Drawing.Color.Transparent;
+            this.labelMissingVideos.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelMissingVideos.Location = new System.Drawing.Point(196, 9);
+            this.labelMissingVideos.Name = "labelMissingVideos";
+            this.labelMissingVideos.Size = new System.Drawing.Size(80, 13);
+            this.labelMissingVideos.TabIndex = 39;
+            this.labelMissingVideos.Text = "Missing Videos:";
             // 
-            // label_SingleColorCount
+            // labelMissingVideosCount
             // 
-            this.label_SingleColorCount.AutoSize = true;
-            this.label_SingleColorCount.BackColor = System.Drawing.Color.Transparent;
-            this.label_SingleColorCount.ForeColor = System.Drawing.Color.Red;
-            this.label_SingleColorCount.Location = new System.Drawing.Point(77, 70);
-            this.label_SingleColorCount.Name = "label_SingleColorCount";
-            this.label_SingleColorCount.Size = new System.Drawing.Size(13, 13);
-            this.label_SingleColorCount.TabIndex = 32;
-            this.label_SingleColorCount.Text = "0";
+            this.labelMissingVideosCount.AutoSize = true;
+            this.labelMissingVideosCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelMissingVideosCount.ForeColor = System.Drawing.Color.Red;
+            this.labelMissingVideosCount.Location = new System.Drawing.Point(278, 9);
+            this.labelMissingVideosCount.Name = "labelMissingVideosCount";
+            this.labelMissingVideosCount.Size = new System.Drawing.Size(13, 13);
+            this.labelMissingVideosCount.TabIndex = 40;
+            this.labelMissingVideosCount.Text = "0";
             // 
-            // label_SingleColor
+            // labelVideos
             // 
-            this.label_SingleColor.AutoSize = true;
-            this.label_SingleColor.BackColor = System.Drawing.Color.Transparent;
-            this.label_SingleColor.ForeColor = System.Drawing.Color.MidnightBlue;
-            this.label_SingleColor.Location = new System.Drawing.Point(9, 70);
-            this.label_SingleColor.Name = "label_SingleColor";
-            this.label_SingleColor.Size = new System.Drawing.Size(63, 13);
-            this.label_SingleColor.TabIndex = 31;
-            this.label_SingleColor.Text = "Single Color";
+            this.labelVideos.AutoSize = true;
+            this.labelVideos.BackColor = System.Drawing.Color.Transparent;
+            this.labelVideos.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelVideos.Location = new System.Drawing.Point(7, 25);
+            this.labelVideos.Name = "labelVideos";
+            this.labelVideos.Size = new System.Drawing.Size(69, 13);
+            this.labelVideos.TabIndex = 37;
+            this.labelVideos.Text = "Total Videos:";
             // 
-            // panel3
+            // labelTotalVideosCount
             // 
-            this.panel3.BackColor = System.Drawing.Color.Transparent;
-            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel3.Controls.Add(this.label_Missing);
-            this.panel3.Controls.Add(this.label_SingleColorCount);
-            this.panel3.Controls.Add(this.label_MissingCount);
-            this.panel3.Controls.Add(this.label_SingleColor);
-            this.panel3.Controls.Add(this.label_Corrupt);
-            this.panel3.Controls.Add(this.label_CorruptCount);
-            this.panel3.Location = new System.Drawing.Point(288, 12);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(124, 100);
-            this.panel3.TabIndex = 33;
+            this.labelTotalVideosCount.AutoSize = true;
+            this.labelTotalVideosCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelTotalVideosCount.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
+            this.labelTotalVideosCount.Location = new System.Drawing.Point(84, 25);
+            this.labelTotalVideosCount.Name = "labelTotalVideosCount";
+            this.labelTotalVideosCount.Size = new System.Drawing.Size(13, 13);
+            this.labelTotalVideosCount.TabIndex = 38;
+            this.labelTotalVideosCount.Text = "0";
             // 
-            // button_Stop
+            // labelImages
             // 
-            this.button_Stop.BackColor = System.Drawing.Color.Crimson;
-            this.button_Stop.Enabled = false;
-            this.button_Stop.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.button_Stop.ForeColor = System.Drawing.Color.White;
-            this.button_Stop.Location = new System.Drawing.Point(93, 86);
-            this.button_Stop.Name = "button_Stop";
-            this.button_Stop.Size = new System.Drawing.Size(75, 23);
-            this.button_Stop.TabIndex = 34;
-            this.button_Stop.Text = "Stop";
-            this.button_Stop.UseVisualStyleBackColor = false;
-            this.button_Stop.Click += new System.EventHandler(this.button_Stop_Click);
+            this.labelImages.AutoSize = true;
+            this.labelImages.BackColor = System.Drawing.Color.Transparent;
+            this.labelImages.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelImages.Location = new System.Drawing.Point(7, 9);
+            this.labelImages.Name = "labelImages";
+            this.labelImages.Size = new System.Drawing.Size(71, 13);
+            this.labelImages.TabIndex = 35;
+            this.labelImages.Text = "Total Images:";
+            // 
+            // labelTotalImagesCount
+            // 
+            this.labelTotalImagesCount.AutoSize = true;
+            this.labelTotalImagesCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelTotalImagesCount.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
+            this.labelTotalImagesCount.Location = new System.Drawing.Point(84, 9);
+            this.labelTotalImagesCount.Name = "labelTotalImagesCount";
+            this.labelTotalImagesCount.Size = new System.Drawing.Size(13, 13);
+            this.labelTotalImagesCount.TabIndex = 36;
+            this.labelTotalImagesCount.Text = "0";
+            // 
+            // buttonStop
+            // 
+            this.buttonStop.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
+            this.buttonStop.Enabled = false;
+            this.buttonStop.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.buttonStop.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.buttonStop.Location = new System.Drawing.Point(84, 51);
+            this.buttonStop.Name = "buttonStop";
+            this.buttonStop.Size = new System.Drawing.Size(75, 23);
+            this.buttonStop.TabIndex = 34;
+            this.buttonStop.Text = "Stop";
+            this.buttonStop.UseVisualStyleBackColor = false;
+            this.buttonStop.Click += new System.EventHandler(this.button_Stop_Click);
+            // 
+            // listBoxLog
+            // 
+            this.listBoxLog.FormattingEnabled = true;
+            this.listBoxLog.Location = new System.Drawing.Point(2, 254);
+            this.listBoxLog.Name = "listBoxLog";
+            this.listBoxLog.Size = new System.Drawing.Size(323, 108);
+            this.listBoxLog.TabIndex = 34;
             // 
             // MediaCheckForm
             // 
@@ -318,57 +359,51 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::GamelistManager.Properties.Resources.background2;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(428, 298);
-            this.Controls.Add(this.button_Stop);
-            this.Controls.Add(this.panel3);
-            this.Controls.Add(this.label_progress);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.panel1);
-            this.Controls.Add(this.progressBar1);
-            this.Controls.Add(this.button_Start);
-            this.Controls.Add(this.label2);
+            this.ClientSize = new System.Drawing.Size(327, 365);
+            this.Controls.Add(this.listBoxLog);
+            this.Controls.Add(this.panelCheckMedia);
+            this.Controls.Add(this.panelManageMedia);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "MediaCheckForm";
-            this.Text = "Image Handler";
+            this.Text = "Media Check";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MediaCheckForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MediaCheckForm_FormClosed);
             this.Load += new System.EventHandler(this.MediaCheckForm_Load);
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
-            this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
-            this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
+            this.panelManageMedia.ResumeLayout(false);
+            this.panelManageMedia.PerformLayout();
+            this.panelCheckMedia.ResumeLayout(false);
+            this.panelCheckMedia.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.RadioButton radioButton_Rename;
-        private System.Windows.Forms.RadioButton radioButton_Delete;
-        private System.Windows.Forms.RadioButton radioButton_ExportCSV;
-        private System.Windows.Forms.Button button_Start;
+        private System.Windows.Forms.Button buttonCleanup;
+        private System.Windows.Forms.RadioButton radioButtonRename;
+        private System.Windows.Forms.RadioButton radioButtonDelete;
+        private System.Windows.Forms.RadioButton radioButtonExportCSV;
+        private System.Windows.Forms.Button buttonStart;
         private System.Windows.Forms.ProgressBar progressBar1;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.RadioButton radioButton_Videos;
-        private System.Windows.Forms.RadioButton radioButton_Images;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label_progress;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label_Missing;
-        private System.Windows.Forms.Label label_MissingCount;
-        private System.Windows.Forms.Label label_CorruptCount;
-        private System.Windows.Forms.Label label_Corrupt;
-        private System.Windows.Forms.Label label_SingleColorCount;
-        private System.Windows.Forms.Label label_SingleColor;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.Button button_Stop;
+        private System.Windows.Forms.Panel panelManageMedia;
+        private System.Windows.Forms.Label labelInstruction;
+        private System.Windows.Forms.Label labelProgress;
+        private System.Windows.Forms.Label labelManageBadMedia;
+        private System.Windows.Forms.Label labelMissingImages;
+        private System.Windows.Forms.Label labelMissingImageCount;
+        private System.Windows.Forms.Label labelCorruptImageCount;
+        private System.Windows.Forms.Label labelCorruptImages;
+        private System.Windows.Forms.Label labelSingleColorImageCount;
+        private System.Windows.Forms.Label labelSingleColorImages;
+        private System.Windows.Forms.Panel panelCheckMedia;
+        private System.Windows.Forms.Button buttonStop;
+        private System.Windows.Forms.ListBox listBoxLog;
+        private System.Windows.Forms.Label labelVideos;
+        private System.Windows.Forms.Label labelTotalVideosCount;
+        private System.Windows.Forms.Label labelImages;
+        private System.Windows.Forms.Label labelTotalImagesCount;
+        private System.Windows.Forms.Label labelMissingVideos;
+        private System.Windows.Forms.Label labelMissingVideosCount;
     }
 }

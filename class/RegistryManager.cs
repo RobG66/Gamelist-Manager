@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace GamelistManager
 {
-    public static class RegistryManager
+    internal static class RegistryManager
     {
         private const string programRegistryKey = @"Software\GamelistManager";
         private const string filenamesKey = "LastFilenames";

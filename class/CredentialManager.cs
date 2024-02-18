@@ -2,7 +2,7 @@
 
 namespace GamelistManager
 {
-    public class CredentialManager
+    internal static class CredentialManager
     {
         public static (string, string) GetCredentials(string credentialName)
         {

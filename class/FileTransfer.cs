@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GamelistManager
 {
-    public static class FileTransfer
+    internal static class FileTransfer
     {
         public static async Task<bool> DownloadFile(bool overWriteData, string fileToDownload, string url)
         {
