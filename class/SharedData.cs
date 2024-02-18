@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 
 namespace GamelistManager
@@ -10,6 +9,12 @@ namespace GamelistManager
         private static DataSet dataSet;
         private static string xmlFilename;
         private static List<ScraperData> scrapedList = new List<ScraperData>();
+        private static bool isDataChanged;
+        public static bool IsDataChanged
+        {
+            get { return isDataChanged; }
+            set { isDataChanged = value; }
+        }
         static SharedData()
         {
             dataSet = new DataSet();

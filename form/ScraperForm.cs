@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,7 +15,6 @@ namespace GamelistManager
     public partial class ScraperForm : Form
     {
         private GamelistManagerForm gamelistManagerForm;
-        private ScreenScraperSetup screenScraperSetup;
         private ScraperPreview scraperPreview;
         private CancellationTokenSource cancellationTokenSource;
         public CancellationToken cancellationToken => cancellationTokenSource.Token;
@@ -25,11 +23,12 @@ namespace GamelistManager
         private bool scraperFinished;
         private int totalCount;
         private int scrapeErrors;
+        private bool hideNonGame;
+        private bool noZZZ;
 
         public ScraperForm(GamelistManagerForm form)
         {
             InitializeComponent();
-            screenScraperSetup = new ScreenScraperSetup();
             scraperPreview = new ScraperPreview();
             cancellationTokenSource = new CancellationTokenSource();
             scraperCount = 0;
@@ -37,16 +36,18 @@ namespace GamelistManager
             scrapeErrors = 0;
             scraperFinished = false;
             gamelistManagerForm = form;
+            noZZZ = false;
+            hideNonGame = false;
         }
 
         private List<string> GetElementsToScrape()
         {
             List<string> elements = new List<string>();
-            foreach (Control control in panel_Checkboxes.Controls)
+            foreach (Control control in panelCheckboxes.Controls)
             {
                 if (control is CheckBox checkBox && checkBox.Checked && checkBox.Enabled)
                 {
-                    string elementName = checkBox.Name.Replace("checkbox_", "").ToLower();
+                    string elementName = checkBox.Name.Replace("checkbox", "").ToLower();
                     elements.Add(elementName);
                 }
             }
@@ -57,32 +58,30 @@ namespace GamelistManager
         {
             // Make a list of romPaths to scrape
             List<string> romPaths = null;
-            if (RadioButton_ScrapeAll.Checked)
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            bool excludeHidden = checkBoxDoNotScrapeHidden.Checked;
+
+            if (radioButtonScrapeAll.Checked)
             {
-                romPaths = gamelistManagerForm.dataGridView.Rows
-                .Cast<DataGridViewRow>()
-                .Select(row =>
-                {
-                    // Extract "path" value from each row
-                    string path = row.Cells["path"].Value as string;
-                    path = path.TrimStart('.', '/');
-                    return path;
-                })
-                .ToList();
+                // Include both selected and unselected rows
+                rows = gamelistManagerForm.DataGridView.Rows.Cast<DataGridViewRow>().ToList();
             }
             else
             {
-                romPaths = gamelistManagerForm.dataGridView.SelectedRows
-                .Cast<DataGridViewRow>()
-                .Select(row =>
-                {
-                    // Extract "path" value from each row
-                    string path = row.Cells["path"].Value as string;
-                    path = path.TrimStart('.', '/');
-                    return path;
-                })
-                .ToList();
+                // Only include selected rows
+                rows = gamelistManagerForm.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
             }
+
+            romPaths = rows
+           .Where(row => !excludeHidden || !(row.Cells["hidden"].Value is bool hidden && hidden))
+            .Select(row =>
+             {
+                 // Extract "path" value from each row
+                 string path = row.Cells["path"].Value.ToString().TrimStart('.', '/');
+                 return path;
+             })
+            .ToList();
             return romPaths;
         }
 
@@ -105,34 +104,34 @@ namespace GamelistManager
             }
 
             // Form settings
-            panel_ScraperOptions.Enabled = false;
-            button_StartStop.Enabled = false;
-            button_Cancel.Enabled = true;
-            button_Setup.Enabled = false;
+            panelScraperOptions.Enabled = false;
+            buttonStart.Enabled = false;
+            buttonCancel.Enabled = true;
+            buttonSetup.Enabled = false;
             globalStopwatch.Reset();
             globalStopwatch.Start();
-            panel_Checkboxes.Visible = false;
-            panel_small.Controls.Add(scraperPreview);
+            panelCheckboxes.Visible = false;
+            panelSmall.Controls.Add(scraperPreview);
 
             // Set Variables
             scraperCount = 0;
             totalCount = romPaths.Count;
             scrapeErrors = 0;
-            bool overwrite = checkBox_OverwriteExisting.Checked;
+            bool overwrite = checkBoxOverwriteExisting.Checked;
             scraperFinished = false;
             string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
             string parentFolderName = Path.GetFileName(parentFolderPath);
 
             // Reset progressbar
-            progressBar_ScrapeProgress.Value = 0;
-            progressBar_ScrapeProgress.Minimum = 0;
-            progressBar_ScrapeProgress.Step = 1;
-            progressBar_ScrapeProgress.Maximum = totalCount;
+            progressBarScrapeProgress.Value = 0;
+            progressBarScrapeProgress.Minimum = 0;
+            progressBarScrapeProgress.Step = 1;
+            progressBarScrapeProgress.Maximum = totalCount;
 
             // Reset cancellation tokensource
             cancellationTokenSource = new CancellationTokenSource();
 
-            switch (comboBox_Scrapers.SelectedIndex)
+            switch (comboBoxScrapers.SelectedIndex)
             {
                 case 0:
                     if (parentFolderName != "mame" && parentFolderName != "fbneo")
@@ -193,28 +192,30 @@ namespace GamelistManager
                 AddToLog("Scraping cancelled!");
             }
 
-            // Was there anything scraped?
-            if (scraperCount > 0)
-            {
-                SharedData.DataSet.AcceptChanges();
-                string elapsedTime = $"{globalStopwatch.Elapsed.TotalMinutes:F0} minutes and {globalStopwatch.Elapsed.Seconds} seconds";
-                MessageBox.Show($"Finished scraping {scraperCount} items in {elapsedTime}");
+            SharedData.DataSet.AcceptChanges();
 
-                if (checkBox_Save.Checked)
+            if (!checkBoxSupressNotify.Checked)
+            {
+                if (scraperCount > 0)
                 {
-                    SaveReminder();
+                    string elapsedTime = $"{globalStopwatch.Elapsed.TotalMinutes:F0} minutes and {globalStopwatch.Elapsed.Seconds} seconds";
+                    MessageBox.Show($"Finished scraping {scraperCount} items in {elapsedTime}");
+
+                    if (checkBoxSave.Checked)
+                    {
+                        SaveReminder();
+                    }
                 }
             }
 
-            // Cleanup
-            panel_ScraperOptions.Enabled = true;
-            button_StartStop.Enabled = true;
-            button_Cancel.Enabled = false;
-            button_Setup.Enabled = true;
+            panelScraperOptions.Enabled = true;
+            buttonStart.Enabled = true;
+            buttonCancel.Enabled = false;
+            buttonSetup.Enabled = true;
             globalStopwatch.Stop();
-            label_progress.Text = "0%";
-            panel_Checkboxes.Visible = true;
-            panel_small.Controls.Remove(scraperPreview);
+            labelProgress.Text = "0%";
+            panelCheckboxes.Visible = true;
+            panelSmall.Controls.Remove(scraperPreview);
 
         }
 
@@ -222,7 +223,7 @@ namespace GamelistManager
         {
             gamelistManagerForm.SaveFile(SharedData.XMLFilename);
         }
-     
+
         public async Task<bool> ArcadeDBAsync(
         string folderPath,
         List<string> elementList,
@@ -273,6 +274,8 @@ namespace GamelistManager
             string logoSource = RegistryManager.ReadRegistryValue("LogoSource");
             string region = RegistryManager.ReadRegistryValue("Region");
             string language = RegistryManager.ReadRegistryValue("language");
+            bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
+            bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
 
             string devId = "";
             string devPassword = "";
@@ -346,7 +349,7 @@ namespace GamelistManager
             }
         }
 
-        private void ScraperCommon(string scraperName, bool overwrite, string folderPath, string romName,Dictionary<string, string> result)
+        private void ScraperCommon(string scraperName, bool overwrite, string folderPath, string romName, Dictionary<string, string> result)
         {
             if (result == null)
             {
@@ -357,12 +360,22 @@ namespace GamelistManager
                 return;
             }
 
-            string marquee = result["marquee"];
-            string screenshot = result["image"];
-            if (!string.IsNullOrEmpty(marquee))
+            string marquee = null;
+            if (result.ContainsKey("marquee"))
+            {
+                marquee = result["marquee"];
+            }
+
+            string image = null;
+            if (result.ContainsKey("image"))
+            {
+                image = result["image"];
+            }
+
+            if (!string.IsNullOrEmpty(marquee) && !string.IsNullOrEmpty(image))
             {
                 string imageFileName1 = Path.GetFileName(marquee);
-                string imageFileName2 = Path.GetFileName(screenshot);
+                string imageFileName2 = Path.GetFileName(image);
                 string imagePath1 = $"{folderPath}\\images\\{imageFileName1}";
                 string imagePath2 = $"{folderPath}\\images\\{imageFileName2}";
                 this.Invoke((MethodInvoker)delegate
@@ -389,6 +402,19 @@ namespace GamelistManager
                     var cellValue = tableRow[elementName];
                     if (overwrite || cellValue == null || cellValue == DBNull.Value || string.IsNullOrEmpty(cellValue.ToString()))
                     {
+
+                        if (elementName == "name" && elementValue.Contains("notgame"))
+                        {
+                            if (hideNonGame)
+                            {
+                                tableRow["hidden"] = true;
+                            }
+                            if (noZZZ)
+                            {
+                                elementValue = (elementValue.Replace("ZZZ(notgame)", "")).Trim();
+                            }
+                        }
+
                         tableRow[elementName] = elementValue;
 
                         DateTime currentDateTime = DateTime.Now;
@@ -413,13 +439,13 @@ namespace GamelistManager
                             existingItem.Source = scraperName;
                         }
                     }
-                  }
+                }
             }
 
         }
-         private void Button_SelectAll_Click(object sender, EventArgs e)
+        private void ButtonSelectAll_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_Checkboxes.Controls)
+            foreach (Control control in panelCheckboxes.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -430,9 +456,9 @@ namespace GamelistManager
             }
         }
 
-        private void Button_SelectNone_Click(object sender, EventArgs e)
+        private void ButtonSelectNone_Click(object sender, EventArgs e)
         {
-            foreach (Control control in panel_Checkboxes.Controls)
+            foreach (Control control in panelCheckboxes.Controls)
             {
                 // Check if the control is a checkbox
                 if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
@@ -445,23 +471,21 @@ namespace GamelistManager
 
         private void Scraper_Load(object sender, EventArgs e)
         {
-            comboBox_Scrapers.SelectedIndex = 1;
+            comboBoxScrapers.SelectedIndex = 1;
 
             (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
-                button_StartStop.Enabled = false;
+                buttonStart.Enabled = false;
             }
 
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
-            System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
-            //Image image = LoadImageFromResource(romPath);
-
-            if (image is System.Drawing.Image)
+            Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
+            
+            if (image is Image)
             {
                 pictureBox1.Image = image;
             }
-
         }
 
         public void AddToLog(string logMessage)
@@ -486,11 +510,11 @@ namespace GamelistManager
 
         public void UpdateLabel(int current, int total, int errors)
         {
-            if (label_progress == null || label_Counts == null) return;
+            if (labelProgress == null || labelCounts == null) return;
 
-            if (label_progress.InvokeRequired || label_Counts.InvokeRequired)
+            if (labelProgress.InvokeRequired || labelCounts.InvokeRequired)
             {
-                label_progress.Invoke(new Action(() => UpdateLabel(current, total, errors)));
+                labelProgress.Invoke(new Action(() => UpdateLabel(current, total, errors)));
             }
             else
             {
@@ -516,22 +540,22 @@ namespace GamelistManager
 
                 remainingTimeString += $"{remainingTime.Seconds:D2}s";
 
-                label_progress.Text = $"{progress:F0}% | Remaining Time: {remainingTimeString}";
+                labelProgress.Text = $"{progress:F0}% | Remaining Time: {remainingTimeString}";
 
-                // Update the label_Counts with the current count and totalCount count
-                label_Counts.Text = $"Count:{current}/{total} | Errors:{errors}";
+                // Update the labelCounts with the current count and totalCount count
+                labelCounts.Text = $"Count:{current}/{total} | Errors:{errors}";
             }
         }
 
         public void UpdateProgressBar()
         {
-            if (progressBar_ScrapeProgress.InvokeRequired)
+            if (progressBarScrapeProgress.InvokeRequired)
             {
-                progressBar_ScrapeProgress.Invoke(new Action(() => progressBar_ScrapeProgress.Value++));
+                progressBarScrapeProgress.Invoke(new Action(() => progressBarScrapeProgress.Value++));
             }
             else
             {
-                progressBar_ScrapeProgress.Value++;
+                progressBarScrapeProgress.Value++;
             }
         }
 
@@ -539,10 +563,10 @@ namespace GamelistManager
         private void ComboBox_SelectScraper_SelectedIndexChanged(object sender, EventArgs e)
         {
             List<string> availableScraperElements = new List<string>();
-            if (comboBox_Scrapers.SelectedIndex == 0)
+            if (comboBoxScrapers.SelectedIndex == 0)
             {
                 // ArcadeDB
-                button_Setup.Enabled = false;
+                buttonSetup.Enabled = false;
                 availableScraperElements = new List<string>{
                     "name",
                     "desc",
@@ -558,10 +582,10 @@ namespace GamelistManager
                 };
             }
 
-            if (comboBox_Scrapers.SelectedIndex == 1)
+            if (comboBoxScrapers.SelectedIndex == 1)
             {
                 // ScreenScraper
-                button_Setup.Enabled = true;
+                buttonSetup.Enabled = true;
                 availableScraperElements = new List<string>{
                     "name",
                     "desc",
@@ -583,11 +607,11 @@ namespace GamelistManager
                 };
             }
 
-            foreach (Control control in panel_Checkboxes.Controls)
+            foreach (Control control in panelCheckboxes.Controls)
             {
-                if (control is System.Windows.Forms.CheckBox checkBox)
+                if (control is CheckBox checkBox)
                 {
-                    string checkboxShortName = control.Name.Replace("checkbox_", "").ToLower();
+                    string checkboxShortName = control.Name.Replace("checkbox", "").ToLower();
                     if (availableScraperElements.Contains(checkboxShortName))
                     {
                         checkBox.Enabled = true;
@@ -604,44 +628,29 @@ namespace GamelistManager
         private void Button_Stop_Click(object sender, EventArgs e)
         {
             cancellationTokenSource.Cancel();
-            button_Cancel.Enabled = false;
+            buttonCancel.Enabled = false;
             AddToLog("Cancelling scraper task......");
             globalStopwatch.Stop();
-            label_progress.Text = "0%";
+            labelProgress.Text = "0%";
         }
 
         private void button_Setup_Click(object sender, EventArgs e)
         {
-            button_StartStop.Enabled = false;
-            button_Setup.Enabled = false;
-            panel_ScraperOptions.Enabled = false;
-
-            panel_Checkboxes.Visible = false;
-
-            ScreenScraperSetup userControl = new ScreenScraperSetup();
-            panel_small.Controls.Add(userControl);
-
-
-            userControl.Disposed += ScreenScraperSetup_Disposed;
-        }
-
-        private void ScreenScraperSetup_Disposed(object sender, EventArgs e)
-        {
-            ScreenScraperSetup userControl = new ScreenScraperSetup();
-
-            panel_ScraperOptions.Enabled = true;
-            button_StartStop.Enabled = true;
-            button_Setup.Enabled = true;
-            panel_Checkboxes.Visible = true;
-
-            userControl.Disposed -= ScreenScraperSetup_Disposed;
-
+            ScreenScraperSetup screenScraperSetup = new ScreenScraperSetup
+            {
+                StartPosition = FormStartPosition.Manual,
+                Location = new Point(this.Location.X + 50, this.Location.Y + 50)
+            };
+            screenScraperSetup.ShowDialog();
         }
 
         private void button_StartStop_Click(object sender, EventArgs e)
         {
             StartScraping();
+            SharedData.IsDataChanged = true;
         }
+
+
     }
 
 }

@@ -158,10 +158,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\MediaListObject.cs" />
     <Compile Include="class\SharedData.cs" />
     <Compile Include="class\XMLResponder.cs" />
     <Compile Include="class\ScreenScraperSystems.cs" />
-    <Compile Include="class\MediaListObject.cs" />
     <Compile Include="class\SSHCommander.cs" />
     <Compile Include="class\CredentialManager.cs" />
     <Compile Include="class\FileTransfer.cs" />
@@ -169,10 +169,10 @@
     <Compile Include="class\ScrapeArcadeDB.cs" />
     <Compile Include="class\GetMameUnplayable.cs" />
     <Compile Include="class\CommandExecutor.cs" />
-    <Compile Include="control\ScreenScraperSetup.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="form\ScreenScraperSetup.cs">
+      <SubType>Form</SubType>
     </Compile>
-    <Compile Include="control\ScreenScraperSetup.Designer.cs">
+    <Compile Include="form\ScreenScraperSetup.Designer.cs">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
     </Compile>
     <Compile Include="control\ScraperPreview.cs">
@@ -215,7 +215,7 @@
     <Compile Include="control\BatoceraHostSetup.Designer.cs">
       <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="control\ScreenScraperSetup.resx">
+    <EmbeddedResource Include="form\ScreenScraperSetup.resx">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="control\ScraperPreview.resx">
@@ -865,6 +865,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\mooncake.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background4.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background6.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets')" />

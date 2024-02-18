@@ -8,6 +8,10 @@ namespace GamelistManager
     {
         public static string CreateMD5(string filePath)
         {
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
             using (var md5 = MD5.Create())
             {
                 using (var stream = File.OpenRead(filePath))
