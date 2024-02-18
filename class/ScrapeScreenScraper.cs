@@ -4,7 +4,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
 
 namespace GamelistManager
@@ -33,7 +32,7 @@ namespace GamelistManager
             Dictionary<string, string> scraperData = new Dictionary<string, string>();
             foreach (var propertyName in elementsToScrape)
             {
-                scraperData[propertyName] = null;
+                scraperData.Add(propertyName, null);
             }
 
             string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
@@ -43,7 +42,9 @@ namespace GamelistManager
             // Build MD5
             string fullRomPath = $"{folderPath}\\{romName}";
             string md5 = ChecksumCreator.CreateMD5(fullRomPath);
-            scraperData["md5"] = md5;
+            if (!string.IsNullOrEmpty(md5)) {
+                scraperData.Add("md5", null);
+            }
 
             // Get the XML response from the website
             string scraperRequestURL = $"{scraperBaseURL}{gameinfo}{romNameNoExtension}";
@@ -211,7 +212,7 @@ namespace GamelistManager
                         }
                         folderName = "images";
                         localType = "thumbnail";
-                        
+
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {

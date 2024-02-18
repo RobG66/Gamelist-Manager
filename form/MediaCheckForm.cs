@@ -9,71 +9,92 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
 namespace GamelistManager
 {
 
     public partial class MediaCheckForm : Form
     {
+        private GamelistManagerForm gamelistManagerForm;
         string parentFolderPath;
-        DataGridView dataGridView1;
         List<MediaListObject> mediaList;
         ConcurrentBag<MediaListObject> badMediaList;
         private static Stopwatch globalStopwatch = new Stopwatch();
-        int missingCount;
-        int corruptCount;
-        int singleColorCount;
-
-        public MediaCheckForm(string path, DataGridView dgv)
+        private int missingVideoCount;
+        private int missingImageCount;
+        private int corruptImageCount;
+        private int singleColorImageCount;
+        private int totalMediaCount;
+        private int currentCount;
+        private CancellationTokenSource cancellationTokenSource;
+        public CancellationToken cancellationToken => cancellationTokenSource.Token;
+        
+        public MediaCheckForm(GamelistManagerForm form)
         {
             InitializeComponent();
-            dataGridView1 = dgv;
-            parentFolderPath = path;
+            gamelistManagerForm = form;
+            parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
             mediaList = new List<MediaListObject>();
             badMediaList = new ConcurrentBag<MediaListObject>();
-            singleColorCount = 0;
-            corruptCount = 0;
-            missingCount = 0;
+            singleColorImageCount = 0;
+            corruptImageCount = 0;
+            missingImageCount = 0;
+            missingVideoCount = 0;
+            totalMediaCount = 0;
+            currentCount = 0;
+            cancellationTokenSource = new CancellationTokenSource();
         }
 
-        private List<MediaListObject> GetMediaList(string mediaType)
+        private List<MediaListObject> GetMediaList()
         {
             mediaList = new List<MediaListObject>();
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
+
+            foreach (DataGridViewColumn column in gamelistManagerForm.DataGridView.Columns)
             {
                 // Check if the column tag is set to "image"
-                if (column.Tag != null && column.Tag.ToString() == mediaType)
-                {
-                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                if (column.Tag != null)
+                { 
+                    string columnTag = column.Tag.ToString();
+                    if (columnTag == "image" || columnTag == "video")
                     {
+                      foreach (DataGridViewRow row in gamelistManagerForm.DataGridView.Rows)
+                        {
                         // Access the cell in the specified column
                         DataGridViewCell cell = row.Cells[column.Index];
 
                         string cellPathValue = cell.Value?.ToString();
-                        if (!string.IsNullOrEmpty(cellPathValue))
-                        {
-                            // Build file list
-                            string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-
-                            string extension = Path.GetExtension(fullPath);
-
-                            // Skip PDF Media
-                            if (extension != null && extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+                            if (!string.IsNullOrEmpty(cellPathValue))
                             {
-                                continue;
+                                // Build file list
+                                string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                                string extension = Path.GetExtension(fullPath);
+
+                                // Skip PDF Media
+                                // Will revisit this later
+                                if (extension != null && extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+
+                                // Validate the path is valid before adding to list
+                                char[] invalidChars = Path.GetInvalidFileNameChars();
+                                bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
+                                
+                                if (badPath) {
+                                    continue;
+                                }
+
+                                mediaList.Add(new MediaListObject
+                                {
+                                    FullPath = fullPath,
+                                    Type = columnTag,
+                                    RowIndex = row.Index,
+                                    ColumnIndex = column.Index,
+                                    Status = string.Empty
+                                });
                             }
-
-                            fullPath = CleanFileName(fullPath);
-
-                            mediaList.Add(new MediaListObject
-                            {
-                                FullPath = fullPath,
-                                RowIndex = row.Index,
-                                ColumnIndex = column.Index,
-                                Status = string.Empty
-                            });
-                        }
+                      }
                     }
+
                 }
             }
             return mediaList;
@@ -91,12 +112,11 @@ namespace GamelistManager
             return cleanedFileName;
         }
 
-
         private void button1_Click(object sender, EventArgs e)
         {
             List<MediaListObject> badMediaListAsList = badMediaList.ToList();
 
-            if (radioButton_ExportCSV.Checked)
+            if (radioButtonExportCSV.Checked)
             {
                 string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_media.csv";
                 if (ExportToCSV(badMediaListAsList, csvFileName))
@@ -111,32 +131,30 @@ namespace GamelistManager
                 }
             }
 
-            foreach (var mediaObject in badMediaListAsList)
+            foreach (var mediaObject in badMediaList)
             {
                 string fileName = mediaObject.FullPath;
                 int rowIndex = mediaObject.RowIndex;
                 int columnIndex = mediaObject.ColumnIndex;
-                if (radioButton_Delete.Checked)
+                if (radioButtonDelete.Checked)
+                {
                     try
                     {
                         File.Delete(fileName);
                     }
                     catch
                     {
-                        // Just continue for now
-                        continue;
+                        //nothing?
                     }
-
-                if (radioButton_Rename.Checked)
+                }
+                if (radioButtonRename.Checked)
                 {
-                    string oldFilePath = fileName;
-                    string newFileNamePrefix = "bad-";
-                    string directory = Path.GetDirectoryName(oldFilePath);
-                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(oldFilePath);
-                    string newFilePath = Path.Combine(directory, $"{newFileNamePrefix}{fileNameWithoutExtension}");
+                    string shortname = Path.GetFileName(fileName);
+                    string directory = Path.GetDirectoryName(fileName);
+                    string newFilePath = Path.Combine(directory, $"bad-{shortname}");
                     try
                     {
-                        File.Move(oldFilePath, newFilePath);
+                        File.Move(fileName, newFilePath);
                     }
                     catch
                     {
@@ -144,9 +162,15 @@ namespace GamelistManager
                     }
 
                 }
-                dataGridView1.Rows[rowIndex].Cells[columnIndex].Value = DBNull.Value;
+                gamelistManagerForm.DataGridView.Rows[rowIndex].Cells[columnIndex].Value = null; // DBNull.Value;
             }
-            panel2.Enabled = false;
+            GetMediaCount();
+            panelManageMedia.Enabled = false;
+            SharedData.IsDataChanged = true;
+
+            MessageBox.Show("Cleanup Completed! Don't forget to save these changes.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+
         }
 
         static bool ExportToCSV(List<MediaListObject> mediaObjects, string filePath)
@@ -178,81 +202,85 @@ namespace GamelistManager
 
         private void MediaCheckForm_Load(object sender, EventArgs e)
         {
-            radioButton_Images.Checked = true;
+            panelCheckMedia.Enabled = false;
+            Cursor.Current = Cursors.WaitCursor;
+            GetMediaCount();
+            Cursor.Current = Cursors.Default;
+            panelCheckMedia.Enabled = true;
         }
 
-        private CancellationTokenSource cancellationTokenSource;
 
         private async void button_Start_Click(object sender, EventArgs e)
         {
-            // Start button clicked
-            button_Start.Enabled = false;
-            button_Stop.Enabled = true;
+            if (listBoxLog.Items.Count > 0)
+            {
+                listBoxLog.Items.Clear();
+            }
+
+            buttonStart.Enabled = false;
+            buttonStop.Enabled = true;
             globalStopwatch.Reset();
             globalStopwatch.Start();
-            label_MissingCount.Text = "0";
-            if (radioButton_Images.Checked)
-            {
-                label_CorruptCount.Text = "0";
-                label_SingleColorCount.Text = "0";
-            }
-            panel2.Enabled = false;
+            labelMissingImageCount.Text = "0";
+            labelCorruptImageCount.Text = "0";
+            labelSingleColorImageCount.Text = "0";
+            labelMissingVideosCount.Text = "0";
+
+            panelManageMedia.Enabled = false;
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            string mediaType = "image";
-
-            if (radioButton_Videos.Checked)
+            try
             {
-                mediaType = "video";
+                // Asynchronously check media with cancellation support
+                await CheckMedia();
             }
-
-            await CheckMedia(mediaType, cancellationTokenSource.Token);
-
-            button_Stop.Enabled = false;
-            globalStopwatch.Stop();
-            globalStopwatch.Reset();
-            button_Start.Enabled = true;
-
-            if (cancellationTokenSource.IsCancellationRequested)
+            catch (OperationCanceledException)
             {
+                // The operation was canceled
+                AddToLog("Media check was cancelled!");
                 MessageBox.Show("Media checking operation was canceled.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
-            if (badMediaList == null || badMediaList.Count == 0)
+            finally
             {
-                MessageBox.Show("No bad media was found.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                // Enable UI elements and reset the stopwatch
+                buttonStop.Enabled = false;
+                globalStopwatch.Stop();
+                globalStopwatch.Reset();
+                buttonStart.Enabled = true;
             }
 
-            panel2.Enabled = true;
+                if (badMediaList == null || badMediaList.Count == 0)
+                {
+                    MessageBox.Show("No bad media was found.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
 
+                panelManageMedia.Enabled = true;
         }
 
         private void StopCheckingMedia()
         {
-            if (cancellationTokenSource != null)
-            {
-                // Cancel the operation if it's still running
-                cancellationTokenSource.Cancel();
-            }
+            // Cancel the operation if it's still running
+            cancellationTokenSource?.Cancel();
         }
 
-        private async Task CheckMedia(string mediaType, CancellationToken cancellationToken)
+        private async Task CheckMedia()
         {
 
-            int totalFiles = mediaList.Count;
-            int count = 0;
+            totalMediaCount = mediaList.Count;
+            currentCount = 0;
 
             progressBar1.Minimum = 0;
-            progressBar1.Maximum = totalFiles;
+            progressBar1.Maximum = totalMediaCount;
             progressBar1.Step = 1;
             progressBar1.Value = 0;
 
-            singleColorCount = 0;
-            corruptCount = 0;
-            missingCount = 0;
+            singleColorImageCount = 0;
+            corruptImageCount = 0;
+            missingImageCount = 0;
+            missingVideoCount = 0;
 
             badMediaList = new ConcurrentBag<MediaListObject>();
 
@@ -270,6 +298,8 @@ namespace GamelistManager
                     string fileName = item.FullPath;
                     int rowIndex = item.RowIndex;
                     int columnIndex = item.ColumnIndex;
+                    string mediaType = item.Type;
+                    string shortFileName = Path.GetFileName(fileName);
 
                     string result = null;
 
@@ -285,41 +315,51 @@ namespace GamelistManager
                     switch (result)
                     {
                         case "missing":
-                            Interlocked.Increment(ref missingCount);
+                            if (mediaType == "image")
+                            {
+                                Interlocked.Increment(ref missingImageCount);
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref missingVideoCount);
+                            }
                             item.Status = "missing";
                             badMediaList.Add(item);
+                            AddToLog($"Missing {mediaType}: {shortFileName}");
                             break;
                         case "ok":
                             break;
                         case "singlecolor":
-                            Interlocked.Increment(ref singleColorCount);
+                            Interlocked.Increment(ref singleColorImageCount);
                             item.Status = "singlecolor";
                             badMediaList.Add(item);
+                            AddToLog($"Single Color Image: {shortFileName}");
                             break;
                         case "corrupt":
-                            Interlocked.Increment(ref corruptCount);
+                            Interlocked.Increment(ref corruptImageCount);
                             item.Status = "corrupt";
                             badMediaList.Add(item);
+                            AddToLog($"Corrupt Image: {shortFileName}");
                             break;
                     }
 
-                    Interlocked.Increment(ref count);
-                    UpdateLabels(count, totalFiles, missingCount, corruptCount, singleColorCount);
+                    Interlocked.Increment(ref currentCount);
+                    UpdateLabels();
                     UpdateProgressBar();
                 });
             });
             return;
         }
-
-        public void UpdateLabels(int current, int total, int missing, int corrupt, int singleColor)
+        
+        public void UpdateLabels()
         {
-            if (label_progress.InvokeRequired)
+            if (labelProgress.InvokeRequired)
             {
-                label_progress.Invoke(new Action(() => UpdateLabels(current, total, missing, corrupt, singleColor)));
+                labelProgress.Invoke(new Action(() => UpdateLabels()));
             }
             else
             {
-                double progress = (double)current / total * 100;
+                double progress = (double)currentCount / totalMediaCount * 100;
 
                 // Assuming you have a global Stopwatch declared outside of this method
                 TimeSpan elapsed = globalStopwatch.Elapsed;
@@ -341,14 +381,12 @@ namespace GamelistManager
 
                 remainingTimeString += $"{remainingTime.Seconds}s";
 
-                label_progress.Text = $"{progress:F0}%"; // | Remaining Time: {remainingTimeString}";
+                labelProgress.Text = $"{progress:F0}%"; // | Remaining Time: {remainingTimeString}";
 
-                label_MissingCount.Text = missing.ToString();
-                if (radioButton_Images.Checked)
-                {
-                    label_CorruptCount.Text = corrupt.ToString();
-                    label_SingleColorCount.Text = singleColor.ToString();
-                }
+                labelMissingImageCount.Text = missingImageCount.ToString();
+                labelCorruptImageCount.Text = corruptImageCount.ToString();
+                labelSingleColorImageCount.Text = singleColorImageCount.ToString();
+                labelMissingVideosCount.Text = missingVideoCount.ToString();
             }
         }
 
@@ -363,28 +401,21 @@ namespace GamelistManager
                 progressBar1.PerformStep();
             }
         }
-        private void radioButton_Images_CheckedChanged(object sender, EventArgs e)
+  
+        private void GetMediaCount()
         {
-            panel2.Enabled = false;
-            label_CorruptCount.Text = "0";
-            label_MissingCount.Text = "0";
-            label_SingleColorCount.Text = "0";
+            panelManageMedia.Enabled = false;
+            labelCorruptImageCount.Text = "0";
+            labelMissingImageCount.Text = "0";
+            labelSingleColorImageCount.Text = "0";
 
-            Cursor.Current = Cursors.WaitCursor;
+            mediaList = GetMediaList();
+           
+            int image = mediaList.Count(media => media.Type == "image");
+            int video = mediaList.Count(media => media.Type == "video");
 
-            string mediaType = "image";
-            if (radioButton_Videos.Checked)
-            {
-                mediaType = "video";
-                label_CorruptCount.Text = "N/A";
-                label_SingleColorCount.Text = "N/A";
-            }
-
-            mediaList = GetMediaList(mediaType);
-            int totalitems = mediaList.Count;
-            label2.Text = $"There are {totalitems} {mediaType}s";
-
-            Cursor.Current = Cursors.Default;
+            labelTotalImagesCount.Text = image.ToString();
+            labelTotalVideosCount.Text = video.ToString();
         }
 
         private void MediaCheckForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -402,6 +433,23 @@ namespace GamelistManager
             StopCheckingMedia();
         }
 
+        public void AddToLog(string logMessage)
+        {
+            Action updateListBox = () =>
+            {
+                listBoxLog.Items.Add($"{logMessage}");
+                listBoxLog.TopIndex = listBoxLog.Items.Count - 1;
+            };
+
+            if (listBoxLog.InvokeRequired)
+            {
+                listBoxLog.Invoke(updateListBox);
+            }
+            else
+            {
+                updateListBox();
+            }
+        }
 
     }
 }

@@ -22,7 +22,7 @@ namespace GamelistManager
             Dictionary<string, string> scraperData = new Dictionary<string, string>();
             foreach (var propertyName in elementsToScrape)
             {
-                scraperData[propertyName] = null;
+                scraperData.Add(propertyName, null);
             }
 
             string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
@@ -44,7 +44,10 @@ namespace GamelistManager
             // Build MD5
             string fullRomPath = $"{folderPath}\\{romName}";
             string md5 = ChecksumCreator.CreateMD5(fullRomPath);
-            scraperData["md5"] = md5;
+            if (!string.IsNullOrEmpty(md5))
+            {
+                scraperData.Add("md5", null);
+            }
 
             GameInfo ScrapedGameInfo = scrapeResult.Result[0];
             string remoteDownloadURL = null;
@@ -53,7 +56,6 @@ namespace GamelistManager
             string downloadPath = null;
             string fileToDownload = null;
             bool result = false;
-
             foreach (string element in elementsToScrape)
             {
                 switch (element)
@@ -117,10 +119,6 @@ namespace GamelistManager
                         }
                         break;
 
-                    case "thumbnail":
-
-                        break;
-
                     case "marquee":
                         remoteDownloadURL = ScrapedGameInfo.url_image_marquee;
                         if (remoteDownloadURL == null)
@@ -134,7 +132,7 @@ namespace GamelistManager
                         result = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
                         if (result)
                         {
-                            scraperData["marquee"] = $"./{folderName}/{fileName}";
+                           scraperData["marquee"] = $"./{folderName}/{fileName}";
                         }
                         break;
 

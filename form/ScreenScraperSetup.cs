@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace GamelistManager.control
 {
-    public partial class ScreenScraperSetup : UserControl
+    public partial class ScreenScraperSetup : Form
     {
 
         public ScreenScraperSetup()
@@ -14,7 +14,7 @@ namespace GamelistManager.control
             InitializeComponent();
         }
 
-        private async void button1_Click(object sender, EventArgs e)
+        private async void Button1_Click(object sender, EventArgs e)
         {
             //ScraperForm scraperForm = new ScraperForm();
             this.Enabled = false;
@@ -28,7 +28,7 @@ namespace GamelistManager.control
             else
             {
                 SaveCredentials();
-                button1.Enabled = false;
+                buttonSave.Enabled = false;
             }
 
             SaveRegion();
@@ -37,52 +37,62 @@ namespace GamelistManager.control
             SaveBoxSource();
             SaveLogoSource();
             SaveMaxThreads();
+            SaveNonGameOptions();
 
             this.Enabled = true;
         }
 
+
+        private void SaveNonGameOptions()
+        {
+            bool hideNonGame = checkBoxHideNonGame.Checked;
+            bool noZZZ = checkBoxNoZZZ.Checked;
+            RegistryManager.SaveRegistryValue("HideNonGame", hideNonGame.ToString());
+            RegistryManager.SaveRegistryValue("NoZZZ", noZZZ.ToString());
+        }
+
         private void SaveMaxThreads()
         {
-            string maxThreadsValue = comboBox_MaxThreads.Text;
+            string maxThreadsValue = comboBoxMaxThreads.Text;
             RegistryManager.SaveRegistryValue("MaxThreads", maxThreadsValue);
         }
 
         private void SaveLogoSource()
         {
-            string boxValue = comboBox_LogoSource.Text;
+            string boxValue = comboBoxLogoSource.Text;
             RegistryManager.SaveRegistryValue("LogoSource", boxValue);
         }
 
         private void SaveImageSource()
         {
-            string boxValue = comboBox_ImageSource.Text;
+            string boxValue = comboBoxImageSource.Text;
             RegistryManager.SaveRegistryValue("ImageSource", boxValue);
         }
 
         private void SaveBoxSource()
         {
-            string boxValue = comboBox_BoxSource.Text;
+            string boxValue = comboBoxBoxSource.Text;
             RegistryManager.SaveRegistryValue("BoxSource", boxValue);
         }
 
         private void SaveLanguage()
         {
-            string boxValue = comboBox_Language.Text;
+            string boxValue = comboBoxLanguage.Text;
             string language = boxValue.Split(':')[0].Trim();
             RegistryManager.SaveRegistryValue("Language", language);
         }
 
         private void SaveRegion()
         {
-            string boxValue = comboBox_Region.Text;
+            string boxValue = comboBoxRegion.Text;
             string region = boxValue.Split(':')[0].Trim();
             RegistryManager.SaveRegistryValue("Region", region);
         }
 
         private void SaveCredentials()
         {
-            string userID = textbox_ScreenScraperName.Text;
-            string userPassword = textbox_ScreenScraperPassword.Text;
+            string userID = textboxScreenScraperName.Text;
+            string userPassword = textboxScreenScraperPassword.Text;
 
             Credential CredentialManager = new Credential()
             {
@@ -95,43 +105,45 @@ namespace GamelistManager.control
         }
 
 
-        private void button2_Click(object sender, EventArgs e)
+        private void Button2_Click(object sender, EventArgs e)
         {
             this.Dispose();
         }
 
         private void ScreenScraperID_TextChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            buttonSave.Enabled = true;
         }
 
         private void ScreenScraperPassword_TextChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            buttonSave.Enabled = true;
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void CheckBox1_CheckedChanged(object sender, EventArgs e)
         {
-            if (checkBox1.Checked)
+            if (checkboxShowPassword.Checked)
             {
-                textbox_ScreenScraperPassword.UseSystemPasswordChar = false;
+                textboxScreenScraperPassword.UseSystemPasswordChar = false;
             }
             else
             {
-                textbox_ScreenScraperPassword.UseSystemPasswordChar = true;
+                textboxScreenScraperPassword.UseSystemPasswordChar = true;
             }
         }
 
         private async void ScreenScraperSetup_Load(object sender, EventArgs e)
         {
+            Cursor.Current = Cursors.WaitCursor;
+            this.Enabled = false;
             (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
 
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
                 return;
             }
-            textbox_ScreenScraperName.Text = userName;
-            textbox_ScreenScraperPassword.Text = userPassword;
+            textboxScreenScraperName.Text = userName;
+            textboxScreenScraperPassword.Text = userPassword;
 
             string boxSource = RegistryManager.ReadRegistryValue("BoxSource");
             string imageSource = RegistryManager.ReadRegistryValue("ImageSource");
@@ -139,28 +151,34 @@ namespace GamelistManager.control
             string region = RegistryManager.ReadRegistryValue("Region");
             string language = RegistryManager.ReadRegistryValue("Language");
 
-            comboBox_BoxSource.Text = boxSource;
-            comboBox_ImageSource.Text = imageSource;
-            comboBox_LogoSource.Text = logoSource;
+            comboBoxBoxSource.Text = boxSource;
+            comboBoxImageSource.Text = imageSource;
+            comboBoxLogoSource.Text = logoSource;
 
-            int index = comboBox_Language.FindString($"{language}:");
+            bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out bool hideNonGame);
+            bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out bool noZZZ);
+
+            checkBoxHideNonGame.Checked = hideNonGame;
+            checkBoxNoZZZ.Checked = noZZZ;
+
+            int index = comboBoxLanguage.FindString($"{language}:");
             if (index != -1)
             {
-                comboBox_Language.SelectedIndex = index;
+                comboBoxLanguage.SelectedIndex = index;
             }
             else
             {
-                comboBox_Language.SelectedIndex = 0;
+                comboBoxLanguage.SelectedIndex = 0;
             }
 
-            index = comboBox_Region.FindString($"{region}:");
+            index = comboBoxRegion.FindString($"{region}:");
             if (index != -1)
             {
-                comboBox_Region.SelectedIndex = index;
+                comboBoxRegion.SelectedIndex = index;
             }
             else
             {
-                comboBox_Region.SelectedIndex = 37;
+                comboBoxRegion.SelectedIndex = 37;
             }
 
             // Setup max threads, show the biggest value by default
@@ -172,21 +190,25 @@ namespace GamelistManager.control
                 maxThreads = int.Parse(maxThreadsNode.InnerText);
             }
 
-            if (comboBox_MaxThreads.Items.Count > 0)
+            if (comboBoxMaxThreads.Items.Count > 0)
             {
-                comboBox_MaxThreads.Items.Clear();
+                comboBoxMaxThreads.Items.Clear();
             }
             for (int i = 1; i <= maxThreads; i++)
             {
-                comboBox_MaxThreads.Items.Add(i.ToString());
+                comboBoxMaxThreads.Items.Add(i.ToString());
             }
-            comboBox_MaxThreads.SelectedIndex = comboBox_MaxThreads.Items.Count - 1;
+            comboBoxMaxThreads.SelectedIndex = comboBoxMaxThreads.Items.Count - 1;
+
+            this.Enabled = true;
+            Cursor.Current = Cursors.Default;
+
         }
 
         private async Task<XmlNode> CheckUser()
         {
-            string userId = textbox_ScreenScraperName.Text;
-            string userPassword = textbox_ScreenScraperPassword.Text;
+            string userId = textboxScreenScraperName.Text;
+            string userPassword = textboxScreenScraperPassword.Text;
             string url = $"https://api.screenscraper.fr/api2/ssuserInfos.php?devid=xxx&devpassword=yyy&softname=zzz&output=xml&ssid={userId}&sspassword={userPassword}";
             XMLResponder responder = new XMLResponder();
             XmlNode xmlResponse = await responder.GetXMLResponseAsync(url);
@@ -194,19 +216,21 @@ namespace GamelistManager.control
         }
 
 
-        private void comboBox_ImageSource_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBox_ImageSource_SelectedIndexChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            buttonSave.Enabled = true;
         }
 
-        private void comboBox_BoxSource_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBox_BoxSource_SelectedIndexChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            buttonSave.Enabled = true;
         }
 
-        private void comboBox_LogoSource_SelectedIndexChanged(object sender, EventArgs e)
+        private void ComboBox_LogoSource_SelectedIndexChanged(object sender, EventArgs e)
         {
-            button1.Enabled = true;
+            buttonSave.Enabled = true;
         }
+
+
     }
 }
