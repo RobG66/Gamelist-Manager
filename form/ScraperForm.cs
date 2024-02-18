@@ -277,8 +277,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
 
-            string devId = "robg77";
-            string devPassword = "4dLRXRHWT0y";
+            string devId = "";
+            string devPassword = "";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
