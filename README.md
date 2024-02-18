@@ -4,7 +4,7 @@
 February 18th
 
  Version 4.1 bugfix is now released!  A major update with multi threaded capable scraping from ScreenScraper now included.  Many other fixes and enhancements.  Grab it from the releases.
-
+ Github continues to cause me issues, my own doing I guess.  
  
 February 3rd
 
