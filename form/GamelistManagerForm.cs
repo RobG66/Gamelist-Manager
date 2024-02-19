@@ -2287,7 +2287,7 @@ namespace GamelistManager
             {
                 return;
             }
-         
+
             var pathList = new List<string>();
             var nameList = new List<string>();
 
@@ -2306,9 +2306,9 @@ namespace GamelistManager
 
             SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
             SharedData.DataSet.Clear();
-           
+
             SetupTableColumns();
-           
+
             for (int i = 0; i < pathValues.Count; i++)
             {
                 DataRow newRow = SharedData.DataSet.Tables[0].NewRow();

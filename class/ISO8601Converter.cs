@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace GamelistManager 
+namespace GamelistManager
 {
     internal static class ISO8601Converter
     {
-       public static string ConvertToISO8601(string dateString)
+        public static string ConvertToISO8601(string dateString)
         {
             try
             {

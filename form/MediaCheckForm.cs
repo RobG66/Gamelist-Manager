@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,9 +24,10 @@ namespace GamelistManager
         private int singleColorImageCount;
         private int totalMediaCount;
         private int currentCount;
+        private int unusedMediaCount;
         private CancellationTokenSource cancellationTokenSource;
         public CancellationToken cancellationToken => cancellationTokenSource.Token;
-        
+
         public MediaCheckForm(GamelistManagerForm form)
         {
             InitializeComponent();
@@ -41,6 +41,7 @@ namespace GamelistManager
             missingVideoCount = 0;
             totalMediaCount = 0;
             currentCount = 0;
+            unusedMediaCount = 0;
             cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -52,16 +53,16 @@ namespace GamelistManager
             {
                 // Check if the column tag is set to "image"
                 if (column.Tag != null)
-                { 
+                {
                     string columnTag = column.Tag.ToString();
                     if (columnTag == "image" || columnTag == "video")
                     {
-                      foreach (DataGridViewRow row in gamelistManagerForm.DataGridView.Rows)
+                        foreach (DataGridViewRow row in gamelistManagerForm.DataGridView.Rows)
                         {
-                        // Access the cell in the specified column
-                        DataGridViewCell cell = row.Cells[column.Index];
+                            // Access the cell in the specified column
+                            DataGridViewCell cell = row.Cells[column.Index];
 
-                        string cellPathValue = cell.Value?.ToString();
+                            string cellPathValue = cell.Value?.ToString();
                             if (!string.IsNullOrEmpty(cellPathValue))
                             {
                                 // Build file list
@@ -78,8 +79,9 @@ namespace GamelistManager
                                 // Validate the path is valid before adding to list
                                 char[] invalidChars = Path.GetInvalidFileNameChars();
                                 bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
-                                
-                                if (badPath) {
+
+                                if (badPath)
+                                {
                                     continue;
                                 }
 
@@ -92,24 +94,12 @@ namespace GamelistManager
                                     Status = string.Empty
                                 });
                             }
-                      }
+                        }
                     }
 
                 }
             }
             return mediaList;
-        }
-
-        static string CleanFileName(string fileName)
-        {
-            // Define a regular expression to match illegal characters in filenames
-            char[] invalidChars = Path.GetInvalidFileNameChars().Except(new char[] { ':', '\\', '/' }).ToArray();
-            string illegalCharactersPattern = "[" + Regex.Escape(new string(invalidChars)) + "]";
-
-            // Replace illegal characters with an empty string
-            string cleanedFileName = Regex.Replace(fileName, illegalCharactersPattern, "");
-
-            return cleanedFileName;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -251,13 +241,13 @@ namespace GamelistManager
                 buttonStart.Enabled = true;
             }
 
-                if (badMediaList == null || badMediaList.Count == 0)
-                {
-                    MessageBox.Show("No bad media was found.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
+            if (badMediaList == null || badMediaList.Count == 0)
+            {
+                MessageBox.Show("No issues were found.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-                panelManageMedia.Enabled = true;
+            panelManageMedia.Enabled = true;
         }
 
         private void StopCheckingMedia()
@@ -269,6 +259,8 @@ namespace GamelistManager
         private async Task CheckMedia()
         {
 
+            badMediaList = new ConcurrentBag<MediaListObject>();
+
             totalMediaCount = mediaList.Count;
             currentCount = 0;
 
@@ -276,13 +268,33 @@ namespace GamelistManager
             progressBar1.Maximum = totalMediaCount;
             progressBar1.Step = 1;
             progressBar1.Value = 0;
-
+            labelProgress.Text = "0%";
             singleColorImageCount = 0;
             corruptImageCount = 0;
             missingImageCount = 0;
             missingVideoCount = 0;
+            unusedMediaCount = 0;
 
-            badMediaList = new ConcurrentBag<MediaListObject>();
+            string[] currentImages = Directory.GetFiles($"{parentFolderPath}\\images");
+            string[] currentVideos = Directory.GetFiles($"{parentFolderPath}\\videos");
+            string[] allMedia = currentImages.Concat(currentVideos).ToArray();
+            string[] usedMedia = mediaList.Select(media => media.FullPath).ToArray();
+
+            foreach (string mediaItem in allMedia)
+            {
+                if (!usedMedia.Contains(mediaItem))
+                {
+                    unusedMediaCount++;
+                    labelUnusedMediaCount.Text = unusedMediaCount.ToString();
+                    AddToLog($"Unused: {mediaItem}");
+                    MediaListObject unusedItem = new MediaListObject();
+                    unusedItem.FullPath = mediaItem;
+                    unusedItem.Status = "unused";
+                    unusedItem.RowIndex = -1;
+                    unusedItem.ColumnIndex = -1;
+                    badMediaList.Add(unusedItem);
+                }
+            }
 
             await Task.Run(() =>
             {
@@ -350,7 +362,7 @@ namespace GamelistManager
             });
             return;
         }
-        
+
         public void UpdateLabels()
         {
             if (labelProgress.InvokeRequired)
@@ -401,7 +413,7 @@ namespace GamelistManager
                 progressBar1.PerformStep();
             }
         }
-  
+
         private void GetMediaCount()
         {
             panelManageMedia.Enabled = false;
@@ -410,7 +422,7 @@ namespace GamelistManager
             labelSingleColorImageCount.Text = "0";
 
             mediaList = GetMediaList();
-           
+
             int image = mediaList.Count(media => media.Type == "image");
             int video = mediaList.Count(media => media.Type == "video");
 

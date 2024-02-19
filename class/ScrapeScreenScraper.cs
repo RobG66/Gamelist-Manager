@@ -41,7 +41,8 @@ namespace GamelistManager
             // Build MD5
             string fullRomPath = $"{folderPath}\\{romName}";
             string md5 = ChecksumCreator.CreateMD5(fullRomPath);
-            if (!string.IsNullOrEmpty(md5)) {
+            if (!string.IsNullOrEmpty(md5))
+            {
                 scraperData.Add("md5", null);
             }
 

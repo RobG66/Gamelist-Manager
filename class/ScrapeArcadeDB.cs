@@ -1,13 +1,11 @@
 ﻿//using Newtonsoft.Json;
-using System.Text.Json;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System.Linq;
-using System.Windows.Forms;
-using System;
 
 namespace GamelistManager
 {
@@ -31,13 +29,13 @@ namespace GamelistManager
             string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
             string scraperURL = $"http://adb.arcadeitalia.net/service_scraper.php?ajax=query_mame&game_name={romNameNoExtension}";
             GameInfo scrapedGameInfo = await GetGameInfoAsync(scraperURL);
-            
+
             if (scrapedGameInfo == null)
             {
                 return null;
             }
 
-           if (scrapedGameInfo.game_name == null)
+            if (scrapedGameInfo.game_name == null)
             {
                 return null;
             }
@@ -132,7 +130,7 @@ namespace GamelistManager
                         result = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
                         if (result)
                         {
-                           scraperData["marquee"] = $"./{folderName}/{fileName}";
+                            scraperData["marquee"] = $"./{folderName}/{fileName}";
                         }
                         break;
 

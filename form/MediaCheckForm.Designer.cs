@@ -53,6 +53,8 @@
             this.labelTotalImagesCount = new System.Windows.Forms.Label();
             this.buttonStop = new System.Windows.Forms.Button();
             this.listBoxLog = new System.Windows.Forms.ListBox();
+            this.labelUnusedMediaCount = new System.Windows.Forms.Label();
+            this.labelUnusedMedia = new System.Windows.Forms.Label();
             this.panelManageMedia.SuspendLayout();
             this.panelCheckMedia.SuspendLayout();
             this.SuspendLayout();
@@ -73,7 +75,7 @@
             // 
             this.radioButtonRename.AutoSize = true;
             this.radioButtonRename.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButtonRename.Location = new System.Drawing.Point(3, 78);
+            this.radioButtonRename.Location = new System.Drawing.Point(3, 70);
             this.radioButtonRename.Name = "radioButtonRename";
             this.radioButtonRename.Size = new System.Drawing.Size(248, 17);
             this.radioButtonRename.TabIndex = 8;
@@ -84,7 +86,7 @@
             // 
             this.radioButtonDelete.AutoSize = true;
             this.radioButtonDelete.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButtonDelete.Location = new System.Drawing.Point(3, 54);
+            this.radioButtonDelete.Location = new System.Drawing.Point(3, 50);
             this.radioButtonDelete.Name = "radioButtonDelete";
             this.radioButtonDelete.Size = new System.Drawing.Size(140, 17);
             this.radioButtonDelete.TabIndex = 7;
@@ -118,7 +120,7 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(3, 99);
+            this.progressBar1.Location = new System.Drawing.Point(3, 111);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(315, 23);
             this.progressBar1.TabIndex = 14;
@@ -133,9 +135,9 @@
             this.panelManageMedia.Controls.Add(this.radioButtonRename);
             this.panelManageMedia.Controls.Add(this.buttonCleanup);
             this.panelManageMedia.Enabled = false;
-            this.panelManageMedia.Location = new System.Drawing.Point(2, 140);
+            this.panelManageMedia.Location = new System.Drawing.Point(2, 153);
             this.panelManageMedia.Name = "panelManageMedia";
-            this.panelManageMedia.Size = new System.Drawing.Size(323, 107);
+            this.panelManageMedia.Size = new System.Drawing.Size(323, 94);
             this.panelManageMedia.TabIndex = 16;
             // 
             // labelManageBadMedia
@@ -146,9 +148,9 @@
             this.labelManageBadMedia.ForeColor = System.Drawing.Color.MidnightBlue;
             this.labelManageBadMedia.Location = new System.Drawing.Point(3, 8);
             this.labelManageBadMedia.Name = "labelManageBadMedia";
-            this.labelManageBadMedia.Size = new System.Drawing.Size(109, 15);
+            this.labelManageBadMedia.Size = new System.Drawing.Size(90, 15);
             this.labelManageBadMedia.TabIndex = 18;
-            this.labelManageBadMedia.Text = "Manage Bad Media";
+            this.labelManageBadMedia.Text = "Manage Results";
             // 
             // labelInstruction
             // 
@@ -156,7 +158,7 @@
             this.labelInstruction.BackColor = System.Drawing.Color.Transparent;
             this.labelInstruction.Font = new System.Drawing.Font("Segoe UI", 8.25F);
             this.labelInstruction.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.labelInstruction.Location = new System.Drawing.Point(180, 83);
+            this.labelInstruction.Location = new System.Drawing.Point(180, 95);
             this.labelInstruction.Name = "labelInstruction";
             this.labelInstruction.Size = new System.Drawing.Size(138, 13);
             this.labelInstruction.TabIndex = 17;
@@ -167,7 +169,7 @@
             this.labelProgress.AutoSize = true;
             this.labelProgress.BackColor = System.Drawing.Color.Transparent;
             this.labelProgress.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.labelProgress.Location = new System.Drawing.Point(9, 83);
+            this.labelProgress.Location = new System.Drawing.Point(9, 95);
             this.labelProgress.Name = "labelProgress";
             this.labelProgress.Size = new System.Drawing.Size(22, 13);
             this.labelProgress.TabIndex = 26;
@@ -243,6 +245,8 @@
             // 
             this.panelCheckMedia.BackColor = System.Drawing.Color.Transparent;
             this.panelCheckMedia.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelCheckMedia.Controls.Add(this.labelUnusedMediaCount);
+            this.panelCheckMedia.Controls.Add(this.labelUnusedMedia);
             this.panelCheckMedia.Controls.Add(this.labelMissingVideos);
             this.panelCheckMedia.Controls.Add(this.labelMissingVideosCount);
             this.panelCheckMedia.Controls.Add(this.labelVideos);
@@ -262,7 +266,7 @@
             this.panelCheckMedia.Controls.Add(this.buttonStart);
             this.panelCheckMedia.Location = new System.Drawing.Point(2, 5);
             this.panelCheckMedia.Name = "panelCheckMedia";
-            this.panelCheckMedia.Size = new System.Drawing.Size(323, 130);
+            this.panelCheckMedia.Size = new System.Drawing.Size(323, 142);
             this.panelCheckMedia.TabIndex = 33;
             // 
             // labelMissingVideos
@@ -353,6 +357,28 @@
             this.listBoxLog.Size = new System.Drawing.Size(323, 108);
             this.listBoxLog.TabIndex = 34;
             // 
+            // labelUnusedMediaCount
+            // 
+            this.labelUnusedMediaCount.AutoSize = true;
+            this.labelUnusedMediaCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelUnusedMediaCount.ForeColor = System.Drawing.Color.Red;
+            this.labelUnusedMediaCount.Location = new System.Drawing.Point(278, 73);
+            this.labelUnusedMediaCount.Name = "labelUnusedMediaCount";
+            this.labelUnusedMediaCount.Size = new System.Drawing.Size(13, 13);
+            this.labelUnusedMediaCount.TabIndex = 42;
+            this.labelUnusedMediaCount.Text = "0";
+            // 
+            // labelUnusedMedia
+            // 
+            this.labelUnusedMedia.AutoSize = true;
+            this.labelUnusedMedia.BackColor = System.Drawing.Color.Transparent;
+            this.labelUnusedMedia.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelUnusedMedia.Location = new System.Drawing.Point(197, 73);
+            this.labelUnusedMedia.Name = "labelUnusedMedia";
+            this.labelUnusedMedia.Size = new System.Drawing.Size(79, 13);
+            this.labelUnusedMedia.TabIndex = 41;
+            this.labelUnusedMedia.Text = "Unused Media:";
+            // 
             // MediaCheckForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -405,5 +431,7 @@
         private System.Windows.Forms.Label labelTotalImagesCount;
         private System.Windows.Forms.Label labelMissingVideos;
         private System.Windows.Forms.Label labelMissingVideosCount;
+        private System.Windows.Forms.Label labelUnusedMediaCount;
+        private System.Windows.Forms.Label labelUnusedMedia;
     }
 }
