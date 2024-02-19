@@ -121,9 +121,20 @@ namespace GamelistManager
                 }
             }
 
+            string system = Path.GetFileName(parentFolderPath);
+            string currentDir = Directory.GetCurrentDirectory();
+            string imageBackupDir = Path.Combine(currentDir, "backup", system, "images");
+            string videobackupDir = Path.Combine(currentDir, "backup", system, "videos");
+            if (!Directory.Exists(imageBackupDir))
+            {
+                Directory.CreateDirectory(imageBackupDir);
+                Directory.CreateDirectory(videobackupDir);
+            }
+
             foreach (var mediaObject in badMediaList)
             {
                 string fileName = mediaObject.FullPath;
+                string mediaType = mediaObject.Type;
                 int rowIndex = mediaObject.RowIndex;
                 int columnIndex = mediaObject.ColumnIndex;
                 if (radioButtonDelete.Checked)
@@ -137,11 +148,15 @@ namespace GamelistManager
                         //nothing?
                     }
                 }
-                if (radioButtonRename.Checked)
+                if (radioButtonMove.Checked)
                 {
+                    string destinationDirectory = imageBackupDir;
+                    if (mediaType == "video")
+                    {
+                        destinationDirectory = videobackupDir;
+                    }
                     string shortname = Path.GetFileName(fileName);
-                    string directory = Path.GetDirectoryName(fileName);
-                    string newFilePath = Path.Combine(directory, $"bad-{shortname}");
+                    string newFilePath = Path.Combine(destinationDirectory, shortname);
                     try
                     {
                         File.Move(fileName, newFilePath);
@@ -152,7 +167,13 @@ namespace GamelistManager
                     }
 
                 }
+                if (rowIndex == -1 || columnIndex == -1)
+                {
+                    continue;
+                }
+
                 gamelistManagerForm.DataGridView.Rows[rowIndex].Cells[columnIndex].Value = null; // DBNull.Value;
+
             }
             GetMediaCount();
             panelManageMedia.Enabled = false;
@@ -286,7 +307,8 @@ namespace GamelistManager
                 {
                     unusedMediaCount++;
                     labelUnusedMediaCount.Text = unusedMediaCount.ToString();
-                    AddToLog($"Unused: {mediaItem}");
+                    string shortName = Path.GetFileName(mediaItem);
+                    AddToLog($"Unused: {shortName}");
                     MediaListObject unusedItem = new MediaListObject();
                     unusedItem.FullPath = mediaItem;
                     unusedItem.Status = "unused";

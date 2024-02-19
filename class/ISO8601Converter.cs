@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 
 namespace GamelistManager
 {
@@ -6,19 +7,25 @@ namespace GamelistManager
     {
         public static string ConvertToISO8601(string dateString)
         {
+            if (string.IsNullOrEmpty(dateString))
+            {
+                return null;
+            }
             try
             {
                 DateTime date;
-                string format = dateString.Contains("-") ? "yyyy-MM-dd" : "yyyy";
+                if (DateTime.TryParseExact(dateString, "yyyy", null, System.Globalization.DateTimeStyles.None, out date))
+                {
+                    return date.ToString("yyyyMMddTHHmmss");
+                }
 
-                if (DateTime.TryParseExact(dateString, format, null, System.Globalization.DateTimeStyles.None, out date))
+                if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out date))
                 {
-                    return date.ToString("yyyy-MM-ddTHH:mm:ss");
+                    return date.ToString("yyyyMMddTHHmmss");
                 }
-                else
-                {
-                    return null;
-                }
+
+                DateTime.TryParse(dateString, out DateTime dateTime);
+                return dateTime.ToString("yyyyMMddTHHmmss");
             }
             catch
             {

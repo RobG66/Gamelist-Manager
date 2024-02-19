@@ -64,7 +64,6 @@ namespace GamelistManager
             string filenameToDownload = null;
             string downloadPath = null;
             string fileFormat = null;
-            string firstRomRegion = null;
             bool downloadSuccess = false;
 
             // Media node, we only need to select it once
@@ -132,16 +131,12 @@ namespace GamelistManager
 
                     case "region":
                         string romRegions = xmlResponse.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText;
-                        firstRomRegion = null;
-                        if (romRegions != null)
-                        {
-                            firstRomRegion = romRegions.Split(',')[0].Trim();
-                        }
-                        scraperData["region"] = firstRomRegion;
+                        scraperData["region"] = romRegions;
                         break;
 
                     case "releasedate":
-                        value = xmlResponse.SelectSingleNode($"/Data/jeu/dates/date[@region='{firstRomRegion}']")?.InnerText;
+                        XmlNode releaseDateNode = xmlResponse.SelectSingleNode("/Data/jeu/dates");
+                        value = ParseReleaseDate(releaseDateNode);
                         string releasedate = ISO8601Converter.ConvertToISO8601(value);
                         scraperData["releasedate"] = releasedate;
                         break;
@@ -290,7 +285,6 @@ namespace GamelistManager
             return (null, null);
         }
 
-
         private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
         {
             if (xmlMedias == null) { return (null, null); }
@@ -320,7 +314,30 @@ namespace GamelistManager
             return (url, format);
         }
 
-        private string ParseNames(XmlNode namesElement, string region)
+        private string ParseReleaseDate(XmlNode namesElement)
+        {
+            if (namesElement == null) { return null; }
+            
+            string[] regions = { "us", "wor", "ss", "eu", "uk" };
+            var releaseDate = (XmlNode)null;
+            
+            foreach (string currentRegion in regions)
+            {
+                releaseDate = namesElement.SelectSingleNode($"date[@region='{currentRegion}']");
+                if (releaseDate != null)
+                {
+                    break;
+                }
+            }
+
+            if (releaseDate == null)
+            {
+                return null;
+            }
+            return releaseDate.InnerText;
+        }
+
+            private string ParseNames(XmlNode namesElement, string region)
         {
             if (namesElement == null) { return null; }
 

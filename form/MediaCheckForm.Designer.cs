@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.buttonCleanup = new System.Windows.Forms.Button();
-            this.radioButtonRename = new System.Windows.Forms.RadioButton();
+            this.radioButtonMove = new System.Windows.Forms.RadioButton();
             this.radioButtonDelete = new System.Windows.Forms.RadioButton();
             this.radioButtonExportCSV = new System.Windows.Forms.RadioButton();
             this.buttonStart = new System.Windows.Forms.Button();
@@ -45,6 +45,8 @@
             this.labelSingleColorImageCount = new System.Windows.Forms.Label();
             this.labelSingleColorImages = new System.Windows.Forms.Label();
             this.panelCheckMedia = new System.Windows.Forms.Panel();
+            this.labelUnusedMediaCount = new System.Windows.Forms.Label();
+            this.labelUnusedMedia = new System.Windows.Forms.Label();
             this.labelMissingVideos = new System.Windows.Forms.Label();
             this.labelMissingVideosCount = new System.Windows.Forms.Label();
             this.labelVideos = new System.Windows.Forms.Label();
@@ -53,8 +55,6 @@
             this.labelTotalImagesCount = new System.Windows.Forms.Label();
             this.buttonStop = new System.Windows.Forms.Button();
             this.listBoxLog = new System.Windows.Forms.ListBox();
-            this.labelUnusedMediaCount = new System.Windows.Forms.Label();
-            this.labelUnusedMedia = new System.Windows.Forms.Label();
             this.panelManageMedia.SuspendLayout();
             this.panelCheckMedia.SuspendLayout();
             this.SuspendLayout();
@@ -71,16 +71,16 @@
             this.buttonCleanup.UseVisualStyleBackColor = false;
             this.buttonCleanup.Click += new System.EventHandler(this.button1_Click);
             // 
-            // radioButtonRename
+            // radioButtonMove
             // 
-            this.radioButtonRename.AutoSize = true;
-            this.radioButtonRename.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radioButtonRename.Location = new System.Drawing.Point(3, 70);
-            this.radioButtonRename.Name = "radioButtonRename";
-            this.radioButtonRename.Size = new System.Drawing.Size(248, 17);
-            this.radioButtonRename.TabIndex = 8;
-            this.radioButtonRename.Text = "Rename with a \'bad-\' prefix and clear paths";
-            this.radioButtonRename.UseVisualStyleBackColor = true;
+            this.radioButtonMove.AutoSize = true;
+            this.radioButtonMove.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButtonMove.Location = new System.Drawing.Point(3, 70);
+            this.radioButtonMove.Name = "radioButtonRename";
+            this.radioButtonMove.Size = new System.Drawing.Size(224, 17);
+            this.radioButtonMove.TabIndex = 8;
+            this.radioButtonMove.Text = "Move to backup folder and clear paths";
+            this.radioButtonMove.UseVisualStyleBackColor = true;
             // 
             // radioButtonDelete
             // 
@@ -132,7 +132,7 @@
             this.panelManageMedia.Controls.Add(this.labelManageBadMedia);
             this.panelManageMedia.Controls.Add(this.radioButtonExportCSV);
             this.panelManageMedia.Controls.Add(this.radioButtonDelete);
-            this.panelManageMedia.Controls.Add(this.radioButtonRename);
+            this.panelManageMedia.Controls.Add(this.radioButtonMove);
             this.panelManageMedia.Controls.Add(this.buttonCleanup);
             this.panelManageMedia.Enabled = false;
             this.panelManageMedia.Location = new System.Drawing.Point(2, 153);
@@ -269,6 +269,28 @@
             this.panelCheckMedia.Size = new System.Drawing.Size(323, 142);
             this.panelCheckMedia.TabIndex = 33;
             // 
+            // labelUnusedMediaCount
+            // 
+            this.labelUnusedMediaCount.AutoSize = true;
+            this.labelUnusedMediaCount.BackColor = System.Drawing.Color.Transparent;
+            this.labelUnusedMediaCount.ForeColor = System.Drawing.Color.Red;
+            this.labelUnusedMediaCount.Location = new System.Drawing.Point(278, 73);
+            this.labelUnusedMediaCount.Name = "labelUnusedMediaCount";
+            this.labelUnusedMediaCount.Size = new System.Drawing.Size(13, 13);
+            this.labelUnusedMediaCount.TabIndex = 42;
+            this.labelUnusedMediaCount.Text = "0";
+            // 
+            // labelUnusedMedia
+            // 
+            this.labelUnusedMedia.AutoSize = true;
+            this.labelUnusedMedia.BackColor = System.Drawing.Color.Transparent;
+            this.labelUnusedMedia.ForeColor = System.Drawing.Color.MidnightBlue;
+            this.labelUnusedMedia.Location = new System.Drawing.Point(197, 73);
+            this.labelUnusedMedia.Name = "labelUnusedMedia";
+            this.labelUnusedMedia.Size = new System.Drawing.Size(79, 13);
+            this.labelUnusedMedia.TabIndex = 41;
+            this.labelUnusedMedia.Text = "Unused Media:";
+            // 
             // labelMissingVideos
             // 
             this.labelMissingVideos.AutoSize = true;
@@ -357,28 +379,6 @@
             this.listBoxLog.Size = new System.Drawing.Size(323, 108);
             this.listBoxLog.TabIndex = 34;
             // 
-            // labelUnusedMediaCount
-            // 
-            this.labelUnusedMediaCount.AutoSize = true;
-            this.labelUnusedMediaCount.BackColor = System.Drawing.Color.Transparent;
-            this.labelUnusedMediaCount.ForeColor = System.Drawing.Color.Red;
-            this.labelUnusedMediaCount.Location = new System.Drawing.Point(278, 73);
-            this.labelUnusedMediaCount.Name = "labelUnusedMediaCount";
-            this.labelUnusedMediaCount.Size = new System.Drawing.Size(13, 13);
-            this.labelUnusedMediaCount.TabIndex = 42;
-            this.labelUnusedMediaCount.Text = "0";
-            // 
-            // labelUnusedMedia
-            // 
-            this.labelUnusedMedia.AutoSize = true;
-            this.labelUnusedMedia.BackColor = System.Drawing.Color.Transparent;
-            this.labelUnusedMedia.ForeColor = System.Drawing.Color.MidnightBlue;
-            this.labelUnusedMedia.Location = new System.Drawing.Point(197, 73);
-            this.labelUnusedMedia.Name = "labelUnusedMedia";
-            this.labelUnusedMedia.Size = new System.Drawing.Size(79, 13);
-            this.labelUnusedMedia.TabIndex = 41;
-            this.labelUnusedMedia.Text = "Unused Media:";
-            // 
             // MediaCheckForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -407,7 +407,7 @@
 
         #endregion
         private System.Windows.Forms.Button buttonCleanup;
-        private System.Windows.Forms.RadioButton radioButtonRename;
+        private System.Windows.Forms.RadioButton radioButtonMove;
         private System.Windows.Forms.RadioButton radioButtonDelete;
         private System.Windows.Forms.RadioButton radioButtonExportCSV;
         private System.Windows.Forms.Button buttonStart;

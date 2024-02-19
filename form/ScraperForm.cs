@@ -282,8 +282,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
 
-            string devId = "robg77";
-            string devPassword = "4dLRXRHWT0y";
+            string devId = "";
+            string devPassword = "";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
@@ -421,31 +421,31 @@ namespace GamelistManager
                         }
 
                         tableRow[elementName] = elementValue;
-
-                        string iso8601Format = ISO8601Converter.ConvertToISO8601(DateTime.Now.ToString());
-
-                        ScraperData newItem = new ScraperData
-                        {
-                            Item = romName,
-                            ScrapeTime = iso8601Format,
-                            Source = scraperName
-                        };
-
-                        var existingItem = SharedData.ScrapedList.FirstOrDefault(data => data.Item == newItem.Item);
-
-                        if (existingItem == null)
-                        {
-                            SharedData.ScrapedList.Add(newItem);
-                        }
-                        else
-                        {
-                            existingItem.ScrapeTime = iso8601Format;
-                            existingItem.Source = scraperName;
-                        }
                     }
                 }
-            }
 
+                string now = DateTime.Now.ToString();
+                
+                string iso8601Format = ISO8601Converter.ConvertToISO8601(now);
+                ScraperData newItem = new ScraperData
+                {
+                    Item = romName,
+                    ScrapeTime = iso8601Format,
+                    Source = scraperName
+                };
+
+                var existingItem = SharedData.ScrapedList.FirstOrDefault(data => data.Item == newItem.Item);
+
+                if (existingItem == null)
+                {
+                    SharedData.ScrapedList.Add(newItem);
+                }
+                else
+                {
+                    existingItem.ScrapeTime = iso8601Format;
+                    existingItem.Source = scraperName;
+                }
+            }
         }
         private void ButtonSelectAll_Click(object sender, EventArgs e)
         {
