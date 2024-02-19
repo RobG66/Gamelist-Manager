@@ -3,7 +3,7 @@
 
 February 19th
 
- Another bugfix release, sorry about that!  I do a lot of testing myself, but sometimes something slips by, usually if I make a last minute change.
+ Another bugfix release (4.2), sorry about that!  I do a lot of testing myself, but sometimes something slips by, usually if I make a last minute change.
  Oh, this version also has backups for bad media AND it checks for unused media too.
 
 February 18th
