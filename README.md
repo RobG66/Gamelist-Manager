@@ -1,6 +1,11 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
 
+February 19th
+
+ Another bugfix release, sorry about that!  I do a lot of testing myself, but sometimes something slips by, usually if I make a last minute change.
+ Oh, this version also has backups for bad media AND it checks for unused media too.
+
 February 18th
 
  Version 4.1 bugfix is now released!  A major update with multi threaded capable scraping from ScreenScraper now included.  Many other fixes and enhancements.  Grab it from the releases.
