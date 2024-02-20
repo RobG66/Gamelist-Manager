@@ -126,6 +126,10 @@
             this.toolStripMenuItemCopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar = new System.Windows.Forms.StatusBar();
+            this.playersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ratingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetNamesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerBig)).BeginInit();
             this.splitContainerBig.Panel1.SuspendLayout();
@@ -566,6 +570,8 @@
             this.toolStripMenuItemClearScraperDates,
             this.toolStripMenuItemUpdateScraperDates,
             this.toolStripSeparator20,
+            this.resetNamesToolStripMenuItem,
+            this.toolStripSeparator9,
             this.toolStripMenuItemClearAllData});
             this.toolStripMenuItemEditMenu.Name = "toolStripMenuItemEditMenu";
             this.toolStripMenuItemEditMenu.Size = new System.Drawing.Size(39, 20);
@@ -672,6 +678,8 @@
             this.toolStripMenuItemLastPlayed,
             this.toolStripMenuItemPublisher,
             this.toolStripMenuItemPlayCount,
+            this.playersToolStripMenuItem,
+            this.ratingToolStripMenuItem,
             this.toolStripMenuItemRegion,
             this.toolStripMenuItemReleaseDate,
             this.toolStripSeparator11,
@@ -688,7 +696,7 @@
             // 
             this.toolStripMenuItemDeveloper.CheckOnClick = true;
             this.toolStripMenuItemDeveloper.Name = "toolStripMenuItemDeveloper";
-            this.toolStripMenuItemDeveloper.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemDeveloper.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemDeveloper.Text = "Developer";
             this.toolStripMenuItemDeveloper.CheckedChanged += new System.EventHandler(this.DeveloperToolStripMenuItem_CheckedChanged);
             // 
@@ -696,7 +704,7 @@
             // 
             this.toolStripMenuItemFavorite.CheckOnClick = true;
             this.toolStripMenuItemFavorite.Name = "toolStripMenuItemFavorite";
-            this.toolStripMenuItemFavorite.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemFavorite.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemFavorite.Text = "Favorite";
             this.toolStripMenuItemFavorite.CheckStateChanged += new System.EventHandler(this.FavoriteToolStripMenuItem_CheckStateChanged);
             // 
@@ -704,7 +712,7 @@
             // 
             this.toolStripMenuItemGameTime.CheckOnClick = true;
             this.toolStripMenuItemGameTime.Name = "toolStripMenuItemGameTime";
-            this.toolStripMenuItemGameTime.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemGameTime.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemGameTime.Text = "Game Time";
             this.toolStripMenuItemGameTime.CheckStateChanged += new System.EventHandler(this.GametimeToolStripMenuItem_CheckStateChanged);
             // 
@@ -712,7 +720,7 @@
             // 
             this.toolStripMenuItemLanguage.CheckOnClick = true;
             this.toolStripMenuItemLanguage.Name = "toolStripMenuItemLanguage";
-            this.toolStripMenuItemLanguage.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemLanguage.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemLanguage.Text = "Lang";
             this.toolStripMenuItemLanguage.CheckedChanged += new System.EventHandler(this.LanguageToolStripMenuItem_CheckedChanged);
             // 
@@ -720,7 +728,7 @@
             // 
             this.toolStripMenuItemLastPlayed.CheckOnClick = true;
             this.toolStripMenuItemLastPlayed.Name = "toolStripMenuItemLastPlayed";
-            this.toolStripMenuItemLastPlayed.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemLastPlayed.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemLastPlayed.Text = "Last Played";
             this.toolStripMenuItemLastPlayed.CheckStateChanged += new System.EventHandler(this.LastplayedToolStripMenuItem_CheckStateChanged);
             // 
@@ -728,7 +736,7 @@
             // 
             this.toolStripMenuItemPublisher.CheckOnClick = true;
             this.toolStripMenuItemPublisher.Name = "toolStripMenuItemPublisher";
-            this.toolStripMenuItemPublisher.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemPublisher.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemPublisher.Text = "Publisher";
             this.toolStripMenuItemPublisher.CheckedChanged += new System.EventHandler(this.PublisherToolStripMenuItem_CheckedChanged);
             // 
@@ -736,7 +744,7 @@
             // 
             this.toolStripMenuItemPlayCount.CheckOnClick = true;
             this.toolStripMenuItemPlayCount.Name = "toolStripMenuItemPlayCount";
-            this.toolStripMenuItemPlayCount.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemPlayCount.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemPlayCount.Text = "Play Count";
             this.toolStripMenuItemPlayCount.CheckedChanged += new System.EventHandler(this.PlaycountToolStripMenuItem_CheckedChanged);
             // 
@@ -744,7 +752,7 @@
             // 
             this.toolStripMenuItemRegion.CheckOnClick = true;
             this.toolStripMenuItemRegion.Name = "toolStripMenuItemRegion";
-            this.toolStripMenuItemRegion.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemRegion.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemRegion.Text = "Region";
             this.toolStripMenuItemRegion.CheckedChanged += new System.EventHandler(this.RegionToolStripMenuItem_CheckedChanged);
             // 
@@ -752,46 +760,46 @@
             // 
             this.toolStripMenuItemReleaseDate.CheckOnClick = true;
             this.toolStripMenuItemReleaseDate.Name = "toolStripMenuItemReleaseDate";
-            this.toolStripMenuItemReleaseDate.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemReleaseDate.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemReleaseDate.Text = "Release Date";
             this.toolStripMenuItemReleaseDate.CheckedChanged += new System.EventHandler(this.ReleaseDateToolStripMenuItem_CheckedChanged);
             // 
             // toolStripSeparator11
             // 
             this.toolStripSeparator11.Name = "toolStripSeparator11";
-            this.toolStripSeparator11.Size = new System.Drawing.Size(142, 6);
+            this.toolStripSeparator11.Size = new System.Drawing.Size(177, 6);
             // 
             // toolStripMenuItemDescription
             // 
             this.toolStripMenuItemDescription.CheckOnClick = true;
             this.toolStripMenuItemDescription.Name = "toolStripMenuItemDescription";
-            this.toolStripMenuItemDescription.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemDescription.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemDescription.Text = "Description";
             this.toolStripMenuItemDescription.CheckStateChanged += new System.EventHandler(this.DescriptionToolStripMenuItem_CheckStateChanged);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(142, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // toolStripMenuItemMediaPaths
             // 
             this.toolStripMenuItemMediaPaths.CheckOnClick = true;
             this.toolStripMenuItemMediaPaths.Name = "toolStripMenuItemMediaPaths";
-            this.toolStripMenuItemMediaPaths.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemMediaPaths.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemMediaPaths.Text = "Media Paths";
             this.toolStripMenuItemMediaPaths.Click += new System.EventHandler(this.MediaPathsToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(142, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
             // 
             // toolStripMenuItemScraperDates
             // 
             this.toolStripMenuItemScraperDates.CheckOnClick = true;
             this.toolStripMenuItemScraperDates.Name = "toolStripMenuItemScraperDates";
-            this.toolStripMenuItemScraperDates.Size = new System.Drawing.Size(145, 22);
+            this.toolStripMenuItemScraperDates.Size = new System.Drawing.Size(180, 22);
             this.toolStripMenuItemScraperDates.Text = "Scraper Dates";
             this.toolStripMenuItemScraperDates.CheckStateChanged += new System.EventHandler(this.ScraperDatesToolStripMenuItem_CheckStateChanged);
             // 
@@ -996,6 +1004,34 @@
             this.statusBar.TabIndex = 6;
             this.statusBar.Text = "Ready";
             // 
+            // playersToolStripMenuItem
+            // 
+            this.playersToolStripMenuItem.CheckOnClick = true;
+            this.playersToolStripMenuItem.Name = "playersToolStripMenuItem";
+            this.playersToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.playersToolStripMenuItem.Text = "Players";
+            this.playersToolStripMenuItem.CheckedChanged += new System.EventHandler(this.playersToolStripMenuItem_CheckedChanged);
+            // 
+            // ratingToolStripMenuItem
+            // 
+            this.ratingToolStripMenuItem.CheckOnClick = true;
+            this.ratingToolStripMenuItem.Name = "ratingToolStripMenuItem";
+            this.ratingToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ratingToolStripMenuItem.Text = "Rating";
+            this.ratingToolStripMenuItem.CheckedChanged += new System.EventHandler(this.ratingToolStripMenuItem_CheckedChanged);
+            // 
+            // resetNamesToolStripMenuItem
+            // 
+            this.resetNamesToolStripMenuItem.Name = "resetNamesToolStripMenuItem";
+            this.resetNamesToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.resetNamesToolStripMenuItem.Text = "Reset Names";
+            this.resetNamesToolStripMenuItem.Click += new System.EventHandler(this.resetNamesToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator9
+            // 
+            this.toolStripSeparator9.Name = "toolStripSeparator9";
+            this.toolStripSeparator9.Size = new System.Drawing.Size(180, 6);
+            // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1127,6 +1163,10 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemClearAllData;
         private System.Windows.Forms.TextBox textBoxCustomFilter;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemFindMissingItems;
+        private System.Windows.Forms.ToolStripMenuItem playersToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ratingToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem resetNamesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
     }
 }
 

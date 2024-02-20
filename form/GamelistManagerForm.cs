@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -779,9 +780,8 @@ namespace GamelistManager
             // Add scrap columns to the main table using the game_id key
             foreach (DataRow mainRow in SharedData.DataSet.Tables[0].Rows)
             {
-                // Extract the game_id key value
                 object gameId = mainRow["game_Id"];
-
+                
                 // Find the corresponding scrap rows in the second table
                 DataRow[] matchingScrapRows = SharedData.DataSet.Tables[1].Select($"game_Id = {gameId}");
 
@@ -828,8 +828,8 @@ namespace GamelistManager
             dataGridView1.Columns["path"].Visible = true;
             dataGridView1.Columns["name"].Visible = true;
             dataGridView1.Columns["genre"].Visible = true;
-            dataGridView1.Columns["players"].Visible = true;
-            dataGridView1.Columns["rating"].Visible = true;
+            //dataGridView1.Columns["players"].Visible = true;
+            //dataGridView1.Columns["rating"].Visible = true;
 
             dataGridView1.Columns["favorite"].SortMode = DataGridViewColumnSortMode.Automatic;
             dataGridView1.Columns["hidden"].SortMode = DataGridViewColumnSortMode.Automatic;
@@ -847,14 +847,6 @@ namespace GamelistManager
 
         public bool LoadXML(string fileName)
         {
-
-            if (SharedData.IsDataChanged == true)
-            {
-                bool result = SaveReminder();
-                if (result == true)
-                    return false;
-            }
-
             Cursor.Current = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
             SharedData.DataSet.Reset();
@@ -1113,6 +1105,17 @@ namespace GamelistManager
             Updatecolumnview(sender);
         }
 
+
+        private void ratingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Updatecolumnview(sender);
+        }
+
+        private void playersToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Updatecolumnview(sender);
+        }
+
         private void LanguageToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             Updatecolumnview(sender);
@@ -1318,6 +1321,14 @@ namespace GamelistManager
                 return;
             }
 
+            if (SharedData.IsDataChanged == true)
+            {
+                bool saveResult = SaveReminder();
+                if (saveResult == true)
+                    // true is set for cancel.
+                    return;
+            }
+
             LoadXML(SharedData.XMLFilename);
 
         }
@@ -1427,7 +1438,7 @@ namespace GamelistManager
             string path = (string)pathValue;
 
             // Find the corresponding row in the dataSet
-            DataRow[] rows = SharedData.DataSet.Tables[0].Select($"path = '{path}'");
+            DataRow[] rows = SharedData.DataSet.Tables[0].Select($"path = '{path.Replace("'", "''")}'");
 
             if (rows.Length > 0)
             {
@@ -2267,7 +2278,9 @@ namespace GamelistManager
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
                 string fileNameWithoutPath = Path.GetFileName(path);
                 DataRow newRow = SharedData.DataSet.Tables[0].NewRow();
-                newRow["name"] = fileNameWithoutExtension;
+
+                string newName = new string(fileNameWithoutPath.Split('(')[0].Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c)).ToArray()).Trim();
+                newRow["name"] = newName;
                 newRow["path"] = $"./{fileNameWithoutPath}";
                 // Add the new row to the Rows collection of the DataTable
                 SharedData.DataSet.Tables[0].Rows.Add(newRow);
@@ -2423,6 +2436,26 @@ namespace GamelistManager
                 {
                     e.Cancel = true;
                 }
+            }
+        }
+
+        private void resetNamesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string message = "This will reset the names of selected items and remove special characters:\n\nDo you want to proceed?";
+
+            DialogResult result = MessageBox.Show(message, "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            foreach (DataGridViewRow row in dataGridView1.SelectedRows) 
+            {
+                string oldName = row.Cells["path"].Value.ToString();
+                string newName = Regex.Replace(oldName.Split('(')[0], @"[^\w\s]+", "").Trim();
+                newName = Regex.Replace(newName, @"\s+", " ");
+                row.Cells["name"].Value = newName;
             }
         }
     }

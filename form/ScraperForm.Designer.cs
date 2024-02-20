@@ -124,7 +124,7 @@
             this.panelScraperOptions.Controls.Add(this.radioButtonScrapeSelected);
             this.panelScraperOptions.Location = new System.Drawing.Point(6, 67);
             this.panelScraperOptions.Name = "panelScraperOptions";
-            this.panelScraperOptions.Size = new System.Drawing.Size(197, 145);
+            this.panelScraperOptions.Size = new System.Drawing.Size(195, 145);
             this.panelScraperOptions.TabIndex = 29;
             // 
             // checkBoxSupressNotify

@@ -54,10 +54,10 @@ namespace GamelistManager
             return elements;
         }
 
-        private List<string> GetRomsToScrape()
+        private List<(string, string)> GetRomsToScrape()
         {
-            // Make a list of romPaths to scrape
-            List<string> romPaths = null;
+            // Make a list of romNames to scrape
+            List<(string, string)> romNames = null;
             List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
             bool excludeHidden = checkBoxDoNotScrapeHidden.Checked;
@@ -73,23 +73,25 @@ namespace GamelistManager
                 rows = gamelistManagerForm.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
             }
 
-            romPaths = rows
+            romNames = rows
            .Where(row => !excludeHidden || !(row.Cells["hidden"].Value is bool hidden && hidden))
             .Select(row =>
              {
-                 // Extract "path" value from each row
-                 string path = row.Cells["path"].Value.ToString().TrimStart('.', '/');
-                 return path;
+                 // Extract value from each row
+                 string cellPath = row.Cells["path"].Value.ToString().TrimStart('.', '/');
+                 string cellName = row.Cells["name"].Value.ToString();
+                 return (cellPath,cellName);
              })
             .ToList();
-            return romPaths;
+            return romNames;
         }
 
         private async void StartScraping()
         {
             // List creation
             List<string> elements = GetElementsToScrape();
-            List<string> romPaths = GetRomsToScrape();
+
+            List<(string,string)> romPaths = GetRomsToScrape();
 
             if (elements.Count == 0)
             {
@@ -227,14 +229,14 @@ namespace GamelistManager
         public async Task<bool> ArcadeDBAsync(
         string folderPath,
         List<string> elementList,
-        List<string> romList,
+        List<(string,string)> romList,
         bool overwrite
         )
         {
             ScrapeArcadeDB scrapeArcadeDB = new ScrapeArcadeDB();
             try
             {
-                foreach (string romName in romList)
+                foreach ((string romName, string metadataName) in romList)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     AddToLog($"Scraping rom '{romName}'");
@@ -265,7 +267,7 @@ namespace GamelistManager
         string userId,
         string userPassword,
         List<string> elementList,
-        List<string> romList,
+        List<(string, string)> romList,
         bool overwrite
         )
         {
@@ -282,8 +284,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
 
-            string devId = "";
-            string devPassword = "";
+            string devId = "robg77";
+            string devPassword = "4dLRXRHWT0y";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
@@ -301,7 +303,8 @@ namespace GamelistManager
 
             try
             {
-                foreach (string romName in romList)
+
+                foreach ((string romName, string metadataName) in romList)
                 {
                     // Check cancelation token
                     await semaphoreSlim.WaitAsync(); // Wait until there's room to proceed
@@ -313,11 +316,9 @@ namespace GamelistManager
                         {
                             AddToLog($"Scraping rom '{romName}'");
                             Interlocked.Increment(ref scraperCount);
-                            UpdateLabel(scraperCount, totalCount, scrapeErrors);
-                            UpdateProgressBar();
-
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
-                            Dictionary<string, string> result = await scraper.ScrapeScreenScraperAsync(
+                            Dictionary<string, string> result;
+                            result = await scraper.ScrapeScreenScraperAsync(
                                userId,
                                userPassword,
                                devId,
@@ -333,10 +334,32 @@ namespace GamelistManager
                                imageSource,
                                logoSource
                            );
-                            ScraperCommon("ScreenScraper", overwrite, folderPath, romName, result);
+                            if (result == null && romName != metadataName)
+                            {
+                              // try to scrape by meta name if it is different
+                              result = await scraper.ScrapeScreenScraperAsync(
+                              userId,
+                              userPassword,
+                              devId,
+                              devPassword,
+                              region,
+                              language,
+                              metadataName,
+                              systemId,
+                              folderPath,
+                              overwrite,
+                              elementList,
+                              boxSource,
+                              imageSource,
+                              logoSource
+                          );
+                            }
+                          ScraperCommon("ScreenScraper", overwrite, folderPath, romName, result);
                         }
                         finally
                         {
+                            UpdateProgressBar();
+                            UpdateLabel(scraperCount, totalCount, scrapeErrors);
                             semaphoreSlim.Release(); // Release the semaphore after the task is complete
                         }
                     }
@@ -476,7 +499,7 @@ namespace GamelistManager
         private void Scraper_Load(object sender, EventArgs e)
         {
             comboBoxScrapers.SelectedIndex = 1;
-
+       
             (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
