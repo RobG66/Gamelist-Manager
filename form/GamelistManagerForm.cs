@@ -1524,7 +1524,7 @@ namespace GamelistManager
                 string pathValue = selectedRow.Cells["path"].Value.ToString();
 
                 // Find the corresponding row in table0
-                DataRow[] rowsInTable0 = SharedData.DataSet.Tables[0].Select($"path = '{pathValue}'");
+                DataRow[] rowsInTable0 = SharedData.DataSet.Tables[0].Select($"path = '{pathValue.Replace("'", "''")}'");
 
                 // Check if a matching row is found
                 if (rowsInTable0.Length > 0)
