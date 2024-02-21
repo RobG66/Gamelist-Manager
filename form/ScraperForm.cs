@@ -80,7 +80,7 @@ namespace GamelistManager
                  // Extract value from each row
                  string cellPath = row.Cells["path"].Value.ToString().TrimStart('.', '/');
                  string cellName = row.Cells["name"].Value.ToString();
-                 return (cellPath,cellName);
+                 return (cellPath, cellName);
              })
             .ToList();
             return romNames;
@@ -91,7 +91,7 @@ namespace GamelistManager
             // List creation
             List<string> elements = GetElementsToScrape();
 
-            List<(string,string)> romPaths = GetRomsToScrape();
+            List<(string, string)> romPaths = GetRomsToScrape();
 
             if (elements.Count == 0)
             {
@@ -229,7 +229,7 @@ namespace GamelistManager
         public async Task<bool> ArcadeDBAsync(
         string folderPath,
         List<string> elementList,
-        List<(string,string)> romList,
+        List<(string, string)> romList,
         bool overwrite
         )
         {
@@ -284,8 +284,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
 
-            string devId = "robg77";
-            string devPassword = "4dLRXRHWT0y";
+            string devId = "";
+            string devPassword = "";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
@@ -337,6 +337,7 @@ namespace GamelistManager
                             if (result == null && romName != metadataName)
                             {
                               // try to scrape by meta name if it is different
+                              AddToLog($"Trying by name '{metadataName}'");
                               result = await scraper.ScrapeScreenScraperAsync(
                               userId,
                               userPassword,
@@ -354,7 +355,7 @@ namespace GamelistManager
                               logoSource
                           );
                             }
-                          ScraperCommon("ScreenScraper", overwrite, folderPath, romName, result);
+                            ScraperCommon("ScreenScraper", overwrite, folderPath, romName, result);
                         }
                         finally
                         {
@@ -382,7 +383,7 @@ namespace GamelistManager
             if (result == null)
             {
                 // Handle error, if needed
-                AddToLog($"Error scraping '{romName}'");
+                AddToLog($"Unable to scrape '{romName}'");
                 Interlocked.Increment(ref scrapeErrors);
                 UpdateLabel(scraperCount, totalCount, scrapeErrors);
                 return;
@@ -415,7 +416,7 @@ namespace GamelistManager
 
             lock (SharedData.DataLock)
             {
-                DataRow tableRow = SharedData.DataSet.Tables[0].AsEnumerable()
+                DataRow tableRow = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
                  .FirstOrDefault(r => r.Field<string>("path") == $"./{romName}");
                 // Process scraped items
                 foreach (var scrapedItem in result)
@@ -448,7 +449,7 @@ namespace GamelistManager
                 }
 
                 string now = DateTime.Now.ToString();
-                
+
                 string iso8601Format = ISO8601Converter.ConvertToISO8601(now);
                 ScraperData newItem = new ScraperData
                 {
@@ -499,7 +500,7 @@ namespace GamelistManager
         private void Scraper_Load(object sender, EventArgs e)
         {
             comboBoxScrapers.SelectedIndex = 1;
-       
+
             (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {

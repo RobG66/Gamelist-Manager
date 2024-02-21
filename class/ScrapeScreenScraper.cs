@@ -317,10 +317,10 @@ namespace GamelistManager
         private string ParseReleaseDate(XmlNode namesElement)
         {
             if (namesElement == null) { return null; }
-            
+
             string[] regions = { "us", "wor", "ss", "eu", "uk" };
             var releaseDate = (XmlNode)null;
-            
+
             foreach (string currentRegion in regions)
             {
                 releaseDate = namesElement.SelectSingleNode($"date[@region='{currentRegion}']");
@@ -337,7 +337,7 @@ namespace GamelistManager
             return releaseDate.InnerText;
         }
 
-            private string ParseNames(XmlNode namesElement, string region)
+        private string ParseNames(XmlNode namesElement, string region)
         {
             if (namesElement == null) { return null; }
 

@@ -10,6 +10,9 @@ namespace GamelistManager
         private static string xmlFilename;
         private static List<ScraperData> scrapedList = new List<ScraperData>();
         private static bool isDataChanged;
+        private static int mainTable;
+        private static int scrapTable;
+
         public static bool IsDataChanged
         {
             get { return isDataChanged; }
@@ -24,7 +27,16 @@ namespace GamelistManager
             get { return scrapedList; }
             set { scrapedList = value; }
         }
-
+        public static int MainTable
+        {
+            get { return mainTable; }
+            set { mainTable = value; }
+        }
+        public static int ScrapTable
+        {
+            get { return scrapTable; }
+            set { scrapTable = value; }
+        }
 
         public static DataSet DataSet
         {
@@ -40,11 +52,5 @@ namespace GamelistManager
         {
             get { return dataLock; }
         }
-    }
-    public class ScraperData
-    {
-        public string Item { get; set; }
-        public string ScrapeTime { get; set; }
-        public string Source { get; set; }
     }
 }

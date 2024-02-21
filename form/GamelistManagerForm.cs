@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,7 +57,7 @@ namespace GamelistManager
             dataGridView1.SelectionChanged -= DataGridView1_SelectionChanged;
 
             // Set a few ordinals to tidy up
-            SetColumnOrdinals(SharedData.DataSet.Tables[0],
+            SetColumnOrdinals(SharedData.DataSet.Tables[SharedData.MainTable],
                ("name", 0),
                 ("path", 1),
                 ("genre", 2),
@@ -74,15 +73,15 @@ namespace GamelistManager
                 // Remove from the DataGridView
                 if (column.Tag != null && column.Tag.ToString() == "temp")
                 {
-                    SharedData.DataSet.Tables[0].Columns.Remove(columnName);
+                    SharedData.DataSet.Tables[SharedData.MainTable].Columns.Remove(columnName);
                     continue;
                 }
 
-                bool allNull = SharedData.DataSet.Tables[0].AsEnumerable().All(row => row.IsNull(columnName));
+                bool allNull = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable().All(row => row.IsNull(columnName));
                 // If all values are null, remove the column
                 if (allNull)
                 {
-                    SharedData.DataSet.Tables[0].Columns.Remove(columnName);
+                    SharedData.DataSet.Tables[SharedData.MainTable].Columns.Remove(columnName);
                 }
             }
 
@@ -215,7 +214,7 @@ namespace GamelistManager
             }
 
             // Set the modified RowFilter
-            SharedData.DataSet.Tables[0].DefaultView.RowFilter = mergedFilter;
+            SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter = mergedFilter;
         }
 
         private void DataGridView1_SelectionChanged(object sender, EventArgs e)
@@ -242,7 +241,7 @@ namespace GamelistManager
         private string GetGenreFilter()
         {
             // Get the current row filter
-            string currentFilter = SharedData.DataSet.Tables[0].DefaultView.RowFilter;
+            string currentFilter = SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter;
 
             // Check if there's an existing genre filter
             bool hasGenreFilter = currentFilter.Contains("genre");
@@ -264,7 +263,7 @@ namespace GamelistManager
         {
 
             // Get the current row filter
-            string currentFilter = SharedData.DataSet.Tables[0].DefaultView.RowFilter;
+            string currentFilter = SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter;
 
             // Check if there's an existing visibility filter
             bool hasVisibilityFilter = currentFilter.Contains("hidden");
@@ -625,15 +624,15 @@ namespace GamelistManager
 
         private void UpdateCounters()
         {
-            int hiddenItems = SharedData.DataSet.Tables[0].AsEnumerable()
+            int hiddenItems = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") == true);
 
             // Count rows where "hidden" is false
-            int visibleItems = SharedData.DataSet.Tables[0].AsEnumerable()
+            int visibleItems = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") != true);
 
             // Count rows where "hidden" is false
-            int favoriteItems = SharedData.DataSet.Tables[0].AsEnumerable()
+            int favoriteItems = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
             .Count(row => row.Field<bool?>("favorite") == true);
 
             int visibleRowCount = dataGridView1.Rows.Cast<DataGridViewRow>().Count(row => row.Visible);
@@ -693,7 +692,7 @@ namespace GamelistManager
             if (SharedData.DataSet.Tables.Count == 0)
             {
                 SharedData.DataSet.Tables.Add();
-                SharedData.DataSet.Tables[0].Columns.Add("path", typeof(string));
+                SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add("path", typeof(string));
             }
 
             // Standard gamelist.xml elements
@@ -725,29 +724,29 @@ namespace GamelistManager
 
             foreach (string columnName in columnNames)
             {
-                if (!SharedData.DataSet.Tables[0].Columns.Contains(columnName))
+                if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains(columnName))
                 {
                     // If the column doesn't exist, add it to the DataTable
-                    SharedData.DataSet.Tables[0].Columns.Add(columnName, typeof(string));
+                    SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add(columnName, typeof(string));
                 }
             }
 
             SetupScrapColumns();
 
             //Convert true/false columns to boolean
-            ConvertColumnToBoolean(SharedData.DataSet.Tables[0], "hidden");
-            ConvertColumnToBoolean(SharedData.DataSet.Tables[0], "favorite");
+            ConvertColumnToBoolean(SharedData.DataSet.Tables[SharedData.MainTable], "hidden");
+            ConvertColumnToBoolean(SharedData.DataSet.Tables[SharedData.MainTable], "favorite");
 
-            if (!SharedData.DataSet.Tables[0].Columns.Contains("unplayable"))
+            if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains("unplayable"))
             {
-                SharedData.DataSet.Tables[0].Columns.Add("unplayable", typeof(bool));
+                SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add("unplayable", typeof(bool));
             }
-            if (!SharedData.DataSet.Tables[0].Columns.Contains("missing"))
+            if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains("missing"))
             {
-                SharedData.DataSet.Tables[0].Columns.Add("missing", typeof(bool));
+                SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add("missing", typeof(bool));
             }
 
-            SetColumnOrdinals(SharedData.DataSet.Tables[0],
+            SetColumnOrdinals(SharedData.DataSet.Tables[SharedData.MainTable],
                 ("missing", 0),
                 ("unplayable", 1),
                 ("hidden", 2),
@@ -777,13 +776,22 @@ namespace GamelistManager
                 return;
             }
 
+            DataRow[] matchingScrapRows;
+
             // Add scrap columns to the main table using the game_id key
-            foreach (DataRow mainRow in SharedData.DataSet.Tables[0].Rows)
+            foreach (DataRow mainRow in SharedData.DataSet.Tables[SharedData.MainTable].Rows)
             {
-                object gameId = mainRow["game_Id"];
-                
                 // Find the corresponding scrap rows in the second table
-                DataRow[] matchingScrapRows = SharedData.DataSet.Tables[1].Select($"game_Id = {gameId}");
+                try
+
+                {
+                    object gameId = mainRow["game_Id"];
+                    matchingScrapRows = SharedData.DataSet.Tables[SharedData.ScrapTable].Select($"game_Id = {gameId}");
+                }
+                catch
+                {
+                    continue;
+                }
 
                 // Add scrap columns to the main row
                 foreach (DataRow matchingScrapRow in matchingScrapRows)
@@ -792,9 +800,9 @@ namespace GamelistManager
                     string columnName = $"scrap_{matchingScrapRow["name"]}";
 
                     // Check if the column already exists in the main table, if not, add it
-                    if (!SharedData.DataSet.Tables[0].Columns.Contains(columnName))
+                    if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains(columnName))
                     {
-                        SharedData.DataSet.Tables[0].Columns.Add(columnName.ToLower(), typeof(string));
+                        SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add(columnName.ToLower(), typeof(string));
                     }
 
                     // Set the value in the main row
@@ -863,11 +871,28 @@ namespace GamelistManager
                 return false;
             }
 
+
             SharedData.XMLFilename = fileName;
+
+            SharedData.MainTable = 0;
+            SharedData.ScrapTable = -1;
+
+            for (int i = 0; i < SharedData.DataSet.Tables.Count; i++)
+            {
+                if (SharedData.DataSet.Tables[i].Columns["path"] != null)
+                {
+                    SharedData.MainTable = i;
+                }
+                if (SharedData.DataSet.Tables[i].Columns["date"] != null)
+                {
+                    SharedData.ScrapTable = i;
+                }
+
+            }
 
             SetupTableColumns();
 
-            dataGridView1.DataSource = SharedData.DataSet.Tables[0];
+            dataGridView1.DataSource = SharedData.DataSet.Tables[SharedData.MainTable];
 
             SetupDataGridViewColumns();
             BuildCombobox();
@@ -1069,7 +1094,7 @@ namespace GamelistManager
                 // Check if the column has the tag 'image'
                 if (column.Tag != null && (column.Tag.ToString() == "image" || column.Tag.ToString() == "video"))
                 {
-                    bool isColumnEmpty = SharedData.DataSet.Tables[0].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
+                    bool isColumnEmpty = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
                     if (!isColumnEmpty && toolStripMenuItemMediaPaths.Checked == true)
                     {
                         column.Visible = true;
@@ -1296,13 +1321,13 @@ namespace GamelistManager
             .Where(filePath => !string.IsNullOrEmpty(filePath))
             .ToList();
 
-            var rowsToRemove = SharedData.DataSet.Tables[0].AsEnumerable()
+            var rowsToRemove = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
             .Where(row => selectedFileList.Contains(row.Field<string>("path")))
             .ToList();
 
             foreach (var rowToRemove in rowsToRemove)
             {
-                SharedData.DataSet.Tables[0].Rows.Remove(rowToRemove);
+                SharedData.DataSet.Tables[SharedData.MainTable].Rows.Remove(rowToRemove);
             }
 
             SharedData.DataSet.AcceptChanges();
@@ -1348,7 +1373,7 @@ namespace GamelistManager
         private void SetVisibilityByItemValue(string colname, string colvalue, bool hiddenValue)
         {
 
-            DataTable dataTable = SharedData.DataSet.Tables[0];
+            DataTable dataTable = SharedData.DataSet.Tables[SharedData.MainTable];
 
             var rowsToUpdate = dataTable.AsEnumerable()
                 .Where(row =>
@@ -1438,7 +1463,7 @@ namespace GamelistManager
             string path = (string)pathValue;
 
             // Find the corresponding row in the dataSet
-            DataRow[] rows = SharedData.DataSet.Tables[0].Select($"path = '{path.Replace("'", "''")}'");
+            DataRow[] rows = SharedData.DataSet.Tables[SharedData.MainTable].Select($"path = '{path.Replace("'", "''")}'");
 
             if (rows.Length > 0)
             {
@@ -1523,17 +1548,17 @@ namespace GamelistManager
 
                 string pathValue = selectedRow.Cells["path"].Value.ToString();
 
-                // Find the corresponding row in table0
-                DataRow[] rowsInTable0 = SharedData.DataSet.Tables[0].Select($"path = '{pathValue.Replace("'", "''")}'");
+                // Find the corresponding row in main table
+                DataRow[] rowsInMainTable = SharedData.DataSet.Tables[SharedData.MainTable].Select($"path = '{pathValue.Replace("'", "''")}'");
 
                 // Check if a matching row is found
-                if (rowsInTable0.Length > 0)
+                if (rowsInMainTable.Length > 0)
                 {
                     // Get the game_id from the matched row in table0
-                    int gameId = Convert.ToInt32(rowsInTable0[0]["game_id"]);
+                    int gameId = Convert.ToInt32(rowsInMainTable[0]["game_id"]);
 
-                    // Find and update or add rows in table1 with matching game_id
-                    DataRow[] rowsToUpdate = SharedData.DataSet.Tables[1].Select($"game_id = {gameId}");
+                    // Find and update or add rows in scrap table with matching game_id
+                    DataRow[] rowsToUpdate = SharedData.DataSet.Tables[SharedData.ScrapTable].Select($"game_id = {gameId}");
                     if (rowsToUpdate.Length > 0)
                     {
                         // Update the date field or remove the row
@@ -1551,16 +1576,16 @@ namespace GamelistManager
                     }
                     else
                     {
-                        // Add a new row to table1
-                        DataRow newRow = SharedData.DataSet.Tables[1].NewRow();
+                        // Add a new row to scrap table
+                        DataRow newRow = SharedData.DataSet.Tables[SharedData.ScrapTable].NewRow();
                         newRow["game_id"] = gameId;
                         newRow["date"] = (date == string.Empty) ? DBNull.Value : (object)date;
-                        SharedData.DataSet.Tables[1].Rows.Add(newRow);
+                        SharedData.DataSet.Tables[SharedData.ScrapTable].Rows.Add(newRow);
                     }
                 }
             }
 
-            SharedData.DataSet.Tables[1].AcceptChanges();
+            SharedData.DataSet.AcceptChanges();
 
             MessageBox.Show("Scraper dates have been updated!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -1742,7 +1767,7 @@ namespace GamelistManager
                 List<DataRow> rowsToUpdate = new List<DataRow>();
 
                 // Loop through each row in the DataTable
-                Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
+                Parallel.ForEach(SharedData.DataSet.Tables[SharedData.MainTable].Rows.Cast<DataRow>(), (row) =>
                 {
                     string originalPath = row["path"].ToString();
                     string path = Path.GetFileNameWithoutExtension(originalPath);
@@ -1792,7 +1817,7 @@ namespace GamelistManager
                 return;
             }
 
-            foreach (DataRow row in SharedData.DataSet.Tables[0].Rows)
+            foreach (DataRow row in SharedData.DataSet.Tables[SharedData.MainTable].Rows)
             {
                 // Check if column x is true
                 object unplayableValue = row["unplayable"];
@@ -2240,7 +2265,7 @@ namespace GamelistManager
                 return;
             }
 
-            List<string> fileList = SharedData.DataSet.Tables[0].AsEnumerable()
+            List<string> fileList = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
                                             .Select(row => ExtractFileNameWithExtension(row.Field<string>("path")))
                                             .ToList();
 
@@ -2277,13 +2302,13 @@ namespace GamelistManager
             {
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
                 string fileNameWithoutPath = Path.GetFileName(path);
-                DataRow newRow = SharedData.DataSet.Tables[0].NewRow();
+                DataRow newRow = SharedData.DataSet.Tables[SharedData.MainTable].NewRow();
 
                 string newName = new string(fileNameWithoutPath.Split('(')[0].Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c)).ToArray()).Trim();
                 newRow["name"] = newName;
                 newRow["path"] = $"./{fileNameWithoutPath}";
                 // Add the new row to the Rows collection of the DataTable
-                SharedData.DataSet.Tables[0].Rows.Add(newRow);
+                SharedData.DataSet.Tables[SharedData.MainTable].Rows.Add(newRow);
             }
 
             SharedData.DataSet.AcceptChanges();
@@ -2305,7 +2330,7 @@ namespace GamelistManager
             var nameList = new List<string>();
 
             // Iterate through the rows of the source table and populate the lists
-            foreach (DataRow row in SharedData.DataSet.Tables[0].Rows)
+            foreach (DataRow row in SharedData.DataSet.Tables[SharedData.MainTable].Rows)
             {
                 pathList.Add(row["path"].ToString());
                 nameList.Add(row["name"].ToString());
@@ -2313,26 +2338,26 @@ namespace GamelistManager
 
             dataGridView1.DataSource = null;
 
-            List<string> pathValues = SharedData.DataSet.Tables[0].AsEnumerable()
+            List<string> pathValues = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
               .Select(row => row.Field<string>("path"))
               .ToList();
 
-            SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
+            SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter = null;
             SharedData.DataSet.Clear();
 
             SetupTableColumns();
 
             for (int i = 0; i < pathValues.Count; i++)
             {
-                DataRow newRow = SharedData.DataSet.Tables[0].NewRow();
+                DataRow newRow = SharedData.DataSet.Tables[SharedData.MainTable].NewRow();
                 newRow["path"] = pathList[i];
-                newRow["name"] = Path.GetFileNameWithoutExtension(pathList[i]);
-                SharedData.DataSet.Tables[0].Rows.Add(newRow);
+                newRow["name"] = MakeName(nameList[i]);
+                SharedData.DataSet.Tables[SharedData.MainTable].Rows.Add(newRow);
             }
 
             SharedData.DataSet.AcceptChanges();
 
-            dataGridView1.DataSource = SharedData.DataSet.Tables[0];
+            dataGridView1.DataSource = SharedData.DataSet.Tables[SharedData.MainTable];
             SetupDataGridViewColumns();
             BuildCombobox();
             SetColumnTags();
@@ -2367,7 +2392,7 @@ namespace GamelistManager
         {
 
             int missingCount = 0;
-            int totalItemCount = SharedData.DataSet.Tables[0].Rows.Count;
+            int totalItemCount = SharedData.DataSet.Tables[SharedData.MainTable].Rows.Count;
 
             Cursor.Current = Cursors.WaitCursor;
 
@@ -2379,7 +2404,7 @@ namespace GamelistManager
             await Task.Run(() =>
                {
                    // Loop through each row in the DataTable
-                   Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
+                   Parallel.ForEach(SharedData.DataSet.Tables[SharedData.MainTable].Rows.Cast<DataRow>(), (row) =>
                    {
                        string itemPath = row["path"].ToString();
                        string fullPath = Path.Combine(parentFolderPath, itemPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
@@ -2441,7 +2466,7 @@ namespace GamelistManager
 
         private void resetNamesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string message = "This will reset the names of selected items and remove special characters:\n\nDo you want to proceed?";
+            string message = "This will reset the names of selected items and remove special characters.\n\nDo you want to proceed?";
 
             DialogResult result = MessageBox.Show(message, "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -2450,14 +2475,20 @@ namespace GamelistManager
                 return;
             }
 
-            foreach (DataGridViewRow row in dataGridView1.SelectedRows) 
+            foreach (DataGridViewRow row in dataGridView1.SelectedRows)
             {
-                string oldName = row.Cells["path"].Value.ToString();
-                string newName = Regex.Replace(oldName.Split('(')[0], @"[^\w\s]+", "").Trim();
-                newName = Regex.Replace(newName, @"\s+", " ");
+                string newName = MakeName(row.Cells["path"].Value.ToString());
                 row.Cells["name"].Value = newName;
             }
         }
+
+        private string MakeName(string oldName)
+        {
+            string newName = Regex.Replace(oldName.Split('(')[0], @"[^\w\s]+", "").Trim();
+            newName = Regex.Replace(newName, @"\s+", " ");
+            return newName;
+        }
+
     }
 }
 
