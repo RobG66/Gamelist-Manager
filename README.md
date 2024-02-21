@@ -2,7 +2,7 @@
 
 February 20th
 
- 4.3 is released.  Improved compatibility when additional scraper elements are present in the gamelist which causes the dataset to have more tables.  Also added an escape for single quotes in path select to avoi an exception error.  Something to note is that you can have the scraper form open and still edit the names.  This will allow you to try a different name when scraping if the API is not recognizing what you are trying to scrape.  I will look into adding the ScreenScraper search API, but that might take a bit of work to implement.
+ 4.3 is released.  Improved compatibility when additional scraper elements are present in the gamelist.xml which causes the dataset to have more tables.  Also added an escape for single quotes in path select to avoid an exception error.  Something to note is that you can have the scraper form open and still edit the names.  This will allow you to try a different name when scraping if the API is not recognizing what you are trying to scrape.  I will look into adding the ScreenScraper search API, but that might take a bit of work to implement.
 
 
 February 19th
