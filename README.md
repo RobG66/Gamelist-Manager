@@ -1,5 +1,15 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+February 22nd
+
+ Version 4.4 is getting close.  There was a significant change to background data management with the inclusion of a dataset table to xml deserialization class.  It was a bear to implement, but in the long run it helps simplify data transition from xml to dataset and back to xml for saving.  Why not just work with XML only?  Well, the dataset table is extremely flexible and fast for sorting, filtering and searching.  
+
+ 4.4 will also include options to export your gamelist to CSV and also create M3U files for platforms that support it.  Just select the files, click create M3u and it's done!
+
+  ScreenScraper scraping sees more tweaking with the ability to scrape by ID.  It's not faster, just obviously more precise.  The deserialization class makes it a whole lot easier to manage and save these values.  It can be enabled or disabled in the screen scraper options.
+
+   Suggestions are always welcome and if you would like to see something added, I will try my best as long as it makes sense.  
+
 February 20th
 
  4.3 is released.  Improved compatibility when additional scraper elements are present in the gamelist.xml which causes the dataset to have more tables.  Also added an escape for single quotes in path select to avoid an exception error.  Something to note is that you can have the scraper form open and still edit the names.  This will allow you to try a different name when scraping if the API is not recognizing what you are trying to scrape.  I will look into adding the ScreenScraper search API, but that might take a bit of work to implement.
