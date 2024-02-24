@@ -1,5 +1,9 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+February 24th
+
+ 4.4 is almost ready.  I've added additional ScreenScraper elements to scrape so it should now 100% mirror what Batocera is scraping.  I don't know if anyone is using these elements in their themes, but if they are it will help ensure compatability.  Boxback, fanart, genreid, arcadesystemname were added.  There's always code optimization which can be done, but I'm going to leave some of that for later.  I've already done A LOT in 4.4 and I want to get it posted.  I just want to test it a bit more.
+
 February 22nd
 
  Version 4.4 is getting close.  There was a significant change to background data management with the inclusion of a dataset table to xml deserialization class.  It was a bear to implement, but in the long run it helps simplify data transition from xml to dataset and back to xml for saving.  Why not just work with XML only?  Well, the dataset table is extremely flexible and fast for sorting, filtering and searching.  
