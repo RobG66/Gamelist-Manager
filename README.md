@@ -2,7 +2,7 @@
 
 February 24th
 
- 4.4 is almost ready.  I've added additional ScreenScraper elements to scrape so it should now 100% mirror what Batocera is scraping.  I don't know if anyone is using these elements in their themes, but if they are it will help ensure compatability.  Boxback, fanart, genreid, arcadesystemname were added.  There's always code optimization which can be done, but I'm going to leave some of that for later.  I've already done A LOT in 4.4 and I want to get it posted.  I just want to test it a bit more.
+ 4.4 is here.  I've added additional ScreenScraper elements to scrape so it should now 100% mirror what Batocera is scraping.  I don't know if anyone is using these elements in their themes, but if they are it will help ensure compatability.  Boxback, fanart, genreid, arcadesystemname were added.  There's always code optimization which can be done, but I'm going to leave some of that for later.  I've already done A LOT in 4.4 and I want to get it posted.  I just want to test it a bit more.
 
 February 22nd
 
@@ -70,6 +70,8 @@ It offers functionality to:
 - Securely save your Batocera credentials
 - Map a network drive assistance
 - Open images in default editor
+- Create M3U files
+- Export data to csv
 - Create a terminal session to your Batocera host (openSSH)
 - Scrap from Screen Scraper or Arcade DB.  Multi thread capable!
 - Save your cleaned up gamelist!
