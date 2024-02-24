@@ -311,8 +311,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
             bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out scrapeByGameID);
 
-            string devId = "robg77";
-            string devPassword = "4dLRXRHWT0y";
+            string devId = "";
+            string devPassword = "";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
