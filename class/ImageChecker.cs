@@ -31,7 +31,7 @@ namespace GamelistManager
                             // Check if the current pixel color is different from the first pixel color
                             if (pixelColor != firstPixelColor)
                             {
-                                return "ok"; // Image contains multiple colors
+                                return "ok"; // image contains multiple colors
                             }
                         }
                     }

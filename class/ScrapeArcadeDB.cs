@@ -40,7 +40,7 @@ namespace GamelistManager
                 return null;
             }
 
-            // Build MD5
+            // Build md5
             string fullRomPath = $"{folderPath}\\{romName}";
             string md5 = ChecksumCreator.CreateMD5(fullRomPath);
             if (!string.IsNullOrEmpty(md5))

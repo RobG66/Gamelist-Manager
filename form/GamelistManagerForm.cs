@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Remoting.Messaging;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +22,8 @@ namespace GamelistManager
 
     public partial class GamelistManagerForm : Form
     {
+        private string visibilityFilter;
+        private string genreFilter;
         private TableLayoutPanel TableLayoutPanel1;
         private VideoView videoView1;
         private LibVLC libVLC;
@@ -32,6 +36,8 @@ namespace GamelistManager
         public GamelistManagerForm()
         {
             InitializeComponent();
+            genreFilter = string.Empty;
+            visibilityFilter = string.Empty;
         }
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -51,103 +57,52 @@ namespace GamelistManager
             }
 
             toolStripMenuItemScraperDates.Checked = false;
-            Cursor.Current = Cursors.WaitCursor;
+            this.Cursor = Cursors.WaitCursor;
 
             // Temporarily remove this event to prevent triggering during save
             dataGridView1.SelectionChanged -= DataGridView1_SelectionChanged;
 
+            DataSet copiedDataSet = SharedData.DataSet.Copy();
+
             // Set a few ordinals to tidy up
-            SetColumnOrdinals(SharedData.DataSet.Tables[SharedData.MainTable],
+            SetColumnOrdinals(copiedDataSet.Tables["game"],
                ("name", 0),
                 ("path", 1),
                 ("genre", 2),
                 ("hidden", 3)
             );
 
-            // Remove all temporary and empty columns
-            for (int i = dataGridView1.Columns.Count - 1; i >= 0; i--)
+            try
             {
-                DataGridViewColumn column = dataGridView1.Columns[i];
-                string columnName = column.Name;
-
-                // Remove from the DataGridView
-                if (column.Tag != null && column.Tag.ToString() == "temp")
-                {
-                    SharedData.DataSet.Tables[SharedData.MainTable].Columns.Remove(columnName);
-                    continue;
-                }
-
-                bool allNull = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable().All(row => row.IsNull(columnName));
-                // If all values are null, remove the column
-                if (allNull)
-                {
-                    SharedData.DataSet.Tables[SharedData.MainTable].Columns.Remove(columnName);
-                }
+                File.Copy(filename, oldFilename, true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while copying the file: {ex.Message}\n\nFile save aborted!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
-            SharedData.DataSet.AcceptChanges();
+            GamelistUtility.ExportDataSetToGameList(copiedDataSet,filename);
+            
+            copiedDataSet.Dispose();
 
-            File.Copy(filename, oldFilename, true);
-            SharedData.DataSet.WriteXml(filename);
-
-            //Update scrap elements.  Easier to do with XML than DataSet 
-            if (SharedData.ScrapedList.Count > 0)
-            {
-                XDocument xdoc = XDocument.Load(filename);
-
-                foreach (ScraperData scraperData in SharedData.ScrapedList)
-                {
-                    string romName = scraperData.Item;
-                    string source = scraperData.Source;
-                    string time = scraperData.ScrapeTime;
-
-                    // Find the game element with the matching path
-                    XElement targetGameElement = xdoc.Descendants("gameList").Elements("game")
-                    .FirstOrDefault(e => e.Element("path")?.Value == $"./{romName}");
-
-                    if (targetGameElement != null)
-                    {
-                        // Get or create the specific scrap element based on its name
-                        XElement targetScrapElement = targetGameElement.Elements("scrap")
-                            .FirstOrDefault(e => e.Attribute("name")?.Value == source);
-
-                        if (targetScrapElement == null)
-                        {
-                            // If the scrap element does not exist, create a new one
-                            targetScrapElement = new XElement("scrap",
-                                new XAttribute("name", source),
-                                new XAttribute("date", time));
-
-                            // Add the new scrap element to the game element
-                            targetGameElement.Add(targetScrapElement);
-                        }
-                        else
-                        {
-                            // Update existing properties
-                            targetScrapElement.SetAttributeValue("date", time);
-                        }
-                    }
-                }
-
-                // Save updated XML with scraper information
-                xdoc.Save(filename);
-                xdoc = null;
-            }
-
-            Cursor.Current = Cursors.Default;
+            this.Cursor = Cursors.Default;
 
             SharedData.IsDataChanged = false;
 
+            // Not necessary any more
             // Reload after save
-            LoadXML(filename);
+            //LoadXML(filename);
 
             // Restore event
             dataGridView1.SelectionChanged += DataGridView1_SelectionChanged;
 
+            UpdateStatusBar();
+
             MessageBox.Show("File save completed!", "Notification", MessageBoxButtons.OK);
         }
 
-
+       
         private bool SaveReminder()
         {
             DialogResult result = MessageBox.Show("There are unsaved changes, do you want to save them now?", "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
@@ -200,11 +155,11 @@ namespace GamelistManager
             }
         }
 
-        private void ApplyFilters(string visibilityFilter, string genreFilter)
+        private void ApplyFilters()
         {
             // Merge the genre filter with the visibility filter using "AND" if both are not empty
             string mergedFilter;
-            if ((!string.IsNullOrEmpty(genreFilter) && !string.IsNullOrEmpty(visibilityFilter)))
+            if (!string.IsNullOrEmpty(genreFilter) && !string.IsNullOrEmpty(visibilityFilter))
             {
                 mergedFilter = $"{genreFilter} AND {visibilityFilter}";
             }
@@ -212,9 +167,8 @@ namespace GamelistManager
             {
                 mergedFilter = (!string.IsNullOrEmpty(genreFilter) ? genreFilter : visibilityFilter);
             }
-
             // Set the modified RowFilter
-            SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter = mergedFilter;
+            SharedData.DataSet.Tables["game"].DefaultView.RowFilter = mergedFilter;
         }
 
         private void DataGridView1_SelectionChanged(object sender, EventArgs e)
@@ -238,56 +192,13 @@ namespace GamelistManager
             }
         }
 
-        private string GetGenreFilter()
-        {
-            // Get the current row filter
-            string currentFilter = SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter;
-
-            // Check if there's an existing genre filter
-            bool hasGenreFilter = currentFilter.Contains("genre");
-
-            string genreFilter = string.Empty;
-
-            if (hasGenreFilter)
-            {
-                // Extract the genre filter from the current filter
-                genreFilter = currentFilter
-                .Split(new[] { "AND", "OR" }, StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault(filter => filter.Contains("genre"));
-            }
-
-            return genreFilter;
-        }
-
-        private string GetVisibilityFilter()
-        {
-
-            // Get the current row filter
-            string currentFilter = SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter;
-
-            // Check if there's an existing visibility filter
-            bool hasVisibilityFilter = currentFilter.Contains("hidden");
-
-            string visibilityFilter = string.Empty;
-            if (hasVisibilityFilter)
-            {
-                // Extract the visibility filter from the current filter
-                visibilityFilter = currentFilter
-                .Split(new[] { "AND", "OR" }, StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault(filter => filter.Contains("hidden"));
-            }
-
-            return visibilityFilter;
-        }
-
         private void ShowVisibleItemsOnlyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             toolStripMenuItemShowAllHiddenAndVisible.Checked = false;
             toolStripMenuItemShowHiddenOnly.Checked = false;
             toolStripMenuItemShowVisibleOnly.Checked = true;
-            string visibilityFilter = "hidden = false OR hidden IS NULL";
-            string genreFilter = GetGenreFilter();
-            ApplyFilters(visibilityFilter, genreFilter);
+            visibilityFilter = "(hidden = false OR hidden IS NULL)";
+            ApplyFilters();
             UpdateCounters();
         }
 
@@ -296,9 +207,8 @@ namespace GamelistManager
             toolStripMenuItemShowVisibleOnly.Checked = false;
             toolStripMenuItemShowAllHiddenAndVisible.Checked = false;
             toolStripMenuItemShowHiddenOnly.Checked = true;
-            string visibilityFilter = "hidden = true";
-            string genreFilter = GetGenreFilter();
-            ApplyFilters(visibilityFilter, genreFilter);
+            visibilityFilter = "hidden = true";
+            ApplyFilters();
             UpdateCounters();
         }
 
@@ -307,9 +217,8 @@ namespace GamelistManager
             toolStripMenuItemShowVisibleOnly.Checked = false;
             toolStripMenuItemShowHiddenOnly.Checked = false;
             toolStripMenuItemShowAllHiddenAndVisible.Checked = true;
-            string visibilityFilter = string.Empty;
-            string genreFilter = GetGenreFilter();
-            ApplyFilters(visibilityFilter, genreFilter);
+            visibilityFilter = string.Empty;
+            ApplyFilters();
 
             UpdateCounters();
         }
@@ -336,6 +245,7 @@ namespace GamelistManager
 
             toolStripMenuItemFileMenu.Enabled = true;
             toolStripMenuItemReload.Enabled = false;
+            ToolStripMenuItemExportToCSV.Enabled = false;
             toolStripMenuItemSave.Enabled = false;
             toolStripMenuItemRemoteMenu.Enabled = true;
 
@@ -624,15 +534,15 @@ namespace GamelistManager
 
         private void UpdateCounters()
         {
-            int hiddenItems = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
+            int hiddenItems = SharedData.DataSet.Tables["game"].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") == true);
 
             // Count rows where "hidden" is false
-            int visibleItems = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
+            int visibleItems = SharedData.DataSet.Tables["game"].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") != true);
 
             // Count rows where "hidden" is false
-            int favoriteItems = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
+            int favoriteItems = SharedData.DataSet.Tables["game"].AsEnumerable()
             .Count(row => row.Field<bool?>("favorite") == true);
 
             int visibleRowCount = dataGridView1.Rows.Cast<DataGridViewRow>().Count(row => row.Visible);
@@ -692,7 +602,7 @@ namespace GamelistManager
             if (SharedData.DataSet.Tables.Count == 0)
             {
                 SharedData.DataSet.Tables.Add();
-                SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add("path", typeof(string));
+                SharedData.DataSet.Tables["game"].Columns.Add("path", typeof(string));
             }
 
             // Standard gamelist.xml elements
@@ -720,50 +630,54 @@ namespace GamelistManager
                 "map",
                 "bezel",
                 "md5",
+                "id",
+                "boxback",
+                "genreid",
+                "arcadesystemname",
+                "fanart"
             };
 
             foreach (string columnName in columnNames)
             {
-                if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains(columnName))
+                if (!SharedData.DataSet.Tables["game"].Columns.Contains(columnName))
                 {
                     // If the column doesn't exist, add it to the DataTable
-                    SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add(columnName, typeof(string));
+                    SharedData.DataSet.Tables["game"].Columns.Add(columnName, typeof(string));
                 }
             }
 
-            SetupScrapColumns();
-
             //Convert true/false columns to boolean
-            ConvertColumnToBoolean(SharedData.DataSet.Tables[SharedData.MainTable], "hidden");
-            ConvertColumnToBoolean(SharedData.DataSet.Tables[SharedData.MainTable], "favorite");
+            ConvertColumnToBoolean(SharedData.DataSet.Tables["game"], "hidden");
+            ConvertColumnToBoolean(SharedData.DataSet.Tables["game"], "favorite");
 
-            if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains("unplayable"))
+            if (!SharedData.DataSet.Tables["game"].Columns.Contains("unplayable"))
             {
-                SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add("unplayable", typeof(bool));
+                SharedData.DataSet.Tables["game"].Columns.Add("unplayable", typeof(bool));
             }
-            if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains("missing"))
+            if (!SharedData.DataSet.Tables["game"].Columns.Contains("missing"))
             {
-                SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add("missing", typeof(bool));
+                SharedData.DataSet.Tables["game"].Columns.Add("missing", typeof(bool));
             }
 
-            SetColumnOrdinals(SharedData.DataSet.Tables[SharedData.MainTable],
+            SetColumnOrdinals(SharedData.DataSet.Tables["game"],
                 ("missing", 0),
                 ("unplayable", 1),
                 ("hidden", 2),
                 ("favorite", 3),
                 ("path", 4),
-                ("name", 5),
-                ("genre", 6),
-                ("releasedate", 7),
-                ("players", 8),
-                ("rating", 9),
-                ("lang", 10),
-                ("region", 11),
-                ("publisher", 12),
-                ("developer", 13),
-                ("playcount", 14),
-                ("gametime", 15),
-                ("lastplayed", 16)
+                ("id", 5),
+                ("name", 6),
+                ("genre", 7),
+                ("releasedate", 8),
+                ("players", 9),
+                ("rating", 10),
+                ("lang", 11),
+                ("region", 12),
+                ("publisher", 13),
+                ("developer", 14),
+                ("playcount", 15),
+                ("gametime", 16),
+                ("lastplayed", 17)
             );
 
             SharedData.DataSet.AcceptChanges();
@@ -771,41 +685,47 @@ namespace GamelistManager
 
         private void SetupScrapColumns()
         {
-            if (SharedData.DataSet.Tables.Count == 1)
+            if (!SharedData.DataSet.Tables.Contains("scrap"))
             {
                 return;
             }
 
+            var uniqueValues = SharedData.DataSet.Tables["scrap"].AsEnumerable()
+              .Where(row => !string.IsNullOrEmpty(row.Field<string>("name")))
+              .Select(row => row.Field<string>("name"))
+              .Distinct();
+
+            foreach (var uniqueValue in uniqueValues)
+            {
+                if (!SharedData.DataSet.Tables["game"].Columns.Contains(uniqueValue))
+                {
+                    DataColumn newColumn = new DataColumn(uniqueValue, typeof(string));
+                    SharedData.DataSet.Tables["game"].Columns.Add($"scrap_{newColumn}");
+                }
+            }
+
+            SharedData.DataSet.AcceptChanges();
+
             DataRow[] matchingScrapRows;
 
             // Add scrap columns to the main table using the game_id key
-            foreach (DataRow mainRow in SharedData.DataSet.Tables[SharedData.MainTable].Rows)
+            foreach (DataRow mainRow in SharedData.DataSet.Tables["game"].Rows)
             {
                 // Find the corresponding scrap rows in the second table
                 try
 
                 {
                     object gameId = mainRow["game_Id"];
-                    matchingScrapRows = SharedData.DataSet.Tables[SharedData.ScrapTable].Select($"game_Id = {gameId}");
+                    matchingScrapRows = SharedData.DataSet.Tables["scrap"].Select($"game_Id = {gameId}");
                 }
                 catch
                 {
                     continue;
                 }
-
-                // Add scrap columns to the main row
+            
                 foreach (DataRow matchingScrapRow in matchingScrapRows)
                 {
-                    // Generate the column name with the prefix
                     string columnName = $"scrap_{matchingScrapRow["name"]}";
-
-                    // Check if the column already exists in the main table, if not, add it
-                    if (!SharedData.DataSet.Tables[SharedData.MainTable].Columns.Contains(columnName))
-                    {
-                        SharedData.DataSet.Tables[SharedData.MainTable].Columns.Add(columnName.ToLower(), typeof(string));
-                    }
-
-                    // Set the value in the main row
                     mainRow[columnName] = matchingScrapRow["date"];
                 }
             }
@@ -855,7 +775,7 @@ namespace GamelistManager
 
         public bool LoadXML(string fileName)
         {
-            Cursor.Current = Cursors.WaitCursor;
+            this.Cursor = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
             SharedData.DataSet.Reset();
 
@@ -871,28 +791,20 @@ namespace GamelistManager
                 return false;
             }
 
+            // Extract scraper data
+            SetupScrapColumns();
+
+            // Delete all tables except for Game table
+            DeleteUnwantedTables();
+
+            SharedData.DataSet.Tables["game"].PrimaryKey = null;
+            SharedData.DataSet.Tables["game"].Columns.Remove("game_id");
 
             SharedData.XMLFilename = fileName;
-
-            SharedData.MainTable = 0;
-            SharedData.ScrapTable = -1;
-
-            for (int i = 0; i < SharedData.DataSet.Tables.Count; i++)
-            {
-                if (SharedData.DataSet.Tables[i].Columns["path"] != null)
-                {
-                    SharedData.MainTable = i;
-                }
-                if (SharedData.DataSet.Tables[i].Columns["date"] != null)
-                {
-                    SharedData.ScrapTable = i;
-                }
-
-            }
-
+           
             SetupTableColumns();
 
-            dataGridView1.DataSource = SharedData.DataSet.Tables[SharedData.MainTable];
+            dataGridView1.DataSource = SharedData.DataSet.Tables["game"];
 
             SetupDataGridViewColumns();
             BuildCombobox();
@@ -900,9 +812,7 @@ namespace GamelistManager
             ResetForm();
             UpdateCounters();
 
-            SharedData.ScrapedList.Clear();
-
-            Cursor.Current = Cursors.Default;
+            this.Cursor = Cursors.Default;
 
             RegistryManager.SaveLastOpenedGamelistName(SharedData.XMLFilename);
 
@@ -911,30 +821,61 @@ namespace GamelistManager
             return true;
         }
 
-        private void SetColumnTags()
+        private void DeleteUnwantedTables()
         {
-            // Column tags are used to identify columns as temp, video or image
-
-            // Set temp tags on columns we will discard before saving
-            DataGridViewColumn tempColumn = (DataGridViewColumn)dataGridView1.Columns["missing"];
-            tempColumn.Tag = "temp";
-
-            DataGridViewColumn tempColumn2 = (DataGridViewColumn)dataGridView1.Columns["unplayable"];
-            tempColumn2.Tag = "temp";
-
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
+            if (SharedData.DataSet.Tables.Count == 1)
             {
-                if (column.Name.StartsWith("scrap_"))
+                return;
+            }
+
+            List<string> tablesToDelete = new List<string>();
+            foreach (DataTable table in SharedData.DataSet.Tables)
+            {
+                if (table.TableName.ToLower() != "game")
                 {
-                    column.Tag = "temp";
+                    tablesToDelete.Add(table.TableName);
                 }
             }
 
+            foreach (string tableToDelete in tablesToDelete)
+            {
+                // Remove foreign key constraints
+                List<ForeignKeyConstraint> constraintsToRemove = SharedData.DataSet.Tables[tableToDelete].Constraints
+                    .OfType<ForeignKeyConstraint>()
+                    .ToList();
+
+                foreach (ForeignKeyConstraint constraint in constraintsToRemove)
+                {
+                    SharedData.DataSet.Tables[tableToDelete].Constraints.Remove(constraint);
+                }
+
+                // Remove data relations
+                List<DataRelation> relationsToRemove = SharedData.DataSet.Relations.Cast<DataRelation>()
+                    .Where(r => r.ChildTable.TableName == tableToDelete || r.ParentTable.TableName == tableToDelete)
+                    .ToList();
+
+                foreach (DataRelation relation in relationsToRemove)
+                {
+                    SharedData.DataSet.Relations.Remove(relation);
+                }
+
+                // Remove the table itself
+                SharedData.DataSet.Tables.Remove(tableToDelete);
+            }
+        }
+
+        private void SetColumnTags()
+        {
+            // To be reivewed and improved later.
             // There's only 1 video column and it's named video.  But set the tag anyhow
             DataGridViewTextBoxColumn imageColumn = (DataGridViewTextBoxColumn)dataGridView1.Columns["video"];
-            imageColumn.Tag = "video";
+            if (imageColumn != null)
+            {
+                imageColumn.Tag = "video";
+            }
 
             // Set image column tags
+            // Manual is a pdf usually, but will include it for media views
             string[] imageTypes = {
             "image",
             "marquee",
@@ -944,7 +885,9 @@ namespace GamelistManager
             "manual",
             "magazine",
             "map",
-            "bezel"
+            "bezel",
+            "boxback",
+            "fanart"
             };
 
             foreach (DataGridViewColumn column in dataGridView1.Columns)
@@ -989,10 +932,11 @@ namespace GamelistManager
             {
                 return;
             }
+
             int index = comboBoxGenre.SelectedIndex;
             string selectedItem = comboBoxGenre.SelectedItem as string;
 
-            string genreFilter = string.Empty;
+            genreFilter = string.Empty;
 
             if (index == 1)
             {
@@ -1006,9 +950,7 @@ namespace GamelistManager
                 genreFilter = $"genre = '{selectedItem}'";
             }
 
-            string visibilityFilter = GetVisibilityFilter();
-            ApplyFilters(visibilityFilter, genreFilter);
-
+            ApplyFilters();
             toolStripMenuItemShowAllGenres.Checked = false;
             toolStripMenuItemShowGenreOnly.Checked = true;
 
@@ -1016,9 +958,15 @@ namespace GamelistManager
 
         }
 
+        private void UpdateStatusBar()
+        {
+            DateTime lastModifiedTime = File.GetLastWriteTime(SharedData.XMLFilename);
+            statusBar.Text = $"{SharedData.XMLFilename}  ({lastModifiedTime})";
+        }
+
         private void ResetForm()
         {
-            statusBar.Text = SharedData.XMLFilename;
+            UpdateStatusBar();
             toolStripMenuItemShowAllHiddenAndVisible.Checked = true;
             toolStripMenuItemShowVisibleOnly.Checked = false;
             toolStripMenuItemShowHiddenOnly.Checked = false;
@@ -1028,6 +976,7 @@ namespace GamelistManager
             checkBoxCustomFilter.Enabled = true;
             comboBoxGenre.Enabled = true;
             checkBoxCustomFilter.Checked = false;
+            toolStripMenuItemEditRowData.Checked = false;
 
             foreach (ToolStripMenuItem item in menuStripMainMenu.Items)
             {
@@ -1044,10 +993,11 @@ namespace GamelistManager
             toolStripMenuItemDescription.Checked = true;
             toolStripMenuItemSave.Enabled = true;
             toolStripMenuItemReload.Enabled = true;
+            ToolStripMenuItemExportToCSV.Enabled = true;
 
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
             System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
-            //Image image = LoadImageFromResource(romPath);
+            //image image = LoadImageFromResource(romPath);
 
             if (image is System.Drawing.Image)
             {
@@ -1062,6 +1012,14 @@ namespace GamelistManager
 
         private void FilenameMenuItem_Click(object sender, EventArgs e)
         {
+            if (SharedData.IsDataChanged == true)
+            {
+                bool saveResult = SaveReminder();
+                if (saveResult == true)
+                    // true is set for cancel.
+                    return;
+            }
+
             // Handle the click event for the filename menu item
             ToolStripMenuItem filenameMenuItem = (ToolStripMenuItem)sender;
             string selectedFilename = filenameMenuItem.Text;
@@ -1094,7 +1052,7 @@ namespace GamelistManager
                 // Check if the column has the tag 'image'
                 if (column.Tag != null && (column.Tag.ToString() == "image" || column.Tag.ToString() == "video"))
                 {
-                    bool isColumnEmpty = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
+                    bool isColumnEmpty = SharedData.DataSet.Tables["game"].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
                     if (!isColumnEmpty && toolStripMenuItemMediaPaths.Checked == true)
                     {
                         column.Visible = true;
@@ -1131,17 +1089,17 @@ namespace GamelistManager
         }
 
 
-        private void ratingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        private void ToolStripMenuItemRating_CheckedChanged(object sender, EventArgs e)
         {
             Updatecolumnview(sender);
         }
 
-        private void playersToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        private void ToolStripMenuItemPlayers_CheckedChanged(object sender, EventArgs e)
         {
             Updatecolumnview(sender);
         }
 
-        private void LanguageToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        private void ToolStripMenuItemLanguage_CheckedChanged(object sender, EventArgs e)
         {
             Updatecolumnview(sender);
         }
@@ -1172,6 +1130,11 @@ namespace GamelistManager
         }
 
         private void LastplayedToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        {
+            Updatecolumnview(sender);
+        }
+
+        private void ToolStripMenuItemID_CheckedChanged(object sender, EventArgs e)
         {
             Updatecolumnview(sender);
         }
@@ -1293,50 +1256,7 @@ namespace GamelistManager
             }
         }
 
-        private void DeleteRowToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (dataGridView1.SelectedRows.Count < 1) { return; }
-
-            int count = dataGridView1.SelectedRows.Count;
-
-            string item = "item";
-            string has = "has";
-
-            if (count > 1)
-            {
-                item = "items";
-                has = "have";
-            }
-
-            DialogResult result = MessageBox.Show($"Do you want delete the selected {item}?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result != DialogResult.Yes)
-            {
-                return;
-            }
-
-            List<string> selectedFileList = dataGridView1.SelectedRows
-            .Cast<DataGridViewRow>()
-            .Select(selectedRow => selectedRow.Cells["path"].Value?.ToString())
-            .Where(filePath => !string.IsNullOrEmpty(filePath))
-            .ToList();
-
-            var rowsToRemove = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
-            .Where(row => selectedFileList.Contains(row.Field<string>("path")))
-            .ToList();
-
-            foreach (var rowToRemove in rowsToRemove)
-            {
-                SharedData.DataSet.Tables[SharedData.MainTable].Rows.Remove(rowToRemove);
-            }
-
-            SharedData.DataSet.AcceptChanges();
-
-            UpdateCounters();
-
-            MessageBox.Show($"{count} {item} {has} been deleted!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
+      
         private void ReloadGamelistxmlToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show($"Do you want to reload the file '{SharedData.XMLFilename}'?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -1373,7 +1293,7 @@ namespace GamelistManager
         private void SetVisibilityByItemValue(string colname, string colvalue, bool hiddenValue)
         {
 
-            DataTable dataTable = SharedData.DataSet.Tables[SharedData.MainTable];
+            DataTable dataTable = SharedData.DataSet.Tables["game"];
 
             var rowsToUpdate = dataTable.AsEnumerable()
                 .Where(row =>
@@ -1415,7 +1335,7 @@ namespace GamelistManager
                 readonlyBoolean = false;
             }
 
-            SetColumnsReadOnly(dataGridView1, readonlyBoolean, "name", "genre", "players", "rating", "lang", "region", "publisher");
+            SetColumnsReadOnly(dataGridView1, readonlyBoolean, "id", "name", "genre", "players", "rating", "lang", "region", "publisher");
             SharedData.IsDataChanged = true;
         }
 
@@ -1439,31 +1359,22 @@ namespace GamelistManager
                 return;
             }
 
-            changeBoolValue(columnName, e.RowIndex);
+            ChangeHiddenBoolValue(columnName, e.RowIndex);
             UpdateCounters();
         }
 
-        private void changeBoolValue(string columnName, int columnIndex)
+        private void ChangeHiddenBoolValue(string columnName, int columnIndex)
         {
             var hiddenValue = dataGridView1.Rows[columnIndex].Cells[columnName].Value;
             //Get the path value so we can lookup the row in the table and change it there
             var pathValue = dataGridView1.Rows[columnIndex].Cells["path"].Value;
 
-            bool currentValue = false;
-
-            if (hiddenValue is bool)
-            {
-                currentValue = (bool)hiddenValue;
-            }
-            else if (hiddenValue == DBNull.Value)
-            {
-                currentValue = false;
-            }
+            bool currentValue = hiddenValue as bool? ?? false;
 
             string path = (string)pathValue;
 
             // Find the corresponding row in the dataSet
-            DataRow[] rows = SharedData.DataSet.Tables[SharedData.MainTable].Select($"path = '{path.Replace("'", "''")}'");
+            DataRow[] rows = SharedData.DataSet.Tables["game"].Select($"path = '{path.Replace("'", "''")}'");
 
             if (rows.Length > 0)
             {
@@ -1535,7 +1446,7 @@ namespace GamelistManager
                     if (column.Name.StartsWith("scrap_"))
                     {
                         // Clear or set the value in the current scrap column
-                        if (date == string.Empty)
+                        if (string.IsNullOrEmpty(date))
                         {
                             selectedRow.Cells[column.Name].Value = DBNull.Value;
                         }
@@ -1545,46 +1456,7 @@ namespace GamelistManager
                         }
                     }
                 }
-
-                string pathValue = selectedRow.Cells["path"].Value.ToString();
-
-                // Find the corresponding row in main table
-                DataRow[] rowsInMainTable = SharedData.DataSet.Tables[SharedData.MainTable].Select($"path = '{pathValue.Replace("'", "''")}'");
-
-                // Check if a matching row is found
-                if (rowsInMainTable.Length > 0)
-                {
-                    // Get the game_id from the matched row in table0
-                    int gameId = Convert.ToInt32(rowsInMainTable[0]["game_id"]);
-
-                    // Find and update or add rows in scrap table with matching game_id
-                    DataRow[] rowsToUpdate = SharedData.DataSet.Tables[SharedData.ScrapTable].Select($"game_id = {gameId}");
-                    if (rowsToUpdate.Length > 0)
-                    {
-                        // Update the date field or remove the row
-                        foreach (DataRow rowToUpdate in rowsToUpdate)
-                        {
-                            if (date == string.Empty)
-                            {
-                                rowToUpdate.Delete();
-                            }
-                            else
-                            {
-                                rowToUpdate["date"] = date;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Add a new row to scrap table
-                        DataRow newRow = SharedData.DataSet.Tables[SharedData.ScrapTable].NewRow();
-                        newRow["game_id"] = gameId;
-                        newRow["date"] = (date == string.Empty) ? DBNull.Value : (object)date;
-                        SharedData.DataSet.Tables[SharedData.ScrapTable].Rows.Add(newRow);
-                    }
-                }
             }
-
             SharedData.DataSet.AcceptChanges();
 
             MessageBox.Show("Scraper dates have been updated!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1729,21 +1601,24 @@ namespace GamelistManager
 
             List<string> gameNames = null;
 
-            Cursor.Current = Cursors.WaitCursor;
+            this.Cursor = Cursors.WaitCursor;
+
+            dataGridView1.Enabled = false;
             menuStripMainMenu.Enabled = false;
             panelBelowDataGridView.Enabled = false;
 
             try
             {
-                statusBar.Text = "Started XML Import.....";
+                statusBar.Text = "Started XML Import, please wait.....";
                 string mameExePath = openFileDialog.FileName;
                 gameNames = await Task.Run(() => GetMameUnplayable.GetFilteredGameNames(mameExePath));
             }
             catch (Exception ex)
             {
-                Cursor.Current = Cursors.Default;
-                statusBar.Text = SharedData.XMLFilename;
+                this.Cursor = Cursors.Default;
+                UpdateStatusBar();
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dataGridView1.Enabled = true;
                 menuStripMainMenu.Enabled = true;
                 panelBelowDataGridView.Enabled = true;
                 return;
@@ -1752,6 +1627,9 @@ namespace GamelistManager
             if (gameNames == null || gameNames.Count == 0)
             {
                 MessageBox.Show("No data was returned!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dataGridView1.Enabled = true;
+                menuStripMainMenu.Enabled = true;
+                panelBelowDataGridView.Enabled = true;
                 return;
             }
 
@@ -1767,7 +1645,7 @@ namespace GamelistManager
                 List<DataRow> rowsToUpdate = new List<DataRow>();
 
                 // Loop through each row in the DataTable
-                Parallel.ForEach(SharedData.DataSet.Tables[SharedData.MainTable].Rows.Cast<DataRow>(), (row) =>
+                Parallel.ForEach(SharedData.DataSet.Tables["game"].Rows.Cast<DataRow>(), (row) =>
                 {
                     string originalPath = row["path"].ToString();
                     string path = Path.GetFileNameWithoutExtension(originalPath);
@@ -1791,6 +1669,7 @@ namespace GamelistManager
                 }
             });
 
+            dataGridView1.Enabled = true;
             menuStripMainMenu.Enabled = true;
             panelBelowDataGridView.Enabled = true;
 
@@ -1802,9 +1681,9 @@ namespace GamelistManager
             // Refresh the DataGridView to update the UI once all changes are made
             dataGridView1.Refresh();
 
-            Cursor.Current = Cursors.Default;
+            this.Cursor = Cursors.Default;
 
-            statusBar.Text = SharedData.XMLFilename;
+            UpdateStatusBar();
             dataGridView1.Columns["unplayable"].Visible = true;
             dataGridView1.Columns["unplayable"].SortMode = DataGridViewColumnSortMode.Automatic;
             dataGridView1.Columns["unplayable"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
@@ -1817,7 +1696,7 @@ namespace GamelistManager
                 return;
             }
 
-            foreach (DataRow row in SharedData.DataSet.Tables[SharedData.MainTable].Rows)
+            foreach (DataRow row in SharedData.DataSet.Tables["game"].Rows)
             {
                 // Check if column x is true
                 object unplayableValue = row["unplayable"];
@@ -1987,7 +1866,7 @@ namespace GamelistManager
             userControl.Disposed -= BatoceraHostSetup_Disposed;
         }
 
-        private void connectToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemConnect_Click(object sender, EventArgs e)
         {
             string hostName = RegistryManager.ReadRegistryValue("HostName");
 
@@ -2006,7 +1885,7 @@ namespace GamelistManager
                 return;
             }
 
-            string sshPath = "C:\\Windows\\System32\\OpenSSH\\ssh.exe"; // Path to ssh.exe on Windows
+            string sshPath = "C:\\Windows\\System32\\OpenSSH\\ssh.exe"; // path to ssh.exe on Windows
 
             try
             {
@@ -2029,7 +1908,7 @@ namespace GamelistManager
             }
         }
 
-        private void getVersionInformationToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemGetVersion_Click(object sender, EventArgs e)
         {
             string command = "batocera-es-swissknife --version"; // Replace with your desired command
             string output = ExecuteSshCommand(command) as string;
@@ -2042,7 +1921,7 @@ namespace GamelistManager
             MessageBox.Show($"Your Batocera is version {output}", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void stopRunningEmulatorsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemStopEmulators_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show("Are you sure you want to stop any running emulators?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -2063,7 +1942,7 @@ namespace GamelistManager
 
         }
 
-        private void showAvailableUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemShowUpdates_Click(object sender, EventArgs e)
         {
             string command = "batocera-es-swissknife --update"; // Replace with your desired command
             string output = ExecuteSshCommand(command) as string;
@@ -2076,7 +1955,7 @@ namespace GamelistManager
             MessageBox.Show($"{output}", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private void shutdownBatoceraHostToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemShutdownHost_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show("Are you sure you want to shutdown your Batocera host?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -2097,7 +1976,7 @@ namespace GamelistManager
 
         }
 
-        private void mapANetworkDriveToolStripMenuItem_ClickAsync(object sender, EventArgs e)
+        private void ToolStripMenuItemMapDrive_ClickAsync(object sender, EventArgs e)
         {
             MapNetworkDrive();
         }
@@ -2198,8 +2077,7 @@ namespace GamelistManager
 
         private void CheckBox_CustomFilter_CheckedChanged(object sender, EventArgs e)
         {
-            if (dataGridView1.RowCount == 0) { return; }
-
+            
             if (checkBoxCustomFilter.Checked == true)
             {
                 textBoxCustomFilter.Enabled = true;
@@ -2213,18 +2091,16 @@ namespace GamelistManager
                 textBoxCustomFilter.Text = "";
                 comboBoxGenre.Enabled = true;
                 ChangeGenreViaCombobox();
-
             }
         }
 
-        private void textBox1_KeyUp(object sender, KeyEventArgs e)
+        private void TextBox1_KeyUp(object sender, KeyEventArgs e)
         {
             string text = textBoxCustomFilter.Text;
 
             //selectedItem = selectedItem.Replace("'", "''");
-            string genreFilter = $"genre LIKE '*{text}*'";
-            string visibilityFilter = GetVisibilityFilter();
-            ApplyFilters(visibilityFilter, genreFilter);
+            genreFilter = $"genre LIKE '*{text}*'";
+            ApplyFilters();
         }
 
         private void OpenScraper_Click(object sender, EventArgs e)
@@ -2255,42 +2131,57 @@ namespace GamelistManager
             ((ScraperForm)sender).FormClosed -= ScraperForm_FormClosed;
         }
 
-        private void findNewItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemFindItems_Click(object sender, EventArgs e)
         {
 
-            DialogResult result = MessageBox.Show("This will check for additional items and add them to your gamelist.  Search criteria will be based upon file extensions used for any existing items.\n\nDo you want to contine?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show("This will check for additional items and add them to your gamelist.  Search criteria will be based upon file extensions used for any existing items.\n\n" +
+                "Items listed in m3u files will be ignored.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
                 return;
             }
 
-            List<string> fileList = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
-                                            .Select(row => ExtractFileNameWithExtension(row.Field<string>("path")))
-                                            .ToList();
+            string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+
+            string[] m3uFiles = Directory.GetFiles(parentFolderPath, "*.m3u");
+
+            // List to store contents of all M3U files
+            List<string> m3uContents = new List<string>();
+            // Read contents of each M3U file
+            foreach (var m3uFile in m3uFiles)
+            {
+                // Read the contents of the file and add to the list
+                string[] fileLines = File.ReadAllLines(m3uFile);
+                m3uContents.AddRange(fileLines);
+            }
+
+            
+            List<string> fileList = SharedData.DataSet.Tables["game"].AsEnumerable()
+                                  .Select(row => ExtractFileNameWithExtension(row.Field<string>("path")))
+                                  .Select(path => path.StartsWith("./") ? path.Substring(2) : path)
+                                  .ToList();
 
             List<string> uniqueFileExtensions = new List<string>();
             foreach (string path in fileList)
             {
-                if (!string.IsNullOrEmpty(path))
+                // Extract the file extension using path.GetExtension
+                string extension = System.IO.Path.GetExtension(path).TrimStart('.');
+                if (!uniqueFileExtensions.Contains(extension))
                 {
-                    // Extract the file extension using Path.GetExtension
-                    string extension = System.IO.Path.GetExtension(path).TrimStart('.');
-                    if (!uniqueFileExtensions.Contains(extension))
-                    {
-                        uniqueFileExtensions.Add(extension);
-                    }
+                    uniqueFileExtensions.Add(extension);
                 }
             }
 
-            string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
-
-            List<string> newFileList = uniqueFileExtensions
+             List<string> newFileList = uniqueFileExtensions
                 .SelectMany(ext => Directory.GetFiles(parentFolderPath, $"*.{ext}"))
                 .Select(file => Path.GetFileName(file))
                 .ToList();
 
+            string m3uContentsString = string.Join(Environment.NewLine, fileList);
+
             newFileList.RemoveAll(file => fileList.Contains(file, StringComparer.OrdinalIgnoreCase));
+            newFileList.RemoveAll(file => m3uContents.Contains(file, StringComparer.OrdinalIgnoreCase));
 
             if (newFileList.Count == 0)
             {
@@ -2298,17 +2189,14 @@ namespace GamelistManager
                 return;
             }
 
-            foreach (string path in newFileList)
+            foreach (string fileName in newFileList)
             {
-                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
-                string fileNameWithoutPath = Path.GetFileName(path);
-                DataRow newRow = SharedData.DataSet.Tables[SharedData.MainTable].NewRow();
-
-                string newName = new string(fileNameWithoutPath.Split('(')[0].Where(c => Char.IsLetterOrDigit(c) || Char.IsWhiteSpace(c)).ToArray()).Trim();
+                string newName = MakeName(fileName);
+                DataRow newRow = SharedData.DataSet.Tables["game"].NewRow();
                 newRow["name"] = newName;
-                newRow["path"] = $"./{fileNameWithoutPath}";
+                newRow["path"] = $"./{fileName}";
                 // Add the new row to the Rows collection of the DataTable
-                SharedData.DataSet.Tables[SharedData.MainTable].Rows.Add(newRow);
+                SharedData.DataSet.Tables["game"].Rows.Add(newRow);
             }
 
             SharedData.DataSet.AcceptChanges();
@@ -2330,7 +2218,7 @@ namespace GamelistManager
             var nameList = new List<string>();
 
             // Iterate through the rows of the source table and populate the lists
-            foreach (DataRow row in SharedData.DataSet.Tables[SharedData.MainTable].Rows)
+            foreach (DataRow row in SharedData.DataSet.Tables["game"].Rows)
             {
                 pathList.Add(row["path"].ToString());
                 nameList.Add(row["name"].ToString());
@@ -2338,26 +2226,26 @@ namespace GamelistManager
 
             dataGridView1.DataSource = null;
 
-            List<string> pathValues = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
+            List<string> pathValues = SharedData.DataSet.Tables["game"].AsEnumerable()
               .Select(row => row.Field<string>("path"))
               .ToList();
 
-            SharedData.DataSet.Tables[SharedData.MainTable].DefaultView.RowFilter = null;
+            SharedData.DataSet.Tables["game"].DefaultView.RowFilter = null;
             SharedData.DataSet.Clear();
 
             SetupTableColumns();
 
             for (int i = 0; i < pathValues.Count; i++)
             {
-                DataRow newRow = SharedData.DataSet.Tables[SharedData.MainTable].NewRow();
+                DataRow newRow = SharedData.DataSet.Tables["game"].NewRow();
                 newRow["path"] = pathList[i];
                 newRow["name"] = MakeName(nameList[i]);
-                SharedData.DataSet.Tables[SharedData.MainTable].Rows.Add(newRow);
+                SharedData.DataSet.Tables["game"].Rows.Add(newRow);
             }
 
             SharedData.DataSet.AcceptChanges();
 
-            dataGridView1.DataSource = SharedData.DataSet.Tables[SharedData.MainTable];
+            dataGridView1.DataSource = SharedData.DataSet.Tables["game"];
             SetupDataGridViewColumns();
             BuildCombobox();
             SetColumnTags();
@@ -2368,7 +2256,7 @@ namespace GamelistManager
 
         }
 
-        private void textBox_CustomFilter_KeyPress(object sender, KeyPressEventArgs e)
+        private void TextBox_CustomFilter_KeyPress(object sender, KeyPressEventArgs e)
         {
 
             if (e.KeyChar == '\b' || e.KeyChar == '\u007F' || e.KeyChar == ' ' || e.KeyChar == '/')
@@ -2383,18 +2271,13 @@ namespace GamelistManager
             }
         }
 
-        private void quickScrapeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private async void findMissingItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void ToolStripMenuItemFindMissing_Click(object sender, EventArgs e)
         {
 
             int missingCount = 0;
-            int totalItemCount = SharedData.DataSet.Tables[SharedData.MainTable].Rows.Count;
+            int totalItemCount = SharedData.DataSet.Tables["game"].Rows.Count;
 
-            Cursor.Current = Cursors.WaitCursor;
+            this.Cursor = Cursors.WaitCursor;
 
             string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
 
@@ -2404,7 +2287,7 @@ namespace GamelistManager
             await Task.Run(() =>
                {
                    // Loop through each row in the DataTable
-                   Parallel.ForEach(SharedData.DataSet.Tables[SharedData.MainTable].Rows.Cast<DataRow>(), (row) =>
+                   Parallel.ForEach(SharedData.DataSet.Tables["game"].Rows.Cast<DataRow>(), (row) =>
                    {
                        string itemPath = row["path"].ToString();
                        string fullPath = Path.Combine(parentFolderPath, itemPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
@@ -2430,7 +2313,7 @@ namespace GamelistManager
             }
 
 
-            Cursor.Current = Cursors.Default;
+            this.Cursor = Cursors.Default;
 
             if (missingCount > 0)
             {
@@ -2447,11 +2330,6 @@ namespace GamelistManager
 
         }
 
-        private void ToolStripMenuItem_EditRowData_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void GamelistManagerForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (SharedData.IsDataChanged == true)
@@ -2464,7 +2342,7 @@ namespace GamelistManager
             }
         }
 
-        private void resetNamesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ToolStripMenuItemResetNames_Click(object sender, EventArgs e)
         {
             string message = "This will reset the names of selected items and remove special characters.\n\nDo you want to proceed?";
 
@@ -2489,6 +2367,161 @@ namespace GamelistManager
             return newName;
         }
 
+        private void ToolStripMenuItemExportToCSV_Click(object sender, EventArgs e)
+        {
+            string parentFolderName = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
+            string csvFileName = Directory.GetCurrentDirectory() + "\\" + $"{parentFolderName}_export.csv";
+
+            try
+            {
+                using (var csvContent = new StreamWriter(csvFileName))
+                {
+                    DataTable dataTable = SharedData.DataSet.Tables["game"];
+
+                    List<string> excludedColumns = new List<string> { "desc", "missing", "unplayable" };
+
+                    // Write the header (column names)
+                    var columnNames = dataTable.Columns.Cast<DataColumn>()
+                        .Where(col => !excludedColumns.Contains(col.ColumnName.ToLower()))
+                        .Select(col => EscapeCsvField(col.ColumnName));
+                    csvContent.WriteLine(string.Join(",", columnNames));
+
+                    // Write the data rows
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var fields = row.Table.Columns.Cast<DataColumn>()
+                            .Where(col => !excludedColumns.Contains(col.ColumnName.ToLower()))
+                            .Select(col => EscapeCsvField(row[col].ToString()));
+
+                        csvContent.WriteLine(string.Join(",", fields));
+                    }
+
+                    MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    string output = CommandExecutor.ExecuteCommand("explorer.exe",$"/select, \"{csvFileName}\"");
+
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show($"UnauthorizedAccessException: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (IOException ex)
+            {
+                MessageBox.Show($"IOException: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private string EscapeCsvField(string field)
+        {
+            // If the field contains a comma, double-quote, or newline, enclose it in double-quotes
+            if (field.Contains(",") || field.Contains("\"") || field.Contains("\r") || field.Contains("\n"))
+            {
+                return "\"" + field.Replace("\"", "\"\"") + "\"";
+            }
+            return field;
+        }
+
+        private void ToolStripMenuItemCreateM3UFile_Click(object sender, EventArgs e)
+        {
+
+            List<string> pathValues = DataGridViewSelectedRowsToPathsList();
+
+            if (pathValues == null)
+            {
+                return;
+            }
+
+            string m3uFileName = pathValues[0].ToString() + ".m3u";
+
+            string[] fileArray = pathValues.ToArray();
+            string fileNames = (string.Join(Environment.NewLine, fileArray)).Replace("./", "");
+
+            DialogResult result = MessageBox.Show($"Do you want create the following M3U file?\n\n" +
+                $"Filename: {m3uFileName}\n\nWith Files:\n{fileNames}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            string filePath = Path.GetDirectoryName(SharedData.XMLFilename) + "\\" + m3uFileName;
+            File.WriteAllText(filePath, fileNames);
+
+            DataRow[] firstRow =  SharedData.DataSet.Tables["game"].Select($"path = '{fileArray[0]}'");
+            DataRow newRow = SharedData.DataSet.Tables["game"].NewRow();
+            newRow.ItemArray = firstRow[0].ItemArray;
+            newRow["path"] = $"./{m3uFileName}";
+            SharedData.DataSet.Tables["game"].Rows.Add(newRow);
+
+            DeleteGameRowsByPath(pathValues);
+            UpdateCounters();
+
+        }
+        private void DeleteGameRowsByPath(List<string> romPaths)
+        {
+            DataTable gameTable = SharedData.DataSet.Tables["game"];
+
+            foreach (string romPath in romPaths)
+            {
+                DataRow[] rowsToRemove = SharedData.DataSet.Tables["game"].Select($"path = '{romPath.Replace("'", "''")}'");
+
+                // Remove each found DataRow
+                foreach (DataRow rowToRemove in rowsToRemove)
+                {
+                    gameTable.Rows.Remove(rowToRemove);
+                }
+            }
+
+            // Commit the changes
+            SharedData.DataSet.AcceptChanges();
+        }
+
+        private List<string> DataGridViewSelectedRowsToPathsList()
+        {
+
+            DataGridViewSelectedRowCollection rows = dataGridView1.SelectedRows;
+
+            if (rows.Count < 1)
+            {
+                return null;
+            }
+
+            List<string> pathValues = rows
+             .Cast<DataGridViewRow>()
+             .Select(row => row.Cells["path"].Value?.ToString())
+            .ToList();
+       
+            return pathValues;
+        }
+
+        private void ToolStripMenuItemDeleteRows_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.SelectedRows.Count < 1) { return; }
+
+            int count = dataGridView1.SelectedRows.Count;
+            string item = count == 1 ? "row" : "rows";
+            string has = count == 1 ? "has" : "have";
+
+            DialogResult result = MessageBox.Show($"Do you want delete the selected {item}?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            List<string> pathValues = DataGridViewSelectedRowsToPathsList();
+
+            DeleteGameRowsByPath(pathValues);
+
+            UpdateCounters();
+
+            MessageBox.Show($"{count} {item} {has} been deleted!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }
 

@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace GamelistManager
@@ -23,7 +24,8 @@ namespace GamelistManager
                 List<string> elementsToScrape,
                 string boxSource,
                 string imageSource,
-                string logoSource
+                string logoSource,
+                int id
             )
 
         {
@@ -34,17 +36,22 @@ namespace GamelistManager
                 scraperData.Add(propertyName, null);
             }
 
-            string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
-            string scraperBaseURL = "https://www.screenscraper.fr/api2/";
-            string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}&romtype=rom&romnom=";
-
-            // Build MD5
+            // Build md5
             string fullRomPath = $"{folderPath}\\{romName}";
             string md5 = ChecksumCreator.CreateMD5(fullRomPath);
             if (!string.IsNullOrEmpty(md5))
             {
-                scraperData.Add("md5", null);
+                scraperData.Add("md5", md5);
             }
+
+
+            string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
+            string scraperBaseURL = "https://www.screenscraper.fr/api2/";
+
+            // Set game ID if it was not 0
+            // Scraping by gameID means everything else is ignored
+            string gameID = (id != 0) ? $"&gameid={id}" : string.Empty;
+            string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}{gameID}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}&romtype=rom&romnom=";
 
             // Get the XML response from the website
             string scraperRequestURL = $"{scraperBaseURL}{gameinfo}{romNameNoExtension}";
@@ -56,15 +63,15 @@ namespace GamelistManager
                 return null;
             }
 
-            string value = null;
-            string folderName = null;
-            string localType = null;
-            string remoteType = null;
-            string remoteDownloadURL = null;
-            string filenameToDownload = null;
-            string downloadPath = null;
-            string fileFormat = null;
-            bool downloadSuccess = false;
+            string value;
+            string folderName;
+            string localType;
+            string remoteType;
+            string remoteDownloadURL;
+            string filenameToDownload;
+            string downloadPath;
+            string fileFormat;
+            bool downloadSuccess;
 
             // Media node, we only need to select it once
             XmlNode mediasNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
@@ -97,6 +104,20 @@ namespace GamelistManager
                         scraperData["lang"] = value;
                         break;
 
+                    case "id":
+                        XmlElement game = xmlResponse.SelectSingleNode("/Data/jeu") as XmlElement;
+                        string idValue = game.GetAttribute("id");
+                        if (!string.IsNullOrEmpty(idValue))
+                        {
+                            scraperData["id"] = idValue;
+                        }
+                        break;
+
+                    case "arcadesystemname":
+                        value = xmlResponse.SelectSingleNode("/Data/jeu/systeme")?.InnerText;
+                        scraperData["arcadesystemname"] = value;
+                        break;
+
                     case "rating":
                         value = xmlResponse.SelectSingleNode("/Data/jeu/note")?.InnerText;
                         string rating = ProcessRating(value);
@@ -121,12 +142,9 @@ namespace GamelistManager
 
                     case "genre":
                         XmlNode genresNode = xmlResponse.SelectSingleNode("/Data/jeu/genres");
-                        value = ParseGenres(genresNode, language);
-                        if (!string.IsNullOrEmpty(value))
-                        {
-                            value = ParseGenres(genresNode, "en");
-                        }
-                        scraperData["genre"] = value;
+                        (string genreID, string genreName) = ParseGenres(genresNode, language);
+                        scraperData["genre"] = genreName;
+                        scraperData["genreid"] = genreID;
                         break;
 
                     case "region":
@@ -145,6 +163,42 @@ namespace GamelistManager
                         folderName = "images";
                         localType = "bezel";
                         remoteType = "bezel-16-9";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
+
+                    case "fanart":
+                        folderName = "images";
+                        localType = "fanart";
+                        remoteType = "fanart";
+
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
+                        if (remoteDownloadURL != null)
+                        {
+                            filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
+                            downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
+                            downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
+                            if (downloadSuccess == true)
+                            {
+                                scraperData[localType] = $"./{folderName}/{filenameToDownload}";
+                            }
+                        }
+                        break;
+
+                    case "boxback":
+                        folderName = "images";
+                        localType = "boxback";
+                        remoteType = "box-2D-back";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
@@ -263,8 +317,7 @@ namespace GamelistManager
             }
             return scraperData;
         }
-
-
+                
         private (string Url, string Format) ParseVideo(XmlNode XmlElement)
         {
             if (XmlElement == null) { return (null, null); }
@@ -290,15 +343,22 @@ namespace GamelistManager
             if (xmlMedias == null) { return (null, null); }
 
             // User selected region and backups
-            string[] regions = { region, "eu", "us", "ss", "uk", "wor" };
+            string[] regions = { region, "eu", "us", "ss", "uk", "wor",""};
 
             var media = (XmlNode)null;
 
             foreach (string currentRegion in regions)
             {
                 // Find first matching region
-                media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{currentRegion}']");
-                if (media != null)
+                if (!string.IsNullOrEmpty(currentRegion))
+                {
+                    media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{currentRegion}']");
+                }
+                else
+                {
+                    media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}']");
+                }
+                    if (media != null)
                 {
                     break;
                 }
@@ -319,22 +379,18 @@ namespace GamelistManager
             if (namesElement == null) { return null; }
 
             string[] regions = { "us", "wor", "ss", "eu", "uk" };
-            var releaseDate = (XmlNode)null;
 
             foreach (string currentRegion in regions)
             {
-                releaseDate = namesElement.SelectSingleNode($"date[@region='{currentRegion}']");
+                XmlNode releaseDate = namesElement.SelectSingleNode($"date[@region='{currentRegion}']");
                 if (releaseDate != null)
                 {
-                    break;
+                    return releaseDate.InnerText;
                 }
             }
 
-            if (releaseDate == null)
-            {
-                return null;
-            }
-            return releaseDate.InnerText;
+            // Return null if no matching "date" node is found
+            return null;
         }
 
         private string ParseNames(XmlNode namesElement, string region)
@@ -376,16 +432,26 @@ namespace GamelistManager
             return ratingValFloat.ToString();
         }
 
-        private string ParseGenres(XmlNode genresElement, string language)
+        private (string GenreId, string GenreName) ParseGenres(XmlNode genresElement, string language)
         {
             if (genresElement == null)
             {
-                return null;
+                return (null, null);
             }
+
             var genreElements = genresElement.SelectNodes("genre")
                 .Cast<XmlNode>()
                 .Where(e => e.Attributes?["langue"]?.Value == language)
                 .ToList();
+
+            // If the specified language is not found, try to find in "en" language
+            if (!genreElements.Any() && language != "en")
+            {
+                genreElements = genresElement.SelectNodes("genre")
+                    .Cast<XmlNode>()
+                    .Where(e => e.Attributes?["langue"]?.Value == "en")
+                    .ToList();
+            }
 
             if (genreElements.Any())
             {
@@ -395,7 +461,7 @@ namespace GamelistManager
 
                 if (primaryGenreWithSlash != null)
                 {
-                    return primaryGenreWithSlash.InnerText;
+                    return (primaryGenreWithSlash.Attributes?["id"]?.Value, primaryGenreWithSlash.InnerText);
                 }
 
                 // If no element has " / ", take the last element with principale = 0
@@ -403,11 +469,13 @@ namespace GamelistManager
 
                 if (lastGenre != null)
                 {
-                    return lastGenre.InnerText;
+                    return (lastGenre.Attributes?["id"]?.Value, lastGenre.InnerText);
                 }
             }
 
-            return null;
+            return (null, null);
         }
+
+
     }
 }

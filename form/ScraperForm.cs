@@ -16,8 +16,8 @@ namespace GamelistManager
     {
         private GamelistManagerForm gamelistManagerForm;
         private ScraperPreview scraperPreview;
-        private CancellationTokenSource cancellationTokenSource;
-        public CancellationToken cancellationToken => cancellationTokenSource.Token;
+        private CancellationTokenSource CancellationTokenSource;
+        public CancellationToken CancellationToken => CancellationTokenSource.Token;
         private static Stopwatch globalStopwatch = new Stopwatch();
         private int scraperCount;
         private bool scraperFinished;
@@ -25,12 +25,14 @@ namespace GamelistManager
         private int scrapeErrors;
         private bool hideNonGame;
         private bool noZZZ;
+        private bool scrapeByGameID;
+        private string scraperName;
 
         public ScraperForm(GamelistManagerForm form)
         {
             InitializeComponent();
             scraperPreview = new ScraperPreview();
-            cancellationTokenSource = new CancellationTokenSource();
+            CancellationTokenSource = new CancellationTokenSource();
             scraperCount = 0;
             totalCount = 0;
             scrapeErrors = 0;
@@ -38,6 +40,8 @@ namespace GamelistManager
             gamelistManagerForm = form;
             noZZZ = false;
             hideNonGame = false;
+            scrapeByGameID = false;
+            scraperName = null;
         }
 
         private List<string> GetElementsToScrape()
@@ -54,10 +58,10 @@ namespace GamelistManager
             return elements;
         }
 
-        private List<(string, string)> GetRomsToScrape()
+        private List<(string, string, int)> GetRomsToScrape()
         {
             // Make a list of romNames to scrape
-            List<(string, string)> romNames = null;
+            List<(string, string, int)> romNames = null;
             List<DataGridViewRow> rows = new List<DataGridViewRow>();
 
             bool excludeHidden = checkBoxDoNotScrapeHidden.Checked;
@@ -80,7 +84,13 @@ namespace GamelistManager
                  // Extract value from each row
                  string cellPath = row.Cells["path"].Value.ToString().TrimStart('.', '/');
                  string cellName = row.Cells["name"].Value.ToString();
-                 return (cellPath, cellName);
+
+                 int gameID = 0;
+                 if (row.Cells["id"].Value != null)
+                 {
+                     int.TryParse(row.Cells["id"].Value.ToString(), out gameID);
+                 }
+                 return (cellPath, cellName, gameID);
              })
             .ToList();
             return romNames;
@@ -88,10 +98,12 @@ namespace GamelistManager
 
         private async void StartScraping()
         {
+            gamelistManagerForm.Enabled = false;
+            
             // List creation
             List<string> elements = GetElementsToScrape();
 
-            List<(string, string)> romPaths = GetRomsToScrape();
+            List<(string, string, int)> romPaths = GetRomsToScrape();
 
             if (elements.Count == 0)
             {
@@ -131,11 +143,19 @@ namespace GamelistManager
             progressBarScrapeProgress.Maximum = totalCount;
 
             // Reset cancellation tokensource
-            cancellationTokenSource = new CancellationTokenSource();
+            CancellationTokenSource = new CancellationTokenSource();
+
+            // Add a deserialized scraper column if it does not exist
+            scraperName = comboBoxScrapers.Text;
+            if (!SharedData.DataSet.Tables[0].Columns.Contains($"scrap_{scraperName}"))
+            {
+                SharedData.DataSet.Tables[0].Columns.Add($"scrap_{scraperName}");
+            }
 
             switch (comboBoxScrapers.SelectedIndex)
             {
                 case 0:
+
                     if (parentFolderName != "mame" && parentFolderName != "fbneo")
                     {
                         MessageBox.Show("This doesn't appear to be a gamelist for Mame or FBNeo!\n" +
@@ -155,6 +175,10 @@ namespace GamelistManager
                     break;
 
                 case 1:
+
+                    // Always scrape id
+                    elements.Add("id");
+
                     // Get the system Id
                     SystemIdResolver resolver = new SystemIdResolver();
                     int systemId = resolver.ResolveSystemId(parentFolderName);
@@ -219,6 +243,8 @@ namespace GamelistManager
             panelCheckboxes.Visible = true;
             panelSmall.Controls.Remove(scraperPreview);
 
+            gamelistManagerForm.Enabled = true;
+
         }
 
         private void SaveReminder()
@@ -229,16 +255,16 @@ namespace GamelistManager
         public async Task<bool> ArcadeDBAsync(
         string folderPath,
         List<string> elementList,
-        List<(string, string)> romList,
+        List<(string, string, int)> romList,
         bool overwrite
         )
         {
             ScrapeArcadeDB scrapeArcadeDB = new ScrapeArcadeDB();
             try
             {
-                foreach ((string romName, string metadataName) in romList)
+                foreach ((string romName, string metadataName, int gameID) in romList)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    CancellationToken.ThrowIfCancellationRequested();
                     AddToLog($"Scraping rom '{romName}'");
                     Interlocked.Increment(ref scraperCount);
                     UpdateLabel(scraperCount, totalCount, scrapeErrors);
@@ -250,7 +276,7 @@ namespace GamelistManager
                        overwrite,
                        elementList
                    );
-                    ScraperCommon("ArcadeDB", overwrite, folderPath, romName, result);
+                    ScraperCommon(overwrite, folderPath, romName, result);
                 }
             }
             catch (OperationCanceledException)
@@ -267,7 +293,7 @@ namespace GamelistManager
         string userId,
         string userPassword,
         List<string> elementList,
-        List<(string, string)> romList,
+        List<(string, string, int)> romList,
         bool overwrite
         )
         {
@@ -283,9 +309,10 @@ namespace GamelistManager
             language = language ?? "en";
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out scrapeByGameID);
 
-            string devId = "";
-            string devPassword = "";
+            string devId = "robg77";
+            string devPassword = "4dLRXRHWT0y";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
@@ -304,17 +331,26 @@ namespace GamelistManager
             try
             {
 
-                foreach ((string romName, string metadataName) in romList)
+                foreach ((string romName, string metadataName, int gameID) in romList)
                 {
+                    // Scrape by game id or not
+                    int id = gameID;
+                    if (scrapeByGameID == false || gameID < 1)
+                    {
+                        id = 0;
+                    }
+
+                    string showId = (id != 0) ? $"[{id}]" : string.Empty;
+
                     // Check cancelation token
                     await semaphoreSlim.WaitAsync(); // Wait until there's room to proceed
-                    cancellationToken.ThrowIfCancellationRequested();
+                    CancellationToken.ThrowIfCancellationRequested();
 
                     tasks.Add(Task.Run(async () =>
                     {
                         try
                         {
-                            AddToLog($"Scraping rom '{romName}'");
+                            AddToLog($"Scraping rom {showId} '{romName}'");
                             Interlocked.Increment(ref scraperCount);
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
                             Dictionary<string, string> result;
@@ -332,30 +368,32 @@ namespace GamelistManager
                                elementList,
                                boxSource,
                                imageSource,
-                               logoSource
+                               logoSource,
+                               id
                            );
                             if (result == null && romName != metadataName)
                             {
-                              // try to scrape by meta name if it is different
-                              AddToLog($"Trying by name '{metadataName}'");
-                              result = await scraper.ScrapeScreenScraperAsync(
-                              userId,
-                              userPassword,
-                              devId,
-                              devPassword,
-                              region,
-                              language,
-                              metadataName,
-                              systemId,
-                              folderPath,
-                              overwrite,
-                              elementList,
-                              boxSource,
-                              imageSource,
-                              logoSource
-                          );
+                                // try to scrape by meta name if it is different
+                                AddToLog($"Trying by name '{metadataName}'");
+                                result = await scraper.ScrapeScreenScraperAsync(
+                                userId,
+                                userPassword,
+                                devId,
+                                devPassword,
+                                region,
+                                language,
+                                metadataName,
+                                systemId,
+                                folderPath,
+                                overwrite,
+                                elementList,
+                                boxSource,
+                                imageSource,
+                                logoSource,
+                                id
+                            );
                             }
-                            ScraperCommon("ScreenScraper", overwrite, folderPath, romName, result);
+                            ScraperCommon(overwrite, folderPath, romName, result);
                         }
                         finally
                         {
@@ -378,7 +416,7 @@ namespace GamelistManager
             }
         }
 
-        private void ScraperCommon(string scraperName, bool overwrite, string folderPath, string romName, Dictionary<string, string> result)
+        private void ScraperCommon(bool overwrite, string folderPath, string romName, Dictionary<string, string> result)
         {
             if (result == null)
             {
@@ -416,7 +454,7 @@ namespace GamelistManager
 
             lock (SharedData.DataLock)
             {
-                DataRow tableRow = SharedData.DataSet.Tables[SharedData.MainTable].AsEnumerable()
+                DataRow tableRow = SharedData.DataSet.Tables[0].AsEnumerable()
                  .FirstOrDefault(r => r.Field<string>("path") == $"./{romName}");
                 // Process scraped items
                 foreach (var scrapedItem in result)
@@ -443,32 +481,16 @@ namespace GamelistManager
                                 elementValue = (elementValue.Replace("ZZZ(notgame)", "")).Trim();
                             }
                         }
-
                         tableRow[elementName] = elementValue;
                     }
                 }
 
+                // Scraper information is deserialized in the dataset
+                // It is put back in order when saved
                 string now = DateTime.Now.ToString();
-
                 string iso8601Format = ISO8601Converter.ConvertToISO8601(now);
-                ScraperData newItem = new ScraperData
-                {
-                    Item = romName,
-                    ScrapeTime = iso8601Format,
-                    Source = scraperName
-                };
+                tableRow[$"scrap_{scraperName}"] = iso8601Format;
 
-                var existingItem = SharedData.ScrapedList.FirstOrDefault(data => data.Item == newItem.Item);
-
-                if (existingItem == null)
-                {
-                    SharedData.ScrapedList.Add(newItem);
-                }
-                else
-                {
-                    existingItem.ScrapeTime = iso8601Format;
-                    existingItem.Source = scraperName;
-                }
             }
         }
         private void ButtonSelectAll_Click(object sender, EventArgs e)
@@ -631,7 +653,11 @@ namespace GamelistManager
                     "region",
                     "manual",
                     "bezel",
-                    "thumbnail"
+                    "thumbnail",
+                    "boxback",
+                    "fanart",
+                    "arcadesystemname",
+                    "genreid"
                 };
             }
 
@@ -655,14 +681,14 @@ namespace GamelistManager
 
         private void Button_Stop_Click(object sender, EventArgs e)
         {
-            cancellationTokenSource.Cancel();
+            CancellationTokenSource.Cancel();
             buttonCancel.Enabled = false;
             AddToLog("Cancelling scraper task......");
             globalStopwatch.Stop();
             labelProgress.Text = "0%";
         }
 
-        private void button_Setup_Click(object sender, EventArgs e)
+        private void ButtonSetup_Click(object sender, EventArgs e)
         {
             ScreenScraperSetup screenScraperSetup = new ScreenScraperSetup
             {
@@ -672,7 +698,7 @@ namespace GamelistManager
             screenScraperSetup.ShowDialog();
         }
 
-        private void button_StartStop_Click(object sender, EventArgs e)
+        private void ButtonStartStop_Click(object sender, EventArgs e)
         {
             StartScraping();
             SharedData.IsDataChanged = true;

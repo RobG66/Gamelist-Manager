@@ -45,10 +45,12 @@ namespace GamelistManager.control
 
         private void SaveNonGameOptions()
         {
+            bool scrapeByGameID = checkBoxScrapeByGameID.Checked;
             bool hideNonGame = checkBoxHideNonGame.Checked;
             bool noZZZ = checkBoxNoZZZ.Checked;
             RegistryManager.SaveRegistryValue("HideNonGame", hideNonGame.ToString());
             RegistryManager.SaveRegistryValue("NoZZZ", noZZZ.ToString());
+            RegistryManager.SaveRegistryValue("ScrapeByGameID", scrapeByGameID.ToString());
         }
 
         private void SaveMaxThreads()
@@ -157,9 +159,12 @@ namespace GamelistManager.control
 
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out bool hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out bool noZZZ);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out bool scrapeByGameID);
+
 
             checkBoxHideNonGame.Checked = hideNonGame;
             checkBoxNoZZZ.Checked = noZZZ;
+            checkBoxScrapeByGameID.Checked = scrapeByGameID;
 
             int index = comboBoxLanguage.FindString($"{language}:");
             if (index != -1)

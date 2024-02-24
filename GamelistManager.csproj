@@ -131,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\XMLSerializer.cs" />
     <Compile Include="class\ScraperData.cs" />
     <Compile Include="class\ISO8601Converter.cs" />
     <Compile Include="class\MediaListObject.cs" />
