@@ -1,5 +1,10 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+February 27th
+
+ For 4.5 (hopefully) I am working on an image drag & drop control.  This will let you (somewhat) easily drag and drop new images for a selected game from a windows explorer window or maybe even a webpage.  There's quite a few possibilities for how it could work, but I am just not sure on the best method yet.  More cleanup and optimization of code going on under the hood.
+
+
 February 24th
 
  4.4 is here.  I've added additional ScreenScraper elements to scrape so it should now 100% mirror what Batocera is scraping.  I don't know if anyone is using these elements in their themes, but if they are it will help ensure compatability.  Boxback, fanart, genreid, arcadesystemname were added.  There's always code optimization which can be done, but I'm going to leave some of that for later.  I've already done A LOT in 4.4 and I want to get it posted.  I just want to test it a bit more.
