@@ -3,7 +3,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
 
 namespace GamelistManager
@@ -317,7 +316,7 @@ namespace GamelistManager
             }
             return scraperData;
         }
-                
+
         private (string Url, string Format) ParseVideo(XmlNode XmlElement)
         {
             if (XmlElement == null) { return (null, null); }
@@ -343,7 +342,7 @@ namespace GamelistManager
             if (xmlMedias == null) { return (null, null); }
 
             // User selected region and backups
-            string[] regions = { region, "eu", "us", "ss", "uk", "wor",""};
+            string[] regions = { region, "eu", "us", "ss", "uk", "wor", "" };
 
             var media = (XmlNode)null;
 
@@ -358,7 +357,7 @@ namespace GamelistManager
                 {
                     media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}']");
                 }
-                    if (media != null)
+                if (media != null)
                 {
                     break;
                 }

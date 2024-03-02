@@ -76,7 +76,7 @@
             this.radioButtonMove.AutoSize = true;
             this.radioButtonMove.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radioButtonMove.Location = new System.Drawing.Point(3, 70);
-            this.radioButtonMove.Name = "radioButtonRename";
+            this.radioButtonMove.Name = "radioButtonMove";
             this.radioButtonMove.Size = new System.Drawing.Size(224, 17);
             this.radioButtonMove.TabIndex = 8;
             this.radioButtonMove.Text = "Move to backup folder and clear paths";
@@ -383,7 +383,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackgroundImage = global::GamelistManager.Properties.Resources.background2;
+            this.BackgroundImage = global::GamelistManager.Properties.Resources.background4;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(327, 365);
             this.Controls.Add(this.listBoxLog);

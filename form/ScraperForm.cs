@@ -31,7 +31,6 @@ namespace GamelistManager
         public ScraperForm(GamelistManagerForm form)
         {
             InitializeComponent();
-            scraperPreview = new ScraperPreview();
             CancellationTokenSource = new CancellationTokenSource();
             scraperCount = 0;
             totalCount = 0;
@@ -66,19 +65,13 @@ namespace GamelistManager
 
             bool excludeHidden = checkBoxDoNotScrapeHidden.Checked;
 
-            if (radioButtonScrapeAll.Checked)
-            {
-                // Include both selected and unselected rows
-                rows = gamelistManagerForm.DataGridView.Rows.Cast<DataGridViewRow>().ToList();
-            }
-            else
-            {
-                // Only include selected rows
-                rows = gamelistManagerForm.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
-            }
+            rows = radioButtonScrapeAll.Checked
+             ? gamelistManagerForm.DataGridView.Rows.Cast<DataGridViewRow>().ToList()
+            : gamelistManagerForm.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
+
 
             romNames = rows
-           .Where(row => !excludeHidden || !(row.Cells["hidden"].Value is bool hidden && hidden))
+            .Where(row => !excludeHidden || !(row.Cells["hidden"].Value is bool hidden && hidden))
             .Select(row =>
              {
                  // Extract value from each row
@@ -98,11 +91,12 @@ namespace GamelistManager
 
         private async void StartScraping()
         {
+            scraperPreview = new ScraperPreview();
+
             gamelistManagerForm.Enabled = false;
-            
+
             // List creation
             List<string> elements = GetElementsToScrape();
-
             List<(string, string, int)> romPaths = GetRomsToScrape();
 
             if (elements.Count == 0)
@@ -112,10 +106,7 @@ namespace GamelistManager
             }
 
             // Clear Log
-            if (listBoxLog.Items.Count > 0)
-            {
-                listBoxLog.Items.Clear();
-            }
+            if (listBoxLog.Items.Count > 0) listBoxLog.Items.Clear();
 
             // Form settings
             panelScraperOptions.Enabled = false;
@@ -147,8 +138,8 @@ namespace GamelistManager
 
             // Add a deserialized scraper column if it does not exist
             scraperName = comboBoxScrapers.Text;
-            if (!SharedData.DataSet.Tables[0].Columns.Contains($"scrap_{scraperName}"))
-            {
+
+            if (!SharedData.DataSet.Tables[0].Columns.Contains($"scrap_{scraperName}")) {
                 SharedData.DataSet.Tables[0].Columns.Add($"scrap_{scraperName}");
             }
 
@@ -180,7 +171,9 @@ namespace GamelistManager
                     elements.Add("id");
 
                     // Get the system Id
-                    SystemIdResolver resolver = new SystemIdResolver();
+                    string currentDirectory = Directory.GetCurrentDirectory();
+                    string filePath = Path.Combine(currentDirectory, "screenscraper_systems.ini");
+                    SystemIdResolver resolver = new SystemIdResolver(filePath);
                     int systemId = resolver.ResolveSystemId(parentFolderName);
                     if (systemId == 0)
                     {
@@ -704,7 +697,13 @@ namespace GamelistManager
             SharedData.IsDataChanged = true;
         }
 
+        private void ToolStripMenuItemCopyLogToClipboard_Click(object sender, EventArgs e)
+        {
+            string listBoxItems = string.Join(Environment.NewLine, listBoxLog.Items.Cast<object>().Select(item => item.ToString()));
 
+            // Set the string as text data on the clipboard
+            Clipboard.SetText(listBoxItems);
+        }
     }
 
 }
