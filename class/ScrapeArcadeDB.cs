@@ -48,12 +48,13 @@ namespace GamelistManager
                 scraperData.Add("md5", null);
             }
 
-            string remoteDownloadURL = null;
-            string folderName = null;
-            string fileName = null;
-            string downloadPath = null;
-            string fileToDownload = null;
-            bool result = false;
+            string remoteDownloadURL;
+            string folderName;
+            string fileName;
+            string downloadPath;
+            string fileToDownload;
+            bool result;
+
             foreach (string element in elementsToScrape)
             {
                 switch (element)

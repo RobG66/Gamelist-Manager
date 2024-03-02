@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,7 +14,6 @@ namespace GamelistManager
 
     public partial class MediaCheckForm : Form
     {
-        private GamelistManagerForm gamelistManagerForm;
         string parentFolderPath;
         List<MediaListObject> mediaList;
         ConcurrentBag<MediaListObject> badMediaList;
@@ -28,10 +28,9 @@ namespace GamelistManager
         private CancellationTokenSource cancellationTokenSource;
         public CancellationToken cancellationToken => cancellationTokenSource.Token;
 
-        public MediaCheckForm(GamelistManagerForm form)
+        public MediaCheckForm()
         {
             InitializeComponent();
-            gamelistManagerForm = form;
             parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
             mediaList = new List<MediaListObject>();
             badMediaList = new ConcurrentBag<MediaListObject>();
@@ -49,54 +48,49 @@ namespace GamelistManager
         {
             mediaList = new List<MediaListObject>();
 
-            foreach (DataGridViewColumn column in gamelistManagerForm.DataGridView.Columns)
+            foreach (DataRow row in SharedData.DataSet.Tables["game"].Rows)
             {
-                // Check if the column tag is set to "image"
-                if (column.Tag != null)
+                int rowIndex = row.Table.Rows.IndexOf(row);
+
+                for (int i = 0; i < SharedData.DataSet.Tables["game"].Columns.Count; i++)
                 {
-                    string columnTag = column.Tag.ToString();
-                    if (columnTag == "image" || columnTag == "video")
+                    string columnName = SharedData.DataSet.Tables["game"].Columns[i].ColumnName;
+                    int columnIndex = SharedData.DataSet.Tables["game"].Columns.IndexOf(columnName);
+                    if (Array.IndexOf(SharedData.MediaTypes, columnName) != -1)
                     {
-                        foreach (DataGridViewRow row in gamelistManagerForm.DataGridView.Rows)
+                        string cellPathValue = row[i].ToString();
+                        if (!string.IsNullOrEmpty(cellPathValue))
                         {
-                            // Access the cell in the specified column
-                            DataGridViewCell cell = row.Cells[column.Index];
+                            // Build file list
+                            string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                            string extension = Path.GetExtension(fullPath);
 
-                            string cellPathValue = cell.Value?.ToString();
-                            if (!string.IsNullOrEmpty(cellPathValue))
+                            // Skip PDF Media
+                            // Will revisit this later
+                            if (extension != null && extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
                             {
-                                // Build file list
-                                string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-                                string extension = Path.GetExtension(fullPath);
-
-                                // Skip PDF Media
-                                // Will revisit this later
-                                if (extension != null && extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    continue;
-                                }
-
-                                // Validate the path is valid before adding to list
-                                char[] invalidChars = Path.GetInvalidFileNameChars();
-                                bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
-
-                                if (badPath)
-                                {
-                                    continue;
-                                }
-
-                                mediaList.Add(new MediaListObject
-                                {
-                                    FullPath = fullPath,
-                                    Type = columnTag,
-                                    RowIndex = row.Index,
-                                    ColumnIndex = column.Index,
-                                    Status = string.Empty
-                                });
+                                continue;
                             }
+
+                            // Validate the path is valid before adding to list
+                            char[] invalidChars = Path.GetInvalidFileNameChars();
+                            bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
+
+                            if (badPath)
+                            {
+                                continue;
+                            }
+
+                            mediaList.Add(new MediaListObject
+                            {
+                                FullPath = fullPath,
+                                Type = (columnName == "video") ? "video" : "image",
+                                RowIndex = rowIndex,
+                                ColumnIndex = columnIndex,
+                                Status = string.Empty
+                            });
                         }
                     }
-
                 }
             }
             return mediaList;
@@ -106,17 +100,21 @@ namespace GamelistManager
         {
             List<MediaListObject> badMediaListAsList = badMediaList.ToList();
 
+            this.Cursor = Cursors.WaitCursor;
+
             if (radioButtonExportCSV.Checked)
             {
                 string csvFileName = Directory.GetCurrentDirectory() + "\\" + "bad_media.csv";
                 if (ExportToCSV(badMediaListAsList, csvFileName))
                 {
                     MessageBox.Show($"The file '{csvFileName}' was successfully saved", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.Cursor = Cursors.Default;
                     return;
                 }
                 else
                 {
                     MessageBox.Show($"There was an error saving file '{csvFileName}'", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Cursor = Cursors.Default;
                     return;
                 }
             }
@@ -172,12 +170,14 @@ namespace GamelistManager
                     continue;
                 }
 
-                gamelistManagerForm.DataGridView.Rows[rowIndex].Cells[columnIndex].Value = null; // DBNull.Value;
+                SharedData.DataSet.Tables["game"].Rows[rowIndex][columnIndex] = DBNull.Value;
 
             }
             GetMediaCount();
             panelManageMedia.Enabled = false;
             SharedData.IsDataChanged = true;
+
+            this.Cursor = Cursors.Default;
 
             MessageBox.Show("Cleanup Completed! Don't forget to save these changes.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
@@ -240,7 +240,7 @@ namespace GamelistManager
             panelManageMedia.Enabled = false;
 
             cancellationTokenSource = new CancellationTokenSource();
-
+            this.Cursor = Cursors.WaitCursor;
             try
             {
                 // Asynchronously check media with cancellation support
@@ -251,6 +251,7 @@ namespace GamelistManager
                 // The operation was canceled
                 AddToLog("Media check was cancelled!");
                 MessageBox.Show("Media checking operation was canceled.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Cursor = Cursors.Default;
                 return;
             }
             finally
@@ -261,6 +262,8 @@ namespace GamelistManager
                 globalStopwatch.Reset();
                 buttonStart.Enabled = true;
             }
+
+            this.Cursor = Cursors.Default;
 
             if (badMediaList == null || badMediaList.Count == 0)
             {
@@ -295,7 +298,6 @@ namespace GamelistManager
             missingImageCount = 0;
             missingVideoCount = 0;
             unusedMediaCount = 0;
-
             string[] currentImages = Directory.GetFiles($"{parentFolderPath}\\images");
             string[] currentVideos = Directory.GetFiles($"{parentFolderPath}\\videos");
             string[] allMedia = currentImages.Concat(currentVideos).ToArray();
