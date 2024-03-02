@@ -1,5 +1,9 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+March 2nd 2024
+
+ Development of Gamelist Manager is maybe winding down.  I've done everything (and MORE!) than I set out to initially do and I'm not sure what else I can add at this point.  Bugs will be fixed and if someone suggests a good improvement, I will consider it.    
+
 February 27th
 
  For 4.5 (hopefully) I am working on an image drag & drop control.  This will let you (somewhat) easily drag and drop new images for a selected game from a windows explorer window or maybe even a webpage.  There's quite a few possibilities for how it could work, but I am just not sure on the best method yet.  More cleanup and optimization of code going on under the hood.
