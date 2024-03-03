@@ -706,6 +706,16 @@ namespace GamelistManager
             // Set the string as text data on the clipboard
             Clipboard.SetText(listBoxItems);
         }
+
+        private void ScraperForm_FormClosing(object sender, FormClosingEventArgs e)
+        { 
+            if (buttonStart.Enabled == false)
+            {
+                // Cancel the form closing event
+                e.Cancel = true;
+                MessageBox.Show("Please cancel scraping first!");
+            }
+        }
     }
 
 }

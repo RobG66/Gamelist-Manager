@@ -55,6 +55,7 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.panelSmall = new System.Windows.Forms.Panel();
             this.panelCheckboxes = new System.Windows.Forms.Panel();
+            this.labelMedia = new System.Windows.Forms.Label();
             this.checkboxArcadeSystemName = new System.Windows.Forms.CheckBox();
             this.checkboxBoxBack = new System.Windows.Forms.CheckBox();
             this.checkboxFanArt = new System.Windows.Forms.CheckBox();
@@ -79,7 +80,6 @@
             this.buttonSelectNone = new System.Windows.Forms.Button();
             this.checkboxMarquee = new System.Windows.Forms.CheckBox();
             this.checkboxLang = new System.Windows.Forms.CheckBox();
-            this.labelMedia = new System.Windows.Forms.Label();
             this.panelEverything.SuspendLayout();
             this.panelScraperOptions.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -401,6 +401,17 @@
             this.panelCheckboxes.Size = new System.Drawing.Size(226, 258);
             this.panelCheckboxes.TabIndex = 29;
             // 
+            // labelMedia
+            // 
+            this.labelMedia.AutoSize = true;
+            this.labelMedia.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelMedia.ForeColor = System.Drawing.Color.Black;
+            this.labelMedia.Location = new System.Drawing.Point(110, 8);
+            this.labelMedia.Name = "labelMedia";
+            this.labelMedia.Size = new System.Drawing.Size(45, 17);
+            this.labelMedia.TabIndex = 29;
+            this.labelMedia.Text = "Media";
+            // 
             // checkboxArcadeSystemName
             // 
             this.checkboxArcadeSystemName.AutoSize = true;
@@ -688,17 +699,6 @@
             this.checkboxLang.Text = "Language";
             this.checkboxLang.UseVisualStyleBackColor = true;
             // 
-            // labelMedia
-            // 
-            this.labelMedia.AutoSize = true;
-            this.labelMedia.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelMedia.ForeColor = System.Drawing.Color.Black;
-            this.labelMedia.Location = new System.Drawing.Point(110, 8);
-            this.labelMedia.Name = "labelMedia";
-            this.labelMedia.Size = new System.Drawing.Size(45, 17);
-            this.labelMedia.TabIndex = 29;
-            this.labelMedia.Text = "Media";
-            // 
             // ScraperForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -714,6 +714,7 @@
             this.MinimumSize = new System.Drawing.Size(465, 334);
             this.Name = "ScraperForm";
             this.Text = "Scraper";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ScraperForm_FormClosing);
             this.Load += new System.EventHandler(this.Scraper_Load);
             this.panelEverything.ResumeLayout(false);
             this.panelScraperOptions.ResumeLayout(false);
