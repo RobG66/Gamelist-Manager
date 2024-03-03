@@ -228,6 +228,14 @@ namespace GamelistManager
                 listBoxLog.Items.Clear();
             }
 
+            singleColorImageCount = 0;
+            corruptImageCount = 0;
+            missingImageCount = 0;
+            missingVideoCount = 0;
+            totalMediaCount = 0;
+            currentCount = 0;
+            unusedMediaCount = 0;
+
             buttonStart.Enabled = false;
             buttonStop.Enabled = true;
             globalStopwatch.Reset();
