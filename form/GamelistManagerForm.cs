@@ -787,9 +787,6 @@ namespace GamelistManager
             // Delete all tables except for Game table
             DeleteUnwantedTables();
 
-            SharedData.DataSet.Tables["game"].PrimaryKey = null;
-            SharedData.DataSet.Tables["game"].Columns.Remove("game_id");
-
             SharedData.XMLFilename = fileName;
 
             SetupTableColumns();
@@ -812,10 +809,6 @@ namespace GamelistManager
 
         private void DeleteUnwantedTables()
         {
-            if (SharedData.DataSet.Tables.Count == 1)
-            {
-                return;
-            }
 
             List<string> tablesToDelete = new List<string>();
             foreach (DataTable table in SharedData.DataSet.Tables)
@@ -826,30 +819,42 @@ namespace GamelistManager
                 }
             }
 
-            foreach (string tableToDelete in tablesToDelete)
+            if (tablesToDelete.Count > 0)
             {
-                // Remove foreign key constraints
-                List<ForeignKeyConstraint> constraintsToRemove = SharedData.DataSet.Tables[tableToDelete].Constraints
-                    .OfType<ForeignKeyConstraint>()
-                    .ToList();
-
-                foreach (ForeignKeyConstraint constraint in constraintsToRemove)
+                foreach (string tableToDelete in tablesToDelete)
                 {
-                    SharedData.DataSet.Tables[tableToDelete].Constraints.Remove(constraint);
+                    // Remove foreign key constraints
+                    List<ForeignKeyConstraint> constraintsToRemove = SharedData.DataSet.Tables[tableToDelete].Constraints
+                        .OfType<ForeignKeyConstraint>()
+                        .ToList();
+
+                    foreach (ForeignKeyConstraint constraint in constraintsToRemove)
+                    {
+                        SharedData.DataSet.Tables[tableToDelete].Constraints.Remove(constraint);
+                    }
+
+                    // Remove data relations
+                    List<DataRelation> relationsToRemove = SharedData.DataSet.Relations.Cast<DataRelation>()
+                        .Where(r => r.ChildTable.TableName == tableToDelete || r.ParentTable.TableName == tableToDelete)
+                        .ToList();
+
+                    foreach (DataRelation relation in relationsToRemove)
+                    {
+                        SharedData.DataSet.Relations.Remove(relation);
+                    }
+
+                    // Remove the table itself
+                    SharedData.DataSet.Tables.Remove(tableToDelete);
                 }
+            }
 
-                // Remove data relations
-                List<DataRelation> relationsToRemove = SharedData.DataSet.Relations.Cast<DataRelation>()
-                    .Where(r => r.ChildTable.TableName == tableToDelete || r.ParentTable.TableName == tableToDelete)
-                    .ToList();
-
-                foreach (DataRelation relation in relationsToRemove)
-                {
-                    SharedData.DataSet.Relations.Remove(relation);
-                }
-
-                // Remove the table itself
-                SharedData.DataSet.Tables.Remove(tableToDelete);
+            if (SharedData.DataSet.Tables["game"].PrimaryKey != null)
+            {
+                SharedData.DataSet.Tables["game"].PrimaryKey = null;
+            }
+            if (SharedData.DataSet.Tables["game"].Columns.Contains("game_id"))
+            {
+                SharedData.DataSet.Tables["game"].Columns.Remove("game_id");
             }
         }
 
@@ -1191,6 +1196,9 @@ namespace GamelistManager
             setAllItemsHiddenToolStripMenuItem.Text = (selectedRowCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
             deleteRowToolStripMenuItem.Text = (selectedRowCount < 2) ? "Delete Row" : "Delete Selected Rows";
             resetNameToolStripMenuItem.Text = (selectedRowCount < 2) ? "Reset Name" : "Reset Selected Names";
+
+            clearScraperDateToolStripMenuItem.Text = (selectedRowCount < 2) ? "Clear Scraper Date" : "Clear Selected Scraper Dates";
+            updateScraperDateToolStripMenuItem.Text = (selectedRowCount < 2) ? "Update Scraper Date" : "Update Selected Scraper Dates";
 
             if (selectedRowCount == 1)
             {
