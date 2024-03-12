@@ -241,6 +241,9 @@ namespace GamelistManager
             List<string> recentFiles = RegistryManager.GetRecentFiles();
             UpdateRecentFilesMenu(recentFiles);
             SharedData.IsDataChanged = false;
+
+            comboBoxFilterItem.SelectedIndex = 0;
+
         }
 
         private void ClearMenuRecentFiles()
@@ -886,32 +889,19 @@ namespace GamelistManager
 
         private void ChangeGenreViaCombobox()
         {
-            if (comboBoxGenre.Enabled == false)
-            {
-                return;
-            }
+            if (!comboBoxGenre.Enabled) return;
 
             int index = comboBoxGenre.SelectedIndex;
-            string selectedItem = comboBoxGenre.SelectedItem as string;
 
-            genreFilter = string.Empty;
+            if (index == -1) { return; }
 
-            if (index == 1)
-            {
-                genreFilter = "genre IS NULL";
+            string selectedItem = index == 0 ? string.Empty : index == 1 ? "genre IS NULL" : $"genre='{(comboBoxGenre.SelectedItem as string)?.Replace("'", "''")}'";
 
-            }
-
-            if (index > 1)
-            {
-                selectedItem = selectedItem.Replace("'", "''");
-                genreFilter = $"genre = '{selectedItem}'";
-            }
+            genreFilter = selectedItem;
+            showAllGenresToolStripMenuItem.Checked = index == 0;
+            showGenreOnlyToolStripMenuItem.Checked = index == 1 || index > 1;
 
             ApplyFilters();
-            showAllGenresToolStripMenuItem.Checked = false;
-            showGenreOnlyToolStripMenuItem.Checked = true;
-
             UpdateCounters();
 
         }
@@ -1194,7 +1184,7 @@ namespace GamelistManager
 
             setAllItemsVisibleToolStripMenuItem.Text = (selectedRowCount < 2) ? "Set Item Visible" : "Set Selected Items Visible";
             setAllItemsHiddenToolStripMenuItem.Text = (selectedRowCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
-            deleteRowToolStripMenuItem.Text = (selectedRowCount < 2) ? "Delete Row" : "Delete Selected Rows";
+            deleteRowToolStripMenuItem.Text = (selectedRowCount < 2) ? "Remove Item" : "Remove Selected Items";
             resetNameToolStripMenuItem.Text = (selectedRowCount < 2) ? "Reset Name" : "Reset Selected Names";
 
             clearScraperDateToolStripMenuItem.Text = (selectedRowCount < 2) ? "Clear Scraper Date" : "Clear Selected Scraper Dates";
@@ -1301,7 +1291,6 @@ namespace GamelistManager
             string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
             if (columnName != "hidden" && columnName != "favorite")
             {
-                // Exit the method if the clicked column is not the hidden column
                 return;
             }
 
@@ -1984,9 +1973,11 @@ namespace GamelistManager
                 textBoxCustomFilter.Enabled = true;
                 textBoxCustomFilter.BackColor = SystemColors.Info;
                 comboBoxGenre.Enabled = false;
+                comboBoxFilterItem.Enabled = true;
             }
             else
             {
+                comboBoxFilterItem.Enabled=false;
                 textBoxCustomFilter.Enabled = false;
                 textBoxCustomFilter.BackColor = SystemColors.Window;
                 textBoxCustomFilter.Text = "";
@@ -1997,10 +1988,16 @@ namespace GamelistManager
 
         private void TextBox1_KeyUp(object sender, KeyEventArgs e)
         {
-            string text = textBoxCustomFilter.Text;
+            string filterText = textBoxCustomFilter.Text;
+
+            string filterItem = comboBoxFilterItem.Text.ToLower();
+            if (filterItem == "description")
+            {
+                filterItem = "desc";
+            }
 
             //selectedItem = selectedItem.Replace("'", "''");
-            genreFilter = $"genre LIKE '*{text}*'";
+            genreFilter = $"{filterItem} LIKE '*{filterText}*'";
             ApplyFilters();
         }
 
@@ -2417,10 +2414,10 @@ namespace GamelistManager
             if (dataGridView1.SelectedRows.Count < 1) { return; }
 
             int count = dataGridView1.SelectedRows.Count;
-            string item = (count == 1) ? "row" : "rows";
+            string item = (count == 1) ? "item" : "items";
             string has = (count == 1) ? "has" : "have";
 
-            DialogResult result = MessageBox.Show($"Do you want delete the selected {item}?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show($"Do you want remove the selected {item} from the gamelist?\n\nNo files are deleted.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
@@ -2450,6 +2447,11 @@ namespace GamelistManager
 
             SetColumnsReadOnly(readOnly, "id", "name", "genre", "players", "rating", "lang", "region", "publisher");
             SharedData.IsDataChanged = true;
+        }
+
+        private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
+        {
+            textBoxCustomFilter.Text = "";
         }
     }
 }

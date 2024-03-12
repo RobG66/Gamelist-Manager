@@ -1,15 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using LibVLCSharp.Shared;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 
 namespace GamelistManager
 {
     public class ScrapeScreenScraper
     {
-        public async Task<Dictionary<string, string>> ScrapeScreenScraperAsync(
+        public async Task<(Dictionary<string, string>,int,int)> ScrapeScreenScraperAsync(
                 string userId,
                 string userPassword,
                 string devId,
@@ -43,23 +46,46 @@ namespace GamelistManager
                 scraperData.Add("md5", md5);
             }
 
-
             string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
             string scraperBaseURL = "https://www.screenscraper.fr/api2/";
 
             // Set game ID if it was not 0
             // Scraping by gameID means everything else is ignored
-            string gameID = (id != 0) ? $"&gameid={id}" : string.Empty;
-            string gameinfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}{gameID}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}&romtype=rom&romnom=";
+            // According to Api docs that is.....
+
+            string scrapInfo = (id != 0) ? $"&gameid={id}" : $"&romtype=rom&romnom={romName}";
+            string gameInfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}{scrapInfo}";
 
             // Get the XML response from the website
-            string scraperRequestURL = $"{scraperBaseURL}{gameinfo}{romNameNoExtension}";
+            string scraperRequestURL = $"{scraperBaseURL}{gameInfo}";
             XMLResponder xmlResponder = new XMLResponder();
             XmlNode xmlResponse = await xmlResponder.GetXMLResponseAsync(scraperRequestURL);
 
             if (xmlResponse == null)
             {
-                return null;
+                return (null,0,0);
+            }
+
+
+            // Check scraper count
+            // -1 is nothing returned
+            int scrapTotal = -1;
+            int maxScrap = -1;
+            var totalRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/requeststoday");
+            
+            if (totalRequestsNode != null) {
+                int.TryParse(totalRequestsNode.InnerText, out scrapTotal);
+            }
+
+            var allowedRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/maxrequestsperday");
+            if (allowedRequestsNode != null)
+            { 
+                int.TryParse(allowedRequestsNode.InnerText, out maxScrap);
+            }
+
+            if (scrapTotal > maxScrap || maxScrap == -1)
+            {
+                return (null, scrapTotal, maxScrap);
             }
 
             string value;
@@ -166,6 +192,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -184,6 +214,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -202,6 +236,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -220,6 +258,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -242,6 +284,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -264,6 +310,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -286,6 +336,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{ folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{ folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -303,6 +357,10 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseVideo(mediasNode);
                         if (remoteDownloadURL != null)
                         {
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
+                            {
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
+                            }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
                             downloadSuccess = await FileTransfer.DownloadFile(overwrite, downloadPath, remoteDownloadURL);
@@ -314,7 +372,7 @@ namespace GamelistManager
                         break;
                 }
             }
-            return scraperData;
+            return (scraperData,scrapTotal,maxScrap);
         }
 
         private (string Url, string Format) ParseVideo(XmlNode XmlElement)

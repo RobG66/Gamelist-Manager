@@ -42,6 +42,7 @@
             this.labelHidden = new System.Windows.Forms.Label();
             this.splitContainerBig = new System.Windows.Forms.SplitContainer();
             this.panelBelowDataGridView = new System.Windows.Forms.Panel();
+            this.comboBoxFilterItem = new System.Windows.Forms.ComboBox();
             this.textBoxCustomFilter = new System.Windows.Forms.TextBox();
             this.checkBoxCustomFilter = new System.Windows.Forms.CheckBox();
             this.labelGenrePicker = new System.Windows.Forms.Label();
@@ -125,17 +126,11 @@
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.CreateM3UToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemRemoteMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItemScraperMenu = new System.Windows.Forms.ToolStripMenuItem();
-            this.contextMenuStripImageOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.toolStripMenuItemCopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItemEditImage = new System.Windows.Forms.ToolStripMenuItem();
-            this.statusBar = new System.Windows.Forms.StatusBar();
-            this.contextMenuStripScraper = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.openScraperToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripRemote = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
+            this.removeBatoceraHostKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator11 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
@@ -146,6 +141,13 @@
             this.toolStripSeparator19 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemScraperMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStripScraper = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.openScraperToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStripImageOptions = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItemCopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemEditImage = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusBar = new System.Windows.Forms.StatusBar();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerBig)).BeginInit();
             this.splitContainerBig.Panel1.SuspendLayout();
@@ -163,9 +165,9 @@
             this.contextMenuStripEdit.SuspendLayout();
             this.contextMenuStripColumns.SuspendLayout();
             this.contextMenuStripTools.SuspendLayout();
-            this.contextMenuStripImageOptions.SuspendLayout();
-            this.contextMenuStripScraper.SuspendLayout();
             this.contextMenuStripRemote.SuspendLayout();
+            this.contextMenuStripScraper.SuspendLayout();
+            this.contextMenuStripImageOptions.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataGridView1
@@ -219,9 +221,9 @@
             this.comboBoxGenre.Enabled = false;
             this.comboBoxGenre.FormattingEnabled = true;
             this.comboBoxGenre.ItemHeight = 13;
-            this.comboBoxGenre.Location = new System.Drawing.Point(421, 2);
+            this.comboBoxGenre.Location = new System.Drawing.Point(432, 2);
             this.comboBoxGenre.Name = "comboBoxGenre";
-            this.comboBoxGenre.Size = new System.Drawing.Size(226, 21);
+            this.comboBoxGenre.Size = new System.Drawing.Size(215, 21);
             this.comboBoxGenre.TabIndex = 10;
             this.comboBoxGenre.SelectedIndexChanged += new System.EventHandler(this.ComboBox1_SelectedIndexChanged);
             // 
@@ -309,6 +311,7 @@
             // 
             this.panelBelowDataGridView.BackColor = System.Drawing.Color.LightGray;
             this.panelBelowDataGridView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelBelowDataGridView.Controls.Add(this.comboBoxFilterItem);
             this.panelBelowDataGridView.Controls.Add(this.textBoxCustomFilter);
             this.panelBelowDataGridView.Controls.Add(this.checkBoxCustomFilter);
             this.panelBelowDataGridView.Controls.Add(this.comboBoxGenre);
@@ -328,13 +331,28 @@
             this.panelBelowDataGridView.Size = new System.Drawing.Size(654, 48);
             this.panelBelowDataGridView.TabIndex = 12;
             // 
+            // comboBoxFilterItem
+            // 
+            this.comboBoxFilterItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxFilterItem.Enabled = false;
+            this.comboBoxFilterItem.FormattingEnabled = true;
+            this.comboBoxFilterItem.Items.AddRange(new object[] {
+            "Name",
+            "Genre",
+            "Description"});
+            this.comboBoxFilterItem.Location = new System.Drawing.Point(432, 24);
+            this.comboBoxFilterItem.Name = "comboBoxFilterItem";
+            this.comboBoxFilterItem.Size = new System.Drawing.Size(85, 21);
+            this.comboBoxFilterItem.TabIndex = 17;
+            this.comboBoxFilterItem.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged_1);
+            // 
             // textBoxCustomFilter
             // 
             this.textBoxCustomFilter.Enabled = false;
-            this.textBoxCustomFilter.Location = new System.Drawing.Point(509, 24);
+            this.textBoxCustomFilter.Location = new System.Drawing.Point(523, 24);
             this.textBoxCustomFilter.MaxLength = 20;
             this.textBoxCustomFilter.Name = "textBoxCustomFilter";
-            this.textBoxCustomFilter.Size = new System.Drawing.Size(138, 20);
+            this.textBoxCustomFilter.Size = new System.Drawing.Size(124, 20);
             this.textBoxCustomFilter.TabIndex = 16;
             this.textBoxCustomFilter.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_CustomFilter_KeyPress);
             this.textBoxCustomFilter.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TextBox1_KeyUp);
@@ -344,11 +362,11 @@
             this.checkBoxCustomFilter.AutoSize = true;
             this.checkBoxCustomFilter.Enabled = false;
             this.checkBoxCustomFilter.ForeColor = System.Drawing.Color.DarkBlue;
-            this.checkBoxCustomFilter.Location = new System.Drawing.Point(378, 26);
+            this.checkBoxCustomFilter.Location = new System.Drawing.Point(377, 26);
             this.checkBoxCustomFilter.Name = "checkBoxCustomFilter";
-            this.checkBoxCustomFilter.Size = new System.Drawing.Size(120, 17);
+            this.checkBoxCustomFilter.Size = new System.Drawing.Size(51, 17);
             this.checkBoxCustomFilter.TabIndex = 15;
-            this.checkBoxCustomFilter.Text = "Genre Search Filter:";
+            this.checkBoxCustomFilter.Text = "Filter:";
             this.checkBoxCustomFilter.UseVisualStyleBackColor = true;
             this.checkBoxCustomFilter.CheckedChanged += new System.EventHandler(this.CheckBox_CustomFilter_CheckedChanged);
             // 
@@ -358,7 +376,7 @@
             this.labelGenrePicker.AutoSize = true;
             this.labelGenrePicker.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelGenrePicker.ForeColor = System.Drawing.Color.DarkBlue;
-            this.labelGenrePicker.Location = new System.Drawing.Point(375, 4);
+            this.labelGenrePicker.Location = new System.Drawing.Point(383, 4);
             this.labelGenrePicker.Name = "labelGenrePicker";
             this.labelGenrePicker.Size = new System.Drawing.Size(41, 15);
             this.labelGenrePicker.TabIndex = 11;
@@ -429,7 +447,6 @@
             // 
             // panelMediaBackground
             // 
-            this.panelMediaBackground.BackgroundImage = global::GamelistManager.Properties.Resources.background9;
             this.panelMediaBackground.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.panelMediaBackground.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelMediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -555,6 +572,7 @@
             this.toolStripSeparator27,
             this.resetViewToolStripMenuItem1});
             this.contextMenuStripView.Name = "contextMenuStripView";
+            this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
             this.contextMenuStripView.Size = new System.Drawing.Size(257, 176);
@@ -710,7 +728,7 @@
             // 
             this.deleteRowToolStripMenuItem.Name = "deleteRowToolStripMenuItem";
             this.deleteRowToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
-            this.deleteRowToolStripMenuItem.Text = "Delete Row";
+            this.deleteRowToolStripMenuItem.Text = "Remove Item";
             this.deleteRowToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItemDeleteRows_Click);
             // 
             // toolStripSeparator28
@@ -958,6 +976,7 @@
             this.toolStripSeparator9,
             this.CreateM3UToolStripMenuItem});
             this.contextMenuStripTools.Name = "contextMenuStripTools";
+            this.contextMenuStripTools.OwnerItem = this.toolStripMenuItemToolsMenu;
             this.contextMenuStripTools.ShowImageMargin = false;
             this.contextMenuStripTools.Size = new System.Drawing.Size(277, 132);
             // 
@@ -1018,66 +1037,13 @@
             this.toolStripMenuItemRemoteMenu.Size = new System.Drawing.Size(60, 20);
             this.toolStripMenuItemRemoteMenu.Text = "Remote";
             // 
-            // toolStripMenuItemScraperMenu
-            // 
-            this.toolStripMenuItemScraperMenu.DropDown = this.contextMenuStripScraper;
-            this.toolStripMenuItemScraperMenu.Name = "toolStripMenuItemScraperMenu";
-            this.toolStripMenuItemScraperMenu.Size = new System.Drawing.Size(58, 20);
-            this.toolStripMenuItemScraperMenu.Text = "Scraper";
-            // 
-            // contextMenuStripImageOptions
-            // 
-            this.contextMenuStripImageOptions.ImageScalingSize = new System.Drawing.Size(48, 48);
-            this.contextMenuStripImageOptions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItemCopyToClipboard,
-            this.toolStripMenuItemEditImage});
-            this.contextMenuStripImageOptions.Name = "contextMenuStrip1";
-            this.contextMenuStripImageOptions.Size = new System.Drawing.Size(200, 48);
-            // 
-            // toolStripMenuItemCopyToClipboard
-            // 
-            this.toolStripMenuItemCopyToClipboard.Name = "toolStripMenuItemCopyToClipboard";
-            this.toolStripMenuItemCopyToClipboard.Size = new System.Drawing.Size(199, 22);
-            this.toolStripMenuItemCopyToClipboard.Text = "Copy Path To Clipboard";
-            this.toolStripMenuItemCopyToClipboard.Click += new System.EventHandler(this.ToolStripMenuItem2_Click);
-            // 
-            // toolStripMenuItemEditImage
-            // 
-            this.toolStripMenuItemEditImage.Name = "toolStripMenuItemEditImage";
-            this.toolStripMenuItemEditImage.Size = new System.Drawing.Size(199, 22);
-            this.toolStripMenuItemEditImage.Text = "View / Edit Item";
-            this.toolStripMenuItemEditImage.Click += new System.EventHandler(this.EditToolStripMenuItem1_Click);
-            // 
-            // statusBar
-            // 
-            this.statusBar.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusBar.Location = new System.Drawing.Point(0, 361);
-            this.statusBar.Name = "statusBar";
-            this.statusBar.Size = new System.Drawing.Size(654, 20);
-            this.statusBar.TabIndex = 6;
-            this.statusBar.Text = "Ready";
-            // 
-            // contextMenuStripScraper
-            // 
-            this.contextMenuStripScraper.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openScraperToolStripMenuItem});
-            this.contextMenuStripScraper.Name = "contextMenuStripScraper";
-            this.contextMenuStripScraper.ShowImageMargin = false;
-            this.contextMenuStripScraper.Size = new System.Drawing.Size(121, 26);
-            // 
-            // openScraperToolStripMenuItem
-            // 
-            this.openScraperToolStripMenuItem.Name = "openScraperToolStripMenuItem";
-            this.openScraperToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
-            this.openScraperToolStripMenuItem.Text = "Open Scraper";
-            this.openScraperToolStripMenuItem.Click += new System.EventHandler(this.OpenScraper_Click);
-            // 
             // contextMenuStripRemote
             // 
             this.contextMenuStripRemote.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
             this.toolStripMenuItem2,
             this.toolStripSeparator10,
+            this.removeBatoceraHostKeyToolStripMenuItem,
             this.toolStripMenuItem3,
             this.toolStripSeparator11,
             this.toolStripMenuItem4,
@@ -1089,8 +1055,9 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
+            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
-            this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 226);
+            this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
             // toolStripMenuItem1
             // 
@@ -1110,6 +1077,12 @@
             // 
             this.toolStripSeparator10.Name = "toolStripSeparator10";
             this.toolStripSeparator10.Size = new System.Drawing.Size(215, 6);
+            // 
+            // removeBatoceraHostKeyToolStripMenuItem
+            // 
+            this.removeBatoceraHostKeyToolStripMenuItem.Name = "removeBatoceraHostKeyToolStripMenuItem";
+            this.removeBatoceraHostKeyToolStripMenuItem.Size = new System.Drawing.Size(218, 22);
+            this.removeBatoceraHostKeyToolStripMenuItem.Text = "Remove Batocera Host Key";
             // 
             // toolStripMenuItem3
             // 
@@ -1175,6 +1148,61 @@
             this.toolStripMenuItem9.Text = "Shutdown Batocera Host";
             this.toolStripMenuItem9.Click += new System.EventHandler(this.ToolStripMenuItemShutdownHost_Click);
             // 
+            // toolStripMenuItemScraperMenu
+            // 
+            this.toolStripMenuItemScraperMenu.DropDown = this.contextMenuStripScraper;
+            this.toolStripMenuItemScraperMenu.Name = "toolStripMenuItemScraperMenu";
+            this.toolStripMenuItemScraperMenu.Size = new System.Drawing.Size(58, 20);
+            this.toolStripMenuItemScraperMenu.Text = "Scraper";
+            // 
+            // contextMenuStripScraper
+            // 
+            this.contextMenuStripScraper.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openScraperToolStripMenuItem});
+            this.contextMenuStripScraper.Name = "contextMenuStripScraper";
+            this.contextMenuStripScraper.OwnerItem = this.toolStripMenuItemScraperMenu;
+            this.contextMenuStripScraper.ShowImageMargin = false;
+            this.contextMenuStripScraper.Size = new System.Drawing.Size(121, 26);
+            // 
+            // openScraperToolStripMenuItem
+            // 
+            this.openScraperToolStripMenuItem.Name = "openScraperToolStripMenuItem";
+            this.openScraperToolStripMenuItem.Size = new System.Drawing.Size(120, 22);
+            this.openScraperToolStripMenuItem.Text = "Open Scraper";
+            this.openScraperToolStripMenuItem.Click += new System.EventHandler(this.OpenScraper_Click);
+            // 
+            // contextMenuStripImageOptions
+            // 
+            this.contextMenuStripImageOptions.ImageScalingSize = new System.Drawing.Size(48, 48);
+            this.contextMenuStripImageOptions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItemCopyToClipboard,
+            this.toolStripMenuItemEditImage});
+            this.contextMenuStripImageOptions.Name = "contextMenuStrip1";
+            this.contextMenuStripImageOptions.Size = new System.Drawing.Size(200, 48);
+            // 
+            // toolStripMenuItemCopyToClipboard
+            // 
+            this.toolStripMenuItemCopyToClipboard.Name = "toolStripMenuItemCopyToClipboard";
+            this.toolStripMenuItemCopyToClipboard.Size = new System.Drawing.Size(199, 22);
+            this.toolStripMenuItemCopyToClipboard.Text = "Copy Path To Clipboard";
+            this.toolStripMenuItemCopyToClipboard.Click += new System.EventHandler(this.ToolStripMenuItem2_Click);
+            // 
+            // toolStripMenuItemEditImage
+            // 
+            this.toolStripMenuItemEditImage.Name = "toolStripMenuItemEditImage";
+            this.toolStripMenuItemEditImage.Size = new System.Drawing.Size(199, 22);
+            this.toolStripMenuItemEditImage.Text = "View / Edit Item";
+            this.toolStripMenuItemEditImage.Click += new System.EventHandler(this.EditToolStripMenuItem1_Click);
+            // 
+            // statusBar
+            // 
+            this.statusBar.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.statusBar.Location = new System.Drawing.Point(0, 361);
+            this.statusBar.Name = "statusBar";
+            this.statusBar.Size = new System.Drawing.Size(654, 20);
+            this.statusBar.TabIndex = 6;
+            this.statusBar.Text = "Ready";
+            // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1210,9 +1238,9 @@
             this.contextMenuStripEdit.ResumeLayout(false);
             this.contextMenuStripColumns.ResumeLayout(false);
             this.contextMenuStripTools.ResumeLayout(false);
-            this.contextMenuStripImageOptions.ResumeLayout(false);
-            this.contextMenuStripScraper.ResumeLayout(false);
             this.contextMenuStripRemote.ResumeLayout(false);
+            this.contextMenuStripScraper.ResumeLayout(false);
+            this.contextMenuStripImageOptions.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1333,6 +1361,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator19;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem8;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem9;
+        private System.Windows.Forms.ComboBox comboBoxFilterItem;
+        private System.Windows.Forms.ToolStripMenuItem removeBatoceraHostKeyToolStripMenuItem;
     }
 }
 

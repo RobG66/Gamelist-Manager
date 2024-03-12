@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace GamelistManager
 {
@@ -27,6 +28,9 @@ namespace GamelistManager
         private bool noZZZ;
         private bool scrapeByGameID;
         private string scraperName;
+        private int scrapMax;
+        private int scrapTotal;
+
 
         public ScraperForm(GamelistManagerForm form)
         {
@@ -35,6 +39,8 @@ namespace GamelistManager
             scraperCount = 0;
             totalCount = 0;
             scrapeErrors = 0;
+            scrapMax = 0;
+            scrapTotal = 0;
             scraperFinished = false;
             gamelistManagerForm = form;
             noZZZ = false;
@@ -117,6 +123,7 @@ namespace GamelistManager
             globalStopwatch.Start();
             panelCheckboxes.Visible = false;
             panelSmall.Controls.Add(scraperPreview);
+            labelScrapeLimitCounters.Text = "N/A";
 
             // Set Variables
             scraperCount = 0;
@@ -166,7 +173,7 @@ namespace GamelistManager
                     break;
 
                 case 1:
-
+                    
                     // Always scrape id
                     elements.Add("id");
 
@@ -260,7 +267,7 @@ namespace GamelistManager
                     CancellationToken.ThrowIfCancellationRequested();
                     AddToLog($"Scraping rom '{romName}'");
                     Interlocked.Increment(ref scraperCount);
-                    UpdateLabel(scraperCount, totalCount, scrapeErrors);
+                    UpdateLabel(scraperCount, totalCount, scrapeErrors,-1,-1);
                     UpdateProgressBar();
 
                     Dictionary<string, string> result = await scrapeArcadeDB.ScrapeArcadeDBAsync(
@@ -269,7 +276,7 @@ namespace GamelistManager
                        overwrite,
                        elementList
                    );
-                    ScraperCommon(overwrite, folderPath, romName, result);
+                    ScraperCommon(overwrite, folderPath, romName, result,-2,-2);
                 }
             }
             catch (OperationCanceledException)
@@ -308,7 +315,6 @@ namespace GamelistManager
             string devId = "";
             string devPassword = "";
 
-
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
             int maxC = 1;
@@ -328,6 +334,8 @@ namespace GamelistManager
 
                 foreach ((string romName, string metadataName, int gameID) in romList)
                 {
+                    CancellationToken.ThrowIfCancellationRequested();
+
                     // Scrape by game id or not
                     int id = gameID;
                     if (scrapeByGameID == false || gameID < 1)
@@ -349,7 +357,8 @@ namespace GamelistManager
                             Interlocked.Increment(ref scraperCount);
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
                             Dictionary<string, string> result;
-                            result = await scraper.ScrapeScreenScraperAsync(
+                                                        
+                            (result,scrapTotal,scrapMax) = await scraper.ScrapeScreenScraperAsync(
                                userId,
                                userPassword,
                                devId,
@@ -370,7 +379,7 @@ namespace GamelistManager
                             {
                                 // try to scrape by meta name if it is different
                                 AddToLog($"Trying by name '{metadataName}'");
-                                result = await scraper.ScrapeScreenScraperAsync(
+                                (result, scrapTotal, scrapMax) = await scraper.ScrapeScreenScraperAsync(
                                 userId,
                                 userPassword,
                                 devId,
@@ -388,12 +397,13 @@ namespace GamelistManager
                                 id
                             );
                             }
-                            ScraperCommon(overwrite, folderPath, romName, result);
+
+                            ScraperCommon(overwrite, folderPath, romName, result, scrapTotal, scrapMax);
                         }
                         finally
                         {
                             UpdateProgressBar();
-                            UpdateLabel(scraperCount, totalCount, scrapeErrors);
+                            UpdateLabel(scraperCount, totalCount, scrapeErrors, scrapTotal, scrapMax);
                             semaphoreSlim.Release(); // Release the semaphore after the task is complete
                         }
                     }
@@ -411,14 +421,22 @@ namespace GamelistManager
             }
         }
 
-        private void ScraperCommon(bool overwrite, string folderPath, string romName, Dictionary<string, string> result)
+        private void ScraperCommon(bool overwrite, string folderPath, string romName, Dictionary<string, string> result, int scrapTotal, int scrapMax)
         {
             if (result == null)
             {
                 // Handle error, if needed
                 AddToLog($"Unable to scrape '{romName}'");
                 Interlocked.Increment(ref scrapeErrors);
-                UpdateLabel(scraperCount, totalCount, scrapeErrors);
+                UpdateLabel(scraperCount, totalCount, scrapeErrors,scrapTotal,scrapMax);
+                return;
+            }
+
+            if (scrapMax > 0 && scrapTotal > scrapMax)
+            {
+                buttonCancel.Enabled = false;
+                AddToLog("Daily scraping maximum has been exceeded");
+                CancellationTokenSource.Cancel();
                 return;
             }
 
@@ -473,7 +491,7 @@ namespace GamelistManager
                             }
                             if (noZZZ)
                             {
-                                elementValue = (elementValue.Replace("ZZZ(notgame)", "")).Trim();
+                                elementValue = (elementValue.Replace("ZZZ(notgame):", "")).Trim();
                             }
                         }
                         tableRow[elementName] = elementValue;
@@ -485,7 +503,6 @@ namespace GamelistManager
                 string now = DateTime.Now.ToString();
                 string iso8601Format = ISO8601Converter.ConvertToISO8601(now);
                 tableRow[$"scrap_{scraperName}"] = iso8601Format;
-
             }
         }
         private void ButtonSelectAll_Click(object sender, EventArgs e)
@@ -553,13 +570,13 @@ namespace GamelistManager
 
         private DateTime startTime = DateTime.Now;
 
-        public void UpdateLabel(int current, int total, int errors)
+        public void UpdateLabel(int current, int total, int errors,int scrapTotal, int scrapMax)
         {
             if (labelProgress == null || labelCounts == null) return;
 
-            if (labelProgress.InvokeRequired || labelCounts.InvokeRequired)
+            if (labelProgress.InvokeRequired || labelCounts.InvokeRequired || labelScrapeLimitCounters.InvokeRequired)
             {
-                labelProgress.Invoke(new Action(() => UpdateLabel(current, total, errors)));
+                labelProgress.Invoke(new Action(() => UpdateLabel(current, total, errors, scrapTotal, scrapMax)));
             }
             else
             {
@@ -589,6 +606,11 @@ namespace GamelistManager
 
                 // Update the labelCounts with the current count and totalCount count
                 labelCounts.Text = $"Count:{current}/{total} | Errors:{errors}";
+         
+                if (scrapMax > 0)
+                {
+                    labelScrapeLimitCounters.Text = $"{scrapTotal}/{scrapMax}";
+                }
             }
         }
 
@@ -716,6 +738,8 @@ namespace GamelistManager
                 MessageBox.Show("Please cancel scraping first!");
             }
         }
+
+     
     }
 
 }
