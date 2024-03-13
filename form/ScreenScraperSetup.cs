@@ -140,12 +140,11 @@ namespace GamelistManager.control
             this.Enabled = false;
             (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
 
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
-            {
-                return;
+            if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userPassword))
+            {                         
+                textboxScreenScraperName.Text = userName;
+                textboxScreenScraperPassword.Text = userPassword;
             }
-            textboxScreenScraperName.Text = userName;
-            textboxScreenScraperPassword.Text = userPassword;
 
             string boxSource = RegistryManager.ReadRegistryValue("BoxSource");
             string imageSource = RegistryManager.ReadRegistryValue("ImageSource");
@@ -153,14 +152,36 @@ namespace GamelistManager.control
             string region = RegistryManager.ReadRegistryValue("Region");
             string language = RegistryManager.ReadRegistryValue("Language");
 
-            comboBoxBoxSource.Text = boxSource;
-            comboBoxImageSource.Text = imageSource;
-            comboBoxLogoSource.Text = logoSource;
+            if (!string.IsNullOrEmpty(boxSource))
+            {
+                comboBoxBoxSource.Text = boxSource;
+            }
+            else
+            {
+                comboBoxBoxSource.SelectedIndex = 0;
+            }
+
+            if (!string.IsNullOrEmpty(imageSource))
+            {
+                comboBoxImageSource.Text = imageSource;
+            } 
+            else
+            {
+                comboBoxImageSource.SelectedIndex = 0;
+            }
+
+            if (!string.IsNullOrEmpty(logoSource))
+            {
+                comboBoxLogoSource.Text = logoSource;
+            }
+            else
+            {
+                comboBoxLogoSource.SelectedIndex = 0;
+            }
 
             bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out bool hideNonGame);
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out bool noZZZ);
             bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out bool scrapeByGameID);
-
 
             checkBoxHideNonGame.Checked = hideNonGame;
             checkBoxNoZZZ.Checked = noZZZ;
