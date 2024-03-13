@@ -124,6 +124,7 @@ namespace GamelistManager
             panelCheckboxes.Visible = false;
             panelSmall.Controls.Add(scraperPreview);
             labelScrapeLimitCounters.Text = "N/A";
+            labelCounts.Text = "0/0";
 
             // Set Variables
             scraperCount = 0;
@@ -312,8 +313,10 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out scrapeByGameID);
 
 
+
             string devId = "";
             string devPassword = "";
+
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
@@ -534,12 +537,6 @@ namespace GamelistManager
         private void Scraper_Load(object sender, EventArgs e)
         {
             comboBoxScrapers.SelectedIndex = 1;
-
-            (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
-            {
-                buttonStart.Enabled = false;
-            }
 
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
             Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
