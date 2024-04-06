@@ -63,7 +63,7 @@
             // 
             this.buttonCleanup.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(128)))));
             this.buttonCleanup.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.buttonCleanup.Location = new System.Drawing.Point(237, 8);
+            this.buttonCleanup.Location = new System.Drawing.Point(240, 8);
             this.buttonCleanup.Name = "buttonCleanup";
             this.buttonCleanup.Size = new System.Drawing.Size(75, 23);
             this.buttonCleanup.TabIndex = 9;
@@ -77,9 +77,9 @@
             this.radioButtonMove.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radioButtonMove.Location = new System.Drawing.Point(3, 70);
             this.radioButtonMove.Name = "radioButtonMove";
-            this.radioButtonMove.Size = new System.Drawing.Size(224, 17);
+            this.radioButtonMove.Size = new System.Drawing.Size(251, 17);
             this.radioButtonMove.TabIndex = 8;
-            this.radioButtonMove.Text = "Move to backup folder and clear paths";
+            this.radioButtonMove.Text = "Backup unusued/bad media and clear paths";
             this.radioButtonMove.UseVisualStyleBackColor = true;
             // 
             // radioButtonDelete
@@ -88,9 +88,9 @@
             this.radioButtonDelete.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radioButtonDelete.Location = new System.Drawing.Point(3, 50);
             this.radioButtonDelete.Name = "radioButtonDelete";
-            this.radioButtonDelete.Size = new System.Drawing.Size(140, 17);
+            this.radioButtonDelete.Size = new System.Drawing.Size(247, 17);
             this.radioButtonDelete.TabIndex = 7;
-            this.radioButtonDelete.Text = "Delete and clear paths";
+            this.radioButtonDelete.Text = "Delete unusued/bad media and clear paths";
             this.radioButtonDelete.UseVisualStyleBackColor = true;
             // 
             // radioButtonExportCSV
@@ -100,10 +100,10 @@
             this.radioButtonExportCSV.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radioButtonExportCSV.Location = new System.Drawing.Point(3, 30);
             this.radioButtonExportCSV.Name = "radioButtonExportCSV";
-            this.radioButtonExportCSV.Size = new System.Drawing.Size(113, 17);
+            this.radioButtonExportCSV.Size = new System.Drawing.Size(233, 17);
             this.radioButtonExportCSV.TabIndex = 6;
             this.radioButtonExportCSV.TabStop = true;
-            this.radioButtonExportCSV.Text = "Export list to CSV";
+            this.radioButtonExportCSV.Text = "Export list to CSV - no changes are made";
             this.radioButtonExportCSV.UseVisualStyleBackColor = true;
             // 
             // buttonStart
@@ -389,6 +389,7 @@
             this.Controls.Add(this.listBoxLog);
             this.Controls.Add(this.panelCheckMedia);
             this.Controls.Add(this.panelManageMedia);
+            this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

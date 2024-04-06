@@ -125,6 +125,7 @@ namespace GamelistManager
             panelSmall.Controls.Add(scraperPreview);
             labelScrapeLimitCounters.Text = "N/A";
             labelCounts.Text = "0/0";
+            labelProgress.Text = "0%";
 
             // Set Variables
             scraperCount = 0;
@@ -240,10 +241,9 @@ namespace GamelistManager
             buttonCancel.Enabled = false;
             buttonSetup.Enabled = true;
             globalStopwatch.Stop();
-            labelProgress.Text = "0%";
             panelCheckboxes.Visible = true;
             panelSmall.Controls.Remove(scraperPreview);
-
+            scraperPreview.Dispose();
             gamelistManagerForm.Enabled = true;
 
         }
@@ -312,11 +312,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
             bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out scrapeByGameID);
 
-
-
             string devId = "";
             string devPassword = "";
-
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
@@ -378,6 +375,30 @@ namespace GamelistManager
                                logoSource,
                                id
                            );
+
+                            if (result == null && id != 0)
+                            {
+                                // try to scrape by file name if ID did not work
+                                AddToLog($"Trying by filename '{romName}'");
+                                (result, scrapTotal, scrapMax) = await scraper.ScrapeScreenScraperAsync(
+                                userId,
+                                userPassword,
+                                devId,
+                                devPassword,
+                                region,
+                                language,
+                                romName,
+                                systemId,
+                                folderPath,
+                                overwrite,
+                                elementList,
+                                boxSource,
+                                imageSource,
+                                logoSource,
+                                0
+                            );
+                            }
+
                             if (result == null && romName != metadataName)
                             {
                                 // try to scrape by meta name if it is different
