@@ -212,6 +212,7 @@
             this.richTextBoxDescription.Size = new System.Drawing.Size(164, 174);
             this.richTextBoxDescription.TabIndex = 0;
             this.richTextBoxDescription.Text = "";
+            this.richTextBoxDescription.Leave += new System.EventHandler(this.richTextBoxDescription_Leave);
             // 
             // comboBoxGenre
             // 
@@ -572,7 +573,6 @@
             this.toolStripSeparator27,
             this.resetViewToolStripMenuItem1});
             this.contextMenuStripView.Name = "contextMenuStripView";
-            this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
             this.contextMenuStripView.Size = new System.Drawing.Size(257, 176);
@@ -670,9 +670,8 @@
             this.toolStripSeparator30,
             this.clearAllDataToolStripMenuItem});
             this.contextMenuStripEdit.Name = "contextMenuStripEdit";
-            this.contextMenuStripEdit.OwnerItem = this.toolStripMenuItemEditMenu;
             this.contextMenuStripEdit.ShowImageMargin = false;
-            this.contextMenuStripEdit.Size = new System.Drawing.Size(159, 282);
+            this.contextMenuStripEdit.Size = new System.Drawing.Size(159, 260);
             // 
             // setAllItemsVisibleToolStripMenuItem
             // 
@@ -805,6 +804,7 @@
             this.toolStripSeparator8,
             this.ScraperDatesToolStripMenuItem});
             this.contextMenuStripColumns.Name = "contextMenuStripColumns";
+            this.contextMenuStripColumns.OwnerItem = this.toolStripMenuItemColumnsMenu;
             this.contextMenuStripColumns.ShowCheckMargin = true;
             this.contextMenuStripColumns.ShowImageMargin = false;
             this.contextMenuStripColumns.Size = new System.Drawing.Size(146, 380);
@@ -1055,7 +1055,6 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
-            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
             this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
@@ -1160,7 +1159,6 @@
             this.contextMenuStripScraper.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openScraperToolStripMenuItem});
             this.contextMenuStripScraper.Name = "contextMenuStripScraper";
-            this.contextMenuStripScraper.OwnerItem = this.toolStripMenuItemScraperMenu;
             this.contextMenuStripScraper.ShowImageMargin = false;
             this.contextMenuStripScraper.Size = new System.Drawing.Size(121, 26);
             // 

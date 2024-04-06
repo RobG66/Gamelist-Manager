@@ -244,6 +244,7 @@ namespace GamelistManager
             labelCorruptImageCount.Text = "0";
             labelSingleColorImageCount.Text = "0";
             labelMissingVideosCount.Text = "0";
+            labelProgress.Text = "0%";
 
             panelManageMedia.Enabled = false;
 
@@ -285,6 +286,7 @@ namespace GamelistManager
         private void StopCheckingMedia()
         {
             // Cancel the operation if it's still running
+            AddToLog("Media check cancelled!");
             cancellationTokenSource?.Cancel();
         }
 
@@ -301,6 +303,11 @@ namespace GamelistManager
             progressBar1.Step = 1;
             progressBar1.Value = 0;
             labelProgress.Text = "0%";
+            labelCorruptImageCount.Text = "0";
+            labelMissingImageCount.Text = "0";
+            labelSingleColorImageCount.Text = "0";
+            labelMissingVideosCount.Text = "0";
+            labelUnusedMediaCount.Text = "0";
             singleColorImageCount = 0;
             corruptImageCount = 0;
             missingImageCount = 0;
@@ -311,22 +318,39 @@ namespace GamelistManager
             string[] allMedia = currentImages.Concat(currentVideos).ToArray();
             string[] usedMedia = mediaList.Select(media => media.FullPath).ToArray();
 
-            foreach (string mediaItem in allMedia)
+            await Task.Run(() =>
             {
-                if (!usedMedia.Contains(mediaItem))
+                foreach (string mediaItem in allMedia)
                 {
-                    unusedMediaCount++;
-                    labelUnusedMediaCount.Text = unusedMediaCount.ToString();
-                    string shortName = Path.GetFileName(mediaItem);
-                    AddToLog($"Unused: {shortName}");
-                    MediaListObject unusedItem = new MediaListObject();
-                    unusedItem.FullPath = mediaItem;
-                    unusedItem.Status = "unused";
-                    unusedItem.RowIndex = -1;
-                    unusedItem.ColumnIndex = -1;
-                    badMediaList.Add(unusedItem);
+                    if (!usedMedia.Contains(mediaItem))
+                    {
+                        unusedMediaCount++;
+
+                        // Update UI control on the UI thread
+                        labelUnusedMediaCount.Invoke((Action)(() =>
+                        {
+                            labelUnusedMediaCount.Text = unusedMediaCount.ToString();
+                        }));
+
+                        string shortName = Path.GetFileName(mediaItem);
+
+                        // Update UI control on the UI thread
+                        AddToLog($"Unused: {shortName}");
+
+                        MediaListObject unusedItem = new MediaListObject();
+                        unusedItem.FullPath = mediaItem;
+                        unusedItem.Status = "unused";
+                        unusedItem.RowIndex = -1;
+                        unusedItem.ColumnIndex = -1;
+
+                        // Ensure thread-safe access to badMediaList
+                        lock (badMediaList)
+                        {
+                            badMediaList.Add(unusedItem);
+                        }
+                    }
                 }
-            }
+            });
 
             await Task.Run(() =>
             {

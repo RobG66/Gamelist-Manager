@@ -46,7 +46,7 @@ namespace GamelistManager
         {
             string oldFilename = Path.ChangeExtension(filename, "old");
 
-            DialogResult result = MessageBox.Show($"Do you want to save the file '{filename}'?\nA backup will be saved as {oldFilename}", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show($"Do you want to save the file '{filename}'?\nA backup will be saved as {oldFilename}.\n\nNote: It is recommended to stop EmulationStation before or just after saving any gamelist changes.  Reboot or shutdown the Batocera host when you are finished.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result != DialogResult.Yes)
             {
@@ -172,13 +172,14 @@ namespace GamelistManager
             object cellValue = dataGridView1.Rows[rowIndex].Cells["desc"].Value;
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             richTextBoxDescription.Text = itemDescription;
-
+            richTextBoxDescription.Tag = rowIndex;
 
             // If media is being shown, update that view
             if (splitContainerBig.Panel2Collapsed != true)
             {
                 ShowMedia();
             }
+              
         }
 
         private void ShowVisibleItemsOnlyToolStripMenuItem_Click(object sender, EventArgs e)
@@ -347,7 +348,7 @@ namespace GamelistManager
             Label label = new Label
             {
                 Text = labelName,
-                Font = new Font("Sego UI", 12, FontStyle.Bold),
+                Font = new Font("Sego UI", 10, FontStyle.Regular),
                 AutoSize = true,
                 Anchor = AnchorStyles.None,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -366,7 +367,7 @@ namespace GamelistManager
             TableLayoutPanel1 = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                AutoScroll = true,
+                //AutoScroll = true,
                 RowCount = 2,
                 ColumnCount = 1,
             };
@@ -484,19 +485,29 @@ namespace GamelistManager
                     {
                         mediaPlayer.EndReached -= MediaPlayer_EndReached;
                     }
-
-                    // Dispose of resources
-                    mediaPlayer.Dispose();
-                    videoView1.Dispose();  // Dispose of the VideoView control
-                    libVLC.Dispose();
-                }
-                else
-                {
+                    control.ContextMenuStrip = null;
                     control.Dispose();
+                    // Dispose of additional resources
+                    mediaPlayer.Dispose();
+                    videoView1.Dispose();
+                    libVLC.Dispose();
+                    continue;
                 }
+
+                if (control is PictureBox pictureBox && pictureBox.Image != null)
+                {
+                    pictureBox.Image.Dispose();
+                    pictureBox.Image = null; // Remove association
+                    control.ContextMenuStrip = null;
+                    control.Dispose();
+                    continue;
+                }
+
+                control.Dispose();
 
             }
 
+            TableLayoutPanel1.Controls.Clear();
             TableLayoutPanel1.Dispose();
         }
 
@@ -760,7 +771,7 @@ namespace GamelistManager
             dataGridView1.Columns["favorite"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             dataGridView1.Columns["players"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             dataGridView1.Columns["rating"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            dataGridView1.Columns["path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            dataGridView1.Columns["path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             dataGridView1.Columns["name"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["genre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
         }
@@ -925,7 +936,9 @@ namespace GamelistManager
             comboBoxGenre.Enabled = true;
             checkBoxCustomFilter.Checked = false;
             editRowDataToolStripMenuItem.Checked = false;
-
+            
+            DisableEditing(true);
+            
             foreach (ToolStripMenuItem item in menuStripMainMenu.Items)
             {
                 item.Enabled = true;
@@ -946,9 +959,6 @@ namespace GamelistManager
             exportToCSVToolStripMenuItem.Enabled = true;
             reloadGamelistToolStripMenuItem.Enabled = true;
             saveGamelistToolStripMenuItem.Enabled = true;
-
-
-
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
             System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
             //image image = LoadImageFromResource(romPath);
@@ -2430,7 +2440,10 @@ namespace GamelistManager
 
             UpdateCounters();
 
-            MessageBox.Show($"{count} {item} {has} been deleted!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"{count} {item} {has} been removed!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            SharedData.IsDataChanged = true;
+
         }
 
         private void resetViewToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2441,17 +2454,60 @@ namespace GamelistManager
         private void editRowDataToolStripMenuItem_Click(object sender, EventArgs e)
         {
             bool readOnly = dataGridView1.Columns["name"].ReadOnly;
-            
             // Flip the bool
             readOnly = !readOnly;
+            DisableEditing(readOnly);
+        }
 
+        private void DisableEditing(bool readOnly)
+        {
             SetColumnsReadOnly(readOnly, "id", "name", "genre", "players", "rating", "lang", "region", "publisher");
+            richTextBoxDescription.ReadOnly = readOnly;
+            if (!readOnly)
+            {
+                richTextBoxDescription.ForeColor = Color.Blue;
+                richTextBoxDescription.ReadOnly = false;
+                //dataGridView1.MultiSelect = false;
+            }
+            else
+            {
+                richTextBoxDescription.ForeColor = Color.Black;
+                richTextBoxDescription.ReadOnly = true;
+                //dataGridView1.MultiSelect = true;
+            }
+
             SharedData.IsDataChanged = true;
         }
 
         private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             textBoxCustomFilter.Text = "";
+        }
+
+        private void richTextBoxDescription_Leave(object sender, EventArgs e)
+        {
+            object tagValue = richTextBoxDescription.Tag;
+
+            if (tagValue == null)
+            {
+                return;
+            }
+
+            int index;
+
+            if (!int.TryParse(tagValue.ToString(), out index))
+            {
+                return;
+            }
+               
+            string displayedDescription = richTextBoxDescription.Text;
+            object cellValue = dataGridView1.Rows[index].Cells["desc"].Value;
+            string currentDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
+            if (displayedDescription != currentDescription)
+            {
+                dataGridView1.Rows[index].Cells["desc"].Value = displayedDescription;
+            }
+            
         }
     }
 }
