@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 
 namespace GamelistManager
 {
@@ -242,9 +241,36 @@ namespace GamelistManager
             buttonSetup.Enabled = true;
             globalStopwatch.Stop();
             panelCheckboxes.Visible = true;
+            //clear images so we release that memory
+            scraperPreview.UpdatePictureBox(null, null);
             panelSmall.Controls.Remove(scraperPreview);
             scraperPreview.Dispose();
             gamelistManagerForm.Enabled = true;
+            
+            //build new genre list because genres can change
+            int currentIndex = gamelistManagerForm.ComboBoxGenre1.SelectedIndex;
+            string currentGenre = gamelistManagerForm.ComboBoxGenre1.Text;
+            string currentFilter = SharedData.DataSet.Tables["game"].DefaultView.RowFilter;
+            gamelistManagerForm.BuildCombobox();
+
+            if (gamelistManagerForm.ComboBoxGenre1.Enabled)
+            {
+                if (gamelistManagerForm.ComboBoxGenre1.Items.Contains(currentGenre) && currentIndex > 1)
+                {
+                    gamelistManagerForm.ComboBoxGenre1.Text = currentGenre;
+                }
+                if (currentIndex == 1)
+                {
+                    gamelistManagerForm.ComboBoxGenre1.SelectedIndex = 1;
+                }
+            }
+            else
+            {
+                SharedData.DataSet.Tables["game"].DefaultView.RowFilter = currentFilter;
+            }
+
+
+
 
         }
 
@@ -418,7 +444,7 @@ namespace GamelistManager
                                 boxSource,
                                 imageSource,
                                 logoSource,
-                                id
+                                0
                             );
                             }
 
@@ -456,7 +482,7 @@ namespace GamelistManager
                 return;
             }
 
-            if (scrapMax > 0 && scrapTotal > scrapMax)
+            if (scrapMax > 0 && (scrapTotal > scrapMax))
             {
                 buttonCancel.Enabled = false;
                 AddToLog("Daily scraping maximum has been exceeded");
@@ -484,8 +510,7 @@ namespace GamelistManager
                 string imagePath2 = $"{folderPath}\\images\\{imageFileName2}";
                 this.Invoke((MethodInvoker)delegate
                 {
-                    // Assuming this control has access to UpdatePictureBox method
-                    scraperPreview.UpdatePictureBox(imagePath1, imagePath2);
+                   scraperPreview.UpdatePictureBox(imagePath1, imagePath2);
                 });
             }
 
@@ -720,7 +745,7 @@ namespace GamelistManager
             buttonCancel.Enabled = false;
             AddToLog("Cancelling scraper task......");
             globalStopwatch.Stop();
-            labelProgress.Text = "0%";
+            //labelProgress.Text = "0%";
         }
 
         private void ButtonSetup_Click(object sender, EventArgs e)
