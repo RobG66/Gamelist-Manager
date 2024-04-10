@@ -103,7 +103,7 @@ namespace GamelistManager
 
                     case "image":
                         remoteDownloadURL = scrapedGameInfo.url_image_ingame;
-                        if (remoteDownloadURL == null)
+                        if (string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             continue;
                         }
@@ -120,7 +120,7 @@ namespace GamelistManager
 
                     case "marquee":
                         remoteDownloadURL = scrapedGameInfo.url_image_marquee;
-                        if (remoteDownloadURL == null)
+                        if (string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             continue;
                         }
@@ -137,11 +137,11 @@ namespace GamelistManager
 
                     case "video":
                         remoteDownloadURL = scrapedGameInfo.url_video_shortplay_hd;
-                        if (remoteDownloadURL == null)
+                        if (string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             remoteDownloadURL = scrapedGameInfo.url_video_shortplay;
                         }
-                        if (remoteDownloadURL == null)
+                        if (string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             continue;
                         }

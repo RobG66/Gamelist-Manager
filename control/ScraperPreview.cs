@@ -12,8 +12,23 @@ namespace GamelistManager.control
         // Update PictureBox controls directly
         public void UpdatePictureBox(string imagePath1, string imagePath2)
         {
-            pictureBox1.ImageLocation = imagePath1;
-            pictureBox2.ImageLocation = imagePath2;
+            if (string.IsNullOrEmpty(imagePath1))
+            {
+                pictureBox1.Image = null;
+            }
+            else
+            {
+                pictureBox1.ImageLocation = imagePath1;
+            }
+
+            if (string.IsNullOrEmpty(imagePath2))
+            {
+                pictureBox2.Image = null;
+            }
+            else
+            {
+                pictureBox2.ImageLocation = imagePath2;
+            }
         }
     }
 }

@@ -180,7 +180,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -196,7 +196,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(483, 174);
+            this.dataGridView1.Size = new System.Drawing.Size(482, 134);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -209,7 +209,7 @@
             this.richTextBoxDescription.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxDescription.Name = "richTextBoxDescription";
             this.richTextBoxDescription.ReadOnly = true;
-            this.richTextBoxDescription.Size = new System.Drawing.Size(164, 174);
+            this.richTextBoxDescription.Size = new System.Drawing.Size(165, 134);
             this.richTextBoxDescription.TabIndex = 0;
             this.richTextBoxDescription.Text = "";
             this.richTextBoxDescription.Leave += new System.EventHandler(this.richTextBoxDescription_Leave);
@@ -304,8 +304,8 @@
             // splitContainerBig.Panel2
             // 
             this.splitContainerBig.Panel2.Controls.Add(this.panelMediaBackground);
-            this.splitContainerBig.Size = new System.Drawing.Size(654, 337);
-            this.splitContainerBig.SplitterDistance = 224;
+            this.splitContainerBig.Size = new System.Drawing.Size(654, 277);
+            this.splitContainerBig.SplitterDistance = 184;
             this.splitContainerBig.TabIndex = 3;
             // 
             // panelBelowDataGridView
@@ -327,7 +327,7 @@
             this.panelBelowDataGridView.Controls.Add(this.labelFavorite);
             this.panelBelowDataGridView.Controls.Add(this.labelShowing);
             this.panelBelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 176);
+            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 136);
             this.panelBelowDataGridView.Name = "panelBelowDataGridView";
             this.panelBelowDataGridView.Size = new System.Drawing.Size(654, 48);
             this.panelBelowDataGridView.TabIndex = 12;
@@ -339,6 +339,7 @@
             this.comboBoxFilterItem.FormattingEnabled = true;
             this.comboBoxFilterItem.Items.AddRange(new object[] {
             "Name",
+            "Path",
             "Genre",
             "Description"});
             this.comboBoxFilterItem.Location = new System.Drawing.Point(432, 24);
@@ -442,8 +443,8 @@
             // splitContainerSmall.Panel2
             // 
             this.splitContainerSmall.Panel2.Controls.Add(this.richTextBoxDescription);
-            this.splitContainerSmall.Size = new System.Drawing.Size(651, 174);
-            this.splitContainerSmall.SplitterDistance = 483;
+            this.splitContainerSmall.Size = new System.Drawing.Size(651, 134);
+            this.splitContainerSmall.SplitterDistance = 482;
             this.splitContainerSmall.TabIndex = 2;
             // 
             // panelMediaBackground
@@ -453,7 +454,7 @@
             this.panelMediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelMediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panelMediaBackground.Name = "panelMediaBackground";
-            this.panelMediaBackground.Size = new System.Drawing.Size(654, 109);
+            this.panelMediaBackground.Size = new System.Drawing.Size(654, 89);
             this.panelMediaBackground.TabIndex = 0;
             // 
             // menuStripMainMenu
@@ -487,6 +488,7 @@
             // 
             // contextMenuStripFile
             // 
+            this.contextMenuStripFile.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripFile.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loadGamelistToolStripMenuItem,
             this.reloadGamelistToolStripMenuItem,
@@ -561,6 +563,7 @@
             // 
             // contextMenuStripView
             // 
+            this.contextMenuStripView.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripView.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.showAllHiddenAndVisibleItemsToolStripMenuItem,
             this.showVisibleItemsOnlyToolStripMenuItem,
@@ -573,6 +576,7 @@
             this.toolStripSeparator27,
             this.resetViewToolStripMenuItem1});
             this.contextMenuStripView.Name = "contextMenuStripView";
+            this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
             this.contextMenuStripView.Size = new System.Drawing.Size(257, 176);
@@ -652,6 +656,7 @@
             // 
             // contextMenuStripEdit
             // 
+            this.contextMenuStripEdit.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripEdit.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.setAllItemsVisibleToolStripMenuItem,
             this.setAllItemsHiddenToolStripMenuItem,
@@ -670,6 +675,7 @@
             this.toolStripSeparator30,
             this.clearAllDataToolStripMenuItem});
             this.contextMenuStripEdit.Name = "contextMenuStripEdit";
+            this.contextMenuStripEdit.OwnerItem = this.toolStripMenuItemEditMenu;
             this.contextMenuStripEdit.ShowImageMargin = false;
             this.contextMenuStripEdit.Size = new System.Drawing.Size(159, 260);
             // 
@@ -782,6 +788,7 @@
             // 
             // contextMenuStripColumns
             // 
+            this.contextMenuStripColumns.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripColumns.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.DeveloperToolStripMenuItem,
             this.FavoriteToolStripMenuItem,
@@ -966,6 +973,7 @@
             // 
             // contextMenuStripTools
             // 
+            this.contextMenuStripTools.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MameToolStripMenuItem,
             this.toolStripSeparator1,
@@ -1039,6 +1047,7 @@
             // 
             // contextMenuStripRemote
             // 
+            this.contextMenuStripRemote.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripRemote.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1,
             this.toolStripMenuItem2,
@@ -1055,6 +1064,7 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
+            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
             this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
@@ -1156,9 +1166,11 @@
             // 
             // contextMenuStripScraper
             // 
+            this.contextMenuStripScraper.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripScraper.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openScraperToolStripMenuItem});
             this.contextMenuStripScraper.Name = "contextMenuStripScraper";
+            this.contextMenuStripScraper.OwnerItem = this.toolStripMenuItemScraperMenu;
             this.contextMenuStripScraper.ShowImageMargin = false;
             this.contextMenuStripScraper.Size = new System.Drawing.Size(121, 26);
             // 
@@ -1195,7 +1207,7 @@
             // statusBar
             // 
             this.statusBar.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusBar.Location = new System.Drawing.Point(0, 361);
+            this.statusBar.Location = new System.Drawing.Point(0, 301);
             this.statusBar.Name = "statusBar";
             this.statusBar.Size = new System.Drawing.Size(654, 20);
             this.statusBar.TabIndex = 6;
@@ -1205,14 +1217,14 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(654, 381);
+            this.ClientSize = new System.Drawing.Size(654, 321);
             this.Controls.Add(this.splitContainerBig);
             this.Controls.Add(this.menuStripMainMenu);
             this.Controls.Add(this.statusBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMainMenu;
-            this.Margin = new System.Windows.Forms.Padding(1);
-            this.MinimumSize = new System.Drawing.Size(670, 420);
+            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.MinimumSize = new System.Drawing.Size(670, 360);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GamelistManagerForm_FormClosing);

@@ -1,6 +1,4 @@
-﻿using LibVLCSharp.Shared;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -27,7 +25,7 @@ namespace GamelistManager
                 string boxSource,
                 string imageSource,
                 string logoSource,
-                int id
+                int ssID
             )
 
         {
@@ -53,11 +51,12 @@ namespace GamelistManager
             // Scraping by gameID means everything else is ignored
             // According to Api docs that is.....
 
-            string scrapInfo = (id != 0) ? $"&gameid={id}" : $"&romtype=rom&romnom={romName}";
+            string scrapInfo = (ssID != 0) ? $"&gameid={ssID}" : $"&romtype=rom&romnom={romName}";
             string gameInfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}{scrapInfo}";
-
+         
             // Get the XML response from the website
             string scraperRequestURL = $"{scraperBaseURL}{gameInfo}";
+
             XMLResponder xmlResponder = new XMLResponder();
             XmlNode xmlResponse = await xmlResponder.GetXMLResponseAsync(scraperRequestURL);
 
@@ -71,6 +70,7 @@ namespace GamelistManager
             // -1 is nothing returned
             int scrapTotal = -1;
             int maxScrap = -1;
+
             var totalRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/requeststoday");
             
             if (totalRequestsNode != null) {
@@ -82,11 +82,11 @@ namespace GamelistManager
             { 
                 int.TryParse(allowedRequestsNode.InnerText, out maxScrap);
             }
-
-            if (scrapTotal > maxScrap || maxScrap == -1)
-            {
-                return (null, scrapTotal, maxScrap);
-            }
+            
+            //if (scrapTotal > maxScrap)
+            //{
+            //    return (null, scrapTotal, maxScrap);
+            //}
 
             string value;
             string folderName;

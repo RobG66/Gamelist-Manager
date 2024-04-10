@@ -29,6 +29,11 @@ namespace GamelistManager
         {
             get { return dataGridView1; }
         }
+        public ComboBox ComboBoxGenre1
+        {
+            get { return comboBoxGenre; }
+            set { comboBoxGenre = value; }
+        }
 
         public GamelistManagerForm()
         {
@@ -503,6 +508,7 @@ namespace GamelistManager
                     continue;
                 }
 
+                control.ContextMenuStrip = null;
                 control.Dispose();
 
             }
@@ -540,11 +546,11 @@ namespace GamelistManager
             int hiddenItems = SharedData.DataSet.Tables["game"].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") == true);
 
-            // Count rows where "hidden" is false
+            // Count rows where hidden is not true
             int visibleItems = SharedData.DataSet.Tables["game"].AsEnumerable()
             .Count(row => row.Field<bool?>("hidden") != true);
 
-            // Count rows where "hidden" is false
+            // Count rows where favorite is true
             int favoriteItems = SharedData.DataSet.Tables["game"].AsEnumerable()
             .Count(row => row.Field<bool?>("favorite") == true);
 
@@ -872,15 +878,14 @@ namespace GamelistManager
             }
         }
 
-        private void BuildCombobox()
+        public void BuildCombobox()
         {
             // setup combobox values
-            var uniqueValues = dataGridView1.Rows.Cast<DataGridViewRow>()
-                  .Select(row => row.Cells["genre"].Value)
-                  .Where(value => value != null && !string.IsNullOrEmpty(value.ToString()))
-                  .Distinct()
-                  .ToArray();
-
+            var uniqueValues = SharedData.DataSet.Tables["game"].AsEnumerable()
+            .Select(row => row.Field<string>("genre"))
+            .Where(value => !string.IsNullOrEmpty(value))
+            .Distinct()
+            .ToArray();
 
             // Sort Items
             Array.Sort(uniqueValues);
@@ -900,8 +905,7 @@ namespace GamelistManager
 
         private void ChangeGenreViaCombobox()
         {
-            if (!comboBoxGenre.Enabled) return;
-
+           
             int index = comboBoxGenre.SelectedIndex;
 
             if (index == -1) { return; }
@@ -1126,6 +1130,18 @@ namespace GamelistManager
             object cellValue = dataGridView1.Rows[rowIndex].Cells[columnIndex].Value;
             string genre = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             showGenreOnlyToolStripMenuItem.Text = string.IsNullOrEmpty(genre) ? "Show Empty Genre" : "Show Only '" + genre + "' Items";
+        
+            if (checkBoxCustomFilter.Checked)
+            {
+                showGenreOnlyToolStripMenuItem.Enabled = false;
+                showAllGenresToolStripMenuItem.Enabled = false;
+            }
+            else
+            {
+                showGenreOnlyToolStripMenuItem.Enabled = true;
+                showAllGenresToolStripMenuItem.Enabled = true;
+            }
+        
         }
 
         public string ExtractFileNameWithExtension(string originalPath)
@@ -1676,7 +1692,10 @@ namespace GamelistManager
             }
 
             string imagePath = pictureBox.Tag.ToString();
-            Clipboard.SetText(imagePath);
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                Clipboard.SetText(imagePath);
+            }
         }
 
         static string ExecuteSshCommand(string command)
@@ -1984,6 +2003,7 @@ namespace GamelistManager
                 textBoxCustomFilter.BackColor = SystemColors.Info;
                 comboBoxGenre.Enabled = false;
                 comboBoxFilterItem.Enabled = true;
+                comboBoxGenre.SelectedIndex = 0;
             }
             else
             {
@@ -1992,8 +2012,10 @@ namespace GamelistManager
                 textBoxCustomFilter.BackColor = SystemColors.Window;
                 textBoxCustomFilter.Text = "";
                 comboBoxGenre.Enabled = true;
-                ChangeGenreViaCombobox();
             }
+
+            ChangeGenreViaCombobox();
+
         }
 
         private void TextBox1_KeyUp(object sender, KeyEventArgs e)
@@ -2023,7 +2045,7 @@ namespace GamelistManager
             toolStripMenuItemScraperMenu.Enabled = false;
             toolStripMenuItemToolsMenu.Enabled = false;
             toolStripMenuItemRemoteMenu.Enabled = false;
-            panelBelowDataGridView.Enabled = false;
+            //panelBelowDataGridView.Enabled = false;
             scraper.Show();
 
         }
@@ -2477,6 +2499,7 @@ namespace GamelistManager
             }
 
             SharedData.IsDataChanged = true;
+
         }
 
         private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
