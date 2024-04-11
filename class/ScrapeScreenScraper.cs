@@ -45,7 +45,7 @@ namespace GamelistManager
             }
 
             string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
-            string scraperBaseURL = "https://www.screenscraper.fr/api2/";
+            string scraperBaseURL = "https://api.screenscraper.fr/api2/";
 
             // Set game ID if it was not 0
             // Scraping by gameID means everything else is ignored
