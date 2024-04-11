@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.IO;
 
 namespace GamelistManager
 {
@@ -10,12 +11,16 @@ namespace GamelistManager
     {
         public async Task<XmlDocument> GetXMLResponseAsync(string url)
         {
+
+
+
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
                     byte[] responseBytes = await client.GetByteArrayAsync(url);
                     string responseString = Encoding.UTF8.GetString(responseBytes);
+                    File.WriteAllText("f:\\response.txt", responseString);
 
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(responseString);
