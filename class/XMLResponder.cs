@@ -16,7 +16,7 @@ namespace GamelistManager
                 {
                     byte[] responseBytes = await client.GetByteArrayAsync(url);
                     string responseString = Encoding.UTF8.GetString(responseBytes);
-                  
+
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(responseString);
 

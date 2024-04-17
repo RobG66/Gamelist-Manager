@@ -141,7 +141,7 @@ namespace GamelistManager.control
             (string userName, string userPassword) = CredentialManager.GetCredentials("ScreenScraper");
 
             if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userPassword))
-            {                         
+            {
                 textboxScreenScraperName.Text = userName;
                 textboxScreenScraperPassword.Text = userPassword;
             }
@@ -164,7 +164,7 @@ namespace GamelistManager.control
             if (!string.IsNullOrEmpty(imageSource))
             {
                 comboBoxImageSource.Text = imageSource;
-            } 
+            }
             else
             {
                 comboBoxImageSource.SelectedIndex = 0;

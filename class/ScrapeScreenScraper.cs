@@ -3,14 +3,13 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
 
 namespace GamelistManager
 {
     public class ScrapeScreenScraper
     {
-        public async Task<(Dictionary<string, string>,int,int)> ScrapeScreenScraperAsync(
+        public async Task<(Dictionary<string, string>, int, int)> ScrapeScreenScraperAsync(
                 string userId,
                 string userPassword,
                 string devId,
@@ -53,7 +52,7 @@ namespace GamelistManager
 
             string scrapInfo = (ssID != 0) ? $"&gameid={ssID}" : $"&romtype=rom&romnom={romName}";
             string gameInfo = $"jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={userId}&sspassword={userPassword}&systemeid={systemID}{scrapInfo}";
-         
+
             // Get the XML response from the website
             string scraperRequestURL = $"{scraperBaseURL}{gameInfo}";
 
@@ -62,7 +61,7 @@ namespace GamelistManager
 
             if (xmlResponse == null)
             {
-                return (null,0,0);
+                return (null, 0, 0);
             }
 
 
@@ -72,17 +71,18 @@ namespace GamelistManager
             int maxScrap = -1;
 
             var totalRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/requeststoday");
-            
-            if (totalRequestsNode != null) {
+
+            if (totalRequestsNode != null)
+            {
                 int.TryParse(totalRequestsNode.InnerText, out scrapTotal);
             }
 
             var allowedRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/maxrequestsperday");
             if (allowedRequestsNode != null)
-            { 
+            {
                 int.TryParse(allowedRequestsNode.InnerText, out maxScrap);
             }
-            
+
             //if (scrapTotal > maxScrap)
             //{
             //    return (null, scrapTotal, maxScrap);
@@ -336,9 +336,9 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteType, mediasNode, region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{folderPath}\\{ folderName}"))
+                            if (!Directory.Exists($"{folderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{folderPath}\\{ folderName}");
+                                Directory.CreateDirectory($"{folderPath}\\{folderName}");
                             }
                             filenameToDownload = $"{romNameNoExtension}-{localType}.{fileFormat}";
                             downloadPath = $"{folderPath}\\{folderName}\\{filenameToDownload}";
@@ -372,7 +372,7 @@ namespace GamelistManager
                         break;
                 }
             }
-            return (scraperData,scrapTotal,maxScrap);
+            return (scraperData, scrapTotal, maxScrap);
         }
 
         private (string Url, string Format) ParseVideo(XmlNode XmlElement)

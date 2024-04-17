@@ -148,6 +148,8 @@
             this.toolStripMenuItemCopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar = new System.Windows.Forms.StatusBar();
+            this.contextMenuStripforMediaEdit = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.clearItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerBig)).BeginInit();
             this.splitContainerBig.Panel1.SuspendLayout();
@@ -168,6 +170,7 @@
             this.contextMenuStripRemote.SuspendLayout();
             this.contextMenuStripScraper.SuspendLayout();
             this.contextMenuStripImageOptions.SuspendLayout();
+            this.contextMenuStripforMediaEdit.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataGridView1
@@ -196,7 +199,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(482, 134);
+            this.dataGridView1.Size = new System.Drawing.Size(480, 131);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -209,7 +212,7 @@
             this.richTextBoxDescription.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxDescription.Name = "richTextBoxDescription";
             this.richTextBoxDescription.ReadOnly = true;
-            this.richTextBoxDescription.Size = new System.Drawing.Size(165, 134);
+            this.richTextBoxDescription.Size = new System.Drawing.Size(167, 131);
             this.richTextBoxDescription.TabIndex = 0;
             this.richTextBoxDescription.Text = "";
             this.richTextBoxDescription.Leave += new System.EventHandler(this.richTextBoxDescription_Leave);
@@ -304,8 +307,9 @@
             // splitContainerBig.Panel2
             // 
             this.splitContainerBig.Panel2.Controls.Add(this.panelMediaBackground);
-            this.splitContainerBig.Size = new System.Drawing.Size(654, 277);
-            this.splitContainerBig.SplitterDistance = 184;
+            this.splitContainerBig.Panel2MinSize = 120;
+            this.splitContainerBig.Size = new System.Drawing.Size(654, 312);
+            this.splitContainerBig.SplitterDistance = 181;
             this.splitContainerBig.TabIndex = 3;
             // 
             // panelBelowDataGridView
@@ -327,7 +331,7 @@
             this.panelBelowDataGridView.Controls.Add(this.labelFavorite);
             this.panelBelowDataGridView.Controls.Add(this.labelShowing);
             this.panelBelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 136);
+            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 133);
             this.panelBelowDataGridView.Name = "panelBelowDataGridView";
             this.panelBelowDataGridView.Size = new System.Drawing.Size(654, 48);
             this.panelBelowDataGridView.TabIndex = 12;
@@ -443,8 +447,8 @@
             // splitContainerSmall.Panel2
             // 
             this.splitContainerSmall.Panel2.Controls.Add(this.richTextBoxDescription);
-            this.splitContainerSmall.Size = new System.Drawing.Size(651, 134);
-            this.splitContainerSmall.SplitterDistance = 482;
+            this.splitContainerSmall.Size = new System.Drawing.Size(651, 131);
+            this.splitContainerSmall.SplitterDistance = 480;
             this.splitContainerSmall.TabIndex = 2;
             // 
             // panelMediaBackground
@@ -454,7 +458,7 @@
             this.panelMediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelMediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panelMediaBackground.Name = "panelMediaBackground";
-            this.panelMediaBackground.Size = new System.Drawing.Size(654, 89);
+            this.panelMediaBackground.Size = new System.Drawing.Size(654, 127);
             this.panelMediaBackground.TabIndex = 0;
             // 
             // menuStripMainMenu
@@ -576,7 +580,6 @@
             this.toolStripSeparator27,
             this.resetViewToolStripMenuItem1});
             this.contextMenuStripView.Name = "contextMenuStripView";
-            this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
             this.contextMenuStripView.Size = new System.Drawing.Size(257, 176);
@@ -1207,24 +1210,38 @@
             // statusBar
             // 
             this.statusBar.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusBar.Location = new System.Drawing.Point(0, 301);
+            this.statusBar.Location = new System.Drawing.Point(0, 336);
             this.statusBar.Name = "statusBar";
             this.statusBar.Size = new System.Drawing.Size(654, 20);
             this.statusBar.TabIndex = 6;
             this.statusBar.Text = "Ready";
             // 
+            // contextMenuStripforMediaEdit
+            // 
+            this.contextMenuStripforMediaEdit.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.clearItemToolStripMenuItem});
+            this.contextMenuStripforMediaEdit.Name = "contextMenuStripforMediaEdit";
+            this.contextMenuStripforMediaEdit.Size = new System.Drawing.Size(181, 48);
+            // 
+            // clearItemToolStripMenuItem
+            // 
+            this.clearItemToolStripMenuItem.Name = "clearItemToolStripMenuItem";
+            this.clearItemToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.clearItemToolStripMenuItem.Text = "Clear Item";
+            this.clearItemToolStripMenuItem.Click += new System.EventHandler(this.clearItemToolStripMenuItem_Click);
+            // 
             // GamelistManagerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(654, 321);
+            this.ClientSize = new System.Drawing.Size(654, 356);
             this.Controls.Add(this.splitContainerBig);
             this.Controls.Add(this.menuStripMainMenu);
             this.Controls.Add(this.statusBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMainMenu;
             this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
-            this.MinimumSize = new System.Drawing.Size(670, 360);
+            this.MinimumSize = new System.Drawing.Size(670, 395);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GamelistManagerForm_FormClosing);
@@ -1251,6 +1268,7 @@
             this.contextMenuStripRemote.ResumeLayout(false);
             this.contextMenuStripScraper.ResumeLayout(false);
             this.contextMenuStripImageOptions.ResumeLayout(false);
+            this.contextMenuStripforMediaEdit.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1373,6 +1391,8 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem9;
         private System.Windows.Forms.ComboBox comboBoxFilterItem;
         private System.Windows.Forms.ToolStripMenuItem removeBatoceraHostKeyToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripforMediaEdit;
+        private System.Windows.Forms.ToolStripMenuItem clearItemToolStripMenuItem;
     }
 }
 

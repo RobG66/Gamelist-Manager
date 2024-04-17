@@ -147,7 +147,8 @@ namespace GamelistManager
             // Add a deserialized scraper column if it does not exist
             scraperName = comboBoxScrapers.Text;
 
-            if (!SharedData.DataSet.Tables[0].Columns.Contains($"scrap_{scraperName}")) {
+            if (!SharedData.DataSet.Tables[0].Columns.Contains($"scrap_{scraperName}"))
+            {
                 SharedData.DataSet.Tables[0].Columns.Add($"scrap_{scraperName}");
             }
 
@@ -174,7 +175,7 @@ namespace GamelistManager
                     break;
 
                 case 1:
-                    
+
                     // Always scrape id
                     elements.Add("id");
 
@@ -246,7 +247,7 @@ namespace GamelistManager
             panelSmall.Controls.Remove(scraperPreview);
             scraperPreview.Dispose();
             gamelistManagerForm.Enabled = true;
-            
+
             //build new genre list because genres can change
             int currentIndex = gamelistManagerForm.ComboBoxGenre1.SelectedIndex;
             string currentGenre = gamelistManagerForm.ComboBoxGenre1.Text;
@@ -294,7 +295,7 @@ namespace GamelistManager
                     CancellationToken.ThrowIfCancellationRequested();
                     AddToLog($"Scraping rom '{romName}'");
                     Interlocked.Increment(ref scraperCount);
-                    UpdateLabel(scraperCount, totalCount, scrapeErrors,-1,-1);
+                    UpdateLabel(scraperCount, totalCount, scrapeErrors, -1, -1);
                     UpdateProgressBar();
 
                     Dictionary<string, string> result = await scrapeArcadeDB.ScrapeArcadeDBAsync(
@@ -303,7 +304,7 @@ namespace GamelistManager
                        overwrite,
                        elementList
                    );
-                    ScraperCommon(overwrite, folderPath, romName, result,-2,-2);
+                    ScraperCommon(overwrite, folderPath, romName, result, -2, -2);
                 }
             }
             catch (OperationCanceledException)
@@ -383,8 +384,8 @@ namespace GamelistManager
                             Interlocked.Increment(ref scraperCount);
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
                             Dictionary<string, string> result;
-                                                        
-                            (result,scrapTotal,scrapMax) = await scraper.ScrapeScreenScraperAsync(
+
+                            (result, scrapTotal, scrapMax) = await scraper.ScrapeScreenScraperAsync(
                                userId,
                                userPassword,
                                devId,
@@ -478,7 +479,7 @@ namespace GamelistManager
                 // Handle error, if needed
                 AddToLog($"Unable to scrape '{romName}'");
                 Interlocked.Increment(ref scrapeErrors);
-                UpdateLabel(scraperCount, totalCount, scrapeErrors,scrapTotal,scrapMax);
+                UpdateLabel(scraperCount, totalCount, scrapeErrors, scrapTotal, scrapMax);
                 return;
             }
 
@@ -510,7 +511,7 @@ namespace GamelistManager
                 string imagePath2 = $"{folderPath}\\images\\{imageFileName2}";
                 this.Invoke((MethodInvoker)delegate
                 {
-                   scraperPreview.UpdatePictureBox(imagePath1, imagePath2);
+                    scraperPreview.UpdatePictureBox(imagePath1, imagePath2);
                 });
             }
 
@@ -613,7 +614,7 @@ namespace GamelistManager
 
         private DateTime startTime = DateTime.Now;
 
-        public void UpdateLabel(int current, int total, int errors,int scrapTotal, int scrapMax)
+        public void UpdateLabel(int current, int total, int errors, int scrapTotal, int scrapMax)
         {
             if (labelProgress == null || labelCounts == null) return;
 
@@ -649,7 +650,7 @@ namespace GamelistManager
 
                 // Update the labelCounts with the current count and totalCount count
                 labelCounts.Text = $"Count:{current}/{total} | Errors:{errors}";
-         
+
                 if (scrapMax > 0)
                 {
                     labelScrapeLimitCounters.Text = $"{scrapTotal}/{scrapMax}";
@@ -773,7 +774,7 @@ namespace GamelistManager
         }
 
         private void ScraperForm_FormClosing(object sender, FormClosingEventArgs e)
-        { 
+        {
             if (buttonStart.Enabled == false)
             {
                 // Cancel the form closing event
@@ -782,7 +783,7 @@ namespace GamelistManager
             }
         }
 
-     
+
     }
 
 }
