@@ -145,6 +145,12 @@
     <Compile Include="class\ScrapeArcadeDB.cs" />
     <Compile Include="class\GetMameUnplayable.cs" />
     <Compile Include="class\CommandExecutor.cs" />
+    <Compile Include="control\MediaButtons.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="control\MediaButtons.Designer.cs">
+      <DependentUpon>MediaButtons.cs</DependentUpon>
+    </Compile>
     <Compile Include="form\ScreenScraperSetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -191,6 +197,9 @@
     <Compile Include="control\BatoceraHostSetup.Designer.cs">
       <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="control\MediaButtons.resx">
+      <DependentUpon>MediaButtons.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="form\ScreenScraperSetup.resx">
       <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
     </EmbeddedResource>
@@ -861,6 +870,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\dropicon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\x-10366 %282%29.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\close.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\reset1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\checkmark.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets')" />
