@@ -196,7 +196,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(502, 133);
+            this.dataGridView1.Size = new System.Drawing.Size(502, 138);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -209,7 +209,7 @@
             this.richTextBoxDescription.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxDescription.Name = "richTextBoxDescription";
             this.richTextBoxDescription.ReadOnly = true;
-            this.richTextBoxDescription.Size = new System.Drawing.Size(175, 133);
+            this.richTextBoxDescription.Size = new System.Drawing.Size(175, 138);
             this.richTextBoxDescription.TabIndex = 0;
             this.richTextBoxDescription.Text = "";
             this.richTextBoxDescription.Leave += new System.EventHandler(this.richTextBoxDescription_Leave);
@@ -304,9 +304,9 @@
             // splitContainerBig.Panel2
             // 
             this.splitContainerBig.Panel2.Controls.Add(this.panelMediaBackground);
-            this.splitContainerBig.Panel2MinSize = 120;
+            this.splitContainerBig.Panel2MinSize = 125;
             this.splitContainerBig.Size = new System.Drawing.Size(684, 317);
-            this.splitContainerBig.SplitterDistance = 183;
+            this.splitContainerBig.SplitterDistance = 188;
             this.splitContainerBig.TabIndex = 3;
             // 
             // panelBelowDataGridView
@@ -328,7 +328,7 @@
             this.panelBelowDataGridView.Controls.Add(this.labelFavorite);
             this.panelBelowDataGridView.Controls.Add(this.labelShowing);
             this.panelBelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 135);
+            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 140);
             this.panelBelowDataGridView.Name = "panelBelowDataGridView";
             this.panelBelowDataGridView.Size = new System.Drawing.Size(684, 48);
             this.panelBelowDataGridView.TabIndex = 12;
@@ -444,7 +444,7 @@
             // splitContainerSmall.Panel2
             // 
             this.splitContainerSmall.Panel2.Controls.Add(this.richTextBoxDescription);
-            this.splitContainerSmall.Size = new System.Drawing.Size(681, 133);
+            this.splitContainerSmall.Size = new System.Drawing.Size(681, 138);
             this.splitContainerSmall.SplitterDistance = 502;
             this.splitContainerSmall.TabIndex = 2;
             // 
@@ -455,7 +455,7 @@
             this.panelMediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelMediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panelMediaBackground.Name = "panelMediaBackground";
-            this.panelMediaBackground.Size = new System.Drawing.Size(684, 130);
+            this.panelMediaBackground.Size = new System.Drawing.Size(684, 125);
             this.panelMediaBackground.TabIndex = 0;
             // 
             // menuStripMainMenu
@@ -1230,6 +1230,7 @@
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GamelistManagerForm_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.GamelistManagerForm_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.splitContainerBig.Panel1.ResumeLayout(false);

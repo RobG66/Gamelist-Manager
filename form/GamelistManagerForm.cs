@@ -29,9 +29,7 @@ namespace GamelistManager
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
         private VideoView videoView;
-        // using the global placeholder originalVideoPath because
-        // videoview.tag does not hold value
-        private string originalVideoPath;
+        private string newVideoFilePath;
         public DataGridView DataGridView
         {
             get { return dataGridView1; }
@@ -45,9 +43,6 @@ namespace GamelistManager
         public GamelistManagerForm()
         {
             InitializeComponent();
-            genreFilter = string.Empty;
-            visibilityFilter = string.Empty;
-            Core.Initialize();
         }
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -258,6 +253,12 @@ namespace GamelistManager
 
             comboBoxFilterItem.SelectedIndex = 0;
 
+            genreFilter = string.Empty;
+            visibilityFilter = string.Empty;
+            Core.Initialize();
+            libVLC = new LibVLC();
+            mediaPlayer = new MediaPlayer(libVLC);
+            mediaPlayer.EndReached += MediaPlayer_EndReached;
         }
 
         private void ClearMenuRecentFiles()
@@ -298,6 +299,8 @@ namespace GamelistManager
 
         private void ShowMediaToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
+            newVideoFilePath = null;
+
             ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
 
             if (menuItem.Checked == false)
@@ -309,7 +312,7 @@ namespace GamelistManager
             }
 
             if (dataGridView1.SelectedRows.Count < 1) { return; }
-
+                        
             splitContainerBig.Panel2Collapsed = false;
 
             ShowMedia();
@@ -375,6 +378,8 @@ namespace GamelistManager
                                 // Play the video
                                 mediaPlayer.Play(new Media(libVLC, videoPath));
                                 videoView.MediaPlayer = mediaPlayer;
+
+                                newVideoFilePath = videoPath;
 
                                 // Find the mediaButtons in the specified row and column
                                 MediaButtons mediaButtons = TableLayoutPanel1.Controls
@@ -541,7 +546,7 @@ namespace GamelistManager
             Label label = new Label
             {
                 Text = labelName,
-                Font = new Font("Sego UI", 10, FontStyle.Regular),
+                Font = new Font("Sego UI", 9, FontStyle.Regular),
                 AutoSize = true,
                 Anchor = AnchorStyles.None,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -553,10 +558,6 @@ namespace GamelistManager
         {
             if (TableLayoutPanel1 != null)
             {
-                if (mediaPlayer != null)
-                {
-                    mediaPlayer.Stop();
-                }
                 ClearTableLayoutPanel();
             }
 
@@ -574,7 +575,7 @@ namespace GamelistManager
                 ColumnCount = 1,
             };
 
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 16));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
             if (allowDrop)
             {
@@ -715,21 +716,12 @@ namespace GamelistManager
                 videoFilePath = Path.Combine(parentFolderPath, videoString.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
             }
 
-            // Create the videoview object if the video file exists
-            // or if allowDrop is true (it just doesn't play anything)
             if (System.IO.File.Exists(videoFilePath) || allowDrop)
             {
+                VideoView videoView = new VideoView();
+                videoView.Dock = DockStyle.Fill;
+                videoView.MediaPlayer = mediaPlayer;
                 TableLayoutPanel1.ColumnCount = columnIndex;
-                libVLC = new LibVLC();
-                mediaPlayer = new MediaPlayer(libVLC);
-                // Add an event for looping video
-                mediaPlayer.EndReached += MediaPlayer_EndReached;
-
-                VideoView videoView = new VideoView
-                {
-                    Dock = DockStyle.Fill
-                };
-
                 TableLayoutPanel1.Controls.Add(videoView, columnIndex, 1);
 
                 // Add video label 
@@ -740,8 +732,6 @@ namespace GamelistManager
                     try
                     {
                         mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoFilePath)));
-                        videoView.MediaPlayer = mediaPlayer;
-                        originalVideoPath = videoFilePath;
                     }
                     catch (Exception ex)
                     {
@@ -804,9 +794,9 @@ namespace GamelistManager
 
             string cellValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
             string romName = Path.GetFileNameWithoutExtension(cellValue);
-            
+            string parentFolderName = Path.GetDirectoryName(SharedData.XMLFilename);
             string columnName = mediaButtons.Name;
-            
+
             if (columnName != "video")
             {
                 // Get the column index of the MediaButton
@@ -835,7 +825,6 @@ namespace GamelistManager
                     else if (format.Equals(ImageFormat.Png))
                         extension = ".png";
 
-                    string parentFolderName = Path.GetDirectoryName(SharedData.XMLFilename);
                     string fileName = $"{romName}-{columnName}{extension}";
                     string fileNamePath = $"{parentFolderName}\\images\\{fileName}";
                     dataGridView1.SelectedRows[0].Cells[columnName].Value = $"./images/{fileName}";
@@ -858,11 +847,33 @@ namespace GamelistManager
                     pictureBox.BackgroundImage = Properties.Resources.dropicon;
                     pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
                 }
-                
+
                 return;
             }
 
-            // Apply for Video
+            if (columnName == "video")
+            {
+                mediaButtons.SetButtonEnabledState(0, false);
+                mediaButtons.SetButtonEnabledState(1, true);
+                mediaButtons.SetButtonEnabledState(2, false);
+                if (newVideoFilePath != null)
+                {
+                    string extension = Path.GetExtension(newVideoFilePath);
+                    string fileName = $"{romName}-video.{extension}";
+                    string fileNamePath = $"{parentFolderName}\\videos\\{fileName}";
+                    dataGridView1.SelectedRows[0].Cells["video"].Value = $"./videos/{fileName}";
+                    // true for overwrite
+                    File.Copy(newVideoFilePath, fileNamePath,true);
+                }
+                else
+                {
+                    if (mediaPlayer.Media == null)
+                    {
+                        dataGridView1.SelectedRows[0].Cells["video"].Value = null;
+                        mediaButtons.SetButtonEnabledState(1, false);
+                    }
+                }
+            }
         }
 
         private void CustomControlWithButtons_Button2Clicked(object sender, EventArgs e)
@@ -900,10 +911,12 @@ namespace GamelistManager
                 if (mediaPlayer != null && mediaPlayer.IsPlaying)
                 {
                     mediaPlayer.Stop();
+                    mediaPlayer.Media = null;
                     mediaButtons.SetButtonEnabledState(0, true);
                     mediaButtons.SetButtonEnabledState(1, false);
                     mediaButtons.SetButtonEnabledState(2, true);
                 }
+                newVideoFilePath = null;
             }
         }
 
@@ -946,23 +959,36 @@ namespace GamelistManager
 
             if (mediaButtons.Name == "video")
             {
+                newVideoFilePath = null;
+
+                mediaButtons.SetButtonEnabledState(0, false);
+                mediaButtons.SetButtonEnabledState(1, true);
+                mediaButtons.SetButtonEnabledState(2, false);
+
                 if (mediaPlayer != null && mediaPlayer.IsPlaying)
                 {
                     mediaPlayer.Stop();
                 }
-                string videoFilePath = originalVideoPath;
-                mediaButtons.SetButtonEnabledState(0, false);
-                mediaButtons.SetButtonEnabledState(1, true);
-                mediaButtons.SetButtonEnabledState(2, false);
-                if (!string.IsNullOrEmpty(videoFilePath) && File.Exists(videoFilePath))
+                
+                object cellValue = dataGridView1.SelectedRows[0].Cells["video"].Value;
+                string videoPath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : null;
+
+                if (!string.IsNullOrEmpty(videoPath))
                 {
-                    mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoFilePath)));
-                    // videoView.MediaPlayer = mediaPlayer;
+                    string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+                    string videoFilePath = Path.Combine(parentFolderPath, videoPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+                    if (File.Exists(videoFilePath))
+                    {
+                        mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoFilePath)));
+                        // videoView.MediaPlayer = mediaPlayer;
+                    }
                 }
                 else
                 {
                     mediaButtons.SetButtonEnabledState(1, false);
                 }
+                
             }
         }
 
@@ -991,18 +1017,16 @@ namespace GamelistManager
         private void ClearTableLayoutPanel()
         {
             // Loop through all controls in the TableLayoutPanel
-            foreach (Control control in TableLayoutPanel1.Controls)
+            foreach (Control control in TableLayoutPanel1.Controls.Cast<Control>().ToList())
             {
-                // Stop media playback if the mediaButtons is a VideoView
-                if (control is VideoView videoView)
+                if (control is VideoView)
                 {
-                    mediaPlayer.Stop();
-                    mediaPlayer.EndReached -= MediaPlayer_EndReached;
-                    mediaPlayer.Dispose();
-                    libVLC.Dispose();
+                    if (mediaPlayer.IsPlaying)
+                    {
+                        mediaPlayer.Stop();
+                    }
                     TableLayoutPanel1.Controls.Remove(videoView);
-                    videoView.Dispose();
-                }
+                 }
 
                 // Clean up PictureBox controls
                 if (control is PictureBox pictureBox)
@@ -1011,7 +1035,6 @@ namespace GamelistManager
                     pictureBox.Image = null;
                     pictureBox.Tag = null;
                     pictureBox.BackgroundImage = null;
-                    //pictureBox.Image.Dispose();
                     TableLayoutPanel1.Controls.Remove(pictureBox);
                     pictureBox.Dispose();
                 }
@@ -1025,11 +1048,9 @@ namespace GamelistManager
                     TableLayoutPanel1.Controls.Remove(mediaButtons);
                     mediaButtons.Dispose();
                 }
-
             }
-
-            // Clear controls from the TableLayoutPanel
-            //TableLayoutPanel1.Controls.Clear();
+                        
+            TableLayoutPanel1.Controls.Clear();
 
             // Dispose of the TableLayoutPanel
             splitContainerBig.Panel2.Controls.Remove(TableLayoutPanel1);
@@ -3038,6 +3059,24 @@ namespace GamelistManager
                 dataGridView1.Rows[index].Cells["desc"].Value = displayedDescription;
             }
 
+        }
+
+        private void GamelistManagerForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (mediaPlayer != null)
+            {
+                if (mediaPlayer.IsPlaying)
+                {
+                    mediaPlayer.Stop();
+                }
+                mediaPlayer.EndReached -= MediaPlayer_EndReached;
+                mediaPlayer.Dispose();
+                libVLC.Dispose();
+                if (videoView != null)
+                {
+                    videoView.Dispose();
+                }
+            }
         }
     }
 }

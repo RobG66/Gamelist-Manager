@@ -59,11 +59,13 @@ namespace GamelistManager.control
                 if (enabled)
                 {
                     button1.BackColor = SystemColors.Control;
-                    toolTip1.SetToolTip(button1, "Apply Change (still requires save)");
+                    button1.Visible = true;
+                    toolTip1.SetToolTip(button1, "Confirm Change");
                 }
                 else
                 {
                     button1.BackColor = Color.LightGray;
+                    button1.Visible = false;
                     toolTip1.SetToolTip(button1, null);
                 }
             }
@@ -73,12 +75,14 @@ namespace GamelistManager.control
                 if (enabled)
                 {
                     button2.BackColor = SystemColors.Control;
-                    toolTip2.SetToolTip(button2, "Remove this image");
+                    toolTip2.SetToolTip(button2, "Remove Item");
+                    button2.Visible = true;
                 }
                 else
                 {
                     button2.BackColor = Color.LightGray;
                     toolTip2.SetToolTip(button2, null);
+                    button2.Visible = false;
                 }
             }
             else if (buttonIndex == 2)
@@ -87,12 +91,14 @@ namespace GamelistManager.control
                 if (enabled)
                 {
                     button3.BackColor = SystemColors.Control;
-                    toolTip3.SetToolTip(button3, "Reset Image");
+                    toolTip3.SetToolTip(button3, "Reset To Original");
+                    button3.Visible = true;
                 }
                 else
                 {
                     button3.BackColor = Color.LightGray;
                     toolTip3.SetToolTip(button3, null);
+                    button3.Visible = false;
                 }
             }
         }
