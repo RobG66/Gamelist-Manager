@@ -60,12 +60,14 @@ namespace GamelistManager.control
                 {
                     button1.BackColor = SystemColors.Control;
                     button1.Visible = true;
+                    tableLayoutPanel1.ColumnStyles[0] = new ColumnStyle(SizeType.Percent, 100);
                     toolTip1.SetToolTip(button1, "Confirm Change");
                 }
                 else
                 {
                     button1.BackColor = Color.LightGray;
                     button1.Visible = false;
+                    tableLayoutPanel1.ColumnStyles[0] = new ColumnStyle(SizeType.Absolute, 0);
                     toolTip1.SetToolTip(button1, null);
                 }
             }
@@ -77,12 +79,14 @@ namespace GamelistManager.control
                     button2.BackColor = SystemColors.Control;
                     toolTip2.SetToolTip(button2, "Remove Item");
                     button2.Visible = true;
+                    tableLayoutPanel1.ColumnStyles[1] = new ColumnStyle(SizeType.Percent, 100);
                 }
                 else
                 {
                     button2.BackColor = Color.LightGray;
                     toolTip2.SetToolTip(button2, null);
                     button2.Visible = false;
+                    tableLayoutPanel1.ColumnStyles[1] = new ColumnStyle(SizeType.Absolute, 0);
                 }
             }
             else if (buttonIndex == 2)
@@ -93,12 +97,14 @@ namespace GamelistManager.control
                     button3.BackColor = SystemColors.Control;
                     toolTip3.SetToolTip(button3, "Reset To Original");
                     button3.Visible = true;
+                    tableLayoutPanel1.ColumnStyles[2] = new ColumnStyle(SizeType.Percent, 100);
                 }
                 else
                 {
                     button3.BackColor = Color.LightGray;
                     toolTip3.SetToolTip(button3, null);
                     button3.Visible = false;
+                    tableLayoutPanel1.ColumnStyles[2] = new ColumnStyle(SizeType.Absolute, 0);
                 }
             }
         }
