@@ -306,7 +306,6 @@ namespace GamelistManager
             if (menuItem.Checked == false)
             {
                 splitContainerBig.Panel2Collapsed = true;
-
                 ClearTableLayoutPanel();
                 return;
             }
@@ -422,7 +421,6 @@ namespace GamelistManager
         private PictureBox AddDragDrop(PictureBox pictureBox)
         {
             pictureBox.AllowDrop = true;
-            pictureBox.ContextMenuStrip = null;
             Image image = null;
             int columnIndex = TableLayoutPanel1.GetColumn(pictureBox);
             Exception exception = null;
@@ -641,6 +639,7 @@ namespace GamelistManager
                 }
                 else
                 {
+                    pictureBox.ContextMenuStrip = contextMenuStripImageOptions;
                     if (columnName == "manual")
                     {
                         image = Properties.Resources.manual;
@@ -670,6 +669,7 @@ namespace GamelistManager
                 {
                     pictureBox.BackgroundImage = Properties.Resources.dropicon;
                     pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                    pictureBox.ContextMenuStrip = null;
                 }
 
                 // Create the label, add to row 0
@@ -1016,6 +1016,18 @@ namespace GamelistManager
 
         private void ClearTableLayoutPanel()
         {
+            // a few basic checks to avoid accidental exception error
+            // should never be null or have no controls if being called
+            // just to be safe
+            if (TableLayoutPanel1 == null)
+            {
+                return;
+            }
+            if (TableLayoutPanel1.Controls.Count == 0)
+            {
+                return;
+            }
+
             // Loop through all controls in the TableLayoutPanel
             foreach (Control control in TableLayoutPanel1.Controls.Cast<Control>().ToList())
             {
@@ -1301,9 +1313,16 @@ namespace GamelistManager
 
         public bool LoadXML(string fileName)
         {
-            // make sure media edit and view are off
-            DisableEditing(true);
-            showMediaToolStripMenuItem.Checked = false;
+            // ensure media player is stopped
+            if (showMediaToolStripMenuItem.Checked)
+            {
+                if (mediaPlayer.IsPlaying)
+                {
+                    mediaPlayer.Stop();
+                    mediaPlayer.Media = null;
+                }
+                ClearTableLayoutPanel();
+            }
 
             this.Cursor = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
@@ -1707,7 +1726,7 @@ namespace GamelistManager
 
         private string GetGenreFromSelectedRow()
         {
-            // blah fFor review
+            // for review
             // toolStripMenuItemSetAllGenreVisible.Enabled = true;
             // toolStripMenuItemSetAllGenreHidden.Enabled = true;
 
@@ -2181,41 +2200,53 @@ namespace GamelistManager
         private void EditToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             string pictureBoxName = contextMenuStripImageOptions.SourceControl.Name;
-            PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
+            //PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
 
-            if (pictureBox == null)
+            if (string.IsNullOrEmpty(pictureBoxName))
             {
                 return;
             }
 
-            // blah fix later
-            string imagePath = pictureBox.Tag.ToString();
-           
-            try
+            var rowIndex = dataGridView1.SelectedRows[0].Index;
+            object cellValue = dataGridView1.Rows[rowIndex].Cells[pictureBoxName].Value;
+            string imagePath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
+
+            if (!string.IsNullOrEmpty(imagePath))
             {
-                Process.Start(imagePath);
-            }
-            catch
-            {
-                // Handle the exception if the process can't be started 
-                MessageBox.Show("Error loading image!");
+                string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+                string imageFilePath = Path.Combine(parentFolderPath, imagePath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+                if (File.Exists(imageFilePath))
+                    try
+                    {
+                        Process.Start(imageFilePath);
+                    }
+                    catch
+                    {
+                        // Handle the exception if the process can't be started 
+                        MessageBox.Show("Error loading image!");
+                    }
             }
         }
 
         private void ToolStripMenuItem2_Click(object sender, EventArgs e)
         {
             string pictureBoxName = contextMenuStripImageOptions.SourceControl.Name;
-            PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
-
-            if (pictureBox == null)
+           
+            if (string.IsNullOrEmpty(pictureBoxName))
             {
                 return;
             }
 
-            string imagePath = pictureBox.Tag.ToString();
-            if (string.IsNullOrEmpty(imagePath))
+            var rowIndex = dataGridView1.SelectedRows[0].Index;
+            object cellValue = dataGridView1.Rows[rowIndex].Cells[pictureBoxName].Value;
+            string imagePath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
+
+            if (!string.IsNullOrEmpty(imagePath))
             {
-                Clipboard.SetText(imagePath);
+                string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+                string imageFilePath = Path.Combine(parentFolderPath, imagePath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                Clipboard.SetText(imageFilePath);
             }
         }
 
@@ -2291,6 +2322,10 @@ namespace GamelistManager
 
         private void SetupSSHToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (!DescriptionToolStripMenuItem.Checked)
+            {
+                DescriptionToolStripMenuItem.Checked = true;
+            }
             BatoceraHostSetup userControl = new BatoceraHostSetup();
             richTextBoxDescription.Hide();
             splitContainerSmall.Panel2.Controls.Add(userControl);
