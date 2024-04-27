@@ -74,6 +74,8 @@
             this.toolStripSeparator21 = new System.Windows.Forms.ToolStripSeparator();
             this.showMediaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator27 = new System.Windows.Forms.ToolStripSeparator();
+            this.ToolStripMenuItemAlwaysOnTop = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             this.resetViewToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEditMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripEdit = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -180,7 +182,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -196,7 +198,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(482, 134);
+            this.dataGridView1.Size = new System.Drawing.Size(542, 138);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -209,7 +211,7 @@
             this.richTextBoxDescription.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxDescription.Name = "richTextBoxDescription";
             this.richTextBoxDescription.ReadOnly = true;
-            this.richTextBoxDescription.Size = new System.Drawing.Size(165, 134);
+            this.richTextBoxDescription.Size = new System.Drawing.Size(155, 138);
             this.richTextBoxDescription.TabIndex = 0;
             this.richTextBoxDescription.Text = "";
             this.richTextBoxDescription.Leave += new System.EventHandler(this.richTextBoxDescription_Leave);
@@ -222,7 +224,7 @@
             this.comboBoxGenre.Enabled = false;
             this.comboBoxGenre.FormattingEnabled = true;
             this.comboBoxGenre.ItemHeight = 13;
-            this.comboBoxGenre.Location = new System.Drawing.Point(432, 2);
+            this.comboBoxGenre.Location = new System.Drawing.Point(460, 2);
             this.comboBoxGenre.Name = "comboBoxGenre";
             this.comboBoxGenre.Size = new System.Drawing.Size(215, 21);
             this.comboBoxGenre.TabIndex = 10;
@@ -234,7 +236,7 @@
             this.labelShowingCount.AutoSize = true;
             this.labelShowingCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelShowingCount.ForeColor = System.Drawing.Color.Red;
-            this.labelShowingCount.Location = new System.Drawing.Point(323, 4);
+            this.labelShowingCount.Location = new System.Drawing.Point(329, 4);
             this.labelShowingCount.Name = "labelShowingCount";
             this.labelShowingCount.Size = new System.Drawing.Size(13, 15);
             this.labelShowingCount.TabIndex = 9;
@@ -245,7 +247,7 @@
             this.labelShowing.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelShowing.AutoSize = true;
             this.labelShowing.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelShowing.Location = new System.Drawing.Point(270, 4);
+            this.labelShowing.Location = new System.Drawing.Point(276, 4);
             this.labelShowing.Name = "labelShowing";
             this.labelShowing.Size = new System.Drawing.Size(56, 15);
             this.labelShowing.TabIndex = 8;
@@ -304,8 +306,9 @@
             // splitContainerBig.Panel2
             // 
             this.splitContainerBig.Panel2.Controls.Add(this.panelMediaBackground);
-            this.splitContainerBig.Size = new System.Drawing.Size(654, 277);
-            this.splitContainerBig.SplitterDistance = 184;
+            this.splitContainerBig.Panel2MinSize = 125;
+            this.splitContainerBig.Size = new System.Drawing.Size(704, 317);
+            this.splitContainerBig.SplitterDistance = 188;
             this.splitContainerBig.TabIndex = 3;
             // 
             // panelBelowDataGridView
@@ -327,9 +330,9 @@
             this.panelBelowDataGridView.Controls.Add(this.labelFavorite);
             this.panelBelowDataGridView.Controls.Add(this.labelShowing);
             this.panelBelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 136);
+            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 140);
             this.panelBelowDataGridView.Name = "panelBelowDataGridView";
-            this.panelBelowDataGridView.Size = new System.Drawing.Size(654, 48);
+            this.panelBelowDataGridView.Size = new System.Drawing.Size(704, 48);
             this.panelBelowDataGridView.TabIndex = 12;
             // 
             // comboBoxFilterItem
@@ -342,7 +345,7 @@
             "Path",
             "Genre",
             "Description"});
-            this.comboBoxFilterItem.Location = new System.Drawing.Point(432, 24);
+            this.comboBoxFilterItem.Location = new System.Drawing.Point(460, 24);
             this.comboBoxFilterItem.Name = "comboBoxFilterItem";
             this.comboBoxFilterItem.Size = new System.Drawing.Size(85, 21);
             this.comboBoxFilterItem.TabIndex = 17;
@@ -351,7 +354,7 @@
             // textBoxCustomFilter
             // 
             this.textBoxCustomFilter.Enabled = false;
-            this.textBoxCustomFilter.Location = new System.Drawing.Point(523, 24);
+            this.textBoxCustomFilter.Location = new System.Drawing.Point(551, 24);
             this.textBoxCustomFilter.MaxLength = 20;
             this.textBoxCustomFilter.Name = "textBoxCustomFilter";
             this.textBoxCustomFilter.Size = new System.Drawing.Size(124, 20);
@@ -364,7 +367,7 @@
             this.checkBoxCustomFilter.AutoSize = true;
             this.checkBoxCustomFilter.Enabled = false;
             this.checkBoxCustomFilter.ForeColor = System.Drawing.Color.DarkBlue;
-            this.checkBoxCustomFilter.Location = new System.Drawing.Point(377, 26);
+            this.checkBoxCustomFilter.Location = new System.Drawing.Point(405, 26);
             this.checkBoxCustomFilter.Name = "checkBoxCustomFilter";
             this.checkBoxCustomFilter.Size = new System.Drawing.Size(51, 17);
             this.checkBoxCustomFilter.TabIndex = 15;
@@ -378,7 +381,7 @@
             this.labelGenrePicker.AutoSize = true;
             this.labelGenrePicker.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelGenrePicker.ForeColor = System.Drawing.Color.DarkBlue;
-            this.labelGenrePicker.Location = new System.Drawing.Point(383, 4);
+            this.labelGenrePicker.Location = new System.Drawing.Point(411, 4);
             this.labelGenrePicker.Name = "labelGenrePicker";
             this.labelGenrePicker.Size = new System.Drawing.Size(41, 15);
             this.labelGenrePicker.TabIndex = 11;
@@ -411,7 +414,7 @@
             this.labelFavoriteCount.AutoSize = true;
             this.labelFavoriteCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelFavoriteCount.ForeColor = System.Drawing.Color.Red;
-            this.labelFavoriteCount.Location = new System.Drawing.Point(323, 26);
+            this.labelFavoriteCount.Location = new System.Drawing.Point(329, 26);
             this.labelFavoriteCount.Name = "labelFavoriteCount";
             this.labelFavoriteCount.Size = new System.Drawing.Size(13, 15);
             this.labelFavoriteCount.TabIndex = 13;
@@ -422,7 +425,7 @@
             this.labelFavorite.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelFavorite.AutoSize = true;
             this.labelFavorite.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelFavorite.Location = new System.Drawing.Point(270, 26);
+            this.labelFavorite.Location = new System.Drawing.Point(276, 26);
             this.labelFavorite.Name = "labelFavorite";
             this.labelFavorite.Size = new System.Drawing.Size(52, 15);
             this.labelFavorite.TabIndex = 12;
@@ -443,8 +446,8 @@
             // splitContainerSmall.Panel2
             // 
             this.splitContainerSmall.Panel2.Controls.Add(this.richTextBoxDescription);
-            this.splitContainerSmall.Size = new System.Drawing.Size(651, 134);
-            this.splitContainerSmall.SplitterDistance = 482;
+            this.splitContainerSmall.Size = new System.Drawing.Size(701, 138);
+            this.splitContainerSmall.SplitterDistance = 542;
             this.splitContainerSmall.TabIndex = 2;
             // 
             // panelMediaBackground
@@ -454,7 +457,7 @@
             this.panelMediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelMediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panelMediaBackground.Name = "panelMediaBackground";
-            this.panelMediaBackground.Size = new System.Drawing.Size(654, 89);
+            this.panelMediaBackground.Size = new System.Drawing.Size(704, 125);
             this.panelMediaBackground.TabIndex = 0;
             // 
             // menuStripMainMenu
@@ -471,7 +474,7 @@
             this.menuStripMainMenu.Location = new System.Drawing.Point(0, 0);
             this.menuStripMainMenu.Name = "menuStripMainMenu";
             this.menuStripMainMenu.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStripMainMenu.Size = new System.Drawing.Size(654, 24);
+            this.menuStripMainMenu.Size = new System.Drawing.Size(704, 24);
             this.menuStripMainMenu.TabIndex = 5;
             this.menuStripMainMenu.Text = "menuStrip1";
             // 
@@ -574,12 +577,14 @@
             this.toolStripSeparator21,
             this.showMediaToolStripMenuItem,
             this.toolStripSeparator27,
+            this.ToolStripMenuItemAlwaysOnTop,
+            this.toolStripSeparator14,
             this.resetViewToolStripMenuItem1});
             this.contextMenuStripView.Name = "contextMenuStripView";
             this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
-            this.contextMenuStripView.Size = new System.Drawing.Size(257, 176);
+            this.contextMenuStripView.Size = new System.Drawing.Size(257, 204);
             // 
             // showAllHiddenAndVisibleItemsToolStripMenuItem
             // 
@@ -638,6 +643,19 @@
             // 
             this.toolStripSeparator27.Name = "toolStripSeparator27";
             this.toolStripSeparator27.Size = new System.Drawing.Size(253, 6);
+            // 
+            // ToolStripMenuItemAlwaysOnTop
+            // 
+            this.ToolStripMenuItemAlwaysOnTop.CheckOnClick = true;
+            this.ToolStripMenuItemAlwaysOnTop.Name = "ToolStripMenuItemAlwaysOnTop";
+            this.ToolStripMenuItemAlwaysOnTop.Size = new System.Drawing.Size(256, 22);
+            this.ToolStripMenuItemAlwaysOnTop.Text = "Always On Top";
+            this.ToolStripMenuItemAlwaysOnTop.CheckedChanged += new System.EventHandler(this.ToolStripMenuItemAlwaysOnTop_CheckedChanged);
+            // 
+            // toolStripSeparator14
+            // 
+            this.toolStripSeparator14.Name = "toolStripSeparator14";
+            this.toolStripSeparator14.Size = new System.Drawing.Size(253, 6);
             // 
             // resetViewToolStripMenuItem1
             // 
@@ -721,7 +739,7 @@
             // 
             this.editRowDataToolStripMenuItem.Name = "editRowDataToolStripMenuItem";
             this.editRowDataToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
-            this.editRowDataToolStripMenuItem.Text = "Edit Row Data";
+            this.editRowDataToolStripMenuItem.Text = "Edit Data";
             this.editRowDataToolStripMenuItem.Click += new System.EventHandler(this.editRowDataToolStripMenuItem_Click);
             // 
             // toolStripSeparator24
@@ -1188,28 +1206,29 @@
             this.toolStripMenuItemCopyToClipboard,
             this.toolStripMenuItemEditImage});
             this.contextMenuStripImageOptions.Name = "contextMenuStrip1";
-            this.contextMenuStripImageOptions.Size = new System.Drawing.Size(200, 48);
+            this.contextMenuStripImageOptions.ShowImageMargin = false;
+            this.contextMenuStripImageOptions.Size = new System.Drawing.Size(175, 48);
             // 
             // toolStripMenuItemCopyToClipboard
             // 
             this.toolStripMenuItemCopyToClipboard.Name = "toolStripMenuItemCopyToClipboard";
-            this.toolStripMenuItemCopyToClipboard.Size = new System.Drawing.Size(199, 22);
+            this.toolStripMenuItemCopyToClipboard.Size = new System.Drawing.Size(174, 22);
             this.toolStripMenuItemCopyToClipboard.Text = "Copy Path To Clipboard";
             this.toolStripMenuItemCopyToClipboard.Click += new System.EventHandler(this.ToolStripMenuItem2_Click);
             // 
             // toolStripMenuItemEditImage
             // 
             this.toolStripMenuItemEditImage.Name = "toolStripMenuItemEditImage";
-            this.toolStripMenuItemEditImage.Size = new System.Drawing.Size(199, 22);
+            this.toolStripMenuItemEditImage.Size = new System.Drawing.Size(174, 22);
             this.toolStripMenuItemEditImage.Text = "View / Edit Item";
             this.toolStripMenuItemEditImage.Click += new System.EventHandler(this.EditToolStripMenuItem1_Click);
             // 
             // statusBar
             // 
             this.statusBar.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusBar.Location = new System.Drawing.Point(0, 301);
+            this.statusBar.Location = new System.Drawing.Point(0, 341);
             this.statusBar.Name = "statusBar";
-            this.statusBar.Size = new System.Drawing.Size(654, 20);
+            this.statusBar.Size = new System.Drawing.Size(704, 20);
             this.statusBar.TabIndex = 6;
             this.statusBar.Text = "Ready";
             // 
@@ -1217,17 +1236,18 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(654, 321);
+            this.ClientSize = new System.Drawing.Size(704, 361);
             this.Controls.Add(this.splitContainerBig);
             this.Controls.Add(this.menuStripMainMenu);
             this.Controls.Add(this.statusBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMainMenu;
-            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
-            this.MinimumSize = new System.Drawing.Size(670, 360);
+            this.Margin = new System.Windows.Forms.Padding(1);
+            this.MinimumSize = new System.Drawing.Size(720, 400);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GamelistManagerForm_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.GamelistManagerForm_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.splitContainerBig.Panel1.ResumeLayout(false);
@@ -1373,6 +1393,8 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem9;
         private System.Windows.Forms.ComboBox comboBoxFilterItem;
         private System.Windows.Forms.ToolStripMenuItem removeBatoceraHostKeyToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemAlwaysOnTop;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator14;
     }
 }
 

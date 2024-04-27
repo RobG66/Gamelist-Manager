@@ -1,18 +1,22 @@
-﻿using LibVLCSharp.Shared;
+﻿using GamelistManager.control;
+using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Image = System.Drawing.Image;
 
 namespace GamelistManager
 {
@@ -22,9 +26,10 @@ namespace GamelistManager
         private string visibilityFilter;
         private string genreFilter;
         private TableLayoutPanel TableLayoutPanel1;
-        private VideoView videoView1;
         private LibVLC libVLC;
         private MediaPlayer mediaPlayer;
+        private VideoView videoView;
+        private string newVideoFilePath;
         public DataGridView DataGridView
         {
             get { return dataGridView1; }
@@ -38,8 +43,6 @@ namespace GamelistManager
         public GamelistManagerForm()
         {
             InitializeComponent();
-            genreFilter = string.Empty;
-            visibilityFilter = string.Empty;
         }
 
         private void SaveFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -48,7 +51,7 @@ namespace GamelistManager
         }
 
         public void SaveFile(string filename)
-        {
+        {            
             string oldFilename = Path.ChangeExtension(filename, "old");
 
             DialogResult result = MessageBox.Show($"Do you want to save the file '{filename}'?\nA backup will be saved as {oldFilename}.\n\nNote: It is recommended to stop EmulationStation before or just after saving any gamelist changes.  Reboot or shutdown the Batocera host when you are finished.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -56,6 +59,13 @@ namespace GamelistManager
             if (result != DialogResult.Yes)
             {
                 return;
+            }
+
+            // Check if we are in the middle of an edit
+            if (dataGridView1.Columns["name"].ReadOnly == false)
+            {
+                UpdateDescription();
+                DisableEditing(true);
             }
 
             ScraperDatesToolStripMenuItem.Checked = false;
@@ -103,16 +113,16 @@ namespace GamelistManager
 
         private bool SaveReminder()
         {
-            DialogResult result = MessageBox.Show("There are unsaved changes, do you want to save them now?", "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show("There may be unsaved changes, do you want to save the gamelist?", "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 
             switch (result)
             {
                 case DialogResult.Yes:
                     SaveFile(SharedData.XMLFilename);
-                    break; 
+                    break;
                 case DialogResult.Cancel:
                     return true;
-             }
+            }
             return false;
         }
 
@@ -177,20 +187,19 @@ namespace GamelistManager
             object cellValue = dataGridView1.Rows[rowIndex].Cells["desc"].Value;
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             richTextBoxDescription.Text = itemDescription;
-            richTextBoxDescription.Tag = rowIndex;
-
+            
             // If media is being shown, update that view
             if (splitContainerBig.Panel2Collapsed != true)
             {
                 ShowMedia();
             }
-              
+
         }
 
         private void ShowVisibleItemsOnlyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             showAllHiddenAndVisibleItemsToolStripMenuItem.Checked = false;
-            showHiddenItemsOnlyToolStripMenuItem.Checked = false;    
+            showHiddenItemsOnlyToolStripMenuItem.Checked = false;
             showVisibleItemsOnlyToolStripMenuItem.Checked = true;
             visibilityFilter = "(hidden = false OR hidden IS NULL)";
             ApplyFilters();
@@ -210,7 +219,7 @@ namespace GamelistManager
         private void ShowAllItemsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             showVisibleItemsOnlyToolStripMenuItem.Checked = false;
-            showHiddenItemsOnlyToolStripMenuItem.Checked= false;
+            showHiddenItemsOnlyToolStripMenuItem.Checked = false;
             showAllHiddenAndVisibleItemsToolStripMenuItem.Checked = true;
             visibilityFilter = string.Empty;
             ApplyFilters();
@@ -250,6 +259,12 @@ namespace GamelistManager
 
             comboBoxFilterItem.SelectedIndex = 0;
 
+            genreFilter = string.Empty;
+            visibilityFilter = string.Empty;
+            Core.Initialize();
+            libVLC = new LibVLC();
+            mediaPlayer = new MediaPlayer(libVLC);
+            mediaPlayer.EndReached += MediaPlayer_EndReached;
         }
 
         private void ClearMenuRecentFiles()
@@ -290,58 +305,241 @@ namespace GamelistManager
 
         private void ShowMediaToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
+            newVideoFilePath = null;
+
             ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
 
             if (menuItem.Checked == false)
             {
                 splitContainerBig.Panel2Collapsed = true;
-
                 ClearTableLayoutPanel();
                 return;
             }
 
             if (dataGridView1.SelectedRows.Count < 1) { return; }
-
+                        
             splitContainerBig.Panel2Collapsed = false;
 
             ShowMedia();
         }
 
-        private PictureBox MakePictureBox(string imagePath, string name)
+        private void MediaPlayer_EndReached(object sender, EventArgs e)
         {
-            System.Drawing.Image image;
+            if (mediaPlayer == null) { return; }
 
-            if (!File.Exists(imagePath))
+            if (TableLayoutPanel1.InvokeRequired)
             {
-                image = Properties.Resources.missing;
+                TableLayoutPanel1.BeginInvoke(new Action(() =>
+                {
+                    mediaPlayer.Stop();
+                    mediaPlayer.Time = 0; // Seek to the beginning
+                    mediaPlayer.Play();
+                }));
             }
             else
             {
-                if (name == "manual")
+                mediaPlayer.Stop();
+                mediaPlayer.Time = 0; // Seek to the beginning
+                mediaPlayer.Play();
+            }
+        }
+
+        private VideoView AddVideoDragDrop(VideoView videoView)
+        {
+            videoView.AllowDrop = true;
+            videoView.DragEnter += (sender, e) =>
+            {
+                if (e.Data.GetDataPresent("DragImageBits") || e.Data.GetDataPresent(DataFormats.FileDrop))
                 {
-                    image = Properties.Resources.manual;
+                    e.Effect = DragDropEffects.Copy;
                 }
                 else
                 {
-                    try
+                    e.Effect = DragDropEffects.None;
+                }
+            };
+
+            videoView.DragDrop += (sender, e) =>
+            {
+                int columnIndex = TableLayoutPanel1.GetColumn(videoView);
+             
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    if (files.Length > 0)
                     {
-                        image = System.Drawing.Image.FromFile(imagePath);
-                    }
-                    catch
-                    {
-                        image = Properties.Resources.loaderror;
+                        string videoPath = files[0];
+
+                        // Check if the dropped file is a video file
+                        string extension = System.IO.Path.GetExtension(videoPath);
+                        if (extension != null && (extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase) ||
+                                                  extension.Equals(".avi", StringComparison.OrdinalIgnoreCase) ||
+                                                  extension.Equals(".mkv", StringComparison.OrdinalIgnoreCase) ||
+                                                  extension.Equals(".mov", StringComparison.OrdinalIgnoreCase) ||
+                                                  extension.Equals(".webm", StringComparison.OrdinalIgnoreCase) ||
+                                                  extension.Equals(".wmv", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            try
+                            {
+                                // Play the video
+                                mediaPlayer.Play(new Media(libVLC, videoPath));
+                                videoView.MediaPlayer = mediaPlayer;
+
+                                newVideoFilePath = videoPath;
+
+                                // Find the mediaButtons in the specified row and column
+                                MediaButtons mediaButtons = TableLayoutPanel1.Controls
+                                .OfType<MediaButtons>()
+                                .FirstOrDefault(ctrl =>
+                                TableLayoutPanel1.GetRow(ctrl) == 2 &&
+                                TableLayoutPanel1.GetColumn(ctrl) == columnIndex);
+
+                                mediaButtons.SetButtonEnabledState(0, true);
+                                mediaButtons.SetButtonEnabledState(1, true);
+                                mediaButtons.SetButtonEnabledState(2, true);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"The video could not be played: {ex}");
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("This does not appear to be a supported video file");
+                        }
                     }
                 }
-            }
+            };
+            return videoView;
+        }
 
+        private PictureBox MakePictureBox(string name)
+        {
             PictureBox pictureBox = new PictureBox
             {
-                Image = image,
                 Dock = DockStyle.Fill,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Name = name,
-                Tag = imagePath,
-                ContextMenuStrip = contextMenuStripImageOptions
+            };
+
+            return pictureBox;
+        }
+
+        private PictureBox AddDragDrop(PictureBox pictureBox)
+        {
+            pictureBox.AllowDrop = true;
+            Image image = null;
+            int columnIndex = TableLayoutPanel1.GetColumn(pictureBox);
+            Exception exception = null;
+
+            pictureBox.DragDrop += (sender, e) =>
+            {
+                // Check if the data being dragged is a file
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    string imageFilePath = files[0];
+                    string extension = System.IO.Path.GetExtension(imageFilePath).ToLower();
+                    if (extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".bmp")
+                    {
+                        try
+                        {
+                            image = Image.FromFile(imageFilePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            exception = ex;
+                            image = null;
+                        }
+                    }
+                }
+
+                if (e.Data.GetDataPresent(DataFormats.Text))
+                {
+                    string url = e.Data.GetData(DataFormats.StringFormat).ToString();
+                    if (url.StartsWith("data:image/jpeg;base64,") ||
+                        url.StartsWith("data:image/png;base64,") ||
+                        url.StartsWith("data:image/bmp;base64,"))
+                    {
+                        // Extract base64 encoded image data
+                        string base64Data = url.Substring(url.IndexOf(",") + 1);
+
+                        try
+                        {
+                            // Convert base64 data to byte array
+                            byte[] imageData = Convert.FromBase64String(base64Data);
+
+                            // Load the image from byte array
+                            using (MemoryStream ms = new MemoryStream(imageData))
+                            {
+                                image = System.Drawing.Image.FromStream(ms);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            exception = ex;
+                            image = null;
+                        }
+
+                    }
+
+                    if (url.StartsWith("http"))
+                    {
+                        // Handle regular HTTP URL
+                        try
+                        {
+                            // Download HTML content of the page
+                            WebClient webClient = new WebClient();
+
+                            string imageUrl = ExtractImageUrl(url);
+
+                            // Download the image
+                            byte[] imageData = webClient.DownloadData(imageUrl);
+                            using (MemoryStream ms = new MemoryStream(imageData))
+                            {
+                                image = System.Drawing.Image.FromStream(ms);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            exception = ex;
+                            image = null;
+                        }
+                    }
+                }
+
+                if (image != null)
+                {
+                    pictureBox.BackgroundImage = null; 
+                    pictureBox.Image = image;
+                    // Find the mediaButtons in the specified row and column
+                    MediaButtons mediaButtons = TableLayoutPanel1.Controls
+                                .OfType<MediaButtons>()
+                                .FirstOrDefault(ctrl =>
+                                    TableLayoutPanel1.GetRow(ctrl) == 2 &&
+                                    TableLayoutPanel1.GetColumn(ctrl) == columnIndex);
+
+                    mediaButtons.SetButtonEnabledState(0, true);
+                    mediaButtons.SetButtonEnabledState(1, true);
+                    mediaButtons.SetButtonEnabledState(2, true);
+
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to add image: {exception}");
+                }
+            };
+
+            pictureBox.DragEnter += (sender, e) =>
+            {
+                if (e.Data.GetDataPresent("DragImageBits") || e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    e.Effect = DragDropEffects.Copy;
+                }
+                else
+                {
+                    e.Effect = DragDropEffects.None;
+                }
             };
 
             return pictureBox;
@@ -353,14 +551,13 @@ namespace GamelistManager
             Label label = new Label
             {
                 Text = labelName,
-                Font = new Font("Sego UI", 10, FontStyle.Regular),
+                Font = new Font("Sego UI", 9, FontStyle.Regular),
                 AutoSize = true,
                 Anchor = AnchorStyles.None,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             };
             return label;
         }
-
 
         private void ShowMedia()
         {
@@ -369,177 +566,526 @@ namespace GamelistManager
                 ClearTableLayoutPanel();
             }
 
+            bool allowDrop = dataGridView1.Columns["name"].ReadOnly ? false : true;
+            string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+
+            // mediabuttons control needs an extra row
+            int rowCount = allowDrop ? 3 : 2;
+
             TableLayoutPanel1 = new TableLayoutPanel
             {
+                AutoSize = true,
                 Dock = DockStyle.Fill,
-                //AutoScroll = true,
-                RowCount = 2,
+                RowCount = rowCount,
                 ColumnCount = 1,
             };
 
+            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 16));
+            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+            if (allowDrop)
+            {
+                TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            }
+
             panelMediaBackground.Controls.Add(TableLayoutPanel1);
-           
+
             DataGridViewRow selectedRow = dataGridView1.SelectedRows[0];
 
             int columnIndex = 0;
-            string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
 
+            // Add Pictureboxes
             foreach (DataGridViewCell cell in selectedRow.Cells.Cast<DataGridViewCell>().OrderBy(c => c.OwningColumn.Name))
             {
-          
-                if (!SharedData.MediaTypes.Contains(cell.OwningColumn.Name))
-                {
-                    continue;
-                }
-
-                if (cell.Value == null || string.IsNullOrEmpty(cell.Value.ToString()))
-                {
-                    continue;
-                }
-
-                string cellValue = cell.Value.ToString();
-                string filePath = Path.Combine(parentFolderPath, cellValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                // Name of the column
                 string columnName = cell.OwningColumn.Name;
+                // The cell value
+                string cellValue = cell.Value.ToString();
 
-                if (columnName != "video")
+                // Always skip non media and video
+                if (!SharedData.MediaTypes.Contains(columnName) || columnName == "video")
                 {
-                    PictureBox pictureBox = MakePictureBox(filePath, columnName);
-                    TableLayoutPanel1.Controls.Add(pictureBox, columnIndex, 1);
+                    continue;
+                }
 
-                    string labelName = char.ToUpper(columnName[0]) + columnName.Substring(1);
-                    Label label = MakeLabel(labelName);
-                    TableLayoutPanel1.Controls.Add(label, columnIndex, 0);
+                // Get the image filePath
+                string filePath = null;
+                if (!string.IsNullOrEmpty(cellValue) && cellValue.StartsWith("./"))
+                {
+                    filePath = Path.Combine(parentFolderPath, cellValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                }
 
-                    TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
-                    columnIndex++;
-                    TableLayoutPanel1.ColumnCount = columnIndex;
+                if (allowDrop == false && string.IsNullOrEmpty(filePath))
+                {
+                    continue;
+                }
+
+                if (allowDrop)
+                {
+                    // Don't show these colums in drap and drop mode
+                    // Video is added later because it's not a picturebox
+                    string pattern = @"map|manual|magazine";
+                    if (Regex.Matches(columnName, pattern).Count > 0)
+                    {
+                        continue;
+                    }
+                }
+
+                // Make a picturebox and add to row 1
+                PictureBox pictureBox = MakePictureBox(columnName);
+                TableLayoutPanel1.Controls.Add(pictureBox, columnIndex, 1);
+
+                Image image = null;
+                pictureBox.Tag = null;
+                pictureBox.Image = null;
+
+                if (!File.Exists(filePath))
+                {
+                    pictureBox.BackgroundImage = Properties.Resources.missing;
+                    pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                    pictureBox.ContextMenuStrip = null;
                 }
                 else
                 {
-                    if (System.IO.File.Exists(filePath))
+                    pictureBox.ContextMenuStrip = contextMenuStripImageOptions;
+                    if (columnName == "manual")
                     {
-                        TableLayoutPanel1.ColumnCount = columnIndex;
-
-                        Core.Initialize();
-                        libVLC = new LibVLC();
-                        mediaPlayer = new MediaPlayer(libVLC);
-
-                        videoView1 = new VideoView
-                        {
-                            Dock = DockStyle.Fill
-                        };
-
-                        TableLayoutPanel1.Controls.Add(videoView1, columnIndex, 1);
-
-                        Label videoLabel = MakeLabel("Video");
-                        TableLayoutPanel1.Controls.Add(videoLabel, columnIndex, 0);
-                        // Add event show the video loops!
-                        mediaPlayer.EndReached += MediaPlayer_EndReached;
-
+                        image = Properties.Resources.manual;
+                    }
+                    else
+                    {
                         try
                         {
-                            mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + filePath)));
-                            videoView1.MediaPlayer = mediaPlayer;
+                            image = Image.FromFile(filePath);
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            // Handle exceptions appropriately (log, show a message, etc.)
-                            MessageBox.Show($"An error occurred loading the video: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            pictureBox.BackgroundImage = Properties.Resources.loaderror;
+                            pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                            pictureBox.ContextMenuStrip = null;
                         }
-                        TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
-                        columnIndex++;
-                        TableLayoutPanel1.ColumnCount = columnIndex;
                     }
                 }
+                
+                if (image != null)
+                {
+                    string data = ImageConverter.ImageToBase64(image);
+                    pictureBox.Tag = data;
+                    pictureBox.Image = image;
+                }
+                else
+                {
+                    pictureBox.BackgroundImage = Properties.Resources.dropicon;
+                    pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                    pictureBox.ContextMenuStrip = null;
+                }
+
+                // Create the label, add to row 0
+                string labelName = char.ToUpper(columnName[0]) + columnName.Substring(1);
+                Label label = MakeLabel(labelName);
+                TableLayoutPanel1.Controls.Add(label, columnIndex, 0);
+
+                // Add mediaButtons control with events if allowDrop is true
+                // Also add drag/drop events
+                if (allowDrop)
+                {
+                    pictureBox.ContextMenuStrip = null;
+                    MediaButtons mediaButtons = new MediaButtons();
+                    mediaButtons.Anchor = AnchorStyles.Top | AnchorStyles.Bottom;
+                    mediaButtons.Name = columnName;
+                    TableLayoutPanel1.Controls.Add(mediaButtons, columnIndex, 2);
+                    mediaButtons.Button1Clicked += CustomControlWithButtons_Button1Clicked;
+                    mediaButtons.Button2Clicked += CustomControlWithButtons_Button2Clicked;
+                    mediaButtons.Button3Clicked += CustomControlWithButtons_Button3Clicked;
+                    mediaButtons.SetButtonEnabledState(0, false);
+                    mediaButtons.SetButtonEnabledState(1, true);
+                    mediaButtons.SetButtonEnabledState(2, false);
+
+                    AddDragDrop(pictureBox);
+                    if (image == null)
+                    {
+                        mediaButtons.SetButtonEnabledState(0, false);
+                        mediaButtons.SetButtonEnabledState(1, false);
+                        mediaButtons.SetButtonEnabledState(2, false);
+                    }
+                }
+
+                columnIndex++;
+                TableLayoutPanel1.ColumnCount = columnIndex;
+            }
+
+            // Add Video Preview
+            string videoFilePath = null;
+            object videoCellValue = selectedRow.Cells["video"].Value;
+            string videoString = (videoCellValue != null) ? videoCellValue.ToString() : null;
+
+            if (!string.IsNullOrEmpty(videoString) && videoString.StartsWith("./"))
+            {
+                videoFilePath = Path.Combine(parentFolderPath, videoString.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+            }
+
+            if (System.IO.File.Exists(videoFilePath) || allowDrop)
+            {
+                VideoView videoView = new VideoView();
+                videoView.Dock = DockStyle.Fill;
+                videoView.MediaPlayer = mediaPlayer;
+                TableLayoutPanel1.ColumnCount = columnIndex;
+                TableLayoutPanel1.Controls.Add(videoView, columnIndex, 1);
+
+                // Add video label 
+                Label videoLabel = MakeLabel("Video");
+                TableLayoutPanel1.Controls.Add(videoLabel, columnIndex, 0);
+                if (System.IO.File.Exists(videoFilePath))
+                {
+                    try
+                    {
+                        mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoFilePath)));
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exceptions appropriately (log, show a message, etc.)
+                        MessageBox.Show($"An error occurred loading the video: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        videoFilePath = null;
+                    }
+                }
+
+                if (allowDrop)
+                {
+                    // The videoview control is what accepts drag/drop
+                    videoView = AddVideoDragDrop(videoView);
+
+                    // Add mediaButtons object, same as for picturbox
+                    MediaButtons mediaButtons = new MediaButtons();
+                    mediaButtons.Name = "video";
+                    mediaButtons.Anchor = AnchorStyles.Top; // | AnchorStyles.Bottom;
+                    TableLayoutPanel1.Controls.Add(mediaButtons, columnIndex, 2);
+                    mediaButtons.Button1Clicked += CustomControlWithButtons_Button1Clicked;
+                    mediaButtons.Button2Clicked += CustomControlWithButtons_Button2Clicked;
+                    mediaButtons.Button3Clicked += CustomControlWithButtons_Button3Clicked;
+
+                    mediaButtons.SetButtonEnabledState(0, false);
+                    mediaButtons.SetButtonEnabledState(1, true);
+                    mediaButtons.SetButtonEnabledState(2, false);
+
+                    if (videoFilePath == null)
+                    {
+                        mediaButtons.SetButtonEnabledState(1, false);
+                    }
+
+                }
+
+                columnIndex++;
+                TableLayoutPanel1.ColumnCount = columnIndex;
             }
 
             // Just in case there were no images or videos, show a 'no media' image 
             if (columnIndex == 0)
             {
-                // We use the video item since it has no context menu
-                PictureBox picturebox = MakePictureBox(string.Empty, "video");
+                PictureBox picturebox = MakePictureBox(string.Empty);
+                picturebox.ContextMenuStrip = null;
                 picturebox.Image = Properties.Resources.nomedia;
                 TableLayoutPanel1.Controls.Add(picturebox, 0, 1);
-                TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent));
             }
 
-            // Apply style so everythhing is sized and spaced evently
-            foreach (ColumnStyle columnStyle in TableLayoutPanel1.ColumnStyles)
+            // Apply style to columns for proper spacing
+            TableLayoutPanel1.ColumnStyles.Clear();
+            for (int i = 0; i < TableLayoutPanel1.ColumnCount; i++)
             {
-                columnStyle.SizeType = SizeType.Percent;
-                columnStyle.Width = 100f / TableLayoutPanel1.ColumnCount; // Equal distribution for each column
+                TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / TableLayoutPanel1.ColumnCount));
             }
-  
+        }
+
+        private void CustomControlWithButtons_Button1Clicked(object sender, EventArgs e)
+        {
+            // Apply button
+            MediaButtons mediaButtons = (MediaButtons)sender;
+
+            string pathValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
+            string romName = Path.GetFileNameWithoutExtension(pathValue);
+            string parentFolderName = Path.GetDirectoryName(SharedData.XMLFilename);
+            string columnName = mediaButtons.Name;
+
+            // Set changes on the dataset, not the datatable
+            DataRow[] rows = SharedData.DataSet.Tables["game"].Select($"path = '{pathValue.Replace("'", "''")}'");
+            DataRow tabledata = rows[0];
+
+            if (columnName != "video")
+            {
+                // Get the column index of the MediaButton
+                int columnIndex = TableLayoutPanel1.GetColumn(mediaButtons);
+
+                // Find the PictureBox in the specified row and column
+                PictureBox pictureBox = TableLayoutPanel1.Controls
+                    .OfType<PictureBox>()
+                    .FirstOrDefault(ctrl =>
+                        TableLayoutPanel1.GetRow(ctrl) == 1 &&
+                        TableLayoutPanel1.GetColumn(ctrl) == columnIndex);
+
+                if (pictureBox.Image != null)
+                {
+                    Image image = pictureBox.Image;
+
+                    string name = pictureBox.Name;
+                    ImageFormat format = pictureBox.Image.RawFormat;
+
+                    string extension = "png";
+                    if (format.Equals(ImageFormat.Jpeg))
+                        extension = ".jpg";
+                    else if (format.Equals(ImageFormat.Bmp))
+                        extension = ".bmp";
+                    else if (format.Equals(ImageFormat.Png))
+                        extension = ".png";
+
+                    string fileName = $"{romName}-{columnName}{extension}";
+                    string fileNamePath = $"{parentFolderName}\\images\\{fileName}";
+                    // Convert to bitmap before saving
+                    // This is to avoid GDI+ errors with JPG
+                    Bitmap bitmap = new Bitmap(image);
+                    bitmap.Save(fileNamePath, format);
+                    // Reload a clean image
+                    // Also to avoid GDI+ errors
+                    image = Image.FromFile(fileNamePath);
+                    string byteData = ImageConverter.ImageToBase64(image);
+                    pictureBox.Tag = byteData;
+
+                    tabledata[columnName] = $"./images/{fileName}";
+
+                    mediaButtons.SetButtonEnabledState(0, false);
+                    mediaButtons.SetButtonEnabledState(1, true);
+                    mediaButtons.SetButtonEnabledState(2, false);
+                    image.Dispose();
+                }
+                else
+                {
+                    tabledata[columnName] = DBNull.Value;
+                    mediaButtons.SetButtonEnabledState(0, false);
+                    mediaButtons.SetButtonEnabledState(1, false);
+                    mediaButtons.SetButtonEnabledState(2, false);
+                    pictureBox.Tag = null;
+                    pictureBox.Image = null;
+                    pictureBox.BackgroundImage = Properties.Resources.dropicon;
+                    pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                }
+            }
+
+            if (columnName == "video")
+            {
+                mediaButtons.SetButtonEnabledState(0, false);
+                mediaButtons.SetButtonEnabledState(1, true);
+                mediaButtons.SetButtonEnabledState(2, false);
+                if (newVideoFilePath != null)
+                {
+                    string extension = Path.GetExtension(newVideoFilePath);
+                    string fileName = $"{romName}-video.{extension}";
+                    string fileNamePath = $"{parentFolderName}\\videos\\{fileName}";
+                    tabledata["video"] = $"./videos/{fileName}";
+                    // true for overwrite
+                    File.Copy(newVideoFilePath, fileNamePath,true);
+                }
+                else
+                {
+                    if (mediaPlayer.Media == null)
+                    {
+                        dataGridView1.SelectedRows[0].Cells["video"].Value = null;
+                        mediaButtons.SetButtonEnabledState(1, false);
+                    }
+                }
+            }
+            SharedData.DataSet.AcceptChanges();
+        }
+
+        private void CustomControlWithButtons_Button2Clicked(object sender, EventArgs e)
+        {
+            // Remove button
+            MediaButtons mediaButtons = sender as MediaButtons;
+
+            if (mediaButtons.Name != "video")
+            {
+                int columnIndex = TableLayoutPanel1.GetColumn(mediaButtons);
+
+                // Find the PictureBox in the specified row and column
+                PictureBox pictureBox = TableLayoutPanel1.Controls
+                    .OfType<PictureBox>()
+                    .FirstOrDefault(ctrl =>
+                        TableLayoutPanel1.GetRow(ctrl) == 1 &&
+                        TableLayoutPanel1.GetColumn(ctrl) == columnIndex);
+
+                pictureBox.Image = null;
+                pictureBox.BackgroundImage = Properties.Resources.dropicon;
+                pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                mediaButtons.SetButtonEnabledState(0, true);
+                mediaButtons.SetButtonEnabledState(1, false);
+                mediaButtons.SetButtonEnabledState(2, true);
+                if (pictureBox.Tag == null)
+                {
+                    mediaButtons.SetButtonEnabledState(0, false);
+                    mediaButtons.SetButtonEnabledState(2, false);
+                }
+                return;
+            }
+
+            if (mediaButtons.Name == "video")
+            {
+                if (mediaPlayer != null && mediaPlayer.IsPlaying)
+                {
+                    mediaPlayer.Stop();
+                    mediaPlayer.Media = null;
+                    mediaButtons.SetButtonEnabledState(0, true);
+                    mediaButtons.SetButtonEnabledState(1, false);
+                    mediaButtons.SetButtonEnabledState(2, true);
+                }
+                newVideoFilePath = null;
+            }
+        }
+
+        private void CustomControlWithButtons_Button3Clicked(object sender, EventArgs e)
+        {
+            // Reset button
+            MediaButtons mediaButtons = (MediaButtons)sender;
+
+            if (mediaButtons.Name != "video")
+            {
+                // Get the column index of the MediaButton
+                int columnIndex = TableLayoutPanel1.GetColumn(mediaButtons);
+
+                // Find the PictureBox in the specified row and column
+                PictureBox pictureBox = TableLayoutPanel1.Controls
+                    .OfType<PictureBox>()
+                    .FirstOrDefault(ctrl =>
+                        TableLayoutPanel1.GetRow(ctrl) == 1 &&
+                        TableLayoutPanel1.GetColumn(ctrl) == columnIndex);
+
+                mediaButtons.SetButtonEnabledState(0, false);
+                mediaButtons.SetButtonEnabledState(1, true);
+                mediaButtons.SetButtonEnabledState(2, false);
+                if (pictureBox.Tag != null)
+                {
+                    string data = pictureBox.Tag.ToString();
+                    Image image = ImageConverter.Base64ToImage(data);
+                    pictureBox.Image = image;
+                    pictureBox.BackgroundImage = null;
+                }
+                else
+                {
+                    pictureBox.Image = null;
+                    pictureBox.BackgroundImage = Properties.Resources.dropicon;
+                    pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
+                    mediaButtons.SetButtonEnabledState(1, false);
+                }
+                return;
+            }
+
+            if (mediaButtons.Name == "video")
+            {
+                newVideoFilePath = null;
+
+                mediaButtons.SetButtonEnabledState(0, false);
+                mediaButtons.SetButtonEnabledState(1, true);
+                mediaButtons.SetButtonEnabledState(2, false);
+
+                if (mediaPlayer != null && mediaPlayer.IsPlaying)
+                {
+                    mediaPlayer.Stop();
+                }
+                
+                object cellValue = dataGridView1.SelectedRows[0].Cells["video"].Value;
+                string videoPath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : null;
+
+                if (!string.IsNullOrEmpty(videoPath))
+                {
+                    string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+                    string videoFilePath = Path.Combine(parentFolderPath, videoPath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+
+                    if (File.Exists(videoFilePath))
+                    {
+                        mediaPlayer.Play(new Media(libVLC, new Uri("file:///" + videoFilePath)));
+                        // videoView.MediaPlayer = mediaPlayer;
+                    }
+                }
+                else
+                {
+                    mediaButtons.SetButtonEnabledState(1, false);
+                }
+                
+            }
+        }
+
+        private string ExtractImageUrl(string url)
+        {
+            // Split the URL into parts based on the "&" character to extract parameters
+            string[] parts = url.Split('&');
+
+            // Loop through the parts to find the "imgurl" parameter
+            foreach (string part in parts)
+            {
+                // Check if the part starts with "imgurl="
+                if (part.StartsWith("imgurl="))
+                {
+                    // Extract the value of the parameter and decode it
+                    string imageUrlEncoded = part.Substring("imgurl=".Length);
+                    string imageUrlDecoded = WebUtility.UrlDecode(imageUrlEncoded);
+                    return imageUrlDecoded;
+                }
+            }
+
+            // No decoding needed
+            return url;
         }
 
         private void ClearTableLayoutPanel()
         {
-            //The TableLayoutPanel is cleared each time a new item is selected
-            //This is to ensure the proper display of new media elements
-            //Which may be a different amount
-            foreach (Control control in TableLayoutPanel1.Controls)
+            // a few basic checks to avoid accidental exception error
+            // should never be null or have no controls if being called
+            // just to be safe
+            if (TableLayoutPanel1 == null)
+            {
+                return;
+            }
+            if (TableLayoutPanel1.Controls.Count == 0)
+            {
+                return;
+            }
+
+            // Loop through all controls in the TableLayoutPanel
+            foreach (Control control in TableLayoutPanel1.Controls.Cast<Control>().ToList())
             {
                 if (control is VideoView)
                 {
-                    //Properly dispose VLC
-                    //Stop playback
-                    mediaPlayer.Stop();
-
-                    //Get rid of event for video looping
-                    if (mediaPlayer != null)
-                    {
-                        mediaPlayer.EndReached -= MediaPlayer_EndReached;
-                    }
-                    control.ContextMenuStrip = null;
-                    control.Dispose();
-                    // Dispose of additional resources
-                    mediaPlayer.Dispose();
-                    videoView1.Dispose();
-                    libVLC.Dispose();
-                    continue;
-                }
-
-                if (control is PictureBox pictureBox && pictureBox.Image != null)
-                {
-                    pictureBox.Image.Dispose();
-                    pictureBox.Image = null; // Remove association
-                    control.ContextMenuStrip = null;
-                    control.Dispose();
-                    continue;
-                }
-
-                control.ContextMenuStrip = null;
-                control.Dispose();
-
-            }
-
-            TableLayoutPanel1.Controls.Clear();
-            TableLayoutPanel1.Dispose();
-        }
-
-        private void MediaPlayer_EndReached(object sender, EventArgs e)
-        {
-            // Check if mediaPlayer is not null before using it
-            if (mediaPlayer != null)
-            {
-                if (TableLayoutPanel1.InvokeRequired)
-                {
-                    TableLayoutPanel1.BeginInvoke(new Action(() =>
+                    if (mediaPlayer.IsPlaying)
                     {
                         mediaPlayer.Stop();
-                        mediaPlayer.Time = 0; // Seek to the beginning
-                        mediaPlayer.Play();
-                    }));
-                }
-                else
+                    }
+                    TableLayoutPanel1.Controls.Remove(videoView);
+                 }
+
+                // Clean up PictureBox controls
+                if (control is PictureBox pictureBox)
                 {
-                    mediaPlayer.Stop();
-                    mediaPlayer.Time = 0; // Seek to the beginning
-                    mediaPlayer.Play();
+                    pictureBox.ContextMenuStrip = null;
+                    pictureBox.Image = null;
+                    pictureBox.Tag = null;
+                    pictureBox.BackgroundImage = null;
+                    TableLayoutPanel1.Controls.Remove(pictureBox);
+                    pictureBox.Dispose();
+                }
+
+                if (control is MediaButtons mediaButtons)
+                {
+                    // remove button click events
+                    mediaButtons.Button1Clicked -= CustomControlWithButtons_Button1Clicked;
+                    mediaButtons.Button2Clicked -= CustomControlWithButtons_Button2Clicked;
+                    mediaButtons.Button3Clicked -= CustomControlWithButtons_Button3Clicked;
+                    TableLayoutPanel1.Controls.Remove(mediaButtons);
+                    mediaButtons.Dispose();
                 }
             }
-        }
+                        
+            TableLayoutPanel1.Controls.Clear();
 
+            // Dispose of the TableLayoutPanel
+            splitContainerBig.Panel2.Controls.Remove(TableLayoutPanel1);
+            TableLayoutPanel1.Dispose();
+            TableLayoutPanel1 = null;
+        }
 
         private void UpdateCounters()
         {
@@ -784,6 +1330,17 @@ namespace GamelistManager
 
         public bool LoadXML(string fileName)
         {
+            // ensure media player is stopped
+            if (showMediaToolStripMenuItem.Checked)
+            {
+                if (mediaPlayer.IsPlaying)
+                {
+                    mediaPlayer.Stop();
+                    mediaPlayer.Media = null;
+                }
+                ClearTableLayoutPanel();
+            }
+
             this.Cursor = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
             SharedData.DataSet.Reset();
@@ -905,7 +1462,7 @@ namespace GamelistManager
 
         private void ChangeGenreViaCombobox()
         {
-           
+
             int index = comboBoxGenre.SelectedIndex;
 
             if (index == -1) { return; }
@@ -930,19 +1487,20 @@ namespace GamelistManager
         public void ResetForm()
         {
             UpdateStatusBar();
+            ToolStripMenuItemAlwaysOnTop.Checked = false;
             showAllHiddenAndVisibleItemsToolStripMenuItem.Checked = true;
             showVisibleItemsOnlyToolStripMenuItem.Checked = false;
             showHiddenItemsOnlyToolStripMenuItem.Checked = false;
             showAllGenresToolStripMenuItem.Checked = true;
             showGenreOnlyToolStripMenuItem.Checked = false;
-            showMediaToolStripMenuItem.Checked = false; 
+            showMediaToolStripMenuItem.Checked = false;
             checkBoxCustomFilter.Enabled = true;
             comboBoxGenre.Enabled = true;
             checkBoxCustomFilter.Checked = false;
             editRowDataToolStripMenuItem.Checked = false;
-            
+
             DisableEditing(true);
-            
+
             foreach (ToolStripMenuItem item in menuStripMainMenu.Items)
             {
                 item.Enabled = true;
@@ -964,10 +1522,10 @@ namespace GamelistManager
             reloadGamelistToolStripMenuItem.Enabled = true;
             saveGamelistToolStripMenuItem.Enabled = true;
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
-            System.Drawing.Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
+            Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
             //image image = LoadImageFromResource(romPath);
 
-            if (image is System.Drawing.Image)
+            if (image is Image)
             {
                 pictureBoxSystemLogo.Image = image;
             }
@@ -982,14 +1540,14 @@ namespace GamelistManager
 
         private void FilenameMenuItem_Click(object sender, EventArgs e)
         {
-            if (SharedData.IsDataChanged == true)
+            if (SharedData.IsDataChanged)
             {
                 bool saveResult = SaveReminder();
                 if (saveResult == true)
                     // true is set for cancel.
                     return;
             }
-
+                        
             // Handle the click event for the filename menu item
             ToolStripMenuItem filenameMenuItem = (ToolStripMenuItem)sender;
             string selectedFilename = filenameMenuItem.Text;
@@ -1024,7 +1582,7 @@ namespace GamelistManager
                 {
                     continue;
                 }
-                
+
                 bool isColumnEmpty = SharedData.DataSet.Tables["game"].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
                 if (isColumnEmpty)
                 {
@@ -1039,17 +1597,17 @@ namespace GamelistManager
 
         private void Updatecolumnview(object sender)
         {
-                ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
+            ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
 
-                bool visible = menuItem.Checked;
+            bool visible = menuItem.Checked;
 
-                string columnName = menuItem.Text.Replace(" ", "").ToLower();
+            string columnName = menuItem.Text.Replace(" ", "").ToLower();
 
-                if (dataGridView1.Columns.Contains(columnName))
-                {
-                    dataGridView1.Columns[columnName].Visible = visible;
-                }
-         }
+            if (dataGridView1.Columns.Contains(columnName))
+            {
+                dataGridView1.Columns[columnName].Visible = visible;
+            }
+        }
 
         private void FavoriteToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
@@ -1074,7 +1632,7 @@ namespace GamelistManager
 
         private void DeveloperToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
-           Updatecolumnview(sender);
+            Updatecolumnview(sender);
         }
 
         private void PublisherToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1130,7 +1688,7 @@ namespace GamelistManager
             object cellValue = dataGridView1.Rows[rowIndex].Cells[columnIndex].Value;
             string genre = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             showGenreOnlyToolStripMenuItem.Text = string.IsNullOrEmpty(genre) ? "Show Empty Genre" : "Show Only '" + genre + "' Items";
-        
+
             if (checkBoxCustomFilter.Checked)
             {
                 showGenreOnlyToolStripMenuItem.Enabled = false;
@@ -1141,7 +1699,7 @@ namespace GamelistManager
                 showGenreOnlyToolStripMenuItem.Enabled = true;
                 showAllGenresToolStripMenuItem.Enabled = true;
             }
-        
+
         }
 
         public string ExtractFileNameWithExtension(string originalPath)
@@ -1186,7 +1744,7 @@ namespace GamelistManager
 
         private string GetGenreFromSelectedRow()
         {
-            // For review
+            // for review
             // toolStripMenuItemSetAllGenreVisible.Enabled = true;
             // toolStripMenuItemSetAllGenreHidden.Enabled = true;
 
@@ -1203,7 +1761,7 @@ namespace GamelistManager
         {
 
             bool readOnly = dataGridView1.Columns["name"].ReadOnly;
-            editRowDataToolStripMenuItem.Text = (readOnly == true) ? "Edit Row Data" : "Stop Editing Row Data";
+            editRowDataToolStripMenuItem.Text = (readOnly == true) ? "Edit Data" : "Stop Editing Data";
 
 
             int selectedRowCount = dataGridView1.SelectedRows.Count;
@@ -1305,7 +1863,7 @@ namespace GamelistManager
             }
         }
 
-     
+
         private void DataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
 
@@ -1354,7 +1912,7 @@ namespace GamelistManager
         private void ScraperDatesToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
         {
             bool isVisible = ScraperDatesToolStripMenuItem.Checked;
-            
+
             dataGridView1.Columns.Cast<DataGridViewColumn>()
             .Where(column => column.Name.StartsWith("scrap_"))
             .ToList()
@@ -1379,9 +1937,9 @@ namespace GamelistManager
 
         private void SetScraperDate(string date)
         {
-           List<string> allPathValues = DataGridViewSelectedRowsToPathsList();
+            List<string> allPathValues = DataGridViewSelectedRowsToPathsList();
 
-            if (allPathValues == null )
+            if (allPathValues == null)
             {
                 return;
             }
@@ -1660,41 +2218,53 @@ namespace GamelistManager
         private void EditToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             string pictureBoxName = contextMenuStripImageOptions.SourceControl.Name;
-            PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
+            //PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
 
-            if (pictureBox == null)
+            if (string.IsNullOrEmpty(pictureBoxName))
             {
                 return;
             }
 
-            string imagePath = pictureBox.Tag.ToString();
+            var rowIndex = dataGridView1.SelectedRows[0].Index;
+            object cellValue = dataGridView1.Rows[rowIndex].Cells[pictureBoxName].Value;
+            string imagePath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
 
+            if (!string.IsNullOrEmpty(imagePath))
+            {
+                string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+                string imageFilePath = Path.Combine(parentFolderPath, imagePath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
 
-            try
-            {
-                Process.Start(imagePath);
-            }
-            catch
-            {
-                // Handle the exception if the process can't be started 
-                MessageBox.Show("Error loading image!");
+                if (File.Exists(imageFilePath))
+                    try
+                    {
+                        Process.Start(imageFilePath);
+                    }
+                    catch
+                    {
+                        // Handle the exception if the process can't be started 
+                        MessageBox.Show("Error loading image!");
+                    }
             }
         }
 
         private void ToolStripMenuItem2_Click(object sender, EventArgs e)
         {
             string pictureBoxName = contextMenuStripImageOptions.SourceControl.Name;
-            PictureBox pictureBox = this.Controls.Find(pictureBoxName, true).OfType<PictureBox>().FirstOrDefault();
-
-            if (pictureBox == null)
+           
+            if (string.IsNullOrEmpty(pictureBoxName))
             {
                 return;
             }
 
-            string imagePath = pictureBox.Tag.ToString();
-            if (string.IsNullOrEmpty(imagePath))
+            var rowIndex = dataGridView1.SelectedRows[0].Index;
+            object cellValue = dataGridView1.Rows[rowIndex].Cells[pictureBoxName].Value;
+            string imagePath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
+
+            if (!string.IsNullOrEmpty(imagePath))
             {
-                Clipboard.SetText(imagePath);
+                string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
+                string imageFilePath = Path.Combine(parentFolderPath, imagePath.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                Clipboard.SetText(imageFilePath);
             }
         }
 
@@ -1770,6 +2340,10 @@ namespace GamelistManager
 
         private void SetupSSHToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (!DescriptionToolStripMenuItem.Checked)
+            {
+                DescriptionToolStripMenuItem.Checked = true;
+            }
             BatoceraHostSetup userControl = new BatoceraHostSetup();
             richTextBoxDescription.Hide();
             splitContainerSmall.Panel2.Controls.Add(userControl);
@@ -2007,7 +2581,7 @@ namespace GamelistManager
             }
             else
             {
-                comboBoxFilterItem.Enabled=false;
+                comboBoxFilterItem.Enabled = false;
                 textBoxCustomFilter.Enabled = false;
                 textBoxCustomFilter.BackColor = SystemColors.Window;
                 textBoxCustomFilter.Text = "";
@@ -2392,12 +2966,12 @@ namespace GamelistManager
             newRow["path"] = $"./{m3uFileName}";
             SharedData.DataSet.Tables["game"].Rows.Add(newRow);
 
-            DeleteGameRowsByPath(pathValues);
+            DeleteRowsByPath(pathValues);
             UpdateCounters();
 
         }
 
-        private void DeleteGameRowsByPath(List<string> romPaths)
+        private void DeleteRowsByPath(List<string> romPaths)
         {
             List<DataRow> rowsToRemove = new List<DataRow>();
 
@@ -2432,7 +3006,7 @@ namespace GamelistManager
             {
                 return null;
             }
-
+            // blah do we need this?
             List<string> pathValues = rows
              .Cast<DataGridViewRow>()
              .Select(row => row.Cells["path"].Value?.ToString())
@@ -2458,7 +3032,7 @@ namespace GamelistManager
 
             List<string> pathValues = DataGridViewSelectedRowsToPathsList();
 
-            DeleteGameRowsByPath(pathValues);
+            DeleteRowsByPath(pathValues);
 
             UpdateCounters();
 
@@ -2489,16 +3063,23 @@ namespace GamelistManager
             {
                 richTextBoxDescription.ForeColor = Color.Blue;
                 richTextBoxDescription.ReadOnly = false;
+                //setting this causes big problems, disabled
                 //dataGridView1.MultiSelect = false;
             }
             else
             {
                 richTextBoxDescription.ForeColor = Color.Black;
                 richTextBoxDescription.ReadOnly = true;
+                //disabled the change of multiselect due to issues encountered
                 //dataGridView1.MultiSelect = true;
             }
 
             SharedData.IsDataChanged = true;
+
+            if (showMediaToolStripMenuItem.Checked)
+            {
+                ShowMedia();
+            }
 
         }
 
@@ -2507,31 +3088,52 @@ namespace GamelistManager
             textBoxCustomFilter.Text = "";
         }
 
+  
+
+        private void GamelistManagerForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (mediaPlayer != null)
+            {
+                if (mediaPlayer.IsPlaying)
+                {
+                    mediaPlayer.Stop();
+                }
+                mediaPlayer.EndReached -= MediaPlayer_EndReached;
+                mediaPlayer.Dispose();
+                libVLC.Dispose();
+                if (videoView != null)
+                {
+                    videoView.Dispose();
+                }
+            }
+        }
+
+        private void ToolStripMenuItemAlwaysOnTop_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ToolStripMenuItemAlwaysOnTop.Checked)
+            {
+                this.TopMost = true;
+            }
+            else
+            {
+                this.TopMost = false;
+            }
+        }
+
         private void richTextBoxDescription_Leave(object sender, EventArgs e)
         {
-            object tagValue = richTextBoxDescription.Tag;
-
-            if (tagValue == null)
-            {
-                return;
-            }
-
-            int index;
-
-            if (!int.TryParse(tagValue.ToString(), out index))
-            {
-                return;
-            }
-               
-            string displayedDescription = richTextBoxDescription.Text;
-            object cellValue = dataGridView1.Rows[index].Cells["desc"].Value;
-            string currentDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
-            if (displayedDescription != currentDescription)
-            {
-                dataGridView1.Rows[index].Cells["desc"].Value = displayedDescription;
-            }
-            
+            UpdateDescription();
         }
+
+        private void UpdateDescription()
+        {
+            string pathValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
+            DataRow[] rows = SharedData.DataSet.Tables["game"].Select($"path = '{pathValue.Replace("'", "''")}'");
+            DataRow tabledata = rows[0];
+            tabledata["desc"] = richTextBoxDescription.Text;
+            SharedData.DataSet.AcceptChanges();
+        }
+
     }
 }
 
