@@ -74,6 +74,8 @@
             this.toolStripSeparator21 = new System.Windows.Forms.ToolStripSeparator();
             this.showMediaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator27 = new System.Windows.Forms.ToolStripSeparator();
+            this.ToolStripMenuItemAlwaysOnTop = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             this.resetViewToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEditMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripEdit = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -575,12 +577,14 @@
             this.toolStripSeparator21,
             this.showMediaToolStripMenuItem,
             this.toolStripSeparator27,
+            this.ToolStripMenuItemAlwaysOnTop,
+            this.toolStripSeparator14,
             this.resetViewToolStripMenuItem1});
             this.contextMenuStripView.Name = "contextMenuStripView";
             this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
-            this.contextMenuStripView.Size = new System.Drawing.Size(257, 176);
+            this.contextMenuStripView.Size = new System.Drawing.Size(257, 204);
             // 
             // showAllHiddenAndVisibleItemsToolStripMenuItem
             // 
@@ -639,6 +643,19 @@
             // 
             this.toolStripSeparator27.Name = "toolStripSeparator27";
             this.toolStripSeparator27.Size = new System.Drawing.Size(253, 6);
+            // 
+            // ToolStripMenuItemAlwaysOnTop
+            // 
+            this.ToolStripMenuItemAlwaysOnTop.CheckOnClick = true;
+            this.ToolStripMenuItemAlwaysOnTop.Name = "ToolStripMenuItemAlwaysOnTop";
+            this.ToolStripMenuItemAlwaysOnTop.Size = new System.Drawing.Size(256, 22);
+            this.ToolStripMenuItemAlwaysOnTop.Text = "Always On Top";
+            this.ToolStripMenuItemAlwaysOnTop.CheckedChanged += new System.EventHandler(this.ToolStripMenuItemAlwaysOnTop_CheckedChanged);
+            // 
+            // toolStripSeparator14
+            // 
+            this.toolStripSeparator14.Name = "toolStripSeparator14";
+            this.toolStripSeparator14.Size = new System.Drawing.Size(253, 6);
             // 
             // resetViewToolStripMenuItem1
             // 
@@ -1376,6 +1393,8 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem9;
         private System.Windows.Forms.ComboBox comboBoxFilterItem;
         private System.Windows.Forms.ToolStripMenuItem removeBatoceraHostKeyToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemAlwaysOnTop;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator14;
     }
 }
 

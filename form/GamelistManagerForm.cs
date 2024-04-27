@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace GamelistManager
         }
 
         public void SaveFile(string filename)
-        {
+        {            
             string oldFilename = Path.ChangeExtension(filename, "old");
 
             DialogResult result = MessageBox.Show($"Do you want to save the file '{filename}'?\nA backup will be saved as {oldFilename}.\n\nNote: It is recommended to stop EmulationStation before or just after saving any gamelist changes.  Reboot or shutdown the Batocera host when you are finished.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -59,6 +60,13 @@ namespace GamelistManager
             if (result != DialogResult.Yes)
             {
                 return;
+            }
+
+            // Check if we are in the middle of an edit
+            if (dataGridView1.Columns["name"].ReadOnly == false)
+            {
+                UpdateDescription();
+                DisableEditing(true);
             }
 
             ScraperDatesToolStripMenuItem.Checked = false;
@@ -180,8 +188,7 @@ namespace GamelistManager
             object cellValue = dataGridView1.Rows[rowIndex].Cells["desc"].Value;
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             richTextBoxDescription.Text = itemDescription;
-            richTextBoxDescription.Tag = rowIndex;
-
+            
             // If media is being shown, update that view
             if (splitContainerBig.Panel2Collapsed != true)
             {
@@ -681,11 +688,11 @@ namespace GamelistManager
                 // Also add drag/drop events
                 if (allowDrop)
                 {
+                    pictureBox.ContextMenuStrip = null;
                     MediaButtons mediaButtons = new MediaButtons();
                     mediaButtons.Anchor = AnchorStyles.Top | AnchorStyles.Bottom;
                     mediaButtons.Name = columnName;
                     TableLayoutPanel1.Controls.Add(mediaButtons, columnIndex, 2);
-                    // mediaButtons.Tag = columnName or something else ????
                     mediaButtons.Button1Clicked += CustomControlWithButtons_Button1Clicked;
                     mediaButtons.Button2Clicked += CustomControlWithButtons_Button2Clicked;
                     mediaButtons.Button3Clicked += CustomControlWithButtons_Button3Clicked;
@@ -792,10 +799,14 @@ namespace GamelistManager
             // Apply button
             MediaButtons mediaButtons = (MediaButtons)sender;
 
-            string cellValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
-            string romName = Path.GetFileNameWithoutExtension(cellValue);
+            string pathValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
+            string romName = Path.GetFileNameWithoutExtension(pathValue);
             string parentFolderName = Path.GetDirectoryName(SharedData.XMLFilename);
             string columnName = mediaButtons.Name;
+
+            // Set changes on the dataset, not the datatable
+            DataRow[] rows = SharedData.DataSet.Tables["game"].Select($"path = '{pathValue.Replace("'", "''")}'");
+            DataRow tabledata = rows[0];
 
             if (columnName != "video")
             {
@@ -808,7 +819,6 @@ namespace GamelistManager
                     .FirstOrDefault(ctrl =>
                         TableLayoutPanel1.GetRow(ctrl) == 1 &&
                         TableLayoutPanel1.GetColumn(ctrl) == columnIndex);
-
 
                 if (pictureBox.Image != null)
                 {
@@ -827,10 +837,18 @@ namespace GamelistManager
 
                     string fileName = $"{romName}-{columnName}{extension}";
                     string fileNamePath = $"{parentFolderName}\\images\\{fileName}";
-                    dataGridView1.SelectedRows[0].Cells[columnName].Value = $"./images/{fileName}";
-                    string data = ImageConverter.ImageToBase64(image);
-                    pictureBox.Tag = data;
-                    image.Save(fileNamePath, format);
+                    // Convert to bitmap before saving
+                    // This is to avoid GDI+ errors with JPG
+                    Bitmap bitmap = new Bitmap(image);
+                    bitmap.Save(fileNamePath, format);
+                    // Reload a clean image
+                    // Also to avoid GDI+ errors
+                    image = Image.FromFile(fileNamePath);
+                    string byteData = ImageConverter.ImageToBase64(image);
+                    pictureBox.Tag = byteData;
+
+                    tabledata[columnName] = $"./images/{fileName}";
+
                     mediaButtons.SetButtonEnabledState(0, false);
                     mediaButtons.SetButtonEnabledState(1, true);
                     mediaButtons.SetButtonEnabledState(2, false);
@@ -838,7 +856,7 @@ namespace GamelistManager
                 }
                 else
                 {
-                    dataGridView1.SelectedRows[0].Cells[columnName].Value = null;
+                    tabledata[columnName] = DBNull.Value;
                     mediaButtons.SetButtonEnabledState(0, false);
                     mediaButtons.SetButtonEnabledState(1, false);
                     mediaButtons.SetButtonEnabledState(2, false);
@@ -847,8 +865,6 @@ namespace GamelistManager
                     pictureBox.BackgroundImage = Properties.Resources.dropicon;
                     pictureBox.BackgroundImageLayout = ImageLayout.Zoom;
                 }
-
-                return;
             }
 
             if (columnName == "video")
@@ -861,7 +877,7 @@ namespace GamelistManager
                     string extension = Path.GetExtension(newVideoFilePath);
                     string fileName = $"{romName}-video.{extension}";
                     string fileNamePath = $"{parentFolderName}\\videos\\{fileName}";
-                    dataGridView1.SelectedRows[0].Cells["video"].Value = $"./videos/{fileName}";
+                    tabledata["video"] = $"./videos/{fileName}";
                     // true for overwrite
                     File.Copy(newVideoFilePath, fileNamePath,true);
                 }
@@ -874,6 +890,7 @@ namespace GamelistManager
                     }
                 }
             }
+            SharedData.DataSet.AcceptChanges();
         }
 
         private void CustomControlWithButtons_Button2Clicked(object sender, EventArgs e)
@@ -1470,6 +1487,7 @@ namespace GamelistManager
         public void ResetForm()
         {
             UpdateStatusBar();
+            ToolStripMenuItemAlwaysOnTop.Checked = false;
             showAllHiddenAndVisibleItemsToolStripMenuItem.Checked = true;
             showVisibleItemsOnlyToolStripMenuItem.Checked = false;
             showHiddenItemsOnlyToolStripMenuItem.Checked = false;
@@ -3070,31 +3088,7 @@ namespace GamelistManager
             textBoxCustomFilter.Text = "";
         }
 
-        private void richTextBoxDescription_Leave(object sender, EventArgs e)
-        {
-            object tagValue = richTextBoxDescription.Tag;
-
-            if (tagValue == null)
-            {
-                return;
-            }
-
-            int index;
-
-            if (!int.TryParse(tagValue.ToString(), out index))
-            {
-                return;
-            }
-
-            string displayedDescription = richTextBoxDescription.Text;
-            object cellValue = dataGridView1.Rows[index].Cells["desc"].Value;
-            string currentDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
-            if (displayedDescription != currentDescription)
-            {
-                dataGridView1.Rows[index].Cells["desc"].Value = displayedDescription;
-            }
-
-        }
+  
 
         private void GamelistManagerForm_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -3113,6 +3107,33 @@ namespace GamelistManager
                 }
             }
         }
+
+        private void ToolStripMenuItemAlwaysOnTop_CheckedChanged(object sender, EventArgs e)
+        {
+            if (ToolStripMenuItemAlwaysOnTop.Checked)
+            {
+                this.TopMost = true;
+            }
+            else
+            {
+                this.TopMost = false;
+            }
+        }
+
+        private void richTextBoxDescription_Leave(object sender, EventArgs e)
+        {
+            UpdateDescription();
+        }
+
+        private void UpdateDescription()
+        {
+            string pathValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
+            DataRow[] rows = SharedData.DataSet.Tables["game"].Select($"path = '{pathValue.Replace("'", "''")}'");
+            DataRow tabledata = rows[0];
+            tabledata["desc"] = richTextBoxDescription.Text;
+            SharedData.DataSet.AcceptChanges();
+        }
+
     }
 }
 
