@@ -3006,7 +3006,7 @@ namespace GamelistManager
             {
                 return null;
             }
-            // blah do we need this?
+            
             List<string> pathValues = rows
              .Cast<DataGridViewRow>()
              .Select(row => row.Cells["path"].Value?.ToString())
