@@ -12,7 +12,6 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +113,7 @@ namespace GamelistManager
 
         private bool SaveReminder()
         {
-            DialogResult result = MessageBox.Show("There are unsaved changes, do you want to save them now?", "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show("There may be unsaved changes, do you want to save the gamelist?", "Confirmation", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 
             switch (result)
             {
@@ -377,6 +376,7 @@ namespace GamelistManager
                                                   extension.Equals(".avi", StringComparison.OrdinalIgnoreCase) ||
                                                   extension.Equals(".mkv", StringComparison.OrdinalIgnoreCase) ||
                                                   extension.Equals(".mov", StringComparison.OrdinalIgnoreCase) ||
+                                                  extension.Equals(".webm", StringComparison.OrdinalIgnoreCase) ||
                                                   extension.Equals(".wmv", StringComparison.OrdinalIgnoreCase)))
                         {
                             try
@@ -2966,12 +2966,12 @@ namespace GamelistManager
             newRow["path"] = $"./{m3uFileName}";
             SharedData.DataSet.Tables["game"].Rows.Add(newRow);
 
-            DeleteGameRowsByPath(pathValues);
+            DeleteRowsByPath(pathValues);
             UpdateCounters();
 
         }
 
-        private void DeleteGameRowsByPath(List<string> romPaths)
+        private void DeleteRowsByPath(List<string> romPaths)
         {
             List<DataRow> rowsToRemove = new List<DataRow>();
 
@@ -3006,7 +3006,7 @@ namespace GamelistManager
             {
                 return null;
             }
-
+            // blah do we need this?
             List<string> pathValues = rows
              .Cast<DataGridViewRow>()
              .Select(row => row.Cells["path"].Value?.ToString())
@@ -3032,7 +3032,7 @@ namespace GamelistManager
 
             List<string> pathValues = DataGridViewSelectedRowsToPathsList();
 
-            DeleteGameRowsByPath(pathValues);
+            DeleteRowsByPath(pathValues);
 
             UpdateCounters();
 
