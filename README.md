@@ -4,8 +4,7 @@ Gamelist Manager is a comprehensive gamelist management tool for Batocera gameli
 
 It offers functionality to quickly and easily:
 
-- Coming soon!  Media updating by local or HTTP drag and drop.  
-
+- Easy media updating by local or HTTP drag and drop.  
 - Scrape data from ScreenScraper and ArcadeDB
 - Quickly load and view gamelist data in a grid table
 - Change visibility of items
