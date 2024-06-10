@@ -338,8 +338,8 @@ namespace GamelistManager
             bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","NoZZZ"), out noZZZ);
             bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","ScrapeByGameID"), out scrapeByGameID);
 
-            string devId = "robg77";
-            string devPassword = "4dLRXRHWT0y";
+            string devId = "";
+            string devPassword = "";
 
             // Set the maximum number of concurrent tasks
             string maxThreadsValue = RegistryManager.ReadRegistryValue("ScreenScraper","MaxThreads");
@@ -371,6 +371,7 @@ namespace GamelistManager
 
                     string showId = (id != 0) ? $"[{id}]" : string.Empty;
 
+                    // Check cancelation token
                     // Check cancelation token
                     await semaphoreSlim.WaitAsync(); // Wait until there's room to proceed
                     CancellationToken.ThrowIfCancellationRequested();
