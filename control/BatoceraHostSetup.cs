@@ -16,7 +16,7 @@ namespace GamelistManager
             string userID = BatoceraUserID.Text;
             string userPassword = BatoceraUserPassword.Text;
 
-            RegistryManager.SaveRegistryValue("HostName", hostName);
+            RegistryManager.SaveScraperSettings(null,"HostName", hostName);
             bool result = CredentialManager.SaveCredentials(hostName, userID, userPassword);
 
             // false means they did not save.  what are the chances?
@@ -29,7 +29,7 @@ namespace GamelistManager
 
         private void BatoceraHostSetup_Load(object sender, EventArgs e)
         {
-            string hostName = RegistryManager.ReadRegistryValue("HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
 
             if (string.IsNullOrEmpty(hostName))
             {

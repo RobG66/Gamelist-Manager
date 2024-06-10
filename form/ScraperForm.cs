@@ -30,7 +30,6 @@ namespace GamelistManager
         private int scrapMax;
         private int scrapTotal;
 
-
         public ScraperForm(GamelistManagerForm form)
         {
             InitializeComponent();
@@ -181,7 +180,7 @@ namespace GamelistManager
 
                     // Get the system Id
                     string currentDirectory = Directory.GetCurrentDirectory();
-                    string filePath = Path.Combine(currentDirectory, "screenscraper_systems.ini");
+                    string filePath = Path.Combine(currentDirectory, "ini\\screenscraper_systems.ini");
                     SystemIdResolver resolver = new SystemIdResolver(filePath);
                     int systemId = resolver.ResolveSystemId(parentFolderName);
                     if (systemId == 0)
@@ -325,25 +324,25 @@ namespace GamelistManager
         bool overwrite
         )
         {
-            string boxSource = RegistryManager.ReadRegistryValue("BoxSource");
+            string boxSource = RegistryManager.ReadRegistryValue("ScreenScraper","BoxSource");
             boxSource = boxSource ?? string.Empty;
-            string imageSource = RegistryManager.ReadRegistryValue("ImageSource");
+            string imageSource = RegistryManager.ReadRegistryValue("ScreenScraper", "ImageSource");
             imageSource = imageSource ?? string.Empty;
-            string logoSource = RegistryManager.ReadRegistryValue("LogoSource");
+            string logoSource = RegistryManager.ReadRegistryValue("ScreenScraper", "LogoSource");
             logoSource = logoSource ?? string.Empty;
-            string region = RegistryManager.ReadRegistryValue("Region");
+            string region = RegistryManager.ReadRegistryValue("ScreenScraper", "Region");
             region = region ?? "us";
-            string language = RegistryManager.ReadRegistryValue("language");
+            string language = RegistryManager.ReadRegistryValue("ScreenScraper", "language");
             language = language ?? "en";
-            bool.TryParse(RegistryManager.ReadRegistryValue("HideNonGame"), out hideNonGame);
-            bool.TryParse(RegistryManager.ReadRegistryValue("NoZZZ"), out noZZZ);
-            bool.TryParse(RegistryManager.ReadRegistryValue("ScrapeByGameID"), out scrapeByGameID);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","HideNonGame"), out hideNonGame);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","NoZZZ"), out noZZZ);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","ScrapeByGameID"), out scrapeByGameID);
 
-            string devId = "";
-            string devPassword = "";
+            string devId = "robg77";
+            string devPassword = "4dLRXRHWT0y";
 
             // Set the maximum number of concurrent tasks
-            string maxThreadsValue = RegistryManager.ReadRegistryValue("MaxThreads");
+            string maxThreadsValue = RegistryManager.ReadRegistryValue("ScreenScraper","MaxThreads");
             int maxC = 1;
             if (!string.IsNullOrEmpty(maxThreadsValue))
             {
@@ -674,11 +673,14 @@ namespace GamelistManager
         private void ComboBox_SelectScraper_SelectedIndexChanged(object sender, EventArgs e)
         {
             List<string> availableScraperElements = new List<string>();
-            if (comboBoxScrapers.SelectedIndex == 0)
+
+            string comboboxText = comboBoxScrapers.Text;
+
+            switch (comboboxText)
             {
-                // ArcadeDB
-                buttonSetup.Enabled = false;
-                availableScraperElements = new List<string>{
+                case "ArcadeDB":
+                    buttonSetup.Enabled = false;
+                    availableScraperElements = new List<string>{
                     "name",
                     "desc",
                     "genre",
@@ -691,13 +693,11 @@ namespace GamelistManager
                     "image",
                     "video"
                 };
-            }
+                    break;
 
-            if (comboBoxScrapers.SelectedIndex == 1)
-            {
-                // ScreenScraper
-                buttonSetup.Enabled = true;
-                availableScraperElements = new List<string>{
+                case "ScreenScraper":
+                    buttonSetup.Enabled = true;
+                    availableScraperElements = new List<string>{
                     "name",
                     "desc",
                     "genre",
@@ -720,6 +720,22 @@ namespace GamelistManager
                     "arcadesystemname",
                     "genreid"
                 };
+                    break;
+
+                case "EmuMovies":
+                    buttonSetup.Enabled = true;
+                    availableScraperElements = new List<string>{
+                    "marquee",
+                    "image",
+                    "video",
+                    "map",
+                    "manual",
+                    "bezel",
+                    "thumbnail",
+                    "boxback",
+                    "fanart"
+                 };
+                    break;
             }
 
             foreach (Control control in panelCheckboxes.Controls)
@@ -751,7 +767,8 @@ namespace GamelistManager
 
         private void ButtonSetup_Click(object sender, EventArgs e)
         {
-            ScreenScraperSetup screenScraperSetup = new ScreenScraperSetup
+            string scraperName = comboBoxScrapers.Text;
+            ScraperSetup screenScraperSetup = new ScraperSetup(scraperName)
             {
                 StartPosition = FormStartPosition.Manual,
                 Location = new Point(this.Location.X + 50, this.Location.Y + 50)

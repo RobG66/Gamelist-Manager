@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager.control
 {
-    partial class ScreenScraperSetup
+    partial class ScraperSetup
     {
         /// <summary> 
         /// Required designer variable.
@@ -32,8 +32,8 @@
             this.labelNote = new System.Windows.Forms.Label();
             this.buttonExit = new System.Windows.Forms.Button();
             this.buttonSave = new System.Windows.Forms.Button();
-            this.textboxScreenScraperPassword = new System.Windows.Forms.TextBox();
-            this.textboxScreenScraperName = new System.Windows.Forms.TextBox();
+            this.textboxScraperPassword = new System.Windows.Forms.TextBox();
+            this.textboxScraperName = new System.Windows.Forms.TextBox();
             this.labelPassword = new System.Windows.Forms.Label();
             this.labelName = new System.Windows.Forms.Label();
             this.comboBoxImageSource = new System.Windows.Forms.ComboBox();
@@ -99,22 +99,22 @@
             this.buttonSave.UseVisualStyleBackColor = false;
             this.buttonSave.Click += new System.EventHandler(this.Button1_Click);
             // 
-            // textboxScreenScraperPassword
+            // textboxScraperPassword
             // 
-            this.textboxScreenScraperPassword.Location = new System.Drawing.Point(9, 67);
-            this.textboxScreenScraperPassword.Name = "textboxScreenScraperPassword";
-            this.textboxScreenScraperPassword.Size = new System.Drawing.Size(72, 20);
-            this.textboxScreenScraperPassword.TabIndex = 17;
-            this.textboxScreenScraperPassword.UseSystemPasswordChar = true;
-            this.textboxScreenScraperPassword.TextChanged += new System.EventHandler(this.ScreenScraperPassword_TextChanged);
+            this.textboxScraperPassword.Location = new System.Drawing.Point(9, 67);
+            this.textboxScraperPassword.Name = "textboxScraperPassword";
+            this.textboxScraperPassword.Size = new System.Drawing.Size(72, 20);
+            this.textboxScraperPassword.TabIndex = 17;
+            this.textboxScraperPassword.UseSystemPasswordChar = true;
+            this.textboxScraperPassword.TextChanged += new System.EventHandler(this.ScraperPassword_TextChanged);
             // 
-            // textboxScreenScraperName
+            // textboxScraperName
             // 
-            this.textboxScreenScraperName.Location = new System.Drawing.Point(9, 28);
-            this.textboxScreenScraperName.Name = "textboxScreenScraperName";
-            this.textboxScreenScraperName.Size = new System.Drawing.Size(72, 20);
-            this.textboxScreenScraperName.TabIndex = 16;
-            this.textboxScreenScraperName.TextChanged += new System.EventHandler(this.ScreenScraperID_TextChanged);
+            this.textboxScraperName.Location = new System.Drawing.Point(9, 28);
+            this.textboxScraperName.Name = "textboxScraperName";
+            this.textboxScraperName.Size = new System.Drawing.Size(72, 20);
+            this.textboxScraperName.TabIndex = 16;
+            this.textboxScraperName.TextChanged += new System.EventHandler(this.ScreenScraperID_TextChanged);
             // 
             // labelPassword
             // 
@@ -381,7 +381,7 @@
             this.checkBoxScrapeByGameID.Text = "Scrape by Game ID if available";
             this.checkBoxScrapeByGameID.UseVisualStyleBackColor = false;
             // 
-            // ScreenScraperSetup
+            // ScraperSetup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -407,17 +407,17 @@
             this.Controls.Add(this.labelNote);
             this.Controls.Add(this.buttonExit);
             this.Controls.Add(this.buttonSave);
-            this.Controls.Add(this.textboxScreenScraperPassword);
-            this.Controls.Add(this.textboxScreenScraperName);
+            this.Controls.Add(this.textboxScraperPassword);
+            this.Controls.Add(this.textboxScraperName);
             this.Controls.Add(this.labelPassword);
             this.Controls.Add(this.labelName);
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "ScreenScraperSetup";
+            this.Name = "ScraperSetup";
             this.Text = "ScreenScraper Setup";
-            this.Load += new System.EventHandler(this.ScreenScraperSetup_Load);
+            this.Load += new System.EventHandler(this.ScraperSetup_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -429,8 +429,8 @@
         private System.Windows.Forms.Label labelNote;
         private System.Windows.Forms.Button buttonExit;
         private System.Windows.Forms.Button buttonSave;
-        private System.Windows.Forms.TextBox textboxScreenScraperPassword;
-        private System.Windows.Forms.TextBox textboxScreenScraperName;
+        private System.Windows.Forms.TextBox textboxScraperPassword;
+        private System.Windows.Forms.TextBox textboxScraperName;
         private System.Windows.Forms.Label labelPassword;
         private System.Windows.Forms.Label labelName;
         private System.Windows.Forms.ComboBox comboBoxImageSource;

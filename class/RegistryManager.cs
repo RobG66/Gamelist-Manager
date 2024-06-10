@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 
 
 namespace GamelistManager
@@ -15,7 +16,9 @@ namespace GamelistManager
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(programRegistryKey, true))
+                CreateRegistryKeyIfNotExist(programRegistryKey);
+
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable:true))
                 {
                     // Clear the LastFilenames value
                     key.DeleteValue(filenamesKey, false);
@@ -31,7 +34,9 @@ namespace GamelistManager
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(programRegistryKey, true))
+                CreateRegistryKeyIfNotExist(programRegistryKey);
+
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable:true))
                 {
                     string existingFilenamesString = key?.GetValue(filenamesKey) as string;
 
@@ -76,7 +81,7 @@ namespace GamelistManager
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey,writable:false))
                 {
                     if (key != null)
                     {
@@ -98,11 +103,20 @@ namespace GamelistManager
             return new List<string>();
         }
 
-        public static void SaveRegistryValue(string valueName, string value)
+        public static void SaveScraperSettings(string subkey, string valueName, string value)
         {
+            string regkey = programRegistryKey;
+            
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(programRegistryKey))
+                if (!string.IsNullOrEmpty(subkey))
+                { 
+                    regkey = programRegistryKey + "\\" + subkey;
+                }
+
+                CreateRegistryKeyIfNotExist(regkey);
+
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regkey, writable:true))
                 {
                     if (key != null)
                     {
@@ -117,11 +131,18 @@ namespace GamelistManager
             }
         }
 
-        public static string ReadRegistryValue(string valueName)
+        public static string ReadRegistryValue(string platform, string valueName)
         {
+            string regkey = programRegistryKey;
+            
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey))
+                if (!string.IsNullOrEmpty(platform)) 
+                {
+                    regkey = programRegistryKey + "\\" + platform;
+                }
+                              
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regkey,writable:false))
                 {
                     if (key != null)
                     {
@@ -137,6 +158,38 @@ namespace GamelistManager
             }
 
             return string.Empty;
+        }
+
+        static void CreateRegistryKeyIfNotExist(string subKeyPath)
+        {
+            // Open the base registry key
+            RegistryKey baseKey = Registry.CurrentUser;
+
+            // Try to open the specified sub key
+            RegistryKey subKey = baseKey.OpenSubKey(subKeyPath, writable: true);
+
+            // Check if the sub key exists
+            if (subKey == null)
+            {
+                // The sub key does not exist, so create it
+                Console.WriteLine($"Creating registry key: {subKeyPath}");
+                subKey = baseKey.CreateSubKey(subKeyPath);
+                if (subKey != null)
+                {
+                    Console.WriteLine($"Registry key created successfully: {subKeyPath}");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to create registry key: {subKeyPath}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Registry key already exists: {subKeyPath}");
+            }
+
+            // Close the sub key
+            subKey?.Close();
         }
 
     }
