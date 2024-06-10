@@ -209,6 +209,7 @@
             this.comboBoxScrapers.FormattingEnabled = true;
             this.comboBoxScrapers.Items.AddRange(new object[] {
             "ArcadeDB",
+            "EmuMovies",
             "ScreenScraper"});
             this.comboBoxScrapers.Location = new System.Drawing.Point(53, 3);
             this.comboBoxScrapers.Margin = new System.Windows.Forms.Padding(1);

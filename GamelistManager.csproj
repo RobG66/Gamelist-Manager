@@ -138,7 +138,7 @@
     <Compile Include="class\MediaListObject.cs" />
     <Compile Include="class\SharedData.cs" />
     <Compile Include="class\XMLResponder.cs" />
-    <Compile Include="class\ScreenScraperSystems.cs" />
+    <Compile Include="class\Systems.cs" />
     <Compile Include="class\SSHCommander.cs" />
     <Compile Include="class\CredentialManager.cs" />
     <Compile Include="class\FileTransfer.cs" />
@@ -152,11 +152,11 @@
     <Compile Include="control\MediaButtons.Designer.cs">
       <DependentUpon>MediaButtons.cs</DependentUpon>
     </Compile>
-    <Compile Include="form\ScreenScraperSetup.cs">
+    <Compile Include="form\ScraperSetup.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="form\ScreenScraperSetup.Designer.cs">
-      <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
+    <Compile Include="form\ScraperSetup.Designer.cs">
+      <DependentUpon>ScraperSetup.cs</DependentUpon>
     </Compile>
     <Compile Include="control\ScraperPreview.cs">
       <SubType>UserControl</SubType>
@@ -201,8 +201,8 @@
     <EmbeddedResource Include="control\MediaButtons.resx">
       <DependentUpon>MediaButtons.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="form\ScreenScraperSetup.resx">
-      <DependentUpon>ScreenScraperSetup.cs</DependentUpon>
+    <EmbeddedResource Include="form\ScraperSetup.resx">
+      <DependentUpon>ScraperSetup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="control\ScraperPreview.resx">
       <DependentUpon>ScraperPreview.cs</DependentUpon>
@@ -224,6 +224,9 @@
     <EmbeddedResource Include="control\BatoceraHostSetup.resx">
       <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="ini\emumovies_systems.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -862,7 +865,7 @@
     <None Include="Resources\background6.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="screenscraper_systems.ini">
+    <None Include="ini\screenscraper_systems.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

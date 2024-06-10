@@ -51,7 +51,7 @@ namespace GamelistManager
         }
 
         public void SaveFile(string filename)
-        {            
+        {
             string oldFilename = Path.ChangeExtension(filename, "old");
 
             DialogResult result = MessageBox.Show($"Do you want to save the file '{filename}'?\nA backup will be saved as {oldFilename}.\n\nNote: It is recommended to stop EmulationStation before or just after saving any gamelist changes.  Reboot or shutdown the Batocera host when you are finished.", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -187,7 +187,7 @@ namespace GamelistManager
             object cellValue = dataGridView1.Rows[rowIndex].Cells["desc"].Value;
             string itemDescription = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : string.Empty;
             richTextBoxDescription.Text = itemDescription;
-            
+
             // If media is being shown, update that view
             if (splitContainerBig.Panel2Collapsed != true)
             {
@@ -317,7 +317,7 @@ namespace GamelistManager
             }
 
             if (dataGridView1.SelectedRows.Count < 1) { return; }
-                        
+
             splitContainerBig.Panel2Collapsed = false;
 
             ShowMedia();
@@ -362,7 +362,7 @@ namespace GamelistManager
             videoView.DragDrop += (sender, e) =>
             {
                 int columnIndex = TableLayoutPanel1.GetColumn(videoView);
-             
+
                 if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 {
                     string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
@@ -510,7 +510,7 @@ namespace GamelistManager
 
                 if (image != null)
                 {
-                    pictureBox.BackgroundImage = null; 
+                    pictureBox.BackgroundImage = null;
                     pictureBox.Image = image;
                     // Find the mediaButtons in the specified row and column
                     MediaButtons mediaButtons = TableLayoutPanel1.Controls
@@ -665,7 +665,7 @@ namespace GamelistManager
                         }
                     }
                 }
-                
+
                 if (image != null)
                 {
                     string data = ImageConverter.ImageToBase64(image);
@@ -879,7 +879,7 @@ namespace GamelistManager
                     string fileNamePath = $"{parentFolderName}\\videos\\{fileName}";
                     tabledata["video"] = $"./videos/{fileName}";
                     // true for overwrite
-                    File.Copy(newVideoFilePath, fileNamePath,true);
+                    File.Copy(newVideoFilePath, fileNamePath, true);
                 }
                 else
                 {
@@ -986,7 +986,7 @@ namespace GamelistManager
                 {
                     mediaPlayer.Stop();
                 }
-                
+
                 object cellValue = dataGridView1.SelectedRows[0].Cells["video"].Value;
                 string videoPath = (cellValue != DBNull.Value) ? Convert.ToString(cellValue) : null;
 
@@ -1005,7 +1005,7 @@ namespace GamelistManager
                 {
                     mediaButtons.SetButtonEnabledState(1, false);
                 }
-                
+
             }
         }
 
@@ -1055,7 +1055,7 @@ namespace GamelistManager
                         mediaPlayer.Stop();
                     }
                     TableLayoutPanel1.Controls.Remove(videoView);
-                 }
+                }
 
                 // Clean up PictureBox controls
                 if (control is PictureBox pictureBox)
@@ -1078,7 +1078,7 @@ namespace GamelistManager
                     mediaButtons.Dispose();
                 }
             }
-                        
+
             TableLayoutPanel1.Controls.Clear();
 
             // Dispose of the TableLayoutPanel
@@ -1547,7 +1547,7 @@ namespace GamelistManager
                     // true is set for cancel.
                     return;
             }
-                        
+
             // Handle the click event for the filename menu item
             ToolStripMenuItem filenameMenuItem = (ToolStripMenuItem)sender;
             string selectedFilename = filenameMenuItem.Text;
@@ -2250,7 +2250,7 @@ namespace GamelistManager
         private void ToolStripMenuItem2_Click(object sender, EventArgs e)
         {
             string pictureBoxName = contextMenuStripImageOptions.SourceControl.Name;
-           
+
             if (string.IsNullOrEmpty(pictureBoxName))
             {
                 return;
@@ -2271,7 +2271,7 @@ namespace GamelistManager
         static string ExecuteSshCommand(string command)
         {
 
-            string hostName = RegistryManager.ReadRegistryValue("HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
             if (string.IsNullOrEmpty(hostName))
             {
                 MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -2361,7 +2361,7 @@ namespace GamelistManager
 
         private void ToolStripMenuItemConnect_Click(object sender, EventArgs e)
         {
-            string hostName = RegistryManager.ReadRegistryValue("HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
 
             if (hostName == null || hostName == string.Empty)
             {
@@ -2476,7 +2476,7 @@ namespace GamelistManager
 
         private void MapNetworkDrive()
         {
-            string hostName = RegistryManager.ReadRegistryValue("HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
             if (string.IsNullOrEmpty(hostName))
             {
                 MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -3006,7 +3006,7 @@ namespace GamelistManager
             {
                 return null;
             }
-            
+
             List<string> pathValues = rows
              .Cast<DataGridViewRow>()
              .Select(row => row.Cells["path"].Value?.ToString())
@@ -3088,7 +3088,7 @@ namespace GamelistManager
             textBoxCustomFilter.Text = "";
         }
 
-  
+
 
         private void GamelistManagerForm_FormClosed(object sender, FormClosedEventArgs e)
         {
