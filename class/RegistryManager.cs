@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms;
 
 
 namespace GamelistManager
@@ -18,7 +17,7 @@ namespace GamelistManager
             {
                 CreateRegistryKeyIfNotExist(programRegistryKey);
 
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable:true))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable: true))
                 {
                     // Clear the LastFilenames value
                     key.DeleteValue(filenamesKey, false);
@@ -36,7 +35,7 @@ namespace GamelistManager
             {
                 CreateRegistryKeyIfNotExist(programRegistryKey);
 
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable:true))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable: true))
                 {
                     string existingFilenamesString = key?.GetValue(filenamesKey) as string;
 
@@ -81,7 +80,7 @@ namespace GamelistManager
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey,writable:false))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(programRegistryKey, writable: false))
                 {
                     if (key != null)
                     {
@@ -106,17 +105,17 @@ namespace GamelistManager
         public static void SaveScraperSettings(string subkey, string valueName, string value)
         {
             string regkey = programRegistryKey;
-            
+
             try
             {
                 if (!string.IsNullOrEmpty(subkey))
-                { 
+                {
                     regkey = programRegistryKey + "\\" + subkey;
                 }
 
                 CreateRegistryKeyIfNotExist(regkey);
 
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regkey, writable:true))
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regkey, writable: true))
                 {
                     if (key != null)
                     {
@@ -134,15 +133,15 @@ namespace GamelistManager
         public static string ReadRegistryValue(string platform, string valueName)
         {
             string regkey = programRegistryKey;
-            
+
             try
             {
-                if (!string.IsNullOrEmpty(platform)) 
+                if (!string.IsNullOrEmpty(platform))
                 {
                     regkey = programRegistryKey + "\\" + platform;
                 }
-                              
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regkey,writable:false))
+
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(regkey, writable: false))
                 {
                     if (key != null)
                     {

@@ -2271,7 +2271,7 @@ namespace GamelistManager
         static string ExecuteSshCommand(string command)
         {
 
-            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null, "HostName");
             if (string.IsNullOrEmpty(hostName))
             {
                 MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -2361,7 +2361,7 @@ namespace GamelistManager
 
         private void ToolStripMenuItemConnect_Click(object sender, EventArgs e)
         {
-            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null, "HostName");
 
             if (hostName == null || hostName == string.Empty)
             {
@@ -2476,7 +2476,7 @@ namespace GamelistManager
 
         private void MapNetworkDrive()
         {
-            string hostName = RegistryManager.ReadRegistryValue(null,"HostName");
+            string hostName = RegistryManager.ReadRegistryValue(null, "HostName");
             if (string.IsNullOrEmpty(hostName))
             {
                 MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

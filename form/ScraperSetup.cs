@@ -19,22 +19,53 @@ namespace GamelistManager.control
             scraperPlatform = platform;
         }
 
+        private async void SetDefaults()
+        {
+
+            comboBoxBoxSource.SelectedIndex = 0;
+            comboBoxImageSource.SelectedIndex = 0;
+            comboBoxLogoSource.SelectedIndex = 0;
+
+            int maxThreads = await GetMaxThreads();
+
+            if (comboBoxMaxThreads.Items.Count > 0)
+            {
+                comboBoxMaxThreads.Items.Clear();
+            }
+
+            for (int i = 1; i <= maxThreads; i++)
+            {
+                comboBoxMaxThreads.Items.Add(i.ToString());
+            }
+
+            comboBoxMaxThreads.SelectedIndex = comboBoxMaxThreads.Items.Count - 1;
+        }
 
 
         private async void Button1_Click(object sender, EventArgs e)
         {
+
             this.Enabled = false;
 
-            XmlNode xmlResonse = await CheckScraperCredentialsAsync();
+            bool response = await CheckScraperCredentialsAsync();
 
-            if (xmlResonse == null)
+            if (response != true)
             {
+                this.Enabled = true;
                 MessageBox.Show("The credentials do not appear to be valid and were not saved!", "Credential Check", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
             else
             {
                 SaveCredentials();
                 buttonSave.Enabled = false;
+            }
+
+            if (panelOptions.Enabled == false)
+            {
+                panelOptions.Enabled = true;
+                this.Enabled = true;
+                SetDefaults();
             }
 
             if (scraperPlatform != "EmuMovies")
@@ -43,6 +74,7 @@ namespace GamelistManager.control
                 SaveLanguage();
                 SaveNonGameOptions();
             }
+
             SaveImageSource();
             SaveBoxSource();
             SaveLogoSource();
@@ -55,9 +87,9 @@ namespace GamelistManager.control
             bool scrapeByGameID = checkBoxScrapeByGameID.Checked;
             bool hideNonGame = checkBoxHideNonGame.Checked;
             bool noZZZ = checkBoxNoZZZ.Checked;
-            RegistryManager.SaveScraperSettings(scraperPlatform,"HideNonGame", hideNonGame.ToString());
-            RegistryManager.SaveScraperSettings(scraperPlatform,"NoZZZ", noZZZ.ToString());
-            RegistryManager.SaveScraperSettings(scraperPlatform,"ScrapeByGameID", scrapeByGameID.ToString());
+            RegistryManager.SaveScraperSettings(scraperPlatform, "HideNonGame", hideNonGame.ToString());
+            RegistryManager.SaveScraperSettings(scraperPlatform, "NoZZZ", noZZZ.ToString());
+            RegistryManager.SaveScraperSettings(scraperPlatform, "ScrapeByGameID", scrapeByGameID.ToString());
         }
 
         private void SaveMaxThreads()
@@ -69,19 +101,19 @@ namespace GamelistManager.control
         private void SaveLogoSource()
         {
             string boxValue = comboBoxLogoSource.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform,"LogoSource", boxValue);
+            RegistryManager.SaveScraperSettings(scraperPlatform, "LogoSource", boxValue);
         }
 
         private void SaveImageSource()
         {
             string boxValue = comboBoxImageSource.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform,"ImageSource", boxValue);
+            RegistryManager.SaveScraperSettings(scraperPlatform, "ImageSource", boxValue);
         }
 
         private void SaveBoxSource()
         {
             string boxValue = comboBoxBoxSource.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform,"BoxSource", boxValue);
+            RegistryManager.SaveScraperSettings(scraperPlatform, "BoxSource", boxValue);
         }
 
         private void SaveLanguage()
@@ -92,7 +124,7 @@ namespace GamelistManager.control
             }
             string boxValue = comboBoxLanguage.Text;
             string language = boxValue.Split(':')[0].Trim();
-            RegistryManager.SaveScraperSettings(scraperPlatform,"Language", language);
+            RegistryManager.SaveScraperSettings(scraperPlatform, "Language", language);
         }
 
         private void SaveRegion()
@@ -103,7 +135,7 @@ namespace GamelistManager.control
             }
             string boxValue = comboBoxRegion.Text;
             string region = boxValue.Split(':')[0].Trim();
-            RegistryManager.SaveScraperSettings(scraperPlatform,"Region", region);
+            RegistryManager.SaveScraperSettings(scraperPlatform, "Region", region);
         }
 
         private void SaveCredentials()
@@ -149,18 +181,33 @@ namespace GamelistManager.control
             }
         }
 
-        private async Task<XmlNode> CheckScraperCredentialsAsync()
+        private async Task<bool> CheckScraperCredentialsAsync()
         {
+            string username = textboxScraperName.Text;
+            string password = textboxScraperPassword.Text;
+
             if (scraperPlatform == "ScreenScraper")
             {
-                string userId = textboxScraperName.Text;
-                string userPassword = textboxScraperPassword.Text;
-                string url = $"https://api.screenscraper.fr/api2/ssuserInfos.php?devid=xxx&devpassword=yyy&softname=zzz&output=xml&ssid={userId}&sspassword={userPassword}";
-                XMLResponder responder = new XMLResponder();
-                XmlNode xmlResponse = await responder.GetXMLResponseAsync(url);
-                return xmlResponse;
+                XmlNode xmlResponse = await API_ScreenScraper.AuthenticateAsync(username, password);
+                string text = xmlResponse.OuterXml;
+                XmlNode userID = xmlResponse.SelectSingleNode("//ssuser/id");
+                string remoteID = userID.InnerText;
+                if (username.ToLower() == remoteID.ToLower())
+                {
+                    return true;
+                }
             }
-            return null;
+
+            if (scraperPlatform == "EmuMovies")
+            {
+                string result = await API_EmuMovies.AuthenticateAsync(username, password);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    return true;
+                }
+
+            }
+            return false;
         }
 
         private void ComboBox_ImageSource_SelectedIndexChanged(object sender, EventArgs e)
@@ -180,16 +227,21 @@ namespace GamelistManager.control
 
         private async void ScraperSetup_Load(object sender, EventArgs e)
         {
-            Cursor.Current = Cursors.WaitCursor;
-            this.Enabled = false;
-
             (string userName, string userPassword) = CredentialManager.GetCredentials(scraperPlatform);
 
             if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userPassword))
             {
                 textboxScraperName.Text = userName;
                 textboxScraperPassword.Text = userPassword;
+                panelOptions.Enabled = true;
             }
+            else
+            {
+                return;
+            }
+
+            Cursor.Current = Cursors.WaitCursor;
+            this.Enabled = false;
 
             string boxSource = RegistryManager.ReadRegistryValue(scraperPlatform, "BoxSource");
             string imageSource = RegistryManager.ReadRegistryValue(scraperPlatform, "ImageSource");
@@ -239,62 +291,121 @@ namespace GamelistManager.control
             }
 
 
-            if (!string.IsNullOrEmpty(boxSource))
-            {
-                comboBoxBoxSource.Text = boxSource;
-            }
-            else
-            {
-                comboBoxBoxSource.SelectedIndex = 0;
-            }
+            this.Enabled = true;
+            Cursor.Current = Cursors.Default;
 
-            if (!string.IsNullOrEmpty(imageSource))
-            {
-                comboBoxImageSource.Text = imageSource;
-            }
-            else
-            {
-                comboBoxImageSource.SelectedIndex = 0;
-            }
+        }
 
-            if (!string.IsNullOrEmpty(logoSource))
-            {
-                comboBoxLogoSource.Text = logoSource;
-            }
-            else
-            {
-                comboBoxLogoSource.SelectedIndex = 0;
-            }
+        private void SetComboBoxValues()
+        {
+            string[] items;
 
-            // Setup max threads, show the biggest value by default
+            // Setting items for comboBoxImageSource
+            items = new string[] {
+                "Screenshot", "Title Screenshot", "Mix V1",
+                "Mix V2", "Box 2D", "Box 3D", "Fan Art"
+            };
+            comboBoxImageSource.Items.AddRange(items);
+
+            // Setting items for comboBoxBoxSource
+            items = new string[] {
+                "Box 2D", "Box 3D"
+            };
+            comboBoxBoxSource.Items.AddRange(items);
+
+            // Setting items for comboBoxLogoSource
+            items = new string[] {
+                "Wheel", "Marquee"
+            };
+            comboBoxLogoSource.Items.AddRange(items);
+
+            // Setting items for comboBoxRegion
+            items = new string[] {
+                "de: Germany",
+                "asi: Asia",
+                "au: Australia",
+                "br: Brazil",
+                "bg: Bulgaria",
+                "ca: Canada",
+                "cl: Chile",
+                "cn: China",
+                "kr: Korea",
+                "dk: Denmark",
+                "sp: Spain",
+                "eu: Europe",
+                "fi: Finland",
+                "fr: France",
+                "gr: Greece",
+                "hu: Hungary",
+                "il: Israel",
+                "it: Italy",
+                "jp: Japan",
+                "kw: Kuwait",
+                "wor: World",
+                "mor: Middle East",
+                "no: Norway",
+                "nz: New Zealand",
+                "oce: Oceania",
+                "nl: Netherlands",
+                "pe: Peru",
+                "pl: Poland",
+                "pt: Portugal",
+                "cz: Czech Republic",
+                "uk: United Kingdom",
+                "ru: Russia",
+                "sk: Slovakia",
+                "se: Sweden",
+                "tw: Taiwan",
+                "tr: Turkey",
+                "us: USA",
+                "ss: ScreenScraper"
+            };
+            comboBoxRegion.Items.AddRange(items);
+
+            // Setting items for comboBoxLanguage
+            items = new string[] {
+                "en: English",
+                "de: German",
+                "zh: Chinese",
+                "ko: Korean",
+                "da: Danish",
+                "es: Spanish",
+                "fi: Finnish",
+                "fr: French",
+                "hu: Hungarian",
+                "it: Italian",
+                "ja: Japanese",
+                "nl: Dutch",
+                "no: Norwegian",
+                "pl: Polish",
+                "pt: Portuguese",
+                "ru: Russian",
+                "sk: Slovakian",
+                "sv: Swedish",
+                "cz: Czech",
+                "tr: Turkish"
+            };
+            comboBoxLanguage.Items.AddRange(items);
+
+
+        }
+
+        private async Task<int> GetMaxThreads()
+        {
             int maxThreads = 1;
-            XmlNode xmlResponse = await CheckScraperCredentialsAsync();
-            if (xmlResponse != null)
+            string userName = textboxScraperName.Text;
+            string userPassword = textboxScraperPassword.Text;
+            if (scraperPlatform == "ScreenScraper")
             {
-                XmlNode maxThreadsNode = xmlResponse.SelectSingleNode("//ssuser/maxthreads");
-                maxThreads = int.Parse(maxThreadsNode.InnerText);
+                maxThreads = await API_ScreenScraper.GetMaxScrap(userName, userPassword);
+                return maxThreads;
             }
 
             if (scraperPlatform == "EmuMovies")
             {
                 maxThreads = 2;
             }
-
-            if (comboBoxMaxThreads.Items.Count > 0)
-            {
-                comboBoxMaxThreads.Items.Clear();
-            }
-
-            for (int i = 1; i <= maxThreads; i++)
-            {
-                comboBoxMaxThreads.Items.Add(i.ToString());
-            }
-
-            comboBoxMaxThreads.SelectedIndex = comboBoxMaxThreads.Items.Count - 1;
-
-            this.Enabled = true;
-            Cursor.Current = Cursors.Default;
-
+            return 1;
         }
     }
 }

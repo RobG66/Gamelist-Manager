@@ -131,6 +131,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="class\ChecksumCreator.cs" />
+    <Compile Include="class\API_EmuMovies.cs" />
+    <Compile Include="class\API_ScreenScraper.cs" />
     <Compile Include="class\ImageConverter.cs" />
     <Compile Include="class\XMLSerializer.cs" />
     <Compile Include="class\ScraperData.cs" />

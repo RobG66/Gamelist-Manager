@@ -19,7 +19,6 @@ namespace GamelistManager
 
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(responseString);
-
                     return xmlDoc;
                 }
             }
