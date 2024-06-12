@@ -324,7 +324,7 @@ namespace GamelistManager
         bool overwrite
         )
         {
-            string boxSource = RegistryManager.ReadRegistryValue("ScreenScraper","BoxSource");
+            string boxSource = RegistryManager.ReadRegistryValue("ScreenScraper", "BoxSource");
             boxSource = boxSource ?? string.Empty;
             string imageSource = RegistryManager.ReadRegistryValue("ScreenScraper", "ImageSource");
             imageSource = imageSource ?? string.Empty;
@@ -334,15 +334,14 @@ namespace GamelistManager
             region = region ?? "us";
             string language = RegistryManager.ReadRegistryValue("ScreenScraper", "language");
             language = language ?? "en";
-            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","HideNonGame"), out hideNonGame);
-            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","NoZZZ"), out noZZZ);
-            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper","ScrapeByGameID"), out scrapeByGameID);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper", "HideNonGame"), out hideNonGame);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper", "NoZZZ"), out noZZZ);
+            bool.TryParse(RegistryManager.ReadRegistryValue("ScreenScraper", "ScrapeByGameID"), out scrapeByGameID);
 
-            string devId = "";
-            string devPassword = "";
+            // dev information moved to ss api class
 
             // Set the maximum number of concurrent tasks
-            string maxThreadsValue = RegistryManager.ReadRegistryValue("ScreenScraper","MaxThreads");
+            string maxThreadsValue = RegistryManager.ReadRegistryValue("ScreenScraper", "MaxThreads");
             int maxC = 1;
             if (!string.IsNullOrEmpty(maxThreadsValue))
             {
@@ -384,12 +383,10 @@ namespace GamelistManager
                             Interlocked.Increment(ref scraperCount);
                             ScrapeScreenScraper scraper = new ScrapeScreenScraper();
                             Dictionary<string, string> result;
-
+                            /*
                             (result, scrapTotal, scrapMax) = await scraper.ScrapeScreenScraperAsync(
                                userId,
                                userPassword,
-                               devId,
-                               devPassword,
                                region,
                                language,
                                romName,
@@ -410,8 +407,6 @@ namespace GamelistManager
                                 (result, scrapTotal, scrapMax) = await scraper.ScrapeScreenScraperAsync(
                                 userId,
                                 userPassword,
-                                devId,
-                                devPassword,
                                 region,
                                 language,
                                 romName,
@@ -448,8 +443,8 @@ namespace GamelistManager
                                 0
                             );
                             }
-
-                            ScraperCommon(overwrite, folderPath, romName, result, scrapTotal, scrapMax);
+                            */
+                            //ScraperCommon(overwrite, folderPath, romName, result, scrapTotal, scrapMax);
                         }
                         finally
                         {
