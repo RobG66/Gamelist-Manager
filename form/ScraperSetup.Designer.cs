@@ -192,9 +192,6 @@
             // 
             this.comboBoxLogoSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxLogoSource.FormattingEnabled = true;
-            this.comboBoxLogoSource.Items.AddRange(new object[] {
-            "Wheel",
-            "Marquee"});
             this.comboBoxLogoSource.Location = new System.Drawing.Point(124, 52);
             this.comboBoxLogoSource.Name = "comboBoxLogoSource";
             this.comboBoxLogoSource.Size = new System.Drawing.Size(107, 21);

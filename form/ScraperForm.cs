@@ -269,9 +269,6 @@ namespace GamelistManager
                 SharedData.DataSet.Tables["game"].DefaultView.RowFilter = currentFilter;
             }
 
-
-
-
         }
 
         private void SaveReminder()
@@ -578,7 +575,7 @@ namespace GamelistManager
 
         private void Scraper_Load(object sender, EventArgs e)
         {
-            comboBoxScrapers.SelectedIndex = 1;
+            comboBoxScrapers.SelectedIndex = 2;
 
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
             Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
