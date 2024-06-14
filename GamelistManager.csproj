@@ -133,6 +133,7 @@
     <Compile Include="class\ChecksumCreator.cs" />
     <Compile Include="class\API_EmuMovies.cs" />
     <Compile Include="class\API_ScreenScraper.cs" />
+    <Compile Include="class\IniFileReader.cs" />
     <Compile Include="class\ImageConverter.cs" />
     <Compile Include="class\XMLSerializer.cs" />
     <Compile Include="class\ScraperData.cs" />
@@ -226,7 +227,7 @@
     <EmbeddedResource Include="control\BatoceraHostSetup.resx">
       <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="ini\emumovies_systems.ini">
+    <None Include="ini\emumovies_options.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
@@ -867,11 +868,6 @@
     <None Include="Resources\background6.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ini\screenscraper_systems.ini">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\background9.jpg" />
   </ItemGroup>
   <ItemGroup>
@@ -891,6 +887,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\checkmark.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ini\screenscraper_options.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets" Condition="Exists('packages\VideoLAN.LibVLC.Windows.3.0.20\build\VideoLAN.LibVLC.Windows.targets')" />
