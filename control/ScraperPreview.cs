@@ -9,25 +9,12 @@ namespace GamelistManager.control
             InitializeComponent();
         }
 
-        // Update PictureBox controls directly
-        public void UpdatePictureBox(string imagePath1, string imagePath2)
+        // Update PictureBox control directly
+        public void UpdatePictureBox(string imageFilePath)
         {
-            if (string.IsNullOrEmpty(imagePath1))
+            if (!string.IsNullOrEmpty(imageFilePath))
             {
-                pictureBox1.Image = null;
-            }
-            else
-            {
-                pictureBox1.ImageLocation = imagePath1;
-            }
-
-            if (string.IsNullOrEmpty(imagePath2))
-            {
-                pictureBox2.Image = null;
-            }
-            else
-            {
-                pictureBox2.ImageLocation = imagePath2;
+                pictureBox1.ImageLocation = imageFilePath;
             }
         }
     }

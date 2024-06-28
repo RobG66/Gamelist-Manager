@@ -284,7 +284,7 @@ namespace GamelistManager.control
             }
             if (scraperPlatform == "ScreenScraper")
             {
-                file = "ini\\screenscraper_optins.ini";
+                file = "ini\\screenscraper_options.ini";
             }
 
             if (file == null) {return; }
@@ -310,10 +310,10 @@ namespace GamelistManager.control
                     case "LogoSource":
                         comboBoxLogoSource.Items.AddRange(sectionValues.Values.ToArray());
                         break;
-                    case "Region":
+                    case "Regions":
                         comboBoxRegion.Items.AddRange(sectionValues.Values.ToArray());
                         break;
-                    case "Language":
+                    case "Languages":
                         comboBoxLanguage.Items.AddRange(sectionValues.Values.ToArray());
                         break;
                     default:
@@ -452,6 +452,21 @@ namespace GamelistManager.control
                 maxThreads = 2;
             }
             return 1;
+        }
+
+        private void checkBoxHideNonGame_CheckedChanged(object sender, EventArgs e)
+        {
+            buttonSave.Enabled = true;
+        }
+
+        private void checkBoxNoZZZ_CheckedChanged(object sender, EventArgs e)
+        {
+            buttonSave.Enabled = true;
+        }
+
+        private void checkBoxScrapeByGameID_CheckedChanged(object sender, EventArgs e)
+        {
+            buttonSave.Enabled = true;
         }
     }
 }

@@ -11,6 +11,12 @@ namespace GamelistManager
         {
             try
             {
+                string parentFolder = Path.GetDirectoryName(fileToDownload);
+                if (!Directory.Exists(parentFolder))
+                {
+                    Directory.CreateDirectory(parentFolder);
+                }
+
                 if (File.Exists(fileToDownload))
                 {
                     if (overWriteData)

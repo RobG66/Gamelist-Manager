@@ -40,17 +40,23 @@ namespace GamelistManager
 
         public static DataSet DataSet
         {
-            get { return dataSet; }
-            set { dataSet = value; }
+            get
+            {
+                return dataSet;
+            }
+
+            set
+            {
+                lock (dataLock)
+                { 
+                    dataSet = value;
+                }
+            }
         }
         public static string XMLFilename
         {
             get { return xmlFilename; }
             set { xmlFilename = value; }
-        }
-        public static object DataLock
-        {
-            get { return dataLock; }
         }
     }
 }
