@@ -82,6 +82,8 @@
             this.buttonSelectNone = new System.Windows.Forms.Button();
             this.checkboxMarquee = new System.Windows.Forms.CheckBox();
             this.checkboxLang = new System.Windows.Forms.CheckBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.listBoxDownloads = new System.Windows.Forms.ListBox();
             this.panelEverything.SuspendLayout();
             this.panelScraperOptions.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -91,6 +93,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMainLogo)).BeginInit();
             this.panelSmall.SuspendLayout();
             this.panelCheckboxes.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // radioButtonScrapeSelected
@@ -222,12 +225,12 @@
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.tableLayoutPanel1);
             this.panel1.Controls.Add(this.labelScrapeLimitCounters);
             this.panel1.Controls.Add(this.labelScrape);
             this.panel1.Controls.Add(this.labelCounts);
             this.panel1.Controls.Add(this.progressBarScrapeProgress);
             this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.listBoxLog);
             this.panel1.Controls.Add(this.labelProgress);
             this.panel1.Location = new System.Drawing.Point(3, 271);
             this.panel1.Name = "panel1";
@@ -282,11 +285,11 @@
             // listBoxLog
             // 
             this.listBoxLog.ContextMenuStrip = this.contextMenuStripLog;
-            this.listBoxLog.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.listBoxLog.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listBoxLog.FormattingEnabled = true;
-            this.listBoxLog.Location = new System.Drawing.Point(0, 42);
+            this.listBoxLog.Location = new System.Drawing.Point(3, 3);
             this.listBoxLog.Name = "listBoxLog";
-            this.listBoxLog.Size = new System.Drawing.Size(492, 134);
+            this.listBoxLog.Size = new System.Drawing.Size(240, 127);
             this.listBoxLog.TabIndex = 21;
             // 
             // contextMenuStripLog
@@ -722,6 +725,30 @@
             this.checkboxLang.Text = "Language";
             this.checkboxLang.UseVisualStyleBackColor = true;
             // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Controls.Add(this.listBoxLog, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.listBoxDownloads, 1, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 43);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 1;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(492, 133);
+            this.tableLayoutPanel1.TabIndex = 29;
+            // 
+            // listBoxDownloads
+            // 
+            this.listBoxDownloads.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listBoxDownloads.FormattingEnabled = true;
+            this.listBoxDownloads.Location = new System.Drawing.Point(249, 3);
+            this.listBoxDownloads.Name = "listBoxDownloads";
+            this.listBoxDownloads.Size = new System.Drawing.Size(240, 127);
+            this.listBoxDownloads.TabIndex = 22;
+            // 
             // ScraperForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -751,6 +778,7 @@
             this.panelSmall.ResumeLayout(false);
             this.panelCheckboxes.ResumeLayout(false);
             this.panelCheckboxes.PerformLayout();
+            this.tableLayoutPanel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -810,5 +838,7 @@
         private System.Windows.Forms.Label labelMedia;
         private System.Windows.Forms.Label labelScrapeLimitCounters;
         private System.Windows.Forms.Label labelScrape;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.ListBox listBoxDownloads;
     }
 }

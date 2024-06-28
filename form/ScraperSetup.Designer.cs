@@ -286,6 +286,7 @@
             this.checkBoxHideNonGame.TabIndex = 34;
             this.checkBoxHideNonGame.Text = "Automatically hide non-game";
             this.checkBoxHideNonGame.UseVisualStyleBackColor = false;
+            this.checkBoxHideNonGame.CheckedChanged += new System.EventHandler(this.checkBoxHideNonGame_CheckedChanged);
             // 
             // checkBoxNoZZZ
             // 
@@ -297,6 +298,7 @@
             this.checkBoxNoZZZ.TabIndex = 35;
             this.checkBoxNoZZZ.Text = "Remove ZZZ(not game) text";
             this.checkBoxNoZZZ.UseVisualStyleBackColor = false;
+            this.checkBoxNoZZZ.CheckedChanged += new System.EventHandler(this.checkBoxNoZZZ_CheckedChanged);
             // 
             // checkBoxScrapeByGameID
             // 
@@ -308,6 +310,7 @@
             this.checkBoxScrapeByGameID.TabIndex = 36;
             this.checkBoxScrapeByGameID.Text = "Scrape by Game ID if available";
             this.checkBoxScrapeByGameID.UseVisualStyleBackColor = false;
+            this.checkBoxScrapeByGameID.CheckedChanged += new System.EventHandler(this.checkBoxScrapeByGameID_CheckedChanged);
             // 
             // panelOptions
             // 

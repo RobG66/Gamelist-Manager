@@ -249,7 +249,7 @@ namespace GamelistManager
             panelManageMedia.Enabled = false;
 
             cancellationTokenSource = new CancellationTokenSource();
-            this.Cursor = Cursors.WaitCursor;
+            // this.Cursor = Cursors.WaitCursor;
             try
             {
                 // Asynchronously check media with cancellation support
@@ -272,7 +272,7 @@ namespace GamelistManager
                 buttonStart.Enabled = true;
             }
 
-            this.Cursor = Cursors.Default;
+            // this.Cursor = Cursors.Default;
 
             if (badMediaList == null || badMediaList.Count == 0)
             {
