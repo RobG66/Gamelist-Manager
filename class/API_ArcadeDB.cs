@@ -64,15 +64,10 @@ namespace GamelistManager
             }
         }
 
-        public static async Task<ScraperData> ScrapeArcadeDBAsync(
-            string romName,
-            string folderPath,
-            bool overwrite,
-            List<string> elementsToScrape,
-            ListBox ListBoxControl
+        public static async Task<ScraperData> ScrapeArcadeDBAsync(ScraperParameters scraperParameters,ListBox ListBoxControl
             )
         {
-            var gameInfo = await ScrapeGame(romName);
+            var gameInfo = await ScrapeGame(scraperParameters.RomFileNameWithExtension);
 
             if (gameInfo == null)
             {
@@ -85,11 +80,10 @@ namespace GamelistManager
             string downloadPath = null;
             string fileToDownload = null;
             bool downloadResult = false;
-            string romNameNoExtension = Path.GetFileNameWithoutExtension(romName);
-
+       
             ScraperData scraperData = new ScraperData();
 
-            foreach (string element in elementsToScrape)
+            foreach (string element in scraperParameters.ElementsToScrape)
             {
                 switch (element)
                 {
@@ -140,10 +134,10 @@ namespace GamelistManager
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             destinationFolder = "images";
-                            fileName = $"{romNameNoExtension}-image.png";
-                            downloadPath = $"{folderPath}\\{destinationFolder}";
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-image.png";
+                            downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult)
                             {
                                 scraperData.image = $"./{destinationFolder}/{fileName}";
@@ -157,10 +151,10 @@ namespace GamelistManager
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             destinationFolder = "images";
-                            fileName = $"{romNameNoExtension}-marquee.png";
-                            downloadPath = $"{folderPath}\\{destinationFolder}";
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-marquee.png";
+                            downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult)
                             {
                                 scraperData.marquee = $"./{destinationFolder}/{fileName}";
@@ -178,10 +172,10 @@ namespace GamelistManager
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             destinationFolder = "videos";
-                            fileName = $"{romNameNoExtension}-video.mp4";
-                            downloadPath = $"{folderPath}\\{destinationFolder}";
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-video.mp4";
+                            downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(overwrite, fileToDownload, remoteDownloadURL);
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult)
                             {
                                 scraperData.video = $"./{destinationFolder}/{fileName}";

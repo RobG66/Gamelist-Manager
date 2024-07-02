@@ -24,5 +24,6 @@
         public string boxback { get; set; }
         public string fanart { get; set; }
         public string id { get; set; }
+        public string md5 { get; set; }
     }
 }

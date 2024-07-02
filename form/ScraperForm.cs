@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace GamelistManager
 {
     public partial class ScraperForm : Form
     {
+        private static readonly string cacheFilePath = Path.Combine(Environment.CurrentDirectory, "mediaListsCache.json");
         public ListBox ListBoxControl { get; private set; }
         private GamelistManagerForm gamelistManagerForm;
         private ScraperPreview scraperPreview;
@@ -78,7 +80,6 @@ namespace GamelistManager
             string userPassword = null;
             string optionsFileName = null;
             string systemID = null; // Batocera system ID
-            string credentialsToRetrieve = null;
             string boxSource = null;
             string imageSource = null;
             string logoSource = null;
@@ -96,18 +97,26 @@ namespace GamelistManager
             bool hideNonGame = false;
             bool noZZZ = false; // ScreenScraper Specific
             bool scrapeByGameID = false; // ScreenScraper Specific
+            string userToken = null; // EmuMovies Specific
+            Dictionary<string, List<string>> emumoviesMediaLists = new Dictionary<string, List<string>>();
 
             // Platform specific stuff
             switch (scraperPlatform)
             {
                 case "ScreenScraper":
                     {
-                        credentialsToRetrieve = scraperPlatform;
+                        (userID, userPassword) = CredentialManager.GetCredentials(scraperPlatform);
+                        if (string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(userPassword))
+                        {
+                            MessageBox.Show("The ScreenScraper credentials are not set!", "Missing Credentials", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
                         optionsFileName = "ini\\screenscraper_options.ini";
 
-                        IniFileReader iniReader = new IniFileReader(optionsFileName);
-                        Dictionary<string, string> systems = iniReader.GetSection("Systems");
-                        systemID = systems[batoceraSystemName];
+                        IniFileReader iniReader1 = new IniFileReader(optionsFileName);
+                        Dictionary<string, string> systems1 = iniReader1.GetSection("Systems");
+                        systemID = systems1[batoceraSystemName];
                         if (string.IsNullOrEmpty(systemID) || systemID == "0")
                         {
                             MessageBox.Show($"A system ID is missing for system '{batoceraSystemName}' in {optionsFileName}!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -168,20 +177,73 @@ namespace GamelistManager
                     break;
 
                 case "EmuMovies":
-                    maxConcurrency = 2;
-                    credentialsToRetrieve = scraperPlatform;
-                    optionsFileName = "ini\\emumovies_options.ini";
-                    break;
-            }
 
-            // Check credentials if required
-            if (credentialsToRetrieve != null) {
-                (userID, userPassword) = CredentialManager.GetCredentials(scraperPlatform);
-                if (string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(userPassword))
-                {
-                    MessageBox.Show($"The {credentialsToRetrieve} credentials are not set!", "Missing Credentials", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+                    (userID, userPassword) = CredentialManager.GetCredentials(scraperPlatform);
+                    if (string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(userPassword))
+                    {
+                        MessageBox.Show("The EmuMovies credentials are not set!", "Missing Credentials", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    optionsFileName = "ini\\emumovies_options.ini";
+
+                    IniFileReader iniReader2 = new IniFileReader(optionsFileName);
+                    Dictionary<string, string> systems2 = iniReader2.GetSection("Systems");
+                    systemID = systems2[batoceraSystemName];
+                    if (string.IsNullOrEmpty(systemID))
+                    {
+                        MessageBox.Show($"A system ID is missing for system '{batoceraSystemName}' in {optionsFileName}!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    boxSource = RegistryManager.ReadRegistryValue("EmuMovies", "BoxSource");
+                    boxSource = boxSource ?? string.Empty;
+                    imageSource = RegistryManager.ReadRegistryValue("EmuMovies", "ImageSource");
+                    imageSource = imageSource ?? string.Empty;
+                    logoSource = RegistryManager.ReadRegistryValue("EmuMovies", "LogoSource");
+                    logoSource = logoSource ?? string.Empty;
+                    maxConcurrency = 2;
+                    userToken = await AuthenticateEmuMoviesAsync(userID, userPassword);
+                    if (userToken == null)
+                    {
+                        MessageBox.Show("Error retrieving user authentication token from EmuMovies!", "Authentication Failure", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    List<string> emumoviesMediaTypes = new List<string>();
+                    emumoviesMediaTypes = await GetMediaTypes(systemID);
+                    if (emumoviesMediaTypes == null)
+                    {
+                        MessageBox.Show("Error retrieving media types EmuMovies!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+
+                    if (!File.Exists(cacheFilePath))
+                    {
+                        foreach (string mediaType in emumoviesMediaTypes)
+                        {
+                            AddToLog($"Getting {mediaType} medialist");
+                            List<string> medialist = await GetMediaList(systemID, mediaType);
+                            emumoviesMediaLists[mediaType] = medialist;
+                        }
+                        string json = JsonSerializer.Serialize(emumoviesMediaLists, new JsonSerializerOptions { WriteIndented = true });
+                        File.WriteAllText(cacheFilePath, json);
+                    }
+                    else
+                    {
+                        string json = File.ReadAllText(cacheFilePath);
+                        var mediaLists = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json);
+
+                        if (mediaLists != null)
+                        {
+                            foreach (var kvp in mediaLists)
+                            {
+                                emumoviesMediaLists[kvp.Key] = kvp.Value;
+                            }
+                        }
+                    }
+                    break;
             }
 
             // Image preview control during scraping
@@ -191,7 +253,7 @@ namespace GamelistManager
             // Pre scraping form configuration
             gamelistManagerForm.Enabled = false; // disable main form
             if (listBoxLog.Items.Count > 0) { listBoxLog.Items.Clear(); } // clear log
-            if (listBoxDownloads.Items.Count > 0) { listBoxDownloads.Items.Clear(); }
+            if (listBoxDownloads.Items.Count > 0) {listBoxDownloads.Items.Clear(); }
             panelScraperOptions.Enabled = false;
             buttonStart.Enabled = false;
             buttonCancel.Enabled = true;
@@ -200,7 +262,7 @@ namespace GamelistManager
             globalStopwatch.Start();
             panelCheckboxes.Visible = false;
             labelScrapeLimitCounters.Text = "N/A";
-            labelCounts.Text = "0/0";
+            labelCounts.Text = $"Count:0/0 | Errors:0";
             labelProgress.Text = "0%";
      
             // Add a scraper column if it does not exist
@@ -233,17 +295,18 @@ namespace GamelistManager
             ScraperData scraperData = new ScraperData();
 
             // Static parameters set here, they do not change during scrape
-            ScreenScrapeParameters screenScrapeParameters = new ScreenScrapeParameters();
-            screenScrapeParameters.Overwrite = overwrite;
-            screenScrapeParameters.ParentFolderPath = parentFolderPath;
-            screenScrapeParameters.ElementsToScrape = elementsToScrape;
-            screenScrapeParameters.BoxSource = boxSource;
-            screenScrapeParameters.ImageSource = imageSource;
-            screenScrapeParameters.LogoSource = logoSource;
-            screenScrapeParameters.UserID = userID;
-            screenScrapeParameters.UserPassword = userPassword;
-            screenScrapeParameters.Region = region;
-            screenScrapeParameters.Language = language;
+            ScraperParameters scraperParameters = new ScraperParameters();
+            scraperParameters.Overwrite = overwrite;
+            scraperParameters.ParentFolderPath = parentFolderPath;
+            scraperParameters.ElementsToScrape = elementsToScrape;
+            scraperParameters.BoxSource = boxSource;
+            scraperParameters.ImageSource = imageSource;
+            scraperParameters.LogoSource = logoSource;
+            scraperParameters.UserID = userID;
+            scraperParameters.UserPassword = userPassword;
+            scraperParameters.Region = region;
+            scraperParameters.Language = language;
+            scraperParameters.UserToken = userToken;
 
             // Start
             using (var semaphore = new SemaphoreSlim(maxConcurrency))
@@ -253,6 +316,13 @@ namespace GamelistManager
                     foreach (var row in dataGridViewRows)
                     {
                         CancellationToken.ThrowIfCancellationRequested();
+
+                        // Update count
+                        Interlocked.Increment(ref scraperCount);
+                        UpdateLabel(scraperCount, totalCount, scrapeErrors, 0, 0);
+
+                        // Update progress bar
+                        UpdateProgressBar();
 
                         // Skip hidden rows if checkbox is checked
                         if (row.Cells["Hidden"].Value.ToString().ToLower() == "true" && checkBoxDoNotScrapeHidden.Checked)
@@ -268,13 +338,6 @@ namespace GamelistManager
                             {
                                 CancellationToken.ThrowIfCancellationRequested();
 
-                                // Update count
-                                Interlocked.Increment(ref scraperCount);
-                                UpdateLabel(scraperCount, totalCount, scrapeErrors, 0, 0);
-
-                                // Update progress bar
-                                UpdateProgressBar();
-
                                 // Rom variables
                                 string romPath = row.Cells["path"].Value.ToString();
                                 string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);
@@ -282,6 +345,11 @@ namespace GamelistManager
                                 string gameID = row.Cells["id"].Value.ToString();
                                 string gameName = row.Cells["name"].Value.ToString();
 
+                                scraperParameters.RomFileNameWithoutExtension = romFileNameNoExtension;
+                                scraperParameters.RomFileNameWithExtension = romFileNameWithExtension;
+                                scraperParameters.GameID = gameID;
+                                scraperParameters.Name = gameName;
+                              
                                 AddToLog($"Scraping rom '{romFileNameWithExtension}'");
                                                                 
                                 // Scrape information first for chosen scraper
@@ -290,15 +358,15 @@ namespace GamelistManager
                                     case "ArcadeDB":
                                         // Scrape file name without extension
                                         // Very straightforward
-                                        scraperData = await API_ArcadeDB.ScrapeArcadeDBAsync(romFileNameNoExtension, parentFolderPath, overwrite, elementsToScrape,ListBoxControl);
+                                        scraperData = await API_ArcadeDB.ScrapeArcadeDBAsync(scraperParameters,ListBoxControl);
                                         break;
 
                                     case "ScreenScraper":
-                                        screenScrapeParameters.RomFileNameWithoutExtension = romFileNameNoExtension;
-                                        screenScrapeParameters.RomFileNameWithExtension = romFileNameWithExtension;
-                                        screenScrapeParameters.GameID = gameID;
-                                        screenScrapeParameters.Name = gameName;
-                                        scraperData = await API_ScreenScraper.ScrapeScreenScraperAsync(screenScrapeParameters,ListBoxControl);
+                                        scraperData = await API_ScreenScraper.ScrapeScreenScraperAsync(scraperParameters,ListBoxControl);
+                                        break;
+
+                                    case "EmuMovies":
+                                        scraperData = await API_EmuMovies.ScrapeEmuMoviesAsync(scraperParameters,ListBoxControl,emumoviesMediaLists);
                                         break;
                                 }
 
@@ -311,7 +379,15 @@ namespace GamelistManager
                                     return;
                                 }
 
-                                
+                                /*
+                                // Create checksum
+                                string md5 = ChecksumCreator.CreateMD5($"{parentFolderPath}\\{romFileNameWithExtension}");
+                                if (!string.IsNullOrEmpty(md5))
+                                {
+                                    scraperData.md5 = md5;
+                                }
+                                */
+
                                 // Update Scraper Preview
                                 string marquee = null;
                                 if (scraperData.marquee != null)
@@ -505,11 +581,18 @@ namespace GamelistManager
 
         private void Scraper_Load(object sender, EventArgs e)
         {
-            comboBoxScrapers.SelectedIndex = 2;
+            comboBoxScrapers.SelectedIndex = 1;
 
+            // Reset cache
+            if (File.Exists(cacheFilePath))
+            {
+                File.Delete(cacheFilePath);
+
+            }
+
+            // Show system image if exists
             string romPath = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
             Image image = (Bitmap)Properties.Resources.ResourceManager.GetObject(romPath);
-
             if (image is Image)
             {
                 pictureBox1.Image = image;
@@ -671,7 +754,6 @@ namespace GamelistManager
                     {
                         checkBox.Enabled = true;
                     }
-
                     else
                     {
                         checkBox.Enabled = false;

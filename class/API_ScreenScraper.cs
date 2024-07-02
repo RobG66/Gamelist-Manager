@@ -22,7 +22,7 @@ namespace GamelistManager
 
         public static async Task<int> GetMaxScrap(string userID, string userPassword)
         {
-            XmlNode xmlData = await AuthenticateAsync(userID, userPassword);
+            XmlNode xmlData = await AuthenticateScreenScraperAsync(userID, userPassword);
             if (xmlData != null)
             {
                 XmlNode maxThreadsNode = xmlData.SelectSingleNode("//ssuser/maxthreads");
@@ -51,7 +51,7 @@ namespace GamelistManager
             }
         }
 
-        public static async Task<XmlNode> AuthenticateAsync(string username, string password)
+        public static async Task<XmlNode> AuthenticateScreenScraperAsync(string username, string password)
         {
             string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={username}&sspassword={password}";
             XMLResponder responder = new XMLResponder();
@@ -60,12 +60,12 @@ namespace GamelistManager
         }
 
      
-        public static async Task<ScraperData> ScrapeScreenScraperAsync(ScreenScrapeParameters screenScrapeParameters,ListBox ListBoxControl)
+        public static async Task<ScraperData> ScrapeScreenScraperAsync(ScraperParameters scraperParameters,ListBox ListBoxControl)
         {
 
-            string scrapeName = screenScrapeParameters.Name;
-            string scrapInfo = (!string.IsNullOrEmpty(screenScrapeParameters.GameID)) ? $"&gameid={screenScrapeParameters.GameID}" : $"&romtype=rom&romnom={scrapeName}";
-            string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={screenScrapeParameters.UserID}&sspassword={screenScrapeParameters.UserPassword}&systemeid={screenScrapeParameters.SystemID}{scrapInfo}";
+            string scrapeName = scraperParameters.Name;
+            string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={scrapeName}";
+            string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
 
             XMLResponder xmlResponder = new XMLResponder();
             XmlNode xmlResponse = await xmlResponder.GetXMLResponseAsync(url);
@@ -83,14 +83,12 @@ namespace GamelistManager
             string folderName = null;
             string remoteElementName = null;
             string value = null;
-            
-            List<string> elementsToScrape = screenScrapeParameters.ElementsToScrape;
-
+           
             ScraperData scraperData = new ScraperData();
             // medias xmlnode contains media download URL     
             XmlNode mediasNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
 
-            foreach (string element in elementsToScrape)
+            foreach (string element in scraperParameters.ElementsToScrape)
             {
                 switch (element)
                 {
@@ -139,7 +137,7 @@ namespace GamelistManager
                         break;
 
                     case "desc":
-                        value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{screenScrapeParameters.Language}']")?.InnerText;
+                        value = xmlResponse.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{scraperParameters.Language}']")?.InnerText;
                         if (string.IsNullOrEmpty(value))
                         {
                             // Fallback to english
@@ -150,13 +148,13 @@ namespace GamelistManager
 
                     case "name":
                         XmlNode namesNode = xmlResponse.SelectSingleNode("/Data/jeu/noms");
-                        value = ParseNames(namesNode, screenScrapeParameters.Region);
+                        value = ParseNames(namesNode, scraperParameters.Region);
                         scraperData.name = value;
                         break;
 
                     case "genre":
                         XmlNode genresNode = xmlResponse.SelectSingleNode("/Data/jeu/genres");
-                        (string genreID, string genreName) = ParseGenres(genresNode, screenScrapeParameters.Language);
+                        (string genreID, string genreName) = ParseGenres(genresNode, scraperParameters.Language);
                         scraperData.genre = genreName;
                         scraperData.genreid = genreID;
                         break;
@@ -176,17 +174,17 @@ namespace GamelistManager
                     case "bezel":
                         folderName = "images";
                         remoteElementName = "bezel-16-9";
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                                                 
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.bezel = $"./{folderName}/{fileName}";
@@ -199,16 +197,16 @@ namespace GamelistManager
                         folderName = "images";
                         remoteElementName = "fanart";
 
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.fanart = $"./{folderName}/{fileName}";
@@ -221,16 +219,16 @@ namespace GamelistManager
                         folderName = "images";
                         remoteElementName = "box-2D-back";
 
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.boxback = $"./{folderName}/{fileName}";
@@ -243,16 +241,16 @@ namespace GamelistManager
                         folderName = "manuals";
                         remoteElementName = "manuel";
 
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.manual = $"./{folderName}/{fileName}";
@@ -262,23 +260,18 @@ namespace GamelistManager
                         break;
 
                     case "image":
-                        // ss = screenshot
-                        remoteElementName = "ss";
-                        if (screenScrapeParameters.ImageSource.ToLower() == "screenshot title")
-                        {
-                            remoteElementName = "sstitle";
-                        }
+                        remoteElementName = scraperParameters.ImageSource ;
                         folderName = "images";
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.image = $"./{folderName}/{fileName}";
@@ -288,22 +281,18 @@ namespace GamelistManager
                         break;
 
                     case "thumbnail":
-                        remoteElementName = "box-2D";
-                        if (screenScrapeParameters.BoxSource.ToLower() == "box 3d")
-                        {
-                            remoteElementName = "box-3D";
-                        }
+                        remoteElementName = scraperParameters.BoxSource ;
                         folderName = "images";
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.thumbnail = $"./{folderName}/{fileName}";
@@ -313,24 +302,20 @@ namespace GamelistManager
                         break;
 
                     case "marquee":
-                        remoteElementName = "wheel";
-                        if (screenScrapeParameters.LogoSource.ToLower() == "marquee")
-                        {
-                            remoteElementName = "screenmarquee";
-                        }
+                        remoteElementName = scraperParameters.LogoSource ;
                         folderName = "images";
 
-                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, screenScrapeParameters.Region);
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
 
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.marquee = $"./{folderName}/{fileName}";
@@ -346,13 +331,13 @@ namespace GamelistManager
                         (remoteDownloadURL, fileFormat) = ParseVideo(mediasNode);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{screenScrapeParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
                             {
-                                Directory.CreateDirectory($"{screenScrapeParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{screenScrapeParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{screenScrapeParameters.ParentFolderPath}\\{folderName}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(screenScrapeParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
                                 scraperData.video = $"./{folderName}/{fileName}";
@@ -523,27 +508,6 @@ namespace GamelistManager
             }
             return (null, null);
         }
-
-        public class ScreenScrapeParameters
-        {
-            public string RomFileNameWithExtension { get; set; }
-            public string RomFileNameWithoutExtension { get; set; }
-            public string Name { get; set; }
-            public string GameID { get; set; }
-            public string SystemID { get; set; }
-            public string UserID { get; set; }
-            public string UserPassword { get; set; }
-            public string ParentFolderPath { get; set; }
-            public string Language { get; set; }
-            public string Region { get; set; }
-            public string ImageSource { get; set; }
-            public string BoxSource { get; set; }
-            public string Marquee { get; set; }
-            public string LogoSource { get; set; }
-            public bool Overwrite { get; set; }
-            public List<string> ElementsToScrape { get; set; }
-        }
-
     }
 }
 

@@ -173,7 +173,7 @@ namespace GamelistManager.control
 
             if (scraperPlatform == "ScreenScraper")
             {
-                XmlNode xmlResponse = await API_ScreenScraper.AuthenticateAsync(username, password);
+                XmlNode xmlResponse = await API_ScreenScraper.AuthenticateScreenScraperAsync(username, password);
                 if (xmlResponse == null)
                 {
                     return false;
@@ -196,7 +196,7 @@ namespace GamelistManager.control
 
             if (scraperPlatform == "EmuMovies")
             {
-                string result = await API_EmuMovies.AuthenticateAsync(username, password);
+                string result = await API_EmuMovies.AuthenticateEmuMoviesAsync(username, password);
                 if (!string.IsNullOrEmpty(result))
                 {
                     return true;
