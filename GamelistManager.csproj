@@ -134,6 +134,7 @@
     <Compile Include="class\API_EmuMovies.cs" />
     <Compile Include="class\API_ScreenScraper.cs" />
     <Compile Include="class\API_ArcadeDB.cs" />
+    <Compile Include="class\API_ScraperParameters.cs" />
     <Compile Include="class\ScraperData.cs" />
     <Compile Include="class\IniFileReader.cs" />
     <Compile Include="class\ImageConverter.cs" />

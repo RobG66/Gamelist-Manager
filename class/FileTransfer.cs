@@ -9,7 +9,7 @@ namespace GamelistManager
     {
         public static async Task<bool> DownloadFile(bool overWriteData, string fileToDownload, string url)
         {
-            try
+           try
             {
                 string parentFolder = Path.GetDirectoryName(fileToDownload);
                 if (!Directory.Exists(parentFolder))

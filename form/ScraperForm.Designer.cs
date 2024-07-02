@@ -122,7 +122,7 @@
             this.panelEverything.Location = new System.Drawing.Point(0, 0);
             this.panelEverything.Margin = new System.Windows.Forms.Padding(1);
             this.panelEverything.Name = "panelEverything";
-            this.panelEverything.Size = new System.Drawing.Size(504, 454);
+            this.panelEverything.Size = new System.Drawing.Size(504, 471);
             this.panelEverything.TabIndex = 2;
             // 
             // panelScraperOptions
@@ -227,20 +227,20 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.tableLayoutPanel1);
             this.panel1.Controls.Add(this.labelScrapeLimitCounters);
-            this.panel1.Controls.Add(this.labelScrape);
             this.panel1.Controls.Add(this.labelCounts);
+            this.panel1.Controls.Add(this.labelScrape);
             this.panel1.Controls.Add(this.progressBarScrapeProgress);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.labelProgress);
             this.panel1.Location = new System.Drawing.Point(3, 271);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(494, 178);
+            this.panel1.Size = new System.Drawing.Size(494, 195);
             this.panel1.TabIndex = 30;
             // 
             // labelScrapeLimitCounters
             // 
             this.labelScrapeLimitCounters.AutoSize = true;
-            this.labelScrapeLimitCounters.Location = new System.Drawing.Point(70, 26);
+            this.labelScrapeLimitCounters.Location = new System.Drawing.Point(431, 8);
             this.labelScrapeLimitCounters.Name = "labelScrapeLimitCounters";
             this.labelScrapeLimitCounters.Size = new System.Drawing.Size(27, 13);
             this.labelScrapeLimitCounters.TabIndex = 28;
@@ -249,7 +249,7 @@
             // labelScrape
             // 
             this.labelScrape.AutoSize = true;
-            this.labelScrape.Location = new System.Drawing.Point(5, 26);
+            this.labelScrape.Location = new System.Drawing.Point(366, 8);
             this.labelScrape.Name = "labelScrape";
             this.labelScrape.Size = new System.Drawing.Size(68, 13);
             this.labelScrape.TabIndex = 27;
@@ -258,12 +258,13 @@
             // labelCounts
             // 
             this.labelCounts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelCounts.Location = new System.Drawing.Point(278, 26);
+            this.labelCounts.AutoSize = true;
+            this.labelCounts.Location = new System.Drawing.Point(7, 27);
             this.labelCounts.Name = "labelCounts";
-            this.labelCounts.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.labelCounts.Size = new System.Drawing.Size(209, 14);
+            this.labelCounts.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.labelCounts.Size = new System.Drawing.Size(105, 13);
             this.labelCounts.TabIndex = 26;
-            this.labelCounts.Text = "0/0";
+            this.labelCounts.Text = "Count: 0/0 | Errors: 0";
             // 
             // progressBarScrapeProgress
             // 
@@ -284,12 +285,13 @@
             // 
             // listBoxLog
             // 
+            this.listBoxLog.BackColor = System.Drawing.SystemColors.Info;
             this.listBoxLog.ContextMenuStrip = this.contextMenuStripLog;
             this.listBoxLog.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listBoxLog.FormattingEnabled = true;
             this.listBoxLog.Location = new System.Drawing.Point(3, 3);
             this.listBoxLog.Name = "listBoxLog";
-            this.listBoxLog.Size = new System.Drawing.Size(240, 127);
+            this.listBoxLog.Size = new System.Drawing.Size(240, 141);
             this.listBoxLog.TabIndex = 21;
             // 
             // contextMenuStripLog
@@ -733,20 +735,21 @@
             this.tableLayoutPanel1.Controls.Add(this.listBoxLog, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.listBoxDownloads, 1, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 43);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 46);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(492, 133);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(492, 147);
             this.tableLayoutPanel1.TabIndex = 29;
             // 
             // listBoxDownloads
             // 
+            this.listBoxDownloads.BackColor = System.Drawing.SystemColors.Info;
             this.listBoxDownloads.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listBoxDownloads.FormattingEnabled = true;
             this.listBoxDownloads.Location = new System.Drawing.Point(249, 3);
             this.listBoxDownloads.Name = "listBoxDownloads";
-            this.listBoxDownloads.Size = new System.Drawing.Size(240, 127);
+            this.listBoxDownloads.Size = new System.Drawing.Size(240, 141);
             this.listBoxDownloads.TabIndex = 22;
             // 
             // ScraperForm
@@ -755,7 +758,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::GamelistManager.Properties.Resources.background2;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(504, 454);
+            this.ClientSize = new System.Drawing.Size(504, 471);
             this.Controls.Add(this.panelEverything);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Margin = new System.Windows.Forms.Padding(1);
