@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GamelistManager.control
 {
@@ -38,11 +37,12 @@ namespace GamelistManager.control
             SaveGameOptions();
         }
 
-        private void SaveGameOptions() { 
-            
+        private void SaveGameOptions()
+        {
+
             this.Enabled = false;
             SaveCredentials();
-            
+
             if (useDefaults == true)
             {
                 panelOptions.Enabled = true;
@@ -56,7 +56,7 @@ namespace GamelistManager.control
                 SaveLanguage();
                 SaveNonGameOptions();
             }
-           
+
             SaveImageSource();
             SaveBoxSource();
             SaveLogoSource();
@@ -173,19 +173,20 @@ namespace GamelistManager.control
 
             if (scraperPlatform == "ScreenScraper")
             {
-                XmlNode xmlResponse = await API_ScreenScraper.AuthenticateScreenScraperAsync(username, password);
+                API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
+                XmlNode xmlResponse = await aPI_ScreenScraper.AuthenticateScreenScraperAsync(username, password);
                 if (xmlResponse == null)
                 {
                     return false;
                 }
-                
+
                 string text = xmlResponse.OuterXml;
                 XmlNode userID = xmlResponse.SelectSingleNode("//ssuser/id");
                 if (userID == null)
                 {
                     return false;
                 }
-                
+
                 string remoteID = userID.InnerText;
                 if (username.ToLower() == remoteID.ToLower())
                 {
@@ -196,7 +197,8 @@ namespace GamelistManager.control
 
             if (scraperPlatform == "EmuMovies")
             {
-                string result = await API_EmuMovies.AuthenticateEmuMoviesAsync(username, password);
+                API_EmuMovies aPI_EmuMovies = new API_EmuMovies();
+                string result = await aPI_EmuMovies.AuthenticateEmuMoviesAsync(username, password);
                 if (!string.IsNullOrEmpty(result))
                 {
                     return true;
@@ -287,17 +289,17 @@ namespace GamelistManager.control
                 file = "ini\\screenscraper_options.ini";
             }
 
-            if (file == null) {return; }
+            if (file == null) { return; }
 
             IniFileReader iniReader = new IniFileReader(file);
             Dictionary<string, Dictionary<string, string>> allSections = iniReader.GetAllSections();
 
             // Populate ComboBoxes based on section names
             foreach (var section in allSections)
-            {               
+            {
                 string sectionName = section.Key;
                 Dictionary<string, string> sectionValues = section.Value;
-             
+
                 // Populate ComboBoxes based on section name
                 switch (sectionName)
                 {
@@ -323,7 +325,7 @@ namespace GamelistManager.control
             }
         }
         private async void SetDefaultOrSavedOptions()
-        {           
+        {
             bool saveRequired = false;
             string boxSource = RegistryManager.ReadRegistryValue(scraperPlatform, "BoxSource");
             string imageSource = RegistryManager.ReadRegistryValue(scraperPlatform, "ImageSource");
@@ -443,7 +445,8 @@ namespace GamelistManager.control
             string userPassword = textboxScraperPassword.Text;
             if (scraperPlatform == "ScreenScraper")
             {
-                maxThreads = await API_ScreenScraper.GetMaxScrap(userName, userPassword);
+                API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
+                maxThreads = await aPI_ScreenScraper.GetMaxScrap(userName, userPassword);
                 return maxThreads;
             }
 

@@ -1323,7 +1323,7 @@ namespace GamelistManager
             dataGridView1.Columns["favorite"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             dataGridView1.Columns["players"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             dataGridView1.Columns["rating"].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            dataGridView1.Columns["path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            dataGridView1.Columns["path"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["name"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dataGridView1.Columns["genre"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
         }
@@ -1343,11 +1343,16 @@ namespace GamelistManager
 
             this.Cursor = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
+
             SharedData.DataSet.Reset();
+            SharedData.DataSet.AcceptChanges();
 
             try
             {
-                SharedData.DataSet.ReadXml(fileName);
+                DataSet temp = new DataSet();
+                temp.ReadXml(fileName);
+                DataTable gameTable = temp.Tables["game"].Copy();  // Copy the 'game' table with data
+                SharedData.DataSet.Tables.Add(gameTable);  // Add it to SharedData.DataSet.Tables
             }
 
             catch (Exception ex)
@@ -1360,9 +1365,6 @@ namespace GamelistManager
 
             // Extract scraper data
             SetupScrapColumns();
-
-            // Delete all tables except for Game table
-            DeleteUnwantedTables();
 
             SharedData.XMLFilename = fileName;
 
@@ -1384,56 +1386,7 @@ namespace GamelistManager
             return true;
         }
 
-        private void DeleteUnwantedTables()
-        {
 
-            List<string> tablesToDelete = new List<string>();
-            foreach (DataTable table in SharedData.DataSet.Tables)
-            {
-                if (table.TableName.ToLower() != "game")
-                {
-                    tablesToDelete.Add(table.TableName);
-                }
-            }
-
-            if (tablesToDelete.Count > 0)
-            {
-                foreach (string tableToDelete in tablesToDelete)
-                {
-                    // Remove foreign key constraints
-                    List<ForeignKeyConstraint> constraintsToRemove = SharedData.DataSet.Tables[tableToDelete].Constraints
-                        .OfType<ForeignKeyConstraint>()
-                        .ToList();
-
-                    foreach (ForeignKeyConstraint constraint in constraintsToRemove)
-                    {
-                        SharedData.DataSet.Tables[tableToDelete].Constraints.Remove(constraint);
-                    }
-
-                    // Remove data relations
-                    List<DataRelation> relationsToRemove = SharedData.DataSet.Relations.Cast<DataRelation>()
-                        .Where(r => r.ChildTable.TableName == tableToDelete || r.ParentTable.TableName == tableToDelete)
-                        .ToList();
-
-                    foreach (DataRelation relation in relationsToRemove)
-                    {
-                        SharedData.DataSet.Relations.Remove(relation);
-                    }
-
-                    // Remove the table itself
-                    SharedData.DataSet.Tables.Remove(tableToDelete);
-                }
-            }
-
-            if (SharedData.DataSet.Tables["game"].PrimaryKey != null)
-            {
-                SharedData.DataSet.Tables["game"].PrimaryKey = null;
-            }
-            if (SharedData.DataSet.Tables["game"].Columns.Contains("game_id"))
-            {
-                SharedData.DataSet.Tables["game"].Columns.Remove("game_id");
-            }
-        }
 
         public void BuildCombobox()
         {

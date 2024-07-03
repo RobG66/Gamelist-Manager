@@ -1,5 +1,4 @@
-﻿using Renci.SshNet.Security;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 public class IniFileReader

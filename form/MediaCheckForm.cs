@@ -313,9 +313,35 @@ namespace GamelistManager
             missingImageCount = 0;
             missingVideoCount = 0;
             unusedMediaCount = 0;
-            string[] currentImages = Directory.GetFiles($"{parentFolderPath}\\images");
-            string[] currentVideos = Directory.GetFiles($"{parentFolderPath}\\videos");
-            string[] allMedia = currentImages.Concat(currentVideos).ToArray();
+
+            string[] currentImages = null;
+            string imageFolder = $"{parentFolderPath}\\images";
+            if (Directory.Exists(imageFolder))
+            {
+                currentImages = Directory.GetFiles(imageFolder);
+            }
+
+            string[] currentVideos = null;
+            string videoFolder = $"{parentFolderPath}\\videos";
+            if (Directory.Exists(videoFolder))
+            {
+                currentVideos = Directory.GetFiles(videoFolder);
+            }
+
+            string[] allMedia = null;
+            if (currentImages != null && currentVideos != null)
+            {
+                allMedia = currentImages.Concat(currentVideos).ToArray();
+            }
+            else if (currentImages != null)
+            {
+                allMedia = currentImages.ToArray();
+            }
+            else if (currentVideos != null)
+            {
+                allMedia = currentVideos.ToArray();
+            }
+
             string[] usedMedia = mediaList.Select(media => media.FullPath).ToArray();
 
             await Task.Run(() =>
@@ -351,6 +377,11 @@ namespace GamelistManager
                     }
                 }
             });
+
+            if (allMedia.Length == 0)
+            {
+                return;
+            }
 
             await Task.Run(() =>
             {
@@ -416,6 +447,7 @@ namespace GamelistManager
                     UpdateProgressBar();
                 });
             });
+
             return;
         }
 

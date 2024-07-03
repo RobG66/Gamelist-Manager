@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -10,12 +9,12 @@ using System.Windows.Forms;
 
 namespace GamelistManager
 {
-    internal static class API_ArcadeDB
+    internal class API_ArcadeDB
     {
-        private static readonly string apiURL = "http://adb.arcadeitalia.net/service_scraper.php";
-        private static readonly HttpClient client = new HttpClient();
+        private readonly string apiURL = "http://adb.arcadeitalia.net/service_scraper.php";
+        private readonly HttpClient client = new HttpClient();
 
-        public static async Task<ArcadeDBMetaData> ScrapeGame(string romName)
+        public async Task<ArcadeDBMetaData> ScrapeGame(string romName)
         {
             string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
             try
@@ -47,7 +46,7 @@ namespace GamelistManager
             }
         }
 
-        private static void ShowDownload(ListBox listBox, string message)
+        private void ShowDownload(ListBox listBox, string message)
         {
             if (listBox.InvokeRequired)
             {
@@ -64,7 +63,7 @@ namespace GamelistManager
             }
         }
 
-        public static async Task<ScraperData> ScrapeArcadeDBAsync(ScraperParameters scraperParameters,ListBox ListBoxControl
+        public async Task<ScraperData> ScrapeArcadeDBAsync(ScraperParameters scraperParameters, ListBox ListBoxControl
             )
         {
             var gameInfo = await ScrapeGame(scraperParameters.RomFileNameWithExtension);
@@ -80,7 +79,7 @@ namespace GamelistManager
             string downloadPath = null;
             string fileToDownload = null;
             bool downloadResult = false;
-       
+
             ScraperData scraperData = new ScraperData();
 
             foreach (string element in scraperParameters.ElementsToScrape)
@@ -130,7 +129,7 @@ namespace GamelistManager
                         break;
 
                     case "image":
-                        remoteDownloadURL = gameInfo.url_image_ingame; 
+                        remoteDownloadURL = gameInfo.url_image_ingame;
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             destinationFolder = "images";

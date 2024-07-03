@@ -1,26 +1,21 @@
-﻿using System.Net.Http;
-using System.Text.Json;
-using System.Text;
-using System;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace GamelistManager
 {
-    internal static class API_ScreenScraper
+    internal class API_ScreenScraper
     {
-        private static readonly string apiURL = "https://api.screenscraper.fr/api2";
-        private static readonly string devId = "";
-        private static readonly string devPassword = "";
-        private static readonly string software = "GamelistManager";
-        private static readonly HttpClient client = new HttpClient();
+        private readonly string apiURL = "https://api.screenscraper.fr/api2";
+        private readonly string devId = "";
+        private readonly string devPassword = "";
+        private readonly string software = "GamelistManager";
+        private readonly HttpClient client = new HttpClient();
 
-        public static async Task<int> GetMaxScrap(string userID, string userPassword)
+        public async Task<int> GetMaxScrap(string userID, string userPassword)
         {
             XmlNode xmlData = await AuthenticateScreenScraperAsync(userID, userPassword);
             if (xmlData != null)
@@ -34,7 +29,7 @@ namespace GamelistManager
             return 1;
         }
 
-        private static void ShowDownload(ListBox listBox, string message)
+        private void ShowDownload(ListBox listBox, string message)
         {
             if (listBox.InvokeRequired)
             {
@@ -51,7 +46,7 @@ namespace GamelistManager
             }
         }
 
-        public static async Task<XmlNode> AuthenticateScreenScraperAsync(string username, string password)
+        public async Task<XmlNode> AuthenticateScreenScraperAsync(string username, string password)
         {
             string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={username}&sspassword={password}";
             XMLResponder responder = new XMLResponder();
@@ -59,8 +54,8 @@ namespace GamelistManager
             return xmlResponse;
         }
 
-     
-        public static async Task<ScraperData> ScrapeScreenScraperAsync(ScraperParameters scraperParameters,ListBox ListBoxControl)
+
+        public async Task<ScraperData> ScrapeScreenScraperAsync(ScraperParameters scraperParameters, ListBox ListBoxControl)
         {
 
             string scrapeName = scraperParameters.Name;
@@ -74,7 +69,7 @@ namespace GamelistManager
             {
                 return null;
             }
-            
+
             string remoteDownloadURL = null;
             string fileFormat = null;
             string fileName = null;
@@ -83,7 +78,7 @@ namespace GamelistManager
             string folderName = null;
             string remoteElementName = null;
             string value = null;
-           
+
             ScraperData scraperData = new ScraperData();
             // medias xmlnode contains media download URL     
             XmlNode mediasNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
@@ -175,7 +170,7 @@ namespace GamelistManager
                         folderName = "images";
                         remoteElementName = "bezel-16-9";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
-                                                
+
                         if (remoteDownloadURL != null)
                         {
                             if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
@@ -260,7 +255,7 @@ namespace GamelistManager
                         break;
 
                     case "image":
-                        remoteElementName = scraperParameters.ImageSource ;
+                        remoteElementName = scraperParameters.ImageSource;
                         folderName = "images";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
@@ -281,7 +276,7 @@ namespace GamelistManager
                         break;
 
                     case "thumbnail":
-                        remoteElementName = scraperParameters.BoxSource ;
+                        remoteElementName = scraperParameters.BoxSource;
                         folderName = "images";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
@@ -302,7 +297,7 @@ namespace GamelistManager
                         break;
 
                     case "marquee":
-                        remoteElementName = scraperParameters.LogoSource ;
+                        remoteElementName = scraperParameters.LogoSource;
                         folderName = "images";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
@@ -352,7 +347,7 @@ namespace GamelistManager
 
         }
 
-        private static (string Url, string Format) ParseVideo(XmlNode XmlElement)
+        private (string Url, string Format) ParseVideo(XmlNode XmlElement)
         {
             if (XmlElement == null) { return (null, null); }
 
@@ -372,7 +367,7 @@ namespace GamelistManager
             return (null, null);
         }
 
-        private static (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
+        private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
         {
             if (xmlMedias == null) { return (null, null); }
 
@@ -408,7 +403,7 @@ namespace GamelistManager
             return (url, format);
         }
 
-        private static string ParseReleaseDate(XmlNode namesElement)
+        private string ParseReleaseDate(XmlNode namesElement)
         {
             if (namesElement == null) { return null; }
 
@@ -427,7 +422,7 @@ namespace GamelistManager
             return null;
         }
 
-        private static string ParseNames(XmlNode namesElement, string region)
+        private string ParseNames(XmlNode namesElement, string region)
         {
             if (namesElement == null) { return null; }
 
@@ -441,9 +436,9 @@ namespace GamelistManager
                 name = namesElement.SelectSingleNode($"nom[@region='{currentRegion}']");
                 if (name != null)
                 {
-                   break;
+                    break;
                 }
-                
+
             }
 
             if (name == null)
@@ -453,7 +448,7 @@ namespace GamelistManager
             return name.InnerText;
         }
 
-        private static string ProcessRating(string rating)
+        private string ProcessRating(string rating)
         {
             if (rating == null) { return null; }
 
@@ -466,7 +461,7 @@ namespace GamelistManager
             return ratingValFloat.ToString();
         }
 
-        private static (string GenreId, string GenreName) ParseGenres(XmlNode genresElement, string language)
+        private (string GenreId, string GenreName) ParseGenres(XmlNode genresElement, string language)
         {
             if (genresElement == null)
             {
@@ -511,4 +506,3 @@ namespace GamelistManager
     }
 }
 
-       

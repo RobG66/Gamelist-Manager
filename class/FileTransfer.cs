@@ -9,7 +9,9 @@ namespace GamelistManager
     {
         public static async Task<bool> DownloadFile(bool overWriteData, string fileToDownload, string url)
         {
-           try
+            //Console.WriteLine(fileToDownload);
+            //Console.WriteLine(url);
+            try
             {
                 string parentFolder = Path.GetDirectoryName(fileToDownload);
                 if (!Directory.Exists(parentFolder))
@@ -25,7 +27,7 @@ namespace GamelistManager
                     }
                     else
                     {
-                        return true;
+                        return false;
                     }
                 }
 
@@ -37,6 +39,11 @@ namespace GamelistManager
             }
             catch
             {
+                if (File.Exists(fileToDownload))
+                {
+                    File.Delete(fileToDownload);
+                }
+                // Console.WriteLine(url);
                 return false; // Return false if an exception occurred during the download
             }
         }

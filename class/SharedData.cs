@@ -42,13 +42,16 @@ namespace GamelistManager
         {
             get
             {
-                return dataSet;
+                lock (dataLock)
+                {
+                    return dataSet;
+                }
             }
 
             set
             {
                 lock (dataLock)
-                { 
+                {
                     dataSet = value;
                 }
             }
