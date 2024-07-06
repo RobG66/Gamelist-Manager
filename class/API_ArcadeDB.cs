@@ -140,7 +140,7 @@ namespace GamelistManager
                             if (downloadResult)
                             {
                                 scraperData.image = $"./{destinationFolder}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -157,7 +157,7 @@ namespace GamelistManager
                             if (downloadResult)
                             {
                                 scraperData.marquee = $"./{destinationFolder}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -178,7 +178,7 @@ namespace GamelistManager
                             if (downloadResult)
                             {
                                 scraperData.video = $"./{destinationFolder}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;

@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using FuzzySharp;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GamelistManager
 {
@@ -23,11 +26,8 @@ namespace GamelistManager
         public async Task<ScraperData> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, ListBox ListBoxControl, Dictionary<string, List<string>> emumoviesMediaLists)
         {
             string folderName = null;
-            string remoteElementName = null;
             string remoteDownloadURL = null;
-            string destinationFolder = null;
             string remoteFileName = null;
-            string downloadPath = null;
             string newFileName = null;
             string fileToDownload = null;
             bool downloadResult = false;
@@ -35,8 +35,6 @@ namespace GamelistManager
             List<string> mediaList = null;
             string fileFormat = null;
             ScraperData scraperData = new ScraperData();
-
-            Console.WriteLine($"scraping {scraperParameters.Name}");
 
             foreach (string element in scraperParameters.ElementsToScrape)
             {
@@ -73,7 +71,7 @@ namespace GamelistManager
                         if (downloadResult == true)
                         {
                             scraperData.fanart = $"./{folderName}/{newFileName}";
-                            ShowDownload(ListBoxControl, $"Downloaded: {newFileName}");
+                            ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
@@ -108,7 +106,42 @@ namespace GamelistManager
                         if (downloadResult == true)
                         {
                             scraperData.boxback = $"./{folderName}/{newFileName}";
-                            ShowDownload(ListBoxControl, $"Downloaded: {newFileName}");
+                            ShowDownload(ListBoxControl, $"{newFileName}");
+                        }
+                        break;
+
+                    case "manual":
+                        folderName = "manuals";
+                        remoteMediaType = "Manual";
+                        mediaList = emumoviesMediaLists[remoteMediaType];
+                        if (mediaList == null)
+                        {
+                            // No media
+                            continue;
+                        }
+                        remoteFileName = FuzzySearch(scraperParameters.Name, mediaList);
+                        if (string.IsNullOrEmpty(remoteFileName))
+                        {
+                            remoteFileName = FuzzySearch(scraperParameters.RomFileNameWithoutExtension, mediaList);
+                            if (string.IsNullOrEmpty(remoteFileName))
+                            {
+                                continue;
+                            }
+                        }
+                        fileFormat = null;
+                        fileFormat = Path.GetExtension(remoteFileName);
+                        if (string.IsNullOrEmpty(fileFormat))
+                        {
+                            continue;
+                        }
+                        newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                        if (downloadResult == true)
+                        {
+                            scraperData.boxback = $"./{folderName}/{newFileName}";
+                            ShowDownload(ListBoxControl, $"{newFileName}");
                         }
 
                         break;
@@ -144,7 +177,7 @@ namespace GamelistManager
                         if (downloadResult == true)
                         {
                             scraperData.image = $"./{folderName}/{newFileName}";
-                            ShowDownload(ListBoxControl, $"Downloaded: {newFileName}");
+                            ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
@@ -179,7 +212,7 @@ namespace GamelistManager
                         if (downloadResult == true)
                         {
                             scraperData.thumbnail = $"./{folderName}/{newFileName}";
-                            ShowDownload(ListBoxControl, $"Downloaded: {newFileName}");
+                            ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
@@ -214,7 +247,7 @@ namespace GamelistManager
                         if (downloadResult == true)
                         {
                             scraperData.marquee = $"./{folderName}/{newFileName}";
-                            ShowDownload(ListBoxControl, $"Downloaded: {newFileName}");
+                            ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
@@ -250,7 +283,7 @@ namespace GamelistManager
                         if (downloadResult == true)
                         {
                             scraperData.video = $"./{folderName}/{newFileName}";
-                            ShowDownload(ListBoxControl, $"Downloaded: {newFileName}");
+                            ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
                 }
@@ -260,17 +293,21 @@ namespace GamelistManager
 
         private string FuzzySearch(string searchName, List<string> names)
         {
-            var results = Process.ExtractTop(searchName, names, cutoff: 80, limit: 1);
-            var bestMatch = results.FirstOrDefault();
+            Console.WriteLine($"searching for {searchName}");
+                                    
+            var result = Process.ExtractOne(searchName, names, cutoff: 80);
 
-            if (bestMatch != null)
+            if (result != null)
             {
-                return bestMatch.Value; // Return the best matching string
+                // Return the original name corresponding to the best match
+                int index = names.IndexOf(result.Value);
+                return names[index];
             }
             else
             {
                 return null; // Return null if no match is found
             }
+
         }
 
         private HttpClient CreateHttpClient()

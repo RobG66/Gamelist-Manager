@@ -60,8 +60,7 @@ namespace GamelistManager.control
             SaveImageSource();
             SaveBoxSource();
             SaveLogoSource();
-            SaveMaxThreads();
-
+        
             buttonSave.Enabled = false;
             useDefaults = false;
             this.Enabled = true;
@@ -72,33 +71,28 @@ namespace GamelistManager.control
             bool scrapeByGameID = checkBoxScrapeByGameID.Checked;
             bool hideNonGame = checkBoxHideNonGame.Checked;
             bool noZZZ = checkBoxNoZZZ.Checked;
-            RegistryManager.SaveScraperSettings(scraperPlatform, "HideNonGame", hideNonGame.ToString());
-            RegistryManager.SaveScraperSettings(scraperPlatform, "NoZZZ", noZZZ.ToString());
-            RegistryManager.SaveScraperSettings(scraperPlatform, "ScrapeByGameID", scrapeByGameID.ToString());
+            RegistryManager.WriteRegistryValue(scraperPlatform, "HideNonGame", hideNonGame.ToString());
+            RegistryManager.WriteRegistryValue(scraperPlatform, "NoZZZ", noZZZ.ToString());
+            RegistryManager.WriteRegistryValue(scraperPlatform, "ScrapeByGameID", scrapeByGameID.ToString());
         }
-
-        private void SaveMaxThreads()
-        {
-            string maxThreadsValue = comboBoxMaxThreads.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform, "MaxThreads", maxThreadsValue);
-        }
+               
 
         private void SaveLogoSource()
         {
             string boxValue = comboBoxLogoSource.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform, "LogoSource", boxValue);
+            RegistryManager.WriteRegistryValue(scraperPlatform, "LogoSource", boxValue);
         }
 
         private void SaveImageSource()
         {
             string boxValue = comboBoxImageSource.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform, "ImageSource", boxValue);
+            RegistryManager.WriteRegistryValue(scraperPlatform, "ImageSource", boxValue);
         }
 
         private void SaveBoxSource()
         {
             string boxValue = comboBoxBoxSource.Text;
-            RegistryManager.SaveScraperSettings(scraperPlatform, "BoxSource", boxValue);
+            RegistryManager.WriteRegistryValue(scraperPlatform, "BoxSource", boxValue);
         }
 
         private void SaveLanguage()
@@ -109,7 +103,7 @@ namespace GamelistManager.control
             }
             string boxValue = comboBoxLanguage.Text;
             string language = boxValue.Split(':')[0].Trim();
-            RegistryManager.SaveScraperSettings(scraperPlatform, "Language", language);
+            RegistryManager.WriteRegistryValue(scraperPlatform, "Language", language);
         }
 
         private void SaveRegion()
@@ -120,7 +114,7 @@ namespace GamelistManager.control
             }
             string boxValue = comboBoxRegion.Text;
             string region = boxValue.Split(':')[0].Trim();
-            RegistryManager.SaveScraperSettings(scraperPlatform, "Region", region);
+            RegistryManager.WriteRegistryValue(scraperPlatform, "Region", region);
         }
 
         private void SaveCredentials()
@@ -324,7 +318,7 @@ namespace GamelistManager.control
                 }
             }
         }
-        private async void SetDefaultOrSavedOptions()
+        private void SetDefaultOrSavedOptions()
         {
             bool saveRequired = false;
             string boxSource = RegistryManager.ReadRegistryValue(scraperPlatform, "BoxSource");
@@ -371,12 +365,10 @@ namespace GamelistManager.control
             }
 
 
-            int maxThreads = 1;
-
+         
             if (scraperPlatform == "ScreenScraper")
             {
-                maxThreads = await GetMaxThreads();
-
+                
                 bool.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "HideNonGame"), out bool hideNonGame);
                 bool.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "NoZZZ"), out bool noZZZ);
                 bool.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "ScrapeByGameID"), out bool scrapeByGameID);
@@ -404,59 +396,14 @@ namespace GamelistManager.control
                     comboBoxRegion.SelectedIndex = 0;
                 }
             }
-
-            if (scraperPlatform == "EmuMovies")
-            {
-                maxThreads = 2;
-            }
-
-            if (comboBoxMaxThreads.Items.Count > 0)
-            {
-                comboBoxMaxThreads.Items.Clear();
-            }
-
-            for (int i = 1; i <= maxThreads; i++)
-            {
-                comboBoxMaxThreads.Items.Add(i.ToString());
-            }
-
-            int threads;
-            int.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "HideNonGame"), out threads);
-
-            if (threads == 0 || threads > maxThreads)
-            {
-                comboBoxMaxThreads.SelectedIndex = maxThreads - 1;
-            }
-            else
-            {
-                comboBoxMaxThreads.SelectedIndex = threads;
-            }
-
+                        
             if (saveRequired == true)
             {
                 SaveGameOptions();
             }
 
         }
-        private async Task<int> GetMaxThreads()
-        {
-            int maxThreads = 1;
-            string userName = textboxScraperName.Text;
-            string userPassword = textboxScraperPassword.Text;
-            if (scraperPlatform == "ScreenScraper")
-            {
-                API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
-                maxThreads = await aPI_ScreenScraper.GetMaxScrap(userName, userPassword);
-                return maxThreads;
-            }
-
-            if (scraperPlatform == "EmuMovies")
-            {
-                maxThreads = 2;
-            }
-            return 1;
-        }
-
+      
         private void checkBoxHideNonGame_CheckedChanged(object sender, EventArgs e)
         {
             buttonSave.Enabled = true;

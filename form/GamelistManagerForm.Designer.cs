@@ -77,6 +77,9 @@
             this.ToolStripMenuItemAlwaysOnTop = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             this.resetViewToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
+            this.dataGridColoringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripColorComboBox = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripMenuItemEditMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripEdit = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.setAllItemsVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -177,12 +180,13 @@
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.AllowUserToResizeRows = false;
-            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.WhiteSmoke;
             this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -198,7 +202,7 @@
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(542, 138);
+            this.dataGridView1.Size = new System.Drawing.Size(538, 137);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellClick);
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.DataGridView1_SelectionChanged);
@@ -211,7 +215,7 @@
             this.richTextBoxDescription.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxDescription.Name = "richTextBoxDescription";
             this.richTextBoxDescription.ReadOnly = true;
-            this.richTextBoxDescription.Size = new System.Drawing.Size(155, 138);
+            this.richTextBoxDescription.Size = new System.Drawing.Size(159, 137);
             this.richTextBoxDescription.TabIndex = 0;
             this.richTextBoxDescription.Text = "";
             this.richTextBoxDescription.Leave += new System.EventHandler(this.richTextBoxDescription_Leave);
@@ -308,7 +312,7 @@
             this.splitContainerBig.Panel2.Controls.Add(this.panelMediaBackground);
             this.splitContainerBig.Panel2MinSize = 125;
             this.splitContainerBig.Size = new System.Drawing.Size(704, 317);
-            this.splitContainerBig.SplitterDistance = 188;
+            this.splitContainerBig.SplitterDistance = 187;
             this.splitContainerBig.TabIndex = 3;
             // 
             // panelBelowDataGridView
@@ -330,7 +334,7 @@
             this.panelBelowDataGridView.Controls.Add(this.labelFavorite);
             this.panelBelowDataGridView.Controls.Add(this.labelShowing);
             this.panelBelowDataGridView.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 140);
+            this.panelBelowDataGridView.Location = new System.Drawing.Point(0, 139);
             this.panelBelowDataGridView.Name = "panelBelowDataGridView";
             this.panelBelowDataGridView.Size = new System.Drawing.Size(704, 48);
             this.panelBelowDataGridView.TabIndex = 12;
@@ -446,8 +450,8 @@
             // splitContainerSmall.Panel2
             // 
             this.splitContainerSmall.Panel2.Controls.Add(this.richTextBoxDescription);
-            this.splitContainerSmall.Size = new System.Drawing.Size(701, 138);
-            this.splitContainerSmall.SplitterDistance = 542;
+            this.splitContainerSmall.Size = new System.Drawing.Size(701, 137);
+            this.splitContainerSmall.SplitterDistance = 538;
             this.splitContainerSmall.TabIndex = 2;
             // 
             // panelMediaBackground
@@ -457,12 +461,13 @@
             this.panelMediaBackground.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelMediaBackground.Location = new System.Drawing.Point(0, 0);
             this.panelMediaBackground.Name = "panelMediaBackground";
-            this.panelMediaBackground.Size = new System.Drawing.Size(704, 125);
+            this.panelMediaBackground.Size = new System.Drawing.Size(704, 126);
             this.panelMediaBackground.TabIndex = 0;
             // 
             // menuStripMainMenu
             // 
             this.menuStripMainMenu.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.menuStripMainMenu.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.menuStripMainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItemFileMenu,
             this.toolStripMenuItemViewMenu,
@@ -579,12 +584,14 @@
             this.toolStripSeparator27,
             this.ToolStripMenuItemAlwaysOnTop,
             this.toolStripSeparator14,
-            this.resetViewToolStripMenuItem1});
+            this.resetViewToolStripMenuItem1,
+            this.toolStripSeparator15,
+            this.dataGridColoringToolStripMenuItem});
             this.contextMenuStripView.Name = "contextMenuStripView";
             this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
-            this.contextMenuStripView.Size = new System.Drawing.Size(257, 204);
+            this.contextMenuStripView.Size = new System.Drawing.Size(257, 232);
             // 
             // showAllHiddenAndVisibleItemsToolStripMenuItem
             // 
@@ -663,6 +670,26 @@
             this.resetViewToolStripMenuItem1.Size = new System.Drawing.Size(256, 22);
             this.resetViewToolStripMenuItem1.Text = "Reset View";
             this.resetViewToolStripMenuItem1.Click += new System.EventHandler(this.resetViewToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator15
+            // 
+            this.toolStripSeparator15.Name = "toolStripSeparator15";
+            this.toolStripSeparator15.Size = new System.Drawing.Size(253, 6);
+            // 
+            // dataGridColoringToolStripMenuItem
+            // 
+            this.dataGridColoringToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripColorComboBox});
+            this.dataGridColoringToolStripMenuItem.Name = "dataGridColoringToolStripMenuItem";
+            this.dataGridColoringToolStripMenuItem.Size = new System.Drawing.Size(256, 22);
+            this.dataGridColoringToolStripMenuItem.Text = "DataGrid Alternating Row Color";
+            // 
+            // toolStripColorComboBox
+            // 
+            this.toolStripColorComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.toolStripColorComboBox.Name = "toolStripColorComboBox";
+            this.toolStripColorComboBox.Size = new System.Drawing.Size(121, 23);
+            this.toolStripColorComboBox.SelectedIndexChanged += new System.EventHandler(this.toolStripColorComboBox_SelectedIndexChanged);
             // 
             // toolStripMenuItemEditMenu
             // 
@@ -829,7 +856,6 @@
             this.toolStripSeparator8,
             this.ScraperDatesToolStripMenuItem});
             this.contextMenuStripColumns.Name = "contextMenuStripColumns";
-            this.contextMenuStripColumns.OwnerItem = this.toolStripMenuItemColumnsMenu;
             this.contextMenuStripColumns.ShowCheckMargin = true;
             this.contextMenuStripColumns.ShowImageMargin = false;
             this.contextMenuStripColumns.Size = new System.Drawing.Size(146, 380);
@@ -1188,7 +1214,6 @@
             this.contextMenuStripScraper.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openScraperToolStripMenuItem});
             this.contextMenuStripScraper.Name = "contextMenuStripScraper";
-            this.contextMenuStripScraper.OwnerItem = this.toolStripMenuItemScraperMenu;
             this.contextMenuStripScraper.ShowImageMargin = false;
             this.contextMenuStripScraper.Size = new System.Drawing.Size(121, 26);
             // 
@@ -1242,7 +1267,7 @@
             this.Controls.Add(this.statusBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMainMenu;
-            this.Margin = new System.Windows.Forms.Padding(1);
+            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
             this.MinimumSize = new System.Drawing.Size(720, 400);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
@@ -1395,6 +1420,9 @@
         private System.Windows.Forms.ToolStripMenuItem removeBatoceraHostKeyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemAlwaysOnTop;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator14;
+        private System.Windows.Forms.ToolStripMenuItem dataGridColoringToolStripMenuItem;
+        private System.Windows.Forms.ToolStripComboBox toolStripColorComboBox;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
     }
 }
 

@@ -20,6 +20,9 @@ namespace GamelistManager
         public string LogoSource { get; set; }
         public bool Overwrite { get; set; }
         public string UserToken { get; set; }
+        public string ScraperPlatform { get; set; }
+        public bool NoZZZ { get; set; }
+        public bool HideNonGame { get; set; }
         public List<string> ElementsToScrape { get; set; }
     }
 }

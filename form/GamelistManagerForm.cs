@@ -265,6 +265,51 @@ namespace GamelistManager
             libVLC = new LibVLC();
             mediaPlayer = new MediaPlayer(libVLC);
             mediaPlayer.EndReached += MediaPlayer_EndReached;
+
+            toolStripColorComboBox.ComboBox.DrawMode = DrawMode.OwnerDrawFixed;
+            foreach (KnownColor knownColor in Enum.GetValues(typeof(KnownColor)))
+            {
+                toolStripColorComboBox.Items.Add(knownColor);
+            }
+            toolStripColorComboBox.ComboBox.DrawItem += new DrawItemEventHandler(toolStripComboBox_DrawItem);
+
+            string dataGridColor = RegistryManager.ReadRegistryValue(null, "DataGrid Color");
+
+            if (string.IsNullOrEmpty(dataGridColor))
+            {
+                toolStripColorComboBox.Text = "WhiteSmoke";
+                dataGridColor = "WhiteSmoke";
+            }
+            else
+            {
+                toolStripColorComboBox.Text = dataGridColor;
+            }
+            dataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.FromName(dataGridColor);
+        }
+
+        private void toolStripComboBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+
+            ComboBox comboBox = sender as ComboBox;
+            KnownColor knownColor = (KnownColor)comboBox.Items[e.Index];
+            Color color = Color.FromKnownColor(knownColor);
+
+            e.DrawBackground();
+
+            using (Brush brush = new SolidBrush(color))
+            {
+                Rectangle colorRect = new Rectangle(e.Bounds.Left + 2, e.Bounds.Top + 2, 16, e.Bounds.Height - 4);
+                e.Graphics.FillRectangle(brush, colorRect);
+                e.Graphics.DrawRectangle(Pens.Black, colorRect);
+            }
+
+            using (Brush textBrush = new SolidBrush(e.ForeColor))
+            {
+                e.Graphics.DrawString(knownColor.ToString(), e.Font, textBrush, e.Bounds.Left + 24, e.Bounds.Top);
+            }
+
+            e.DrawFocusRectangle();
         }
 
         private void ClearMenuRecentFiles()
@@ -1240,6 +1285,7 @@ namespace GamelistManager
 
         private void SetupScrapColumns()
         {
+
             if (!SharedData.DataSet.Tables.Contains("scrap"))
             {
                 return;
@@ -2567,7 +2613,7 @@ namespace GamelistManager
             scraper.FormClosed += ScraperForm_FormClosed;
             scraper.Owner = this;
             scraper.StartPosition = FormStartPosition.Manual;
-            scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 50);
+            scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 0);
             toolStripMenuItemFileMenu.Enabled = false;
             toolStripMenuItemScraperMenu.Enabled = false;
             toolStripMenuItemToolsMenu.Enabled = false;
@@ -3059,6 +3105,8 @@ namespace GamelistManager
                     videoView.Dispose();
                 }
             }
+
+            RegistryManager.WriteRegistryValue(null,"DataGrid Color",toolStripColorComboBox.Text); 
         }
 
         private void ToolStripMenuItemAlwaysOnTop_CheckedChanged(object sender, EventArgs e)
@@ -3087,7 +3135,11 @@ namespace GamelistManager
             SharedData.DataSet.AcceptChanges();
         }
 
-    }
+        private void toolStripColorComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string color = toolStripColorComboBox.Text;
+            dataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.FromName(color);        }
+        }
 }
 
 

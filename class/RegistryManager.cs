@@ -102,7 +102,7 @@ namespace GamelistManager
             return new List<string>();
         }
 
-        public static void SaveScraperSettings(string subkey, string valueName, string value)
+        public static void WriteRegistryValue(string subkey, string valueName, string value)
         {
             string regkey = programRegistryKey;
 

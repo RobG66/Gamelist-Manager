@@ -183,7 +183,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.bezel = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -205,7 +205,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.fanart = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -227,7 +227,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.boxback = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -249,7 +249,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.manual = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -270,7 +270,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.image = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -291,7 +291,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.thumbnail = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -314,7 +314,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.marquee = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
@@ -336,7 +336,7 @@ namespace GamelistManager
                             if (downloadResult == true)
                             {
                                 scraperData.video = $"./{folderName}/{fileName}";
-                                ShowDownload(ListBoxControl, $"Downloaded: {fileName}");
+                                ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
