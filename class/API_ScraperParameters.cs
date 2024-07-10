@@ -19,7 +19,7 @@ namespace GamelistManager
         public string Marquee { get; set; }
         public string LogoSource { get; set; }
         public bool Overwrite { get; set; }
-        public string UserToken { get; set; }
+        public string UserAccessToken { get; set; }
         public string ScraperPlatform { get; set; }
         public bool NoZZZ { get; set; }
         public bool HideNonGame { get; set; }

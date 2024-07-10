@@ -123,6 +123,7 @@
             this.toolStripMenuItemToolsMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripTools = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.MameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mAMEIdentifyClonesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.MediaCheckToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -130,6 +131,7 @@
             this.FindMissingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.CreateM3UToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.reassociateMediaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemRemoteMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripRemote = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -186,7 +188,7 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(1);
             this.dataGridView1.Name = "dataGridView1";
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
@@ -239,7 +241,7 @@
             this.labelShowingCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelShowingCount.AutoSize = true;
             this.labelShowingCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelShowingCount.ForeColor = System.Drawing.Color.Red;
+            this.labelShowingCount.ForeColor = System.Drawing.Color.DarkRed;
             this.labelShowingCount.Location = new System.Drawing.Point(329, 4);
             this.labelShowingCount.Name = "labelShowingCount";
             this.labelShowingCount.Size = new System.Drawing.Size(13, 15);
@@ -262,7 +264,7 @@
             this.labelHiddenCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelHiddenCount.AutoSize = true;
             this.labelHiddenCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelHiddenCount.ForeColor = System.Drawing.Color.Red;
+            this.labelHiddenCount.ForeColor = System.Drawing.Color.DarkRed;
             this.labelHiddenCount.Location = new System.Drawing.Point(232, 26);
             this.labelHiddenCount.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.labelHiddenCount.Name = "labelHiddenCount";
@@ -275,7 +277,7 @@
             this.labelVisibleCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelVisibleCount.AutoSize = true;
             this.labelVisibleCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelVisibleCount.ForeColor = System.Drawing.Color.Red;
+            this.labelVisibleCount.ForeColor = System.Drawing.Color.DarkRed;
             this.labelVisibleCount.Location = new System.Drawing.Point(232, 4);
             this.labelVisibleCount.Margin = new System.Windows.Forms.Padding(1, 0, 1, 0);
             this.labelVisibleCount.Name = "labelVisibleCount";
@@ -417,7 +419,7 @@
             this.labelFavoriteCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelFavoriteCount.AutoSize = true;
             this.labelFavoriteCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelFavoriteCount.ForeColor = System.Drawing.Color.Red;
+            this.labelFavoriteCount.ForeColor = System.Drawing.Color.DarkRed;
             this.labelFavoriteCount.Location = new System.Drawing.Point(329, 26);
             this.labelFavoriteCount.Name = "labelFavoriteCount";
             this.labelFavoriteCount.Size = new System.Drawing.Size(13, 15);
@@ -591,7 +593,7 @@
             this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
-            this.contextMenuStripView.Size = new System.Drawing.Size(257, 232);
+            this.contextMenuStripView.Size = new System.Drawing.Size(257, 254);
             // 
             // showAllHiddenAndVisibleItemsToolStripMenuItem
             // 
@@ -1020,17 +1022,19 @@
             this.contextMenuStripTools.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MameToolStripMenuItem,
+            this.mAMEIdentifyClonesToolStripMenuItem,
             this.toolStripSeparator1,
             this.MediaCheckToolStripMenuItem,
             this.toolStripSeparator2,
             this.FindNewToolStripMenuItem,
             this.FindMissingToolStripMenuItem,
             this.toolStripSeparator9,
-            this.CreateM3UToolStripMenuItem});
+            this.CreateM3UToolStripMenuItem,
+            this.reassociateMediaToolStripMenuItem});
             this.contextMenuStripTools.Name = "contextMenuStripTools";
             this.contextMenuStripTools.OwnerItem = this.toolStripMenuItemToolsMenu;
             this.contextMenuStripTools.ShowImageMargin = false;
-            this.contextMenuStripTools.Size = new System.Drawing.Size(277, 132);
+            this.contextMenuStripTools.Size = new System.Drawing.Size(277, 176);
             // 
             // MameToolStripMenuItem
             // 
@@ -1038,6 +1042,13 @@
             this.MameToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
             this.MameToolStripMenuItem.Text = "MAME: Identify Unplayable";
             this.MameToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItem_MameUnplayable_Click);
+            // 
+            // mAMEIdentifyClonesToolStripMenuItem
+            // 
+            this.mAMEIdentifyClonesToolStripMenuItem.Name = "mAMEIdentifyClonesToolStripMenuItem";
+            this.mAMEIdentifyClonesToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.mAMEIdentifyClonesToolStripMenuItem.Text = "MAME: Identify Clones";
+            this.mAMEIdentifyClonesToolStripMenuItem.Click += new System.EventHandler(this.mAMEIdentifyClonesToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -1082,6 +1093,13 @@
             this.CreateM3UToolStripMenuItem.Text = "Create M3U From Selected Items";
             this.CreateM3UToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItemCreateM3UFile_Click);
             // 
+            // reassociateMediaToolStripMenuItem
+            // 
+            this.reassociateMediaToolStripMenuItem.Name = "reassociateMediaToolStripMenuItem";
+            this.reassociateMediaToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.reassociateMediaToolStripMenuItem.Text = "Re-associate Media";
+            this.reassociateMediaToolStripMenuItem.Click += new System.EventHandler(this.reassociateMediaToolStripMenuItem_Click);
+            // 
             // toolStripMenuItemRemoteMenu
             // 
             this.toolStripMenuItemRemoteMenu.DropDown = this.contextMenuStripRemote;
@@ -1108,7 +1126,6 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
-            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
             this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
@@ -1267,7 +1284,7 @@
             this.Controls.Add(this.statusBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMainMenu;
-            this.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
+            this.Margin = new System.Windows.Forms.Padding(1);
             this.MinimumSize = new System.Drawing.Size(720, 400);
             this.Name = "GamelistManagerForm";
             this.Text = "Gamelist Manager";
@@ -1423,6 +1440,8 @@
         private System.Windows.Forms.ToolStripMenuItem dataGridColoringToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox toolStripColorComboBox;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
+        private System.Windows.Forms.ToolStripMenuItem mAMEIdentifyClonesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem reassociateMediaToolStripMenuItem;
     }
 }
 

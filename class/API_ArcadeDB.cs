@@ -66,7 +66,7 @@ namespace GamelistManager
         public async Task<ScraperData> ScrapeArcadeDBAsync(ScraperParameters scraperParameters, ListBox ListBoxControl
             )
         {
-            var gameInfo = await ScrapeGame(scraperParameters.RomFileNameWithExtension);
+            var gameInfo = await ScrapeGame(scraperParameters.RomFileNameWithoutExtension);
 
             if (gameInfo == null)
             {

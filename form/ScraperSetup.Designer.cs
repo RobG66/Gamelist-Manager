@@ -36,12 +36,6 @@
             this.textboxScraperName = new System.Windows.Forms.TextBox();
             this.labelPassword = new System.Windows.Forms.Label();
             this.labelName = new System.Windows.Forms.Label();
-            this.comboBoxImageSource = new System.Windows.Forms.ComboBox();
-            this.labelImageSource = new System.Windows.Forms.Label();
-            this.labelBoxSource = new System.Windows.Forms.Label();
-            this.comboBoxBoxSource = new System.Windows.Forms.ComboBox();
-            this.labelLogoSource = new System.Windows.Forms.Label();
-            this.comboBoxLogoSource = new System.Windows.Forms.ComboBox();
             this.labelRegion = new System.Windows.Forms.Label();
             this.comboBoxRegion = new System.Windows.Forms.ComboBox();
             this.labelLanguage = new System.Windows.Forms.Label();
@@ -70,7 +64,7 @@
             this.labelNote.BackColor = System.Drawing.Color.Transparent;
             this.labelNote.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.labelNote.ForeColor = System.Drawing.Color.Red;
-            this.labelNote.Location = new System.Drawing.Point(0, 288);
+            this.labelNote.Location = new System.Drawing.Point(0, 230);
             this.labelNote.Name = "labelNote";
             this.labelNote.Size = new System.Drawing.Size(239, 21);
             this.labelNote.TabIndex = 20;
@@ -136,71 +130,11 @@
             this.labelName.TabIndex = 13;
             this.labelName.Text = "ScreenScraper Name";
             // 
-            // comboBoxImageSource
-            // 
-            this.comboBoxImageSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxImageSource.FormattingEnabled = true;
-            this.comboBoxImageSource.Location = new System.Drawing.Point(124, 6);
-            this.comboBoxImageSource.Name = "comboBoxImageSource";
-            this.comboBoxImageSource.Size = new System.Drawing.Size(107, 21);
-            this.comboBoxImageSource.TabIndex = 22;
-            this.comboBoxImageSource.SelectedIndexChanged += new System.EventHandler(this.ComboBox_ImageSource_SelectedIndexChanged);
-            // 
-            // labelImageSource
-            // 
-            this.labelImageSource.AutoSize = true;
-            this.labelImageSource.BackColor = System.Drawing.Color.Transparent;
-            this.labelImageSource.Location = new System.Drawing.Point(7, 9);
-            this.labelImageSource.Name = "labelImageSource";
-            this.labelImageSource.Size = new System.Drawing.Size(73, 13);
-            this.labelImageSource.TabIndex = 23;
-            this.labelImageSource.Text = "Image Source";
-            // 
-            // labelBoxSource
-            // 
-            this.labelBoxSource.AutoSize = true;
-            this.labelBoxSource.BackColor = System.Drawing.Color.Transparent;
-            this.labelBoxSource.Location = new System.Drawing.Point(7, 32);
-            this.labelBoxSource.Name = "labelBoxSource";
-            this.labelBoxSource.Size = new System.Drawing.Size(62, 13);
-            this.labelBoxSource.TabIndex = 25;
-            this.labelBoxSource.Text = "Box Source";
-            // 
-            // comboBoxBoxSource
-            // 
-            this.comboBoxBoxSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxBoxSource.FormattingEnabled = true;
-            this.comboBoxBoxSource.Location = new System.Drawing.Point(124, 29);
-            this.comboBoxBoxSource.Name = "comboBoxBoxSource";
-            this.comboBoxBoxSource.Size = new System.Drawing.Size(107, 21);
-            this.comboBoxBoxSource.TabIndex = 24;
-            this.comboBoxBoxSource.SelectedIndexChanged += new System.EventHandler(this.ComboBox_BoxSource_SelectedIndexChanged);
-            // 
-            // labelLogoSource
-            // 
-            this.labelLogoSource.AutoSize = true;
-            this.labelLogoSource.BackColor = System.Drawing.Color.Transparent;
-            this.labelLogoSource.Location = new System.Drawing.Point(7, 55);
-            this.labelLogoSource.Name = "labelLogoSource";
-            this.labelLogoSource.Size = new System.Drawing.Size(68, 13);
-            this.labelLogoSource.TabIndex = 27;
-            this.labelLogoSource.Text = "Logo Source";
-            // 
-            // comboBoxLogoSource
-            // 
-            this.comboBoxLogoSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxLogoSource.FormattingEnabled = true;
-            this.comboBoxLogoSource.Location = new System.Drawing.Point(124, 52);
-            this.comboBoxLogoSource.Name = "comboBoxLogoSource";
-            this.comboBoxLogoSource.Size = new System.Drawing.Size(107, 21);
-            this.comboBoxLogoSource.TabIndex = 26;
-            this.comboBoxLogoSource.SelectedIndexChanged += new System.EventHandler(this.ComboBox_LogoSource_SelectedIndexChanged);
-            // 
             // labelRegion
             // 
             this.labelRegion.AutoSize = true;
             this.labelRegion.BackColor = System.Drawing.Color.Transparent;
-            this.labelRegion.Location = new System.Drawing.Point(7, 78);
+            this.labelRegion.Location = new System.Drawing.Point(3, 12);
             this.labelRegion.Name = "labelRegion";
             this.labelRegion.Size = new System.Drawing.Size(87, 13);
             this.labelRegion.TabIndex = 29;
@@ -210,7 +144,7 @@
             // 
             this.comboBoxRegion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxRegion.FormattingEnabled = true;
-            this.comboBoxRegion.Location = new System.Drawing.Point(124, 75);
+            this.comboBoxRegion.Location = new System.Drawing.Point(120, 9);
             this.comboBoxRegion.Name = "comboBoxRegion";
             this.comboBoxRegion.Size = new System.Drawing.Size(107, 21);
             this.comboBoxRegion.TabIndex = 28;
@@ -219,7 +153,7 @@
             // 
             this.labelLanguage.AutoSize = true;
             this.labelLanguage.BackColor = System.Drawing.Color.Transparent;
-            this.labelLanguage.Location = new System.Drawing.Point(7, 101);
+            this.labelLanguage.Location = new System.Drawing.Point(3, 35);
             this.labelLanguage.Name = "labelLanguage";
             this.labelLanguage.Size = new System.Drawing.Size(101, 13);
             this.labelLanguage.TabIndex = 31;
@@ -229,7 +163,7 @@
             // 
             this.comboBoxLanguage.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxLanguage.FormattingEnabled = true;
-            this.comboBoxLanguage.Location = new System.Drawing.Point(124, 98);
+            this.comboBoxLanguage.Location = new System.Drawing.Point(120, 32);
             this.comboBoxLanguage.Name = "comboBoxLanguage";
             this.comboBoxLanguage.Size = new System.Drawing.Size(107, 21);
             this.comboBoxLanguage.TabIndex = 30;
@@ -238,7 +172,7 @@
             // 
             this.checkBoxHideNonGame.AutoSize = true;
             this.checkBoxHideNonGame.BackColor = System.Drawing.Color.Transparent;
-            this.checkBoxHideNonGame.Location = new System.Drawing.Point(10, 125);
+            this.checkBoxHideNonGame.Location = new System.Drawing.Point(6, 59);
             this.checkBoxHideNonGame.Name = "checkBoxHideNonGame";
             this.checkBoxHideNonGame.Size = new System.Drawing.Size(161, 17);
             this.checkBoxHideNonGame.TabIndex = 34;
@@ -250,7 +184,7 @@
             // 
             this.checkBoxNoZZZ.AutoSize = true;
             this.checkBoxNoZZZ.BackColor = System.Drawing.Color.Transparent;
-            this.checkBoxNoZZZ.Location = new System.Drawing.Point(10, 148);
+            this.checkBoxNoZZZ.Location = new System.Drawing.Point(6, 82);
             this.checkBoxNoZZZ.Name = "checkBoxNoZZZ";
             this.checkBoxNoZZZ.Size = new System.Drawing.Size(160, 17);
             this.checkBoxNoZZZ.TabIndex = 35;
@@ -262,7 +196,7 @@
             // 
             this.checkBoxScrapeByGameID.AutoSize = true;
             this.checkBoxScrapeByGameID.BackColor = System.Drawing.Color.Transparent;
-            this.checkBoxScrapeByGameID.Location = new System.Drawing.Point(10, 171);
+            this.checkBoxScrapeByGameID.Location = new System.Drawing.Point(6, 105);
             this.checkBoxScrapeByGameID.Name = "checkBoxScrapeByGameID";
             this.checkBoxScrapeByGameID.Size = new System.Drawing.Size(172, 17);
             this.checkBoxScrapeByGameID.TabIndex = 36;
@@ -274,15 +208,9 @@
             // 
             this.panelOptions.BackColor = System.Drawing.Color.Transparent;
             this.panelOptions.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelOptions.Controls.Add(this.labelImageSource);
             this.panelOptions.Controls.Add(this.checkBoxScrapeByGameID);
-            this.panelOptions.Controls.Add(this.comboBoxImageSource);
             this.panelOptions.Controls.Add(this.checkBoxNoZZZ);
-            this.panelOptions.Controls.Add(this.comboBoxBoxSource);
             this.panelOptions.Controls.Add(this.checkBoxHideNonGame);
-            this.panelOptions.Controls.Add(this.labelBoxSource);
-            this.panelOptions.Controls.Add(this.comboBoxLogoSource);
-            this.panelOptions.Controls.Add(this.labelLogoSource);
             this.panelOptions.Controls.Add(this.labelLanguage);
             this.panelOptions.Controls.Add(this.comboBoxRegion);
             this.panelOptions.Controls.Add(this.comboBoxLanguage);
@@ -290,7 +218,7 @@
             this.panelOptions.Enabled = false;
             this.panelOptions.Location = new System.Drawing.Point(2, 91);
             this.panelOptions.Name = "panelOptions";
-            this.panelOptions.Size = new System.Drawing.Size(235, 197);
+            this.panelOptions.Size = new System.Drawing.Size(235, 139);
             this.panelOptions.TabIndex = 37;
             // 
             // ScraperSetup
@@ -299,7 +227,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::GamelistManager.Properties.Resources.background6;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(239, 309);
+            this.ClientSize = new System.Drawing.Size(239, 251);
             this.Controls.Add(this.panelOptions);
             this.Controls.Add(this.checkboxShowPassword);
             this.Controls.Add(this.labelNote);
@@ -333,12 +261,6 @@
         private System.Windows.Forms.TextBox textboxScraperName;
         private System.Windows.Forms.Label labelPassword;
         private System.Windows.Forms.Label labelName;
-        private System.Windows.Forms.ComboBox comboBoxImageSource;
-        private System.Windows.Forms.Label labelImageSource;
-        private System.Windows.Forms.Label labelBoxSource;
-        private System.Windows.Forms.ComboBox comboBoxBoxSource;
-        private System.Windows.Forms.Label labelLogoSource;
-        private System.Windows.Forms.ComboBox comboBoxLogoSource;
         private System.Windows.Forms.Label labelRegion;
         private System.Windows.Forms.ComboBox comboBoxRegion;
         private System.Windows.Forms.Label labelLanguage;

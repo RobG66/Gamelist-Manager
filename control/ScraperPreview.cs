@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Drawing;
+using System.Windows.Forms;
 
 namespace GamelistManager.control
 {
@@ -17,5 +18,11 @@ namespace GamelistManager.control
                 pictureBox1.ImageLocation = imageFilePath;
             }
         }
+
+        public void UpdatePictureBoxWithImage(Image image)
+        {
+            pictureBox1.Image = image;
+        }
+
     }
 }

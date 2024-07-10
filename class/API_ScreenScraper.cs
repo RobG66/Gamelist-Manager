@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace GamelistManager
         private readonly string software = "GamelistManager";
         private readonly HttpClient client = new HttpClient();
 
-        public async Task<int> GetMaxScrap(string userID, string userPassword)
+        public async Task<int> GetMaxThreads(string userID, string userPassword)
         {
             XmlNode xmlData = await AuthenticateScreenScraperAsync(userID, userPassword);
             if (xmlData != null)
@@ -55,7 +56,7 @@ namespace GamelistManager
         }
 
 
-        public async Task<ScraperData> ScrapeScreenScraperAsync(ScraperParameters scraperParameters, ListBox ListBoxControl)
+        public async Task<Tuple<int, int, ScraperData>> ScrapeScreenScraperAsync(ScraperParameters scraperParameters, ListBox ListBoxControl)
         {
 
             string scrapeName = scraperParameters.Name;
@@ -67,7 +68,33 @@ namespace GamelistManager
 
             if (xmlResponse == null)
             {
-                return null;
+                // Try one more time with the name of the rom file
+                scrapeName = scraperParameters.RomFileNameWithoutExtension;
+                scrapInfo = "&romtype=rom&romnom={scrapeName}";
+                url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
+                xmlResponse = await xmlResponder.GetXMLResponseAsync(url);
+            }
+
+            if (xmlResponse == null)
+            {
+                return new Tuple<int, int, ScraperData>(0, 0, null);
+            }
+
+            ScraperData scraperData = new ScraperData();
+
+            int scrapeTotal = 0;
+            int scrapeMax = 0;
+            var totalRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/requeststoday");
+
+            if (totalRequestsNode != null)
+            {
+                int.TryParse(totalRequestsNode.InnerText, out scrapeTotal);
+            }
+
+            var allowedRequestsNode = xmlResponse.SelectSingleNode("/Data/ssuser/maxrequestsperday");
+            if (allowedRequestsNode != null)
+            {
+                int.TryParse(allowedRequestsNode.InnerText, out scrapeMax);
             }
 
             string remoteDownloadURL = null;
@@ -79,7 +106,6 @@ namespace GamelistManager
             string remoteElementName = null;
             string value = null;
 
-            ScraperData scraperData = new ScraperData();
             // medias xmlnode contains media download URL     
             XmlNode mediasNode = xmlResponse.SelectSingleNode("/Data/jeu/medias");
 
@@ -285,7 +311,8 @@ namespace GamelistManager
                             {
                                 Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
                             }
-                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
+                            // Use thumb instead of thumbnail, same as batocera scraping
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb.{fileFormat}";
                             fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
@@ -343,7 +370,7 @@ namespace GamelistManager
                 }
             }
 
-            return scraperData;
+            return new Tuple<int, int, ScraperData>(scrapeTotal, scrapeMax, scraperData);
 
         }
 

@@ -57,10 +57,6 @@ namespace GamelistManager.control
                 SaveNonGameOptions();
             }
 
-            SaveImageSource();
-            SaveBoxSource();
-            SaveLogoSource();
-        
             buttonSave.Enabled = false;
             useDefaults = false;
             this.Enabled = true;
@@ -75,29 +71,12 @@ namespace GamelistManager.control
             RegistryManager.WriteRegistryValue(scraperPlatform, "NoZZZ", noZZZ.ToString());
             RegistryManager.WriteRegistryValue(scraperPlatform, "ScrapeByGameID", scrapeByGameID.ToString());
         }
-               
 
-        private void SaveLogoSource()
-        {
-            string boxValue = comboBoxLogoSource.Text;
-            RegistryManager.WriteRegistryValue(scraperPlatform, "LogoSource", boxValue);
-        }
 
-        private void SaveImageSource()
-        {
-            string boxValue = comboBoxImageSource.Text;
-            RegistryManager.WriteRegistryValue(scraperPlatform, "ImageSource", boxValue);
-        }
-
-        private void SaveBoxSource()
-        {
-            string boxValue = comboBoxBoxSource.Text;
-            RegistryManager.WriteRegistryValue(scraperPlatform, "BoxSource", boxValue);
-        }
-
+     
         private void SaveLanguage()
         {
-            if (scraperPlatform == "EmuMovies")
+            if (scraperPlatform != "ScreenScraper")
             {
                 return;
             }
@@ -108,7 +87,7 @@ namespace GamelistManager.control
 
         private void SaveRegion()
         {
-            if (scraperPlatform == "EmuMovies")
+            if (scraperPlatform != "ScreenScraper")
             {
                 return;
             }
@@ -202,33 +181,16 @@ namespace GamelistManager.control
             return false;
         }
 
-        private void ComboBox_ImageSource_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            buttonSave.Enabled = true;
-        }
-
-        private void ComboBox_BoxSource_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            buttonSave.Enabled = true;
-        }
-
-        private void ComboBox_LogoSource_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            buttonSave.Enabled = true;
-        }
-
         private async void ScraperSetup_Load(object sender, EventArgs e)
         {
 
-            if (scraperPlatform == "EmuMovies")
+            if (scraperPlatform != "ScreenScraper")
             {
-                comboBoxLanguage.Visible = false;
-                comboBoxRegion.Visible = false;
-                labelLanguage.Visible = false;
-                labelRegion.Visible = false;
-                checkBoxNoZZZ.Visible = false;
-                checkBoxScrapeByGameID.Visible = false;
-                checkBoxHideNonGame.Visible = false;
+                panelOptions.Visible = false;    
+            }
+            else
+            {
+                panelOptions.Visible = true;
             }
 
             (string userName, string userPassword) = CredentialManager.GetCredentials(scraperPlatform);
@@ -297,15 +259,6 @@ namespace GamelistManager.control
                 // Populate ComboBoxes based on section name
                 switch (sectionName)
                 {
-                    case "ImageSource":
-                        comboBoxImageSource.Items.AddRange(sectionValues.Values.ToArray());
-                        break;
-                    case "BoxSource":
-                        comboBoxBoxSource.Items.AddRange(sectionValues.Values.ToArray());
-                        break;
-                    case "LogoSource":
-                        comboBoxLogoSource.Items.AddRange(sectionValues.Values.ToArray());
-                        break;
                     case "Regions":
                         comboBoxRegion.Items.AddRange(sectionValues.Values.ToArray());
                         break;
@@ -321,54 +274,10 @@ namespace GamelistManager.control
         private void SetDefaultOrSavedOptions()
         {
             bool saveRequired = false;
-            string boxSource = RegistryManager.ReadRegistryValue(scraperPlatform, "BoxSource");
-            string imageSource = RegistryManager.ReadRegistryValue(scraperPlatform, "ImageSource");
-            string logoSource = RegistryManager.ReadRegistryValue(scraperPlatform, "LogoSource");
-
-            if (comboBoxBoxSource.Items.Contains(boxSource) && !string.IsNullOrEmpty(boxSource))
-            {
-                comboBoxBoxSource.Text = boxSource;
-            }
-            else
-            {
-                if (comboBoxBoxSource.Items.Count > 0)
-                {
-                    comboBoxBoxSource.SelectedIndex = 0;
-                }
-                saveRequired = true;
-            }
-
-            if (comboBoxImageSource.Items.Contains(imageSource) && !string.IsNullOrEmpty(imageSource))
-            {
-                comboBoxImageSource.Text = imageSource;
-            }
-            else
-            {
-                if (comboBoxImageSource.Items.Count > 0)
-                {
-                    comboBoxImageSource.SelectedIndex = 0;
-                }
-                saveRequired = true;
-            }
-
-            if (comboBoxLogoSource.Items.Contains(logoSource) && !string.IsNullOrEmpty(logoSource))
-            {
-                comboBoxLogoSource.Text = logoSource;
-            }
-            else
-            {
-                if (comboBoxLogoSource.Items.Count > 0)
-                {
-                    comboBoxLogoSource.SelectedIndex = 0;
-                }
-                saveRequired = true;
-            }
-
-
-         
+          
             if (scraperPlatform == "ScreenScraper")
             {
-                
+
                 bool.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "HideNonGame"), out bool hideNonGame);
                 bool.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "NoZZZ"), out bool noZZZ);
                 bool.TryParse(RegistryManager.ReadRegistryValue(scraperPlatform, "ScrapeByGameID"), out bool scrapeByGameID);
@@ -396,14 +305,14 @@ namespace GamelistManager.control
                     comboBoxRegion.SelectedIndex = 0;
                 }
             }
-                        
+
             if (saveRequired == true)
             {
                 SaveGameOptions();
             }
 
         }
-      
+
         private void checkBoxHideNonGame_CheckedChanged(object sender, EventArgs e)
         {
             buttonSave.Enabled = true;

@@ -1,26 +1,20 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using FuzzySharp;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace GamelistManager
 {
     internal class API_EmuMovies
     {
         private readonly ConcurrentDictionary<(string, string), int> memo = new ConcurrentDictionary<(string, string), int>();
-        private readonly string apiURL = "http://api3.emumovies.com/api";
+        private readonly string apiURL = "";
         private readonly string apiKey = "";
 
         public async Task<ScraperData> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, ListBox ListBoxControl, Dictionary<string, List<string>> emumoviesMediaLists)
@@ -66,7 +60,7 @@ namespace GamelistManager
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -101,7 +95,7 @@ namespace GamelistManager
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -136,7 +130,7 @@ namespace GamelistManager
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -172,7 +166,7 @@ namespace GamelistManager
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -205,9 +199,10 @@ namespace GamelistManager
                         {
                             continue;
                         }
-                        newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
+                        // Use thumb instead of thumbnail, same as batocera scraping
+                        newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -242,7 +237,7 @@ namespace GamelistManager
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -278,7 +273,7 @@ namespace GamelistManager
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
@@ -293,21 +288,10 @@ namespace GamelistManager
 
         private string FuzzySearch(string searchName, List<string> names)
         {
-            Console.WriteLine($"searching for {searchName}");
-                                    
-            var result = Process.ExtractOne(searchName, names, cutoff: 80);
-
-            if (result != null)
-            {
-                // Return the original name corresponding to the best match
-                int index = names.IndexOf(result.Value);
-                return names[index];
-            }
-            else
-            {
-                return null; // Return null if no match is found
-            }
-
+            var fuzzySearchHelper = new FuzzySearchHelper();
+            int cutoff = 3;
+            string bestMatch = fuzzySearchHelper.FuzzySearch(searchName, names, cutoff);
+            return bestMatch;
         }
 
         private HttpClient CreateHttpClient()

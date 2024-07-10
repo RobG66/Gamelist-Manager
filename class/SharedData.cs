@@ -4,7 +4,7 @@ namespace GamelistManager
 {
     public static class SharedData
     {
-        private static readonly object dataLock = new object();
+        public static readonly object lockObject = new object();
         private static DataSet dataSet;
         private static string xmlFilename;
         private static bool isDataChanged;
@@ -42,18 +42,12 @@ namespace GamelistManager
         {
             get
             {
-                lock (dataLock)
-                {
-                    return dataSet;
-                }
+                return dataSet;
             }
 
             set
             {
-                lock (dataLock)
-                {
-                    dataSet = value;
-                }
+                dataSet = value;
             }
         }
         public static string XMLFilename
