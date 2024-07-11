@@ -434,8 +434,13 @@ namespace GamelistManager
                                 string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);
                                 string romFileNameWithExtension = romPath.Substring(2);
 
-                                string gameID = row["id"]?.ToString() ?? null;
-
+                                // gameID is ScreenScraper specific
+                                string gameID = null;
+                                if (scrapeByGameID)
+                                {
+                                    gameID = row["id"]?.ToString() ?? null;
+                                }
+                                
                                 string gameName = row.Field<string>("name").ToString();
                                 int scrapeTotal = 0;
                                 int scrapeMax = 0;
@@ -461,7 +466,12 @@ namespace GamelistManager
                                     Name = gameName
                                 };
 
-                                AddToLog($"Scraping: '{romFileNameWithExtension}'");
+                                string showID = null;
+                                if (!string.IsNullOrEmpty(gameID))
+                                {
+                                    showID = $"[{gameID}] ";
+                                }
+                                AddToLog($"Scraping: {showID}'{romFileNameWithExtension}'");
 
                                 ScraperData scraperData = null;
 
@@ -756,6 +766,7 @@ namespace GamelistManager
             else
             {
                 comboBoxScrapers.SelectedIndex = 0;
+                lastScraper = comboBoxScrapers.Text;
             }
             
             // Reset cache
@@ -1153,10 +1164,7 @@ namespace GamelistManager
                 case "ArcadeDB":
                     file = "ini\\arcadedb_options.ini";
                     break;
-                default:
-                    file = null;
-                    break;
-            }
+              }
 
             if (string.IsNullOrEmpty(file))
             {

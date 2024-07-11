@@ -64,9 +64,9 @@
             this.labelNote.BackColor = System.Drawing.Color.Transparent;
             this.labelNote.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.labelNote.ForeColor = System.Drawing.Color.Red;
-            this.labelNote.Location = new System.Drawing.Point(0, 230);
+            this.labelNote.Location = new System.Drawing.Point(0, 235);
             this.labelNote.Name = "labelNote";
-            this.labelNote.Size = new System.Drawing.Size(239, 21);
+            this.labelNote.Size = new System.Drawing.Size(274, 21);
             this.labelNote.TabIndex = 20;
             this.labelNote.Text = "Credentials are saved in Credential Manager";
             this.labelNote.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -74,7 +74,7 @@
             // buttonExit
             // 
             this.buttonExit.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.buttonExit.Location = new System.Drawing.Point(156, 41);
+            this.buttonExit.Location = new System.Drawing.Point(187, 41);
             this.buttonExit.Name = "buttonExit";
             this.buttonExit.Size = new System.Drawing.Size(64, 23);
             this.buttonExit.TabIndex = 19;
@@ -85,7 +85,7 @@
             // buttonSave
             // 
             this.buttonSave.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.buttonSave.Location = new System.Drawing.Point(156, 12);
+            this.buttonSave.Location = new System.Drawing.Point(187, 12);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(64, 23);
             this.buttonSave.TabIndex = 18;
@@ -146,7 +146,7 @@
             this.comboBoxRegion.FormattingEnabled = true;
             this.comboBoxRegion.Location = new System.Drawing.Point(120, 9);
             this.comboBoxRegion.Name = "comboBoxRegion";
-            this.comboBoxRegion.Size = new System.Drawing.Size(107, 21);
+            this.comboBoxRegion.Size = new System.Drawing.Size(145, 21);
             this.comboBoxRegion.TabIndex = 28;
             // 
             // labelLanguage
@@ -165,7 +165,7 @@
             this.comboBoxLanguage.FormattingEnabled = true;
             this.comboBoxLanguage.Location = new System.Drawing.Point(120, 32);
             this.comboBoxLanguage.Name = "comboBoxLanguage";
-            this.comboBoxLanguage.Size = new System.Drawing.Size(107, 21);
+            this.comboBoxLanguage.Size = new System.Drawing.Size(145, 21);
             this.comboBoxLanguage.TabIndex = 30;
             // 
             // checkBoxHideNonGame
@@ -174,9 +174,9 @@
             this.checkBoxHideNonGame.BackColor = System.Drawing.Color.Transparent;
             this.checkBoxHideNonGame.Location = new System.Drawing.Point(6, 59);
             this.checkBoxHideNonGame.Name = "checkBoxHideNonGame";
-            this.checkBoxHideNonGame.Size = new System.Drawing.Size(161, 17);
+            this.checkBoxHideNonGame.Size = new System.Drawing.Size(238, 17);
             this.checkBoxHideNonGame.TabIndex = 34;
-            this.checkBoxHideNonGame.Text = "Automatically hide non-game";
+            this.checkBoxHideNonGame.Text = "ScreenScraper: Automatically hide non-game";
             this.checkBoxHideNonGame.UseVisualStyleBackColor = false;
             this.checkBoxHideNonGame.CheckedChanged += new System.EventHandler(this.checkBoxHideNonGame_CheckedChanged);
             // 
@@ -186,9 +186,9 @@
             this.checkBoxNoZZZ.BackColor = System.Drawing.Color.Transparent;
             this.checkBoxNoZZZ.Location = new System.Drawing.Point(6, 82);
             this.checkBoxNoZZZ.Name = "checkBoxNoZZZ";
-            this.checkBoxNoZZZ.Size = new System.Drawing.Size(160, 17);
+            this.checkBoxNoZZZ.Size = new System.Drawing.Size(237, 17);
             this.checkBoxNoZZZ.TabIndex = 35;
-            this.checkBoxNoZZZ.Text = "Remove ZZZ(not game) text";
+            this.checkBoxNoZZZ.Text = "ScreenScraper: Remove ZZZ(not game) text";
             this.checkBoxNoZZZ.UseVisualStyleBackColor = false;
             this.checkBoxNoZZZ.CheckedChanged += new System.EventHandler(this.checkBoxNoZZZ_CheckedChanged);
             // 
@@ -198,9 +198,9 @@
             this.checkBoxScrapeByGameID.BackColor = System.Drawing.Color.Transparent;
             this.checkBoxScrapeByGameID.Location = new System.Drawing.Point(6, 105);
             this.checkBoxScrapeByGameID.Name = "checkBoxScrapeByGameID";
-            this.checkBoxScrapeByGameID.Size = new System.Drawing.Size(172, 17);
+            this.checkBoxScrapeByGameID.Size = new System.Drawing.Size(249, 17);
             this.checkBoxScrapeByGameID.TabIndex = 36;
-            this.checkBoxScrapeByGameID.Text = "Scrape by Game ID if available";
+            this.checkBoxScrapeByGameID.Text = "ScreenScraper: Scrape by Game ID if available";
             this.checkBoxScrapeByGameID.UseVisualStyleBackColor = false;
             this.checkBoxScrapeByGameID.CheckedChanged += new System.EventHandler(this.checkBoxScrapeByGameID_CheckedChanged);
             // 
@@ -218,7 +218,7 @@
             this.panelOptions.Enabled = false;
             this.panelOptions.Location = new System.Drawing.Point(2, 91);
             this.panelOptions.Name = "panelOptions";
-            this.panelOptions.Size = new System.Drawing.Size(235, 139);
+            this.panelOptions.Size = new System.Drawing.Size(270, 139);
             this.panelOptions.TabIndex = 37;
             // 
             // ScraperSetup
@@ -227,7 +227,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::GamelistManager.Properties.Resources.background6;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(239, 251);
+            this.ClientSize = new System.Drawing.Size(274, 256);
             this.Controls.Add(this.panelOptions);
             this.Controls.Add(this.checkboxShowPassword);
             this.Controls.Add(this.labelNote);

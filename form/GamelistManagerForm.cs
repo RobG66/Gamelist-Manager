@@ -1243,7 +1243,9 @@ namespace GamelistManager
             ("manual",false),
             ("scrap_ScreenScraper",false),
             ("scrap_ArcadeDB",false),
-            ("scrap_EmuMovies",false)
+            ("scrap_EmuMovies",false),
+            ("genreid",false),
+            ("arcadesystemname",false)
          };
 
             foreach (var (columnName, isBool) in columns)
@@ -3348,7 +3350,8 @@ namespace GamelistManager
                 "thumb",
                 "boxback",
                 "fanart",
-                "marquee"
+                "marquee",
+                "map"
                 };
 
             Reassociate("images",knownImageTypes);
@@ -3400,8 +3403,6 @@ namespace GamelistManager
 
 
         }
-
-        
     }
 }
 

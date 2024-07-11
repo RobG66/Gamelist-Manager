@@ -59,7 +59,7 @@ namespace GamelistManager
         public async Task<Tuple<int, int, ScraperData>> ScrapeScreenScraperAsync(ScraperParameters scraperParameters, ListBox ListBoxControl)
         {
 
-            string scrapeName = scraperParameters.Name;
+            string scrapeName = scraperParameters.RomFileNameWithoutExtension;
             string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={scrapeName}";
             string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
 
@@ -69,7 +69,7 @@ namespace GamelistManager
             if (xmlResponse == null)
             {
                 // Try one more time with the name of the rom file
-                scrapeName = scraperParameters.RomFileNameWithoutExtension;
+                scrapeName = scraperParameters.Name;
                 scrapInfo = "&romtype=rom&romnom={scrapeName}";
                 url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
                 xmlResponse = await xmlResponder.GetXMLResponseAsync(url);

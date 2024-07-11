@@ -1,10 +1,12 @@
 ﻿using CredentialManagement;
 using System;
 using System.Collections.Generic;
+
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+
 
 namespace GamelistManager.control
 {
@@ -148,6 +150,7 @@ namespace GamelistManager.control
             {
                 API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
                 XmlNode xmlResponse = await aPI_ScreenScraper.AuthenticateScreenScraperAsync(username, password);
+                                
                 if (xmlResponse == null)
                 {
                     return false;
@@ -265,9 +268,7 @@ namespace GamelistManager.control
                     case "Languages":
                         comboBoxLanguage.Items.AddRange(sectionValues.Values.ToArray());
                         break;
-                    default:
-                        // Handle unexpected section name
-                        break;
+              
                 }
             }
         }
@@ -286,7 +287,7 @@ namespace GamelistManager.control
                 checkBoxScrapeByGameID.Checked = scrapeByGameID;
 
                 string language = RegistryManager.ReadRegistryValue(scraperPlatform, "Language");
-                if (comboBoxLanguage.Items.Contains(language) && !string.IsNullOrEmpty(language))
+                if (!string.IsNullOrEmpty(language) && comboBoxLanguage.Items.Contains(language))
                 {
                     comboBoxLanguage.Text = language;
                 }
@@ -294,9 +295,9 @@ namespace GamelistManager.control
                 {
                     comboBoxLanguage.SelectedIndex = 0;
                 }
-
+                
                 string region = RegistryManager.ReadRegistryValue(scraperPlatform, "Region");
-                if (comboBoxRegion.Items.Contains(region) && !string.IsNullOrEmpty(region))
+                if (!string.IsNullOrEmpty(region) && comboBoxRegion.Items.Contains(region))
                 {
                     comboBoxRegion.Text = region;
                 }
@@ -304,6 +305,7 @@ namespace GamelistManager.control
                 {
                     comboBoxRegion.SelectedIndex = 0;
                 }
+                
             }
 
             if (saveRequired == true)
