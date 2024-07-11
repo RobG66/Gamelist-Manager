@@ -1,11 +1,14 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+June 28th, 2024
+What started as adding scraper support for Emumovies evolved into A LOT of code refactoring in the scraper setup form and how settings are saved in the registry.  Previously hardcoded system settings were moved to text based ini files so if something needs to be added, or is wrong, it can be easily fixed.  A long the way I split the scraper log into showing the current rom being scraped as well as showing what is being downloaded as well.  Scraper API classes were considerably refactored too.  It's getting there, but I have more work to do!      
+
+
 Gamelist Manager is a comprehensive gamelist management tool for Batocera gamelists.    
 
 It offers functionality to quickly and easily:
 
-- Coming soon!  Media updating by local or HTTP drag and drop.  
-
+- Easy media updating by local or HTTP drag and drop.  
 - Scrape data from ScreenScraper and ArcadeDB
 - Quickly load and view gamelist data in a grid table
 - Change visibility of items
