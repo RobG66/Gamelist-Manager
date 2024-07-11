@@ -228,6 +228,9 @@
     <EmbeddedResource Include="control\BatoceraHostSetup.resx">
       <DependentUpon>BatoceraHostSetup.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="ini\arcadedb_options.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="ini\emumovies_options.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -93,6 +93,9 @@
             this.buttonSelectNone = new System.Windows.Forms.Button();
             this.checkboxMarquee = new System.Windows.Forms.CheckBox();
             this.checkboxLang = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.panelEverything.SuspendLayout();
             this.panelScraperOptions.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -515,6 +518,9 @@
             // 
             // panelCheckboxes
             // 
+            this.panelCheckboxes.Controls.Add(this.label7);
+            this.panelCheckboxes.Controls.Add(this.label6);
+            this.panelCheckboxes.Controls.Add(this.label5);
             this.panelCheckboxes.Controls.Add(this.label4);
             this.panelCheckboxes.Controls.Add(this.comboBoxImageSource);
             this.panelCheckboxes.Controls.Add(this.comboBoxBoxSource);
@@ -555,7 +561,7 @@
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.Crimson;
-            this.label4.Location = new System.Drawing.Point(194, 5);
+            this.label4.Location = new System.Drawing.Point(200, 5);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(56, 18);
             this.label4.TabIndex = 35;
@@ -564,28 +570,31 @@
             // comboBoxImageSource
             // 
             this.comboBoxImageSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxImageSource.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxImageSource.FormattingEnabled = true;
-            this.comboBoxImageSource.Location = new System.Drawing.Point(198, 26);
+            this.comboBoxImageSource.Location = new System.Drawing.Point(203, 26);
             this.comboBoxImageSource.Name = "comboBoxImageSource";
-            this.comboBoxImageSource.Size = new System.Drawing.Size(107, 21);
+            this.comboBoxImageSource.Size = new System.Drawing.Size(102, 21);
             this.comboBoxImageSource.TabIndex = 30;
             // 
             // comboBoxBoxSource
             // 
             this.comboBoxBoxSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxBoxSource.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxBoxSource.FormattingEnabled = true;
-            this.comboBoxBoxSource.Location = new System.Drawing.Point(198, 64);
+            this.comboBoxBoxSource.Location = new System.Drawing.Point(203, 64);
             this.comboBoxBoxSource.Name = "comboBoxBoxSource";
-            this.comboBoxBoxSource.Size = new System.Drawing.Size(107, 21);
+            this.comboBoxBoxSource.Size = new System.Drawing.Size(102, 21);
             this.comboBoxBoxSource.TabIndex = 32;
             // 
             // comboBoxLogoSource
             // 
             this.comboBoxLogoSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxLogoSource.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboBoxLogoSource.FormattingEnabled = true;
-            this.comboBoxLogoSource.Location = new System.Drawing.Point(198, 45);
+            this.comboBoxLogoSource.Location = new System.Drawing.Point(203, 45);
             this.comboBoxLogoSource.Name = "comboBoxLogoSource";
-            this.comboBoxLogoSource.Size = new System.Drawing.Size(107, 21);
+            this.comboBoxLogoSource.Size = new System.Drawing.Size(102, 21);
             this.comboBoxLogoSource.TabIndex = 34;
             // 
             // labelMedia
@@ -593,7 +602,7 @@
             this.labelMedia.AutoSize = true;
             this.labelMedia.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelMedia.ForeColor = System.Drawing.Color.Crimson;
-            this.labelMedia.Location = new System.Drawing.Point(108, 5);
+            this.labelMedia.Location = new System.Drawing.Point(103, 5);
             this.labelMedia.Name = "labelMedia";
             this.labelMedia.Size = new System.Drawing.Size(48, 18);
             this.labelMedia.TabIndex = 29;
@@ -617,7 +626,7 @@
             this.checkboxBoxBack.AutoSize = true;
             this.checkboxBoxBack.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxBoxBack.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxBoxBack.Location = new System.Drawing.Point(111, 179);
+            this.checkboxBoxBack.Location = new System.Drawing.Point(106, 179);
             this.checkboxBoxBack.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxBoxBack.Name = "checkboxBoxBack";
             this.checkboxBoxBack.Size = new System.Drawing.Size(74, 19);
@@ -630,7 +639,7 @@
             this.checkboxFanArt.AutoSize = true;
             this.checkboxFanArt.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxFanArt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxFanArt.Location = new System.Drawing.Point(111, 160);
+            this.checkboxFanArt.Location = new System.Drawing.Point(106, 160);
             this.checkboxFanArt.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxFanArt.Name = "checkboxFanArt";
             this.checkboxFanArt.Size = new System.Drawing.Size(64, 19);
@@ -656,7 +665,7 @@
             this.checkboxBezel.AutoSize = true;
             this.checkboxBezel.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxBezel.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxBezel.Location = new System.Drawing.Point(111, 141);
+            this.checkboxBezel.Location = new System.Drawing.Point(106, 141);
             this.checkboxBezel.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxBezel.Name = "checkboxBezel";
             this.checkboxBezel.Size = new System.Drawing.Size(53, 19);
@@ -693,7 +702,7 @@
             this.checkboxManual.AutoSize = true;
             this.checkboxManual.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxManual.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxManual.Location = new System.Drawing.Point(111, 122);
+            this.checkboxManual.Location = new System.Drawing.Point(106, 122);
             this.checkboxManual.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxManual.Name = "checkboxManual";
             this.checkboxManual.Size = new System.Drawing.Size(66, 19);
@@ -719,7 +728,7 @@
             this.checkboxMap.AutoSize = true;
             this.checkboxMap.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxMap.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxMap.Location = new System.Drawing.Point(111, 103);
+            this.checkboxMap.Location = new System.Drawing.Point(106, 103);
             this.checkboxMap.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxMap.Name = "checkboxMap";
             this.checkboxMap.Size = new System.Drawing.Size(50, 19);
@@ -745,7 +754,7 @@
             this.checkboxVideo.AutoSize = true;
             this.checkboxVideo.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxVideo.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxVideo.Location = new System.Drawing.Point(111, 84);
+            this.checkboxVideo.Location = new System.Drawing.Point(106, 84);
             this.checkboxVideo.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxVideo.Name = "checkboxVideo";
             this.checkboxVideo.Size = new System.Drawing.Size(56, 19);
@@ -784,7 +793,7 @@
             this.checkboxThumbnail.AutoSize = true;
             this.checkboxThumbnail.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxThumbnail.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxThumbnail.Location = new System.Drawing.Point(111, 65);
+            this.checkboxThumbnail.Location = new System.Drawing.Point(106, 65);
             this.checkboxThumbnail.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxThumbnail.Name = "checkboxThumbnail";
             this.checkboxThumbnail.Size = new System.Drawing.Size(83, 19);
@@ -823,7 +832,7 @@
             this.checkboxImage.AutoSize = true;
             this.checkboxImage.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxImage.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxImage.Location = new System.Drawing.Point(111, 27);
+            this.checkboxImage.Location = new System.Drawing.Point(106, 27);
             this.checkboxImage.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxImage.Name = "checkboxImage";
             this.checkboxImage.Size = new System.Drawing.Size(59, 19);
@@ -888,7 +897,7 @@
             this.checkboxMarquee.AutoSize = true;
             this.checkboxMarquee.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.checkboxMarquee.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.checkboxMarquee.Location = new System.Drawing.Point(111, 46);
+            this.checkboxMarquee.Location = new System.Drawing.Point(106, 46);
             this.checkboxMarquee.Margin = new System.Windows.Forms.Padding(1);
             this.checkboxMarquee.Name = "checkboxMarquee";
             this.checkboxMarquee.Size = new System.Drawing.Size(73, 19);
@@ -908,6 +917,33 @@
             this.checkboxLang.TabIndex = 8;
             this.checkboxLang.Text = "Language";
             this.checkboxLang.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(184, 68);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(16, 13);
+            this.label5.TabIndex = 36;
+            this.label5.Text = "->";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(184, 48);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(16, 13);
+            this.label6.TabIndex = 37;
+            this.label6.Text = "->";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(184, 29);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(16, 13);
+            this.label7.TabIndex = 38;
+            this.label7.Text = "->";
             // 
             // ScraperForm
             // 
@@ -1013,5 +1049,8 @@
         private System.Windows.Forms.ComboBox comboBoxBoxSource;
         private System.Windows.Forms.ComboBox comboBoxLogoSource;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
     }
 }

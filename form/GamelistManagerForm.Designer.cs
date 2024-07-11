@@ -202,7 +202,6 @@
             this.dataGridView1.RowHeadersWidth = 123;
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridView1.RowTemplate.Height = 20;
-            this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(538, 137);
             this.dataGridView1.TabIndex = 1;
@@ -593,7 +592,7 @@
             this.contextMenuStripView.OwnerItem = this.toolStripMenuItemViewMenu;
             this.contextMenuStripView.ShowCheckMargin = true;
             this.contextMenuStripView.ShowImageMargin = false;
-            this.contextMenuStripView.Size = new System.Drawing.Size(257, 254);
+            this.contextMenuStripView.Size = new System.Drawing.Size(257, 232);
             // 
             // showAllHiddenAndVisibleItemsToolStripMenuItem
             // 
@@ -924,7 +923,7 @@
             this.PlayCountToolStripMenuItem.Name = "PlayCountToolStripMenuItem";
             this.PlayCountToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
             this.PlayCountToolStripMenuItem.Text = "Play Count";
-            this.PlayCountToolStripMenuItem.Click += new System.EventHandler(this.PlaycountToolStripMenuItem_CheckedChanged);
+            this.PlayCountToolStripMenuItem.CheckStateChanged += new System.EventHandler(this.PlayCountToolStripMenuItem_CheckStateChanged);
             // 
             // PlayersToolStripMenuItem
             // 
@@ -1126,6 +1125,7 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
+            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
             this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
@@ -1231,6 +1231,7 @@
             this.contextMenuStripScraper.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openScraperToolStripMenuItem});
             this.contextMenuStripScraper.Name = "contextMenuStripScraper";
+            this.contextMenuStripScraper.OwnerItem = this.toolStripMenuItemScraperMenu;
             this.contextMenuStripScraper.ShowImageMargin = false;
             this.contextMenuStripScraper.Size = new System.Drawing.Size(121, 26);
             // 

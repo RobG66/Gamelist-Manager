@@ -14,7 +14,7 @@ namespace GamelistManager
     internal class API_EmuMovies
     {
         private readonly ConcurrentDictionary<(string, string), int> memo = new ConcurrentDictionary<(string, string), int>();
-        private readonly string apiURL = "";
+        private readonly string apiURL = "http://api3.emumovies.com/api";
         private readonly string apiKey = "";
 
         public async Task<ScraperData> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, ListBox ListBoxControl, Dictionary<string, List<string>> emumoviesMediaLists)

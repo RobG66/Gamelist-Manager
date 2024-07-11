@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static GamelistManager.API_ArcadeDB;
 
 namespace GamelistManager
 {
@@ -79,7 +81,8 @@ namespace GamelistManager
             string downloadPath = null;
             string fileToDownload = null;
             bool downloadResult = false;
-
+            string propertyName = null;
+           
             ScraperData scraperData = new ScraperData();
 
             foreach (string element in scraperParameters.ElementsToScrape)
@@ -129,7 +132,10 @@ namespace GamelistManager
                         break;
 
                     case "image":
-                        remoteDownloadURL = gameInfo.url_image_ingame;
+                        propertyName = scraperParameters.ImageSource;
+                        PropertyInfo imageInfo = typeof(ArcadeDBMetaData).GetProperty(propertyName);
+                        remoteDownloadURL = imageInfo.GetValue(gameInfo) as string;
+                                                
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             destinationFolder = "images";
@@ -145,8 +151,30 @@ namespace GamelistManager
                         }
                         break;
 
+                    case "thumbnail":
+                        propertyName = scraperParameters.BoxSource;
+                        PropertyInfo boxInfo = typeof(ArcadeDBMetaData).GetProperty(propertyName);
+                        remoteDownloadURL = boxInfo.GetValue(gameInfo) as string;
+                                               
+                        if (!string.IsNullOrEmpty(remoteDownloadURL))
+                        {
+                            destinationFolder = "images";
+                            fileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb.png";
+                            downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
+                            fileToDownload = $"{downloadPath}\\{fileName}";
+                            downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                            if (downloadResult)
+                            {
+                                scraperData.thumbnail = $"./{destinationFolder}/{fileName}";
+                                ShowDownload(ListBoxControl, $"{fileName}");
+                            }
+                        }
+                        break;
+
                     case "marquee":
-                        remoteDownloadURL = gameInfo.url_image_marquee;
+                        propertyName = scraperParameters.LogoSource;
+                        PropertyInfo logoInfo = typeof(ArcadeDBMetaData).GetProperty(propertyName);
+                        remoteDownloadURL = logoInfo.GetValue(gameInfo) as string;
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             destinationFolder = "images";

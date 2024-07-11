@@ -1378,6 +1378,23 @@ namespace GamelistManager
                 ClearTableLayoutPanel();
             }
 
+            List<Tuple<string, bool>> columnList = null;
+            if (dataGridView1.DataSource != null)
+            {
+                columnList = new List<Tuple<string, bool>>();
+
+                foreach (ToolStripItem item in toolStripMenuItemColumnsMenu.DropDownItems)
+                {
+                    if (!(item is ToolStripMenuItem menuItem))
+                    {
+                        continue;
+                    }
+                    string name = menuItem.Name;
+                    bool isChecked = menuItem.Checked;
+                    columnList.Add(Tuple.Create(name, isChecked));
+                }
+            }
+
             this.Cursor = Cursors.WaitCursor;
             dataGridView1.DataSource = null;
 
@@ -1424,6 +1441,24 @@ namespace GamelistManager
 
             SharedData.IsDataChanged = false;
 
+            if (columnList != null)
+            {
+                foreach (ToolStripItem item in toolStripMenuItemColumnsMenu.DropDownItems)
+                {
+                    if (!(item is ToolStripMenuItem menuItem))
+                    {
+                        continue;
+                    }
+
+                   foreach (var column in columnList)
+                    {
+                        if (menuItem.Name == column.Item1)
+                        {
+                            menuItem.Checked = column.Item2;
+                        }
+                    }
+                }
+            }
             return true;
         }
 
@@ -1609,6 +1644,10 @@ namespace GamelistManager
             Updatecolumnview(sender);
         }
 
+        private void PlayCountToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+        {
+            Updatecolumnview(sender);
+        }
 
         private void ToolStripMenuItemRating_CheckedChanged(object sender, EventArgs e)
         {
@@ -1664,11 +1703,7 @@ namespace GamelistManager
         {
             Updatecolumnview(sender);
         }
-
-        private void PlaycountToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-        {
-            Updatecolumnview(sender);
-        }
+               
 
         private void ViewToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
@@ -3131,7 +3166,7 @@ namespace GamelistManager
 
         private void richTextBoxDescription_Leave(object sender, EventArgs e)
         {
-            if (editRowDataToolStripMenuItem.Checked != true)
+           if (dataGridView1.Columns["name"].ReadOnly == true)
            {
                 return;
            }
@@ -3366,6 +3401,7 @@ namespace GamelistManager
 
         }
 
+        
     }
 }
 
