@@ -1,5 +1,7 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+July 13th.  Version 6.1.  I think the MameHelper for CHD will be very useful.  Text search and replace implemented as well.  Please, use the "ISSUES" menu item on github to report anything or request a feature.  If it's possible and a good idea, I will try to add it!
+
 July 11th.  Version 6 is finally out!  Feedback is welcome, please report any issue.  (It was a lot of work!)
 
 Gamelist Manager is a comprehensive gamelist management tool for Batocera gamelists.    
