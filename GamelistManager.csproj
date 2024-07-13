@@ -156,6 +156,12 @@
     <Compile Include="control\MediaButtons.Designer.cs">
       <DependentUpon>MediaButtons.cs</DependentUpon>
     </Compile>
+    <Compile Include="control\SearchAndReplace.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="control\SearchAndReplace.Designer.cs">
+      <DependentUpon>SearchAndReplace.cs</DependentUpon>
+    </Compile>
     <Compile Include="form\ScraperSetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -204,6 +210,9 @@
     </Compile>
     <EmbeddedResource Include="control\MediaButtons.resx">
       <DependentUpon>MediaButtons.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="control\SearchAndReplace.resx">
+      <DependentUpon>SearchAndReplace.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="form\ScraperSetup.resx">
       <DependentUpon>ScraperSetup.cs</DependentUpon>
