@@ -61,10 +61,11 @@ namespace GamelistManager
                 return;
             }
 
+
             // Check if we are in the middle of an edit
             if (dataGridView1.Columns["name"].ReadOnly == false)
             {
-                UpdateDescription();
+                toolStripMenuItemEditMenu.Checked = false;
                 DisableEditing(true);
             }
 
@@ -1215,6 +1216,7 @@ namespace GamelistManager
             ("missing", true),
             ("unplayable", true),
             ("clone", true),
+            ("chd required",false),
             ("hidden", true),
             ("favorite", true),
             ("path", false),
@@ -1246,6 +1248,7 @@ namespace GamelistManager
             ("scrap_EmuMovies",false),
             ("genreid",false),
             ("arcadesystemname",false)
+                     
          };
 
             foreach (var (columnName, isBool) in columns)
@@ -1452,7 +1455,7 @@ namespace GamelistManager
                         continue;
                     }
 
-                   foreach (var column in columnList)
+                    foreach (var column in columnList)
                     {
                         if (menuItem.Name == column.Item1)
                         {
@@ -1705,7 +1708,7 @@ namespace GamelistManager
         {
             Updatecolumnview(sender);
         }
-               
+
 
         private void ViewToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
@@ -2076,23 +2079,23 @@ namespace GamelistManager
                 return;
             }
 
-            IdentifyUnplayable();
+            MameIdentifyUnplayable();
         }
 
-        private async void IdentifyUnplayable()
+        private async void MameIdentifyUnplayable()
         {
-
             string message = "This will identify games that are not playable according to the following rules:\n\n" +
-            "isbios = yes\n" +
-            "isdevice = yes\n" +
-            "ismechanical = yes\n" +
-            "driver status = preliminary\n" +
-            "disk status = nodump\n" +
-            "runnable = no\n\n" +
-            "You will be prompted for the location of a current mame.exe file.  Select cancel on the file requester to abort.";
+                             "isbios = yes\n" +
+                             "isdevice = yes\n" +
+                             "ismechanical = yes\n" +
+                             "driver status = preliminary\n" +
+                             "disk status = nodump\n" +
+                             "runnable = no\n\n" +
+                             "You will be prompted for the location of a current mame.exe file.  Select cancel on the file requester to abort.";
 
             MessageBox.Show(message, "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+            // Open file dialog to select MAME executable
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Title = "Select a mame.exe program",
@@ -2106,37 +2109,36 @@ namespace GamelistManager
                 return;
             }
 
+            string mameExePath = openFileDialog.FileName;
             List<string> gameNames = null;
-
-            this.Cursor = Cursors.WaitCursor;
-
-            dataGridView1.Enabled = false;
-            menuStripMainMenu.Enabled = false;
-            panelBelowDataGridView.Enabled = false;
 
             try
             {
+                this.Cursor = Cursors.WaitCursor;
+                dataGridView1.Enabled = false;
+                menuStripMainMenu.Enabled = false;
+                panelBelowDataGridView.Enabled = false;
                 statusBar.Text = "Started XML Import, please wait.....";
-                string mameExePath = openFileDialog.FileName;
-                gameNames = await Task.Run(() => MameHelper.GetMameUnplayable(mameExePath));
+
+                // Get unplayable game names using MameHelper asynchronously
+                gameNames = await MameHelper.GetMameUnplayable(mameExePath);
             }
             catch (Exception ex)
             {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
                 this.Cursor = Cursors.Default;
                 UpdateStatusBar();
-                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 dataGridView1.Enabled = true;
                 menuStripMainMenu.Enabled = true;
                 panelBelowDataGridView.Enabled = true;
-                return;
             }
 
             if (gameNames == null || gameNames.Count == 0)
             {
                 MessageBox.Show("No data was returned!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                dataGridView1.Enabled = true;
-                menuStripMainMenu.Enabled = true;
-                panelBelowDataGridView.Enabled = true;
                 return;
             }
 
@@ -2145,76 +2147,79 @@ namespace GamelistManager
 
             int unplayableCount = 0;
 
-            statusBar.Text = "Identifying unplayable games....";
-            // Loop through each row in the DataTable
-            await Task.Run(() =>
+            try
             {
-                List<DataRow> rowsToUpdate = new List<DataRow>();
+                statusBar.Text = "Identifying unplayable games....";
 
-                // Loop through each row in the DataTable
-                Parallel.ForEach(SharedData.DataSet.Tables["game"].Rows.Cast<DataRow>(), (row) =>
+                // Lock object for synchronizing access to shared resources (DataSet)
+                object lockObject = new object();
+
+                // Access the DataTable from the DataSet
+                DataTable gameTable = SharedData.DataSet.Tables["game"];
+
+                // Loop through each row in the DataTable using Parallel.ForEach
+                Parallel.ForEach(gameTable.Rows.Cast<DataRow>(), (row) =>
                 {
                     string originalPath = row["path"].ToString();
                     string path = Path.GetFileNameWithoutExtension(originalPath);
 
-                    // Set the value of the "unplayable" column to true or false
+                    // Check if the game path is in the list of unplayable game names
                     if (gameNames.Contains(path))
                     {
-                        Interlocked.Increment(ref unplayableCount);
-                        // Accumulate the rows that need to be updated
-                        lock (rowsToUpdate)
+                        // Lock to ensure thread safety when updating DataTable
+                        lock (lockObject)
                         {
-                            rowsToUpdate.Add(row);
+                            // Modify DataRow inside the lock
+                            row["unplayable"] = true;
+                            Interlocked.Increment(ref unplayableCount);
                         }
                     }
                 });
 
-                // Update the 'unplayable' column for all accumulated rows outside the parallel loop
-                foreach (DataRow rowToUpdate in rowsToUpdate)
+                // Commit changes and update UI
+                lock (lockObject)
                 {
-                    rowToUpdate["unplayable"] = true;
+                    SharedData.DataSet.AcceptChanges();
                 }
-            });
 
-            dataGridView1.Enabled = true;
-            menuStripMainMenu.Enabled = true;
-            panelBelowDataGridView.Enabled = true;
+                // Refresh the DataGridView to update the UI once all changes are made
+                dataGridView1.Refresh();
 
-            SharedData.DataSet.AcceptChanges();
+                dataGridView1.Columns["unplayable"].Visible = true;
 
-            // Resume the DataGridView layout
-            dataGridView1.ResumeLayout();
+                // Show a dialog to optionally hide unplayable games
+                DialogResult result = MessageBox.Show($"There were {unplayableCount} unplayable items found.\nDo you want to set them hidden?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            // Refresh the DataGridView to update the UI once all changes are made
-            dataGridView1.Refresh();
+                if (result == DialogResult.Yes)
+                {
+                    // Mark rows as hidden if they are unplayable
+                    foreach (DataRow row in gameTable.Rows)
+                    {
+                        // Check if the row is not null and if the "unplayable" field is not DBNull
+                        if (row != null && !row.IsNull("unplayable") && row.Field<bool>("unplayable"))
+                        {
+                            // Set the "hidden" column to true
+                            row["hidden"] = true;
+                        }
+                    }
 
-            this.Cursor = Cursors.Default;
 
-            UpdateStatusBar();
-            dataGridView1.Columns["unplayable"].Visible = true;
-
-            DialogResult result = MessageBox.Show($"There were {unplayableCount} unplayable items found.\nDo you want to set them hidden?", "Notice", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result == DialogResult.No)
+                    SharedData.DataSet.AcceptChanges();
+                    SharedData.IsDataChanged = true;
+                }
+            }
+            catch (Exception ex)
             {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Resume the DataGridView layout
+                dataGridView1.ResumeLayout();
                 UpdateCounters();
-                return;
             }
-
-            foreach (DataRow row in SharedData.DataSet.Tables["game"].Rows)
-            {
-                // Check if column is true
-                object unplayableValue = row["unplayable"];
-                if (unplayableValue != DBNull.Value && Convert.ToBoolean(unplayableValue))
-                {
-                    row["hidden"] = true;
-                }
-            }
-
-            SharedData.DataSet.AcceptChanges();
-            UpdateCounters();
-            SharedData.IsDataChanged = true;
         }
+
 
         private void FileToolStripMenuItem_DropDownOpened(object sender, EventArgs e)
         {
@@ -2656,9 +2661,9 @@ namespace GamelistManager
             toolStripMenuItemToolsMenu.Enabled = false;
             toolStripMenuItemRemoteMenu.Enabled = false;
             //panelBelowDataGridView.Enabled = false;
-            if (ToolStripMenuItemAlwaysOnTop.Checked) 
-            { 
-            scraper.TopMost = true;
+            if (ToolStripMenuItemAlwaysOnTop.Checked)
+            {
+                scraper.TopMost = true;
             }
             scraper.Show();
 
@@ -3101,14 +3106,18 @@ namespace GamelistManager
 
         private void DisableEditing(bool readOnly)
         {
-            SetColumnsReadOnly(readOnly, "id", "name", "genre", "players", "rating", "lang", "region", "publisher");
+            SetColumnsReadOnly(readOnly, "id", "name", "genre", "players", "rating", "lang", "region", "publisher", "developer", "releasedate");
             richTextBoxDescription.ReadOnly = readOnly;
             if (!readOnly)
             {
                 richTextBoxDescription.ForeColor = Color.Blue;
                 richTextBoxDescription.ReadOnly = false;
-                //setting this causes big problems, disabled
+                //setting multiselect false causes big problems, disabled
                 //dataGridView1.MultiSelect = false;
+                dataGridView1.CellEndEdit += dataGridView1_CellEndEdit;
+                {
+
+                };
             }
             else
             {
@@ -3116,6 +3125,7 @@ namespace GamelistManager
                 richTextBoxDescription.ReadOnly = true;
                 //disabled the change of multiselect due to issues encountered
                 //dataGridView1.MultiSelect = true;
+                dataGridView1.CellValueChanged -= dataGridView1_CellEndEdit;
             }
 
             SharedData.IsDataChanged = true;
@@ -3125,6 +3135,37 @@ namespace GamelistManager
                 ShowMedia();
             }
 
+        }
+
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                // Get the column name
+                string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
+                if (columnName != "releasedate")
+                {
+                    return;
+                }
+
+            }
+
+            var cellValue = dataGridView1[e.ColumnIndex, e.RowIndex].Value;
+            string changedValue = cellValue != null ? cellValue.ToString() : string.Empty;
+
+            if (string.IsNullOrEmpty(changedValue))
+            {
+                return;
+            }
+
+            string convertedTime = ISO8601Converter.ConvertToISO8601(changedValue);
+
+            if (!string.IsNullOrEmpty(convertedTime))
+            {
+                string pathValue = dataGridView1.Rows[e.RowIndex].Cells["path"].Value.ToString();
+                UpdateCellValue(pathValue, "releasedate", convertedTime);
+            }
         }
 
         private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
@@ -3168,21 +3209,23 @@ namespace GamelistManager
 
         private void richTextBoxDescription_Leave(object sender, EventArgs e)
         {
-           if (dataGridView1.Columns["name"].ReadOnly == true)
-           {
+            if (dataGridView1.Columns["name"].ReadOnly == true)
+            {
                 return;
-           }
+            }
+            if (dataGridView1.SelectedRows.Count < 1) { return; }
 
-            UpdateDescription();
+            string pathValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
+            string textboxValue = richTextBoxDescription.Text;
+            UpdateCellValue(pathValue, "desc", textboxValue);
         }
 
-        private void UpdateDescription()
+        private void UpdateCellValue(string pathValue, string column, string value)
         {
-            if (dataGridView1.SelectedRows.Count < 1) { return; }
-            string pathValue = dataGridView1.SelectedRows[0].Cells["path"].Value.ToString();
+            // Path is always the key identifier
             DataRow[] rows = SharedData.DataSet.Tables["game"].Select($"path = '{pathValue.Replace("'", "''")}'");
             DataRow tabledata = rows[0];
-            tabledata["desc"] = richTextBoxDescription.Text;
+            tabledata[column] = value;
             SharedData.DataSet.AcceptChanges();
         }
 
@@ -3354,20 +3397,20 @@ namespace GamelistManager
                 "map"
                 };
 
-            Reassociate("images",knownImageTypes);
+            Reassociate("images", knownImageTypes);
 
             string[] knownVideoTypes = { "video" };
-            Reassociate("videos", knownVideoTypes );
+            Reassociate("videos", knownVideoTypes);
 
             string[] knownManualTypes = { "manual" };
             Reassociate("manuals", knownManualTypes);
 
             MessageBox.Show("Media reassociation is completed.\n\nPlease remember to save!", "Completed!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-          
+
 
 
         }
-        private void Reassociate(string folder, string[]types)
+        private void Reassociate(string folder, string[] types)
         {
             string dir = Path.Combine(Path.GetDirectoryName(SharedData.XMLFilename), folder);
             string[] files = Directory.GetFiles(dir);
@@ -3403,8 +3446,124 @@ namespace GamelistManager
 
 
         }
+
+        private void newGamelistToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private async void mAMEIdentifyCHDRequiredToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string parentFolderName = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
+
+            if (parentFolderName != "mame")
+            {
+                MessageBox.Show("This doesn't appear to be a gamelist for mame!", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            await IdentifyRequiresCHD();
+        }
+
+        private async Task IdentifyRequiresCHD()
+        {
+            string message = "This will identify games that require a CHD. " +
+                             "You will be prompted for the location of a current mame.exe file. " +
+                             "Select cancel on the file requester to abort.";
+
+            MessageBox.Show(message, "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // Open file dialog to select MAME executable
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Select a mame.exe program",
+                Filter = "EXE Files (*.exe)|*.exe|All Files (*.*)|*.*",
+                DefaultExt = "exe"
+            };
+
+            // Display the dialog and check if the user clicked OK
+            if (openFileDialog.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            this.Cursor = Cursors.WaitCursor;
+            dataGridView1.Enabled = false;
+            menuStripMainMenu.Enabled = false;
+            panelBelowDataGridView.Enabled = false;
+
+            try
+            {
+                statusBar.Text = "Started XML Import, please wait.....";
+                string mameExePath = openFileDialog.FileName;
+                string mameRomPath = Path.GetDirectoryName(SharedData.XMLFilename);
+
+                // Get CHD information directly without storing in a list
+                var chdInfoList = await MameHelper.GetMameRequiresCHD(mameExePath, mameRomPath);
+
+                // Lock object for synchronizing access to shared resources (DataSet)
+                object lockObject = new object();
+
+                // Update DataSet (shared resource) based on CHD information
+                Parallel.ForEach(SharedData.DataSet.Tables["game"].Rows.Cast<DataRow>(), (row) =>
+                {
+                    string originalPath = row["path"].ToString();
+                    string nameToFind = Path.GetFileNameWithoutExtension(originalPath);
+
+                    // Check CHD requirement for the current game
+                    var chdInfo = chdInfoList.FirstOrDefault(chd =>
+                        chd.GameName.Equals(nameToFind, StringComparison.OrdinalIgnoreCase));
+
+                    if (chdInfo != null)
+                    {
+                        // Lock to ensure thread safety when updating shared resources (DataSet)
+                        lock (lockObject)
+                        {
+                            // Modify DataRow inside the lock
+                            string missing = !chdInfo.Present ? $", missing {chdInfo.DiskName}.chd" : "";
+                            row["chd required"] = $"yes, status={chdInfo.Status}{missing}";
+                        }
+                    }
+                });
+
+                // Commit changes and update UI
+                lock (lockObject)
+                {
+                    SharedData.DataSet.AcceptChanges();
+                }
+
+                // Refresh UI components outside of the lock
+                dataGridView1.Invoke((MethodInvoker)delegate {
+                    dataGridView1.Refresh();
+                    dataGridView1.Columns["chd required"].Visible = true;
+                });
+
+                UpdateStatusBar();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Cursor = Cursors.Default;
+                dataGridView1.Enabled = true;
+                menuStripMainMenu.Enabled = true;
+                panelBelowDataGridView.Enabled = true;
+            }
+        }
+
+        private void searchAndReplaceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SearchAndReplace userControl = new SearchAndReplace(this);
+            richTextBoxDescription.Hide();
+            splitContainerSmall.Panel2.Controls.Add(userControl);
+            userControl.Disposed += BatoceraHostSetup_Disposed;
+            menuStripMainMenu.Enabled = false;
+        }
     }
+
 }
+
 
 
 

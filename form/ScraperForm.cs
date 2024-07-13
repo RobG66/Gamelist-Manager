@@ -1,25 +1,17 @@
 ﻿using GamelistManager.control;
-using GamelistManager.Properties;
-using Renci.SshNet.Security;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GamelistManager
 {
@@ -473,7 +465,7 @@ namespace GamelistManager
                                 }
                                 AddToLog($"Scraping: {showID}'{romFileNameWithExtension}'");
 
-                                ScraperData scraperData = null;
+                                ScraperData scraperData = new ScraperData();
 
                                 // Scrape information first for chosen scraper
                                 switch (scraperPlatform)
@@ -550,8 +542,9 @@ namespace GamelistManager
                                             // Get the value of the property from scraperData
                                             object value = property.GetValue(scraperData);
 
+                                            string elementValue = null;
                                             // Convert the value to string if not null
-                                            string elementValue = value?.ToString();
+                                            elementValue = value?.ToString();
 
                                             if (string.IsNullOrEmpty(elementValue))
                                             {
@@ -898,7 +891,7 @@ namespace GamelistManager
         }
 
         private void ButtonStartStop_Click(object sender, EventArgs e)
-        {
+        {            
             StartScraping();
         }
 

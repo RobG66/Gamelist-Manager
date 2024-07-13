@@ -99,6 +99,7 @@ namespace GamelistManager
 
                     case "lang":
                         scraperData.lang = gameInfo.languages;
+                        Console.WriteLine(gameInfo.languages);
                         break;
 
                     case "rating":
