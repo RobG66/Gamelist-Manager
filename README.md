@@ -48,17 +48,21 @@ Windows Credential Manager is used for saving credentials.  I thought about usin
 
 Most of the essential features I inteded to have are available now, but there's always room for improvement.
 
- 
-![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/bc72b184-4ed0-4727-9fdc-474ec075a355)
+ ![image](https://github.com/user-attachments/assets/c246b08e-e95f-47d7-949a-a2ea99216d98)
 
-![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/8fd797d5-df41-4927-bfc9-9c89ccf06b9f)
+![image](https://github.com/user-attachments/assets/cdacb479-876f-410a-b5ac-c43e8d66b902)
 
-![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/2186b78a-e3b9-4b8e-98ff-ec5ff0bfca74)
+![image](https://github.com/user-attachments/assets/a41c4432-b84b-483f-a0f9-7e3458a3e64e)
 
-![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/68f57414-dbbd-4515-ba48-4133cae1120d)
+![image](https://github.com/user-attachments/assets/f5496cc1-2ec8-402a-8d4b-3304791968f4)
 
-![image](https://github.com/RobG66/Gamelist-Manager/assets/91415974/5792cef6-100b-4c35-97a5-a78d08b44fe3)
+![image](https://github.com/user-attachments/assets/fbf4afad-5de0-4745-be37-49b12e4392a8)
+
+![image](https://github.com/user-attachments/assets/be99978a-a1b0-4b0b-b4e6-e88ebf98d7da)
+
+![image](https://github.com/user-attachments/assets/bbd0cf82-ffa4-4384-a1e9-b93ba2d5cf87)
 
 
-    
+
+
 
