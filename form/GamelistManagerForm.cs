@@ -10,8 +10,10 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Mime;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -286,6 +288,11 @@ namespace GamelistManager
                 toolStripColorComboBox.Text = dataGridColor;
             }
             dataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.FromName(dataGridColor);
+
+            // Load media path values into shared data
+            SharedData.ConfigureMediaPaths();
+
+
         }
 
         private void toolStripComboBox_DrawItem(object sender, DrawItemEventArgs e)
@@ -3559,6 +3566,16 @@ namespace GamelistManager
             splitContainerSmall.Panel2.Controls.Add(userControl);
             userControl.Disposed += BatoceraHostSetup_Disposed;
             menuStripMainMenu.Enabled = false;
+        }
+
+        private void setAlternateMediaPathsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MediaPathSetup userControl = new MediaPathSetup();
+            richTextBoxDescription.Hide();
+            splitContainerSmall.Panel2.Controls.Add(userControl);
+            userControl.Disposed += BatoceraHostSetup_Disposed;
+            menuStripMainMenu.Enabled = false;
+
         }
     }
 

@@ -102,7 +102,7 @@ namespace GamelistManager
             string fileName = null;
             string fileToDownload = null;
             bool downloadResult = false;
-            string folderName = null;
+            string destinationFolder = null;
             string remoteElementName = null;
             string value = null;
 
@@ -193,154 +193,154 @@ namespace GamelistManager
                         break;
 
                     case "bezel":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("bezel");
                         remoteElementName = "bezel-16-9";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
 
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.bezel = $"./{folderName}/{fileName}";
+                                scraperData.bezel = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
 
                     case "fanart":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("fanart");
                         remoteElementName = "fanart";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.fanart = $"./{folderName}/{fileName}";
+                                scraperData.fanart = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
 
                     case "boxback":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("boxback");
                         remoteElementName = "box-2D-back";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.boxback = $"./{folderName}/{fileName}";
+                                scraperData.boxback = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
 
                     case "manual":
-                        folderName = "manuals";
+                        destinationFolder = SharedData.GetMediaTypePath("manual");
                         remoteElementName = "manuel";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.manual = $"./{folderName}/{fileName}";
+                                scraperData.manual = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
 
                     case "image":
+                        destinationFolder = SharedData.GetMediaTypePath("image");
                         remoteElementName = scraperParameters.ImageSource;
-                        folderName = "images";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.image = $"./{folderName}/{fileName}";
+                                scraperData.image = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
 
                     case "thumbnail":
+                        destinationFolder = SharedData.GetMediaTypePath("thumbnail");
                         remoteElementName = scraperParameters.BoxSource;
-                        folderName = "images";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             // Use thumb instead of thumbnail, same as batocera scraping
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.thumbnail = $"./{folderName}/{fileName}";
+                                scraperData.thumbnail = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
                         break;
 
                     case "marquee":
+                        destinationFolder = SharedData.GetMediaTypePath("marquee");
                         remoteElementName = scraperParameters.LogoSource;
-                        folderName = "images";
-
+                        
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
 
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.marquee = $"./{folderName}/{fileName}";
+                                scraperData.marquee = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }
@@ -348,21 +348,21 @@ namespace GamelistManager
 
 
                     case "video":
-                        folderName = "videos";
+                        destinationFolder = SharedData.GetMediaTypePath("video");
 
                         (remoteDownloadURL, fileFormat) = ParseVideo(mediasNode);
                         if (remoteDownloadURL != null)
                         {
-                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{folderName}"))
+                            if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
                             {
-                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{folderName}");
+                                Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
                             }
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{fileName}";
+                            fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
                             downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                             if (downloadResult == true)
                             {
-                                scraperData.video = $"./{folderName}/{fileName}";
+                                scraperData.video = $"./{destinationFolder}/{fileName}";
                                 ShowDownload(ListBoxControl, $"{fileName}");
                             }
                         }

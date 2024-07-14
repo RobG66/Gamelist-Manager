@@ -19,7 +19,7 @@ namespace GamelistManager
 
         public async Task<ScraperData> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, ListBox ListBoxControl, Dictionary<string, List<string>> emumoviesMediaLists)
         {
-            string folderName = null;
+            string destinationFolder = null;
             string remoteDownloadURL = null;
             string remoteFileName = null;
             string newFileName = null;
@@ -35,7 +35,7 @@ namespace GamelistManager
                 switch (element)
                 {
                     case "fanart":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("fanart");
                         remoteMediaType = "Background";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -59,18 +59,18 @@ namespace GamelistManager
                             continue;
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.fanart = $"./{folderName}/{newFileName}";
+                            scraperData.fanart = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
                     case "boxback":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("boxback");
                         remoteMediaType = "BoxBack";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -94,18 +94,18 @@ namespace GamelistManager
                             continue;
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.boxback = $"./{folderName}/{newFileName}";
+                            scraperData.boxback = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
                     case "manual":
-                        folderName = "manuals";
+                        destinationFolder = SharedData.GetMediaTypePath("manual");
                         remoteMediaType = "Manual";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -129,19 +129,19 @@ namespace GamelistManager
                             continue;
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.boxback = $"./{folderName}/{newFileName}";
+                            scraperData.boxback = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
 
                         break;
 
                     case "image":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("image");
                         remoteMediaType = scraperParameters.ImageSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -165,18 +165,18 @@ namespace GamelistManager
                             continue;
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.image = $"./{folderName}/{newFileName}";
+                            scraperData.image = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
                     case "thumbnail":
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("thumbnail");
                         remoteMediaType = scraperParameters.BoxSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -201,12 +201,12 @@ namespace GamelistManager
                         }
                         // Use thumb instead of thumbnail, same as batocera scraping
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.thumbnail = $"./{folderName}/{newFileName}";
+                            scraperData.thumbnail = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
@@ -214,7 +214,7 @@ namespace GamelistManager
                     case "marquee":
                         remoteMediaType = scraperParameters.LogoSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
-                        folderName = "images";
+                        destinationFolder = SharedData.GetMediaTypePath("marquee");
                         if (mediaList == null)
                         {
                             // No media
@@ -236,19 +236,19 @@ namespace GamelistManager
                             continue;
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.marquee = $"./{folderName}/{newFileName}";
+                            scraperData.marquee = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;
 
 
                     case "video":
-                        folderName = "videos";
+                        destinationFolder = SharedData.GetMediaTypePath("video");
                         remoteMediaType = "Video_MP4";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -272,12 +272,12 @@ namespace GamelistManager
                             continue;
                         }
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{folderName}\\{newFileName}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
                         downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
                         if (downloadResult == true)
                         {
-                            scraperData.video = $"./{folderName}/{newFileName}";
+                            scraperData.video = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
                         break;

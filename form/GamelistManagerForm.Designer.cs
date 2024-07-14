@@ -158,6 +158,8 @@
             this.toolStripMenuItemCopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar = new System.Windows.Forms.StatusBar();
+            this.setAlternateMediaPathsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator17 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerBig)).BeginInit();
             this.splitContainerBig.Panel1.SuspendLayout();
@@ -1041,6 +1043,8 @@
             // 
             this.contextMenuStripTools.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.contextMenuStripTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setAlternateMediaPathsToolStripMenuItem,
+            this.toolStripSeparator17,
             this.MameToolStripMenuItem,
             this.mAMEIdentifyClonesToolStripMenuItem,
             this.mAMEIdentifyCHDRequiredToolStripMenuItem,
@@ -1055,7 +1059,7 @@
             this.contextMenuStripTools.Name = "contextMenuStripTools";
             this.contextMenuStripTools.OwnerItem = this.toolStripMenuItemToolsMenu;
             this.contextMenuStripTools.ShowImageMargin = false;
-            this.contextMenuStripTools.Size = new System.Drawing.Size(277, 198);
+            this.contextMenuStripTools.Size = new System.Drawing.Size(277, 248);
             // 
             // MameToolStripMenuItem
             // 
@@ -1154,7 +1158,6 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
-            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
             this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
@@ -1303,6 +1306,18 @@
             this.statusBar.Size = new System.Drawing.Size(704, 20);
             this.statusBar.TabIndex = 6;
             this.statusBar.Text = "Ready";
+            // 
+            // setAlternateMediaPathsToolStripMenuItem
+            // 
+            this.setAlternateMediaPathsToolStripMenuItem.Name = "setAlternateMediaPathsToolStripMenuItem";
+            this.setAlternateMediaPathsToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.setAlternateMediaPathsToolStripMenuItem.Text = "Set Alternate Media Paths";
+            this.setAlternateMediaPathsToolStripMenuItem.Click += new System.EventHandler(this.setAlternateMediaPathsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator17
+            // 
+            this.toolStripSeparator17.Name = "toolStripSeparator17";
+            this.toolStripSeparator17.Size = new System.Drawing.Size(273, 6);
             // 
             // GamelistManagerForm
             // 
@@ -1475,6 +1490,8 @@
         private System.Windows.Forms.ToolStripMenuItem mAMEIdentifyCHDRequiredToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem searchAndReplaceToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator16;
+        private System.Windows.Forms.ToolStripMenuItem setAlternateMediaPathsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator17;
     }
 }
 

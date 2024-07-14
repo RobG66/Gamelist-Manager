@@ -139,7 +139,7 @@ namespace GamelistManager
                                                 
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = "images";
+                            destinationFolder = SharedData.GetMediaTypePath("image"); 
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-image.png";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
@@ -159,7 +159,7 @@ namespace GamelistManager
                                                
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = "images";
+                            destinationFolder = SharedData.GetMediaTypePath("thumbnail");
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb.png";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
@@ -178,7 +178,7 @@ namespace GamelistManager
                         remoteDownloadURL = logoInfo.GetValue(gameInfo) as string;
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = "images";
+                            destinationFolder = SharedData.GetMediaTypePath("marquee");
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-marquee.png";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
@@ -199,7 +199,7 @@ namespace GamelistManager
                         }
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = "videos";
+                            destinationFolder = SharedData.GetMediaTypePath("video");
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-video.mp4";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
