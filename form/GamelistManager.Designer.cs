@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager
 {
-    partial class GamelistManagerForm
+    partial class GamelistManager
     {
         /// <summary>
         /// Required designer variable.
@@ -31,7 +31,7 @@
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GamelistManagerForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GamelistManager));
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.richTextBoxDescription = new System.Windows.Forms.RichTextBox();
             this.comboBoxGenre = new System.Windows.Forms.ComboBox();
@@ -124,6 +124,8 @@
             this.ScraperDatesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemToolsMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripTools = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.setAlternateMediaPathsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator17 = new System.Windows.Forms.ToolStripSeparator();
             this.MameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mAMEIdentifyClonesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mAMEIdentifyCHDRequiredToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -134,7 +136,7 @@
             this.FindMissingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.CreateM3UToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.reassociateMediaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addMediaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemRemoteMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripRemote = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -158,8 +160,6 @@
             this.toolStripMenuItemCopyToClipboard = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItemEditImage = new System.Windows.Forms.ToolStripMenuItem();
             this.statusBar = new System.Windows.Forms.StatusBar();
-            this.setAlternateMediaPathsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator17 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerBig)).BeginInit();
             this.splitContainerBig.Panel1.SuspendLayout();
@@ -1055,11 +1055,23 @@
             this.FindMissingToolStripMenuItem,
             this.toolStripSeparator9,
             this.CreateM3UToolStripMenuItem,
-            this.reassociateMediaToolStripMenuItem});
+            this.addMediaToolStripMenuItem});
             this.contextMenuStripTools.Name = "contextMenuStripTools";
             this.contextMenuStripTools.OwnerItem = this.toolStripMenuItemToolsMenu;
             this.contextMenuStripTools.ShowImageMargin = false;
             this.contextMenuStripTools.Size = new System.Drawing.Size(277, 248);
+            // 
+            // setAlternateMediaPathsToolStripMenuItem
+            // 
+            this.setAlternateMediaPathsToolStripMenuItem.Name = "setAlternateMediaPathsToolStripMenuItem";
+            this.setAlternateMediaPathsToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.setAlternateMediaPathsToolStripMenuItem.Text = "Set Alternate Media Paths";
+            this.setAlternateMediaPathsToolStripMenuItem.Click += new System.EventHandler(this.setAlternateMediaPathsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator17
+            // 
+            this.toolStripSeparator17.Name = "toolStripSeparator17";
+            this.toolStripSeparator17.Size = new System.Drawing.Size(273, 6);
             // 
             // MameToolStripMenuItem
             // 
@@ -1125,12 +1137,12 @@
             this.CreateM3UToolStripMenuItem.Text = "Create M3U From Selected Items";
             this.CreateM3UToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItemCreateM3UFile_Click);
             // 
-            // reassociateMediaToolStripMenuItem
+            // addMediaToolStripMenuItem
             // 
-            this.reassociateMediaToolStripMenuItem.Name = "reassociateMediaToolStripMenuItem";
-            this.reassociateMediaToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
-            this.reassociateMediaToolStripMenuItem.Text = "Re-associate Media";
-            this.reassociateMediaToolStripMenuItem.Click += new System.EventHandler(this.reassociateMediaToolStripMenuItem_Click);
+            this.addMediaToolStripMenuItem.Name = "addMediaToolStripMenuItem";
+            this.addMediaToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.addMediaToolStripMenuItem.Text = "Add Media";
+            this.addMediaToolStripMenuItem.Click += new System.EventHandler(this.addMediaToolStripMenuItem_Click);
             // 
             // toolStripMenuItemRemoteMenu
             // 
@@ -1158,6 +1170,7 @@
             this.toolStripMenuItem8,
             this.toolStripMenuItem9});
             this.contextMenuStripRemote.Name = "contextMenuStripRemote";
+            this.contextMenuStripRemote.OwnerItem = this.toolStripMenuItemRemoteMenu;
             this.contextMenuStripRemote.ShowImageMargin = false;
             this.contextMenuStripRemote.Size = new System.Drawing.Size(219, 248);
             // 
@@ -1307,19 +1320,7 @@
             this.statusBar.TabIndex = 6;
             this.statusBar.Text = "Ready";
             // 
-            // setAlternateMediaPathsToolStripMenuItem
-            // 
-            this.setAlternateMediaPathsToolStripMenuItem.Name = "setAlternateMediaPathsToolStripMenuItem";
-            this.setAlternateMediaPathsToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
-            this.setAlternateMediaPathsToolStripMenuItem.Text = "Set Alternate Media Paths";
-            this.setAlternateMediaPathsToolStripMenuItem.Click += new System.EventHandler(this.setAlternateMediaPathsToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator17
-            // 
-            this.toolStripSeparator17.Name = "toolStripSeparator17";
-            this.toolStripSeparator17.Size = new System.Drawing.Size(273, 6);
-            // 
-            // GamelistManagerForm
+            // GamelistManager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -1331,10 +1332,10 @@
             this.MainMenuStrip = this.menuStripMainMenu;
             this.Margin = new System.Windows.Forms.Padding(1);
             this.MinimumSize = new System.Drawing.Size(720, 460);
-            this.Name = "GamelistManagerForm";
+            this.Name = "GamelistManager";
             this.Text = "Gamelist Manager";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GamelistManagerForm_FormClosing);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.GamelistManagerForm_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.GamelistManager_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.GamelistManager_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.splitContainerBig.Panel1.ResumeLayout(false);
@@ -1486,12 +1487,12 @@
         private System.Windows.Forms.ToolStripComboBox toolStripColorComboBox;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
         private System.Windows.Forms.ToolStripMenuItem mAMEIdentifyClonesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem reassociateMediaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mAMEIdentifyCHDRequiredToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem searchAndReplaceToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator16;
         private System.Windows.Forms.ToolStripMenuItem setAlternateMediaPathsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator17;
+        private System.Windows.Forms.ToolStripMenuItem addMediaToolStripMenuItem;
     }
 }
 

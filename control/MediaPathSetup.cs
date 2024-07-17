@@ -20,7 +20,7 @@ namespace GamelistManager.control
 
         private void LoadTextBoxes()
         {
-            var mediaTypes = GamelistManager.SharedData.MediaTypes;
+            var mediaTypes = global::GamelistManager.SharedData.MediaTypes;
 
             foreach (var mediaType in mediaTypes)
             {
@@ -33,8 +33,17 @@ namespace GamelistManager.control
                 if (controls.Length > 0 && controls[0] is TextBox textBox)
                 {
                     // Set the text of the TextBox to the corresponding path
-                    textBox.Text = GamelistManager.SharedData.GetMediaTypePath(mediaType);
+                    string currentValue = global::GamelistManager.SharedData.GetMediaTypePath(mediaType);
+                    if (!string.IsNullOrEmpty(currentValue))
+                    {
+                        textBox.Text = global::GamelistManager.SharedData.GetMediaTypePath(mediaType);
+                    }
+                    else
+                    {
+                        textBox.Text = "./images";
+                    }
                 }
+
             }
         }
 
@@ -50,14 +59,14 @@ namespace GamelistManager.control
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (var mediaType in GamelistManager.SharedData.MediaTypes)
+            foreach (var mediaType in global::GamelistManager.SharedData.MediaTypes)
             {
-                string textBoxName = $"textbox{mediaType}".ToLower(); 
+                string textBoxName = $"textbox{mediaType}".ToLower();
                 Control[] controls = this.Controls.Find(textBoxName, true);
                 if (controls.Length > 0 && controls[0] is TextBox textBox)
                 {
-                    string textboxValue = textBox.Text;
-                    GamelistManager.SharedData.SetMediaTypePath(mediaType, textboxValue);
+                    string textboxValue = textBox.Text.Trim();
+                    global::GamelistManager.SharedData.SetMediaTypePath(mediaType, textboxValue);
                     if (sb.Length > 0)
                     {
                         sb.Append(",");
@@ -67,11 +76,21 @@ namespace GamelistManager.control
             }
 
             RegistryManager.WriteRegistryValue(null, "MediaPaths", sb.ToString());
+            
+            buttonSave.Enabled = false;
+            buttonSave.Text = "Saved";
+
         }
     
         private void buttonExit_Click(object sender, EventArgs e)
         {
             this.Dispose();
+        }
+
+        private void textbox_TextChanged(object sender, EventArgs e)
+        {
+            buttonSave.Enabled = true;
+            buttonSave.Text = "Save";
         }
     }
 }

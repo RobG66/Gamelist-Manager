@@ -1,6 +1,6 @@
 ﻿namespace GamelistManager
 {
-    partial class MediaCheckForm
+    partial class MediaCheck
     {
         /// <summary>
         /// Required designer variable.
@@ -379,7 +379,7 @@
             this.listBoxLog.Size = new System.Drawing.Size(323, 108);
             this.listBoxLog.TabIndex = 34;
             // 
-            // MediaCheckForm
+            // MediaCheck
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -393,11 +393,11 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "MediaCheckForm";
+            this.Name = "MediaCheck";
             this.Text = "Media Check";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MediaCheckForm_FormClosing);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MediaCheckForm_FormClosed);
-            this.Load += new System.EventHandler(this.MediaCheckForm_Load);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MediaCheck_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MediaCheck_FormClosed);
+            this.Load += new System.EventHandler(this.MediaCheck_Load);
             this.panelManageMedia.ResumeLayout(false);
             this.panelManageMedia.PerformLayout();
             this.panelCheckMedia.ResumeLayout(false);

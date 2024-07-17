@@ -115,36 +115,40 @@
             // label2
             // 
             this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.label2.Location = new System.Drawing.Point(6, 108);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(50, 13);
+            this.label2.Size = new System.Drawing.Size(51, 15);
             this.label2.TabIndex = 28;
             this.label2.Text = "Replace:";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(24, 132);
+            this.label3.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.label3.Location = new System.Drawing.Point(21, 132);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(32, 13);
+            this.label3.Size = new System.Drawing.Size(35, 15);
             this.label3.TabIndex = 29;
             this.label3.Text = "With:";
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(62, 103);
+            this.textBox1.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.textBox1.Location = new System.Drawing.Point(62, 105);
             this.textBox1.MaxLength = 12;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.Size = new System.Drawing.Size(100, 23);
             this.textBox1.TabIndex = 30;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(62, 125);
+            this.textBox2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.textBox2.Location = new System.Drawing.Point(62, 129);
             this.textBox2.MaxLength = 12;
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(100, 20);
+            this.textBox2.Size = new System.Drawing.Size(100, 23);
             this.textBox2.TabIndex = 31;
             this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 
@@ -152,7 +156,7 @@
             // 
             this.buttonApply.BackColor = System.Drawing.Color.LightGreen;
             this.buttonApply.Enabled = false;
-            this.buttonApply.Location = new System.Drawing.Point(11, 169);
+            this.buttonApply.Location = new System.Drawing.Point(11, 184);
             this.buttonApply.Name = "buttonApply";
             this.buttonApply.Size = new System.Drawing.Size(52, 23);
             this.buttonApply.TabIndex = 32;
@@ -163,7 +167,7 @@
             // buttonExit
             // 
             this.buttonExit.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.buttonExit.Location = new System.Drawing.Point(123, 169);
+            this.buttonExit.Location = new System.Drawing.Point(123, 184);
             this.buttonExit.Name = "buttonExit";
             this.buttonExit.Size = new System.Drawing.Size(52, 23);
             this.buttonExit.TabIndex = 33;
@@ -175,7 +179,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.label4.Location = new System.Drawing.Point(39, 150);
+            this.label4.Location = new System.Drawing.Point(39, 160);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(112, 15);
             this.label4.TabIndex = 34;
@@ -185,7 +189,7 @@
             // 
             this.buttonUndo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.buttonUndo.Enabled = false;
-            this.buttonUndo.Location = new System.Drawing.Point(69, 169);
+            this.buttonUndo.Location = new System.Drawing.Point(69, 184);
             this.buttonUndo.Name = "buttonUndo";
             this.buttonUndo.Size = new System.Drawing.Size(51, 23);
             this.buttonUndo.TabIndex = 35;
@@ -211,7 +215,7 @@
             this.Controls.Add(this.radioButtonAll);
             this.Controls.Add(this.radioButtonSelected);
             this.Name = "SearchAndReplace";
-            this.Size = new System.Drawing.Size(185, 200);
+            this.Size = new System.Drawing.Size(185, 220);
             this.Load += new System.EventHandler(this.SearchAndReplace_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

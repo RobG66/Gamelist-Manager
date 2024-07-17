@@ -100,7 +100,7 @@
             this.textboxScraperPassword.Size = new System.Drawing.Size(106, 20);
             this.textboxScraperPassword.TabIndex = 17;
             this.textboxScraperPassword.UseSystemPasswordChar = true;
-            this.textboxScraperPassword.TextChanged += new System.EventHandler(this.ScraperPassword_TextChanged);
+            this.textboxScraperPassword.TextChanged += new System.EventHandler(this.TextBox_TextChanged);
             // 
             // textboxScraperName
             // 
@@ -108,7 +108,7 @@
             this.textboxScraperName.Name = "textboxScraperName";
             this.textboxScraperName.Size = new System.Drawing.Size(106, 20);
             this.textboxScraperName.TabIndex = 16;
-            this.textboxScraperName.TextChanged += new System.EventHandler(this.ScreenScraperID_TextChanged);
+            this.textboxScraperName.TextChanged += new System.EventHandler(this.TextBox_TextChanged);
             // 
             // labelPassword
             // 
@@ -148,6 +148,7 @@
             this.comboBoxRegion.Name = "comboBoxRegion";
             this.comboBoxRegion.Size = new System.Drawing.Size(145, 21);
             this.comboBoxRegion.TabIndex = 28;
+            this.comboBoxRegion.SelectedIndexChanged += new System.EventHandler(this.comboBoxSelectedIndexChanged);
             // 
             // labelLanguage
             // 
@@ -167,6 +168,7 @@
             this.comboBoxLanguage.Name = "comboBoxLanguage";
             this.comboBoxLanguage.Size = new System.Drawing.Size(145, 21);
             this.comboBoxLanguage.TabIndex = 30;
+            this.comboBoxLanguage.SelectedIndexChanged += new System.EventHandler(this.comboBoxSelectedIndexChanged);
             // 
             // checkBoxHideNonGame
             // 
@@ -178,7 +180,7 @@
             this.checkBoxHideNonGame.TabIndex = 34;
             this.checkBoxHideNonGame.Text = "ScreenScraper: Automatically hide non-game";
             this.checkBoxHideNonGame.UseVisualStyleBackColor = false;
-            this.checkBoxHideNonGame.CheckedChanged += new System.EventHandler(this.checkBoxHideNonGame_CheckedChanged);
+            this.checkBoxHideNonGame.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
             // checkBoxNoZZZ
             // 
@@ -190,7 +192,7 @@
             this.checkBoxNoZZZ.TabIndex = 35;
             this.checkBoxNoZZZ.Text = "ScreenScraper: Remove ZZZ(not game) text";
             this.checkBoxNoZZZ.UseVisualStyleBackColor = false;
-            this.checkBoxNoZZZ.CheckedChanged += new System.EventHandler(this.checkBoxNoZZZ_CheckedChanged);
+            this.checkBoxNoZZZ.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
             // checkBoxScrapeByGameID
             // 
@@ -202,7 +204,7 @@
             this.checkBoxScrapeByGameID.TabIndex = 36;
             this.checkBoxScrapeByGameID.Text = "ScreenScraper: Scrape by Game ID if available";
             this.checkBoxScrapeByGameID.UseVisualStyleBackColor = false;
-            this.checkBoxScrapeByGameID.CheckedChanged += new System.EventHandler(this.checkBoxScrapeByGameID_CheckedChanged);
+            this.checkBoxScrapeByGameID.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
             // panelOptions
             // 

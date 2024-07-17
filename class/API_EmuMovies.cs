@@ -246,6 +246,41 @@ namespace GamelistManager
                         }
                         break;
 
+                    case "cartridge":
+                        remoteMediaType = scraperParameters.CartridgeSource;
+                        mediaList = emumoviesMediaLists[remoteMediaType];
+                        destinationFolder = SharedData.GetMediaTypePath("cartridge");
+                        if (mediaList == null)
+                        {
+                            // No media
+                            continue;
+                        }
+                        remoteFileName = FuzzySearch(scraperParameters.Name, mediaList);
+                        if (string.IsNullOrEmpty(remoteFileName))
+                        {
+                            remoteFileName = FuzzySearch(scraperParameters.RomFileNameWithoutExtension, mediaList);
+                            if (string.IsNullOrEmpty(remoteFileName))
+                            {
+                                continue;
+                            }
+                        }
+                        fileFormat = null;
+                        fileFormat = Path.GetExtension(remoteFileName);
+                        if (string.IsNullOrEmpty(fileFormat))
+                        {
+                            continue;
+                        }
+                        newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                        if (downloadResult == true)
+                        {
+                            scraperData.cartridge = $"./{destinationFolder}/{newFileName}";
+                            ShowDownload(ListBoxControl, $"{newFileName}");
+                        }
+                        break;
+
 
                     case "video":
                         destinationFolder = SharedData.GetMediaTypePath("video");

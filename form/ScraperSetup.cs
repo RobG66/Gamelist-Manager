@@ -37,6 +37,8 @@ namespace GamelistManager.control
                 return;
             }
             SaveGameOptions();
+            buttonSave.Text = "Saved";
+            buttonSave.Enabled = false;
         }
 
         private void SaveGameOptions()
@@ -59,7 +61,6 @@ namespace GamelistManager.control
                 SaveNonGameOptions();
             }
 
-            buttonSave.Enabled = false;
             useDefaults = false;
             this.Enabled = true;
         }
@@ -75,7 +76,7 @@ namespace GamelistManager.control
         }
 
 
-     
+
         private void SaveLanguage()
         {
             if (scraperPlatform != "ScreenScraper")
@@ -119,14 +120,10 @@ namespace GamelistManager.control
             this.Dispose();
         }
 
-        private void ScreenScraperID_TextChanged(object sender, EventArgs e)
+        private void TextBox_TextChanged(object sender, EventArgs e)
         {
             buttonSave.Enabled = true;
-        }
-
-        private void ScraperPassword_TextChanged(object sender, EventArgs e)
-        {
-            buttonSave.Enabled = true;
+            buttonSave.Text = "Save";
         }
 
         private void CheckBox1_CheckedChanged(object sender, EventArgs e)
@@ -150,7 +147,7 @@ namespace GamelistManager.control
             {
                 API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
                 XmlNode xmlResponse = await aPI_ScreenScraper.AuthenticateScreenScraperAsync(username, password);
-                                
+
                 if (xmlResponse == null)
                 {
                     return false;
@@ -189,7 +186,7 @@ namespace GamelistManager.control
 
             if (scraperPlatform != "ScreenScraper")
             {
-                panelOptions.Visible = false;    
+                panelOptions.Visible = false;
             }
             else
             {
@@ -268,14 +265,14 @@ namespace GamelistManager.control
                     case "Languages":
                         comboBoxLanguage.Items.AddRange(sectionValues.Values.ToArray());
                         break;
-              
+
                 }
             }
         }
         private void SetDefaultOrSavedOptions()
         {
             bool saveRequired = false;
-          
+
             if (scraperPlatform == "ScreenScraper")
             {
 
@@ -295,7 +292,7 @@ namespace GamelistManager.control
                 {
                     comboBoxLanguage.SelectedIndex = 0;
                 }
-                
+
                 string region = RegistryManager.ReadRegistryValue(scraperPlatform, "Region");
                 if (!string.IsNullOrEmpty(region) && comboBoxRegion.Items.Contains(region))
                 {
@@ -305,7 +302,7 @@ namespace GamelistManager.control
                 {
                     comboBoxRegion.SelectedIndex = 0;
                 }
-                
+
             }
 
             if (saveRequired == true)
@@ -315,19 +312,16 @@ namespace GamelistManager.control
 
         }
 
-        private void checkBoxHideNonGame_CheckedChanged(object sender, EventArgs e)
+        private void checkBox_CheckedChanged(object sender, EventArgs e)
         {
             buttonSave.Enabled = true;
+            buttonSave.Text = "Save";
         }
 
-        private void checkBoxNoZZZ_CheckedChanged(object sender, EventArgs e)
+        private void comboBoxSelectedIndexChanged(object sender, EventArgs e)
         {
             buttonSave.Enabled = true;
-        }
-
-        private void checkBoxScrapeByGameID_CheckedChanged(object sender, EventArgs e)
-        {
-            buttonSave.Enabled = true;
+            buttonSave.Text = "Save";
         }
     }
 }

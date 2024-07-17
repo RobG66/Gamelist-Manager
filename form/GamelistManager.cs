@@ -1,4 +1,5 @@
 ﻿using GamelistManager.control;
+using GamelistManager.form;
 using LibVLCSharp.Shared;
 using LibVLCSharp.WinForms;
 using System;
@@ -23,7 +24,7 @@ using Image = System.Drawing.Image;
 namespace GamelistManager
 {
 
-    public partial class GamelistManagerForm : Form
+    public partial class GamelistManager : Form
     {
         private string visibilityFilter;
         private string genreFilter;
@@ -42,7 +43,7 @@ namespace GamelistManager
             set { comboBoxGenre = value; }
         }
 
-        public GamelistManagerForm()
+        public GamelistManager()
         {
             InitializeComponent();
         }
@@ -1248,6 +1249,7 @@ namespace GamelistManager
             ("fanart",false),
             ("map",false),
             ("bezel",false),
+            ("cartridge",false),
             ("video",false),
             ("manual",false),
             ("scrap_ScreenScraper",false),
@@ -2248,17 +2250,17 @@ namespace GamelistManager
 
         private void ToolStripMenuItem_CheckImages_Click(object sender, EventArgs e)
         {
-            MediaCheckForm mediaCheckForm = new MediaCheckForm()
+            MediaCheck mediaCheck = new MediaCheck()
             {
                 StartPosition = FormStartPosition.Manual,
                 Location = new Point(this.Location.X + 50, this.Location.Y + 50)
             };
             if (ToolStripMenuItemAlwaysOnTop.Checked)
             {
-                mediaCheckForm.TopMost = true;
+                mediaCheck.TopMost = true;
             }
 
-            mediaCheckForm.ShowDialog();
+            mediaCheck.ShowDialog();
         }
 
 
@@ -2658,8 +2660,8 @@ namespace GamelistManager
         {
             clearAllDataToolStripMenuItem.Enabled = false;
             showMediaToolStripMenuItem.Checked = false;
-            ScraperForm scraper = new ScraperForm(this);
-            scraper.FormClosed += ScraperForm_FormClosed;
+            Scraper scraper = new Scraper(this);
+            scraper.FormClosed += Scraper_FormClosed;
             scraper.Owner = this;
             scraper.StartPosition = FormStartPosition.Manual;
             scraper.Location = new Point(this.Location.X + 50, this.Location.Y + 0);
@@ -2676,7 +2678,7 @@ namespace GamelistManager
 
         }
 
-        private void ScraperForm_FormClosed(object sender, FormClosedEventArgs e)
+        private void Scraper_FormClosed(object sender, FormClosedEventArgs e)
         {
             clearAllDataToolStripMenuItem.Enabled = true;
             toolStripMenuItemFileMenu.Enabled = true;
@@ -2684,7 +2686,7 @@ namespace GamelistManager
             toolStripMenuItemToolsMenu.Enabled = true;
             panelBelowDataGridView.Enabled = true;
             toolStripMenuItemRemoteMenu.Enabled = true;
-            ((ScraperForm)sender).FormClosed -= ScraperForm_FormClosed;
+            ((Scraper)sender).FormClosed -= Scraper_FormClosed;
         }
 
         private void ToolStripMenuItemFindItems_Click(object sender, EventArgs e)
@@ -2881,7 +2883,7 @@ namespace GamelistManager
 
         }
 
-        private void GamelistManagerForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void GamelistManager_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (SharedData.IsDataChanged)
             {
@@ -3182,7 +3184,7 @@ namespace GamelistManager
 
 
 
-        private void GamelistManagerForm_FormClosed(object sender, FormClosedEventArgs e)
+        private void GamelistManager_FormClosed(object sender, FormClosedEventArgs e)
         {
             if (mediaPlayer != null)
             {
@@ -3386,79 +3388,7 @@ namespace GamelistManager
             SharedData.IsDataChanged = true;
 
         }
-
-        private void reassociateMediaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DialogResult result = MessageBox.Show("This will find any existing media and reassociate it with the matching game.\n\nDo you want to continue?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (result != DialogResult.Yes)
-            {
-                return;
-            }
-
-            string[] knownImageTypes = {
-                "image",
-                "thumb",
-                "boxback",
-                "fanart",
-                "marquee",
-                "map"
-                };
-
-            Reassociate("images", knownImageTypes);
-
-            string[] knownVideoTypes = { "video" };
-            Reassociate("videos", knownVideoTypes);
-
-            string[] knownManualTypes = { "manual" };
-            Reassociate("manuals", knownManualTypes);
-
-            MessageBox.Show("Media reassociation is completed.\n\nPlease remember to save!", "Completed!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-
-
-        }
-        private void Reassociate(string folder, string[] types)
-        {
-            string dir = Path.Combine(Path.GetDirectoryName(SharedData.XMLFilename), folder);
-            string[] files = Directory.GetFiles(dir);
-            files = files
-               .Select(file => $"./{folder}/{Path.GetFileName(file)}")
-               .ToArray();
-
-            var dataTable = SharedData.DataSet.Tables["game"];
-            var lockObject = new object();
-
-            Parallel.ForEach(dataTable.AsEnumerable(), row =>
-            {
-                string romNameWithoutExtension = Path.GetFileNameWithoutExtension(row["path"].ToString());
-                foreach (string fileType in types)
-                {
-                    string pattern = $"./{folder}/{romNameWithoutExtension}-{fileType}";
-                    string firstMatch = files
-                        .FirstOrDefault(f => f.StartsWith(pattern, StringComparison.OrdinalIgnoreCase));
-
-                    if (firstMatch != null)
-                    {
-                        string column = fileType == "thumb" ? "thumbnail" : fileType;
-
-                        lock (lockObject)
-                        {
-                            row[column] = firstMatch;
-                        }
-                    }
-                }
-            });
-
-            SharedData.DataSet.AcceptChanges();
-
-
-        }
-
-        private void newGamelistToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
+           
         private async void mAMEIdentifyCHDRequiredToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string parentFolderName = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
@@ -3576,6 +3506,21 @@ namespace GamelistManager
             userControl.Disposed += BatoceraHostSetup_Disposed;
             menuStripMainMenu.Enabled = false;
 
+        }
+
+        private void addMediaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MediaSearch mediaSearch = new MediaSearch()
+            {
+                StartPosition = FormStartPosition.Manual,
+                Location = new Point(this.Location.X + 50, this.Location.Y + 50)
+            };
+            if (ToolStripMenuItemAlwaysOnTop.Checked)
+            {
+                mediaSearch.TopMost = true;
+            }
+
+            mediaSearch.ShowDialog();
         }
     }
 

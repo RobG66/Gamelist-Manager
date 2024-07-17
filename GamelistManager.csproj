@@ -168,6 +168,12 @@
     <Compile Include="control\MediaPathSetup.Designer.cs">
       <DependentUpon>MediaPathSetup.cs</DependentUpon>
     </Compile>
+    <Compile Include="form\MediaSearch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="form\MediaSearch.Designer.cs">
+      <DependentUpon>MediaSearch.cs</DependentUpon>
+    </Compile>
     <Compile Include="form\ScraperSetup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -180,18 +186,18 @@
     <Compile Include="control\ScraperPreview.Designer.cs">
       <DependentUpon>ScraperPreview.cs</DependentUpon>
     </Compile>
-    <Compile Include="form\MediaCheckForm.cs">
+    <Compile Include="form\MediaCheck.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="form\MediaCheckForm.Designer.cs">
-      <DependentUpon>MediaCheckForm.cs</DependentUpon>
+    <Compile Include="form\MediaCheck.Designer.cs">
+      <DependentUpon>MediaCheck.cs</DependentUpon>
     </Compile>
     <Compile Include="class\ImageChecker.cs" />
-    <Compile Include="form\ScraperForm.cs">
+    <Compile Include="form\Scraper.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="form\ScraperForm.Designer.cs">
-      <DependentUpon>ScraperForm.cs</DependentUpon>
+    <Compile Include="form\Scraper.Designer.cs">
+      <DependentUpon>Scraper.cs</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -200,11 +206,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="class\RegistryManager.cs" />
-    <Compile Include="form\GamelistManagerForm.cs">
+    <Compile Include="form\GamelistManager.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="form\GamelistManagerForm.Designer.cs">
-      <DependentUpon>GamelistManagerForm.cs</DependentUpon>
+    <Compile Include="form\GamelistManager.Designer.cs">
+      <DependentUpon>GamelistManager.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -223,20 +229,23 @@
     <EmbeddedResource Include="control\MediaPathSetup.resx">
       <DependentUpon>MediaPathSetup.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="form\MediaSearch.resx">
+      <DependentUpon>MediaSearch.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="form\ScraperSetup.resx">
       <DependentUpon>ScraperSetup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="control\ScraperPreview.resx">
       <DependentUpon>ScraperPreview.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="form\MediaCheckForm.resx">
-      <DependentUpon>MediaCheckForm.cs</DependentUpon>
+    <EmbeddedResource Include="form\MediaCheck.resx">
+      <DependentUpon>MediaCheck.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="form\ScraperForm.resx">
-      <DependentUpon>ScraperForm.cs</DependentUpon>
+    <EmbeddedResource Include="form\Scraper.resx">
+      <DependentUpon>Scraper.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="form\GamelistManagerForm.resx">
-      <DependentUpon>GamelistManagerForm.cs</DependentUpon>
+    <EmbeddedResource Include="form\GamelistManager.resx">
+      <DependentUpon>GamelistManager.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

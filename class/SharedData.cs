@@ -24,7 +24,8 @@ namespace GamelistManager
               "map",
               "bezel",
               "boxback",
-              "video"
+              "video",
+              "cartridge"
         };
 
         public static string[] MediaTypes
@@ -97,7 +98,8 @@ namespace GamelistManager
             {
                 return path;
             }
-            return null;
+            // Use default images as fallback
+            return "./images";
         }
 
         public static void ConfigureMediaPaths() {
@@ -107,7 +109,7 @@ namespace GamelistManager
             if (string.IsNullOrEmpty(regValue))
             {
                 // First time setup
-                foreach (var mediaType in GamelistManager.SharedData.MediaTypes)
+                foreach (var mediaType in global::GamelistManager.SharedData.MediaTypes)
                 {
                     SharedData.SetMediaTypePath(mediaType, "./images");
                 }
@@ -116,9 +118,9 @@ namespace GamelistManager
 
                 StringBuilder sb = new StringBuilder();
 
-                foreach (var mediaType in GamelistManager.SharedData.MediaTypes)
+                foreach (var mediaType in global::GamelistManager.SharedData.MediaTypes)
                 {
-                    string path = GamelistManager.SharedData.GetMediaTypePath(mediaType);
+                    string path = global::GamelistManager.SharedData.GetMediaTypePath(mediaType);
                     if (path != null)
                     {
                         if (sb.Length > 0)

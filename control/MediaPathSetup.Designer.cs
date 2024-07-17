@@ -47,9 +47,13 @@
             this.textboxboxback = new System.Windows.Forms.TextBox();
             this.buttondefault = new System.Windows.Forms.Button();
             this.buttonExit = new System.Windows.Forms.Button();
-            this.buttonApply = new System.Windows.Forms.Button();
+            this.buttonSave = new System.Windows.Forms.Button();
             this.textboxbezel = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
+            this.textboxcartridge = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.textboxtitleshot = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // labelFolderSetup
@@ -138,71 +142,79 @@
             // textboximage
             // 
             this.textboximage.Location = new System.Drawing.Point(61, 31);
-            this.textboximage.MaxLength = 15;
+            this.textboximage.MaxLength = 50;
             this.textboximage.Name = "textboximage";
             this.textboximage.Size = new System.Drawing.Size(100, 20);
             this.textboximage.TabIndex = 45;
+            this.textboximage.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxmarquee
             // 
             this.textboxmarquee.Location = new System.Drawing.Point(61, 51);
-            this.textboxmarquee.MaxLength = 15;
+            this.textboxmarquee.MaxLength = 50;
             this.textboxmarquee.Name = "textboxmarquee";
             this.textboxmarquee.Size = new System.Drawing.Size(100, 20);
             this.textboxmarquee.TabIndex = 46;
+            this.textboxmarquee.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxthumbnail
             // 
             this.textboxthumbnail.Location = new System.Drawing.Point(61, 72);
-            this.textboxthumbnail.MaxLength = 15;
+            this.textboxthumbnail.MaxLength = 50;
             this.textboxthumbnail.Name = "textboxthumbnail";
             this.textboxthumbnail.Size = new System.Drawing.Size(100, 20);
             this.textboxthumbnail.TabIndex = 47;
+            this.textboxthumbnail.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxvideo
             // 
             this.textboxvideo.Location = new System.Drawing.Point(61, 92);
-            this.textboxvideo.MaxLength = 15;
+            this.textboxvideo.MaxLength = 50;
             this.textboxvideo.Name = "textboxvideo";
             this.textboxvideo.Size = new System.Drawing.Size(100, 20);
             this.textboxvideo.TabIndex = 48;
+            this.textboxvideo.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxmap
             // 
             this.textboxmap.Location = new System.Drawing.Point(61, 112);
-            this.textboxmap.MaxLength = 15;
+            this.textboxmap.MaxLength = 50;
             this.textboxmap.Name = "textboxmap";
             this.textboxmap.Size = new System.Drawing.Size(100, 20);
             this.textboxmap.TabIndex = 49;
+            this.textboxmap.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxmanual
             // 
             this.textboxmanual.Location = new System.Drawing.Point(61, 132);
-            this.textboxmanual.MaxLength = 15;
+            this.textboxmanual.MaxLength = 50;
             this.textboxmanual.Name = "textboxmanual";
             this.textboxmanual.Size = new System.Drawing.Size(100, 20);
             this.textboxmanual.TabIndex = 50;
+            this.textboxmanual.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxfanart
             // 
             this.textboxfanart.Location = new System.Drawing.Point(61, 152);
-            this.textboxfanart.MaxLength = 15;
+            this.textboxfanart.MaxLength = 50;
             this.textboxfanart.Name = "textboxfanart";
             this.textboxfanart.Size = new System.Drawing.Size(100, 20);
             this.textboxfanart.TabIndex = 51;
+            this.textboxfanart.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // textboxboxback
             // 
             this.textboxboxback.Location = new System.Drawing.Point(61, 172);
-            this.textboxboxback.MaxLength = 15;
+            this.textboxboxback.MaxLength = 50;
             this.textboxboxback.Name = "textboxboxback";
             this.textboxboxback.Size = new System.Drawing.Size(100, 20);
             this.textboxboxback.TabIndex = 52;
+            this.textboxboxback.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // buttondefault
             // 
             this.buttondefault.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.buttondefault.Location = new System.Drawing.Point(65, 225);
+            this.buttondefault.Location = new System.Drawing.Point(65, 264);
             this.buttondefault.Name = "buttondefault";
             this.buttondefault.Size = new System.Drawing.Size(51, 23);
             this.buttondefault.TabIndex = 55;
@@ -213,7 +225,7 @@
             // buttonExit
             // 
             this.buttonExit.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.buttonExit.Location = new System.Drawing.Point(119, 225);
+            this.buttonExit.Location = new System.Drawing.Point(119, 264);
             this.buttonExit.Name = "buttonExit";
             this.buttonExit.Size = new System.Drawing.Size(52, 23);
             this.buttonExit.TabIndex = 56;
@@ -221,24 +233,25 @@
             this.buttonExit.UseVisualStyleBackColor = false;
             this.buttonExit.Click += new System.EventHandler(this.buttonExit_Click);
             // 
-            // buttonApply
+            // buttonSave
             // 
-            this.buttonApply.BackColor = System.Drawing.Color.LightGreen;
-            this.buttonApply.Location = new System.Drawing.Point(7, 225);
-            this.buttonApply.Name = "buttonApply";
-            this.buttonApply.Size = new System.Drawing.Size(52, 23);
-            this.buttonApply.TabIndex = 54;
-            this.buttonApply.Text = "Apply";
-            this.buttonApply.UseVisualStyleBackColor = false;
-            this.buttonApply.Click += new System.EventHandler(this.buttonApply_Click);
+            this.buttonSave.BackColor = System.Drawing.Color.LightGreen;
+            this.buttonSave.Location = new System.Drawing.Point(7, 264);
+            this.buttonSave.Name = "buttonSave";
+            this.buttonSave.Size = new System.Drawing.Size(52, 23);
+            this.buttonSave.TabIndex = 54;
+            this.buttonSave.Text = "Save";
+            this.buttonSave.UseVisualStyleBackColor = false;
+            this.buttonSave.Click += new System.EventHandler(this.buttonApply_Click);
             // 
             // textboxbezel
             // 
             this.textboxbezel.Location = new System.Drawing.Point(61, 192);
-            this.textboxbezel.MaxLength = 15;
+            this.textboxbezel.MaxLength = 50;
             this.textboxbezel.Name = "textboxbezel";
             this.textboxbezel.Size = new System.Drawing.Size(100, 20);
             this.textboxbezel.TabIndex = 53;
+            this.textboxbezel.TextChanged += new System.EventHandler(this.textbox_TextChanged);
             // 
             // label9
             // 
@@ -249,15 +262,54 @@
             this.label9.TabIndex = 56;
             this.label9.Text = "Bezel";
             // 
+            // textboxcartridge
+            // 
+            this.textboxcartridge.Location = new System.Drawing.Point(61, 213);
+            this.textboxcartridge.MaxLength = 50;
+            this.textboxcartridge.Name = "textboxcartridge";
+            this.textboxcartridge.Size = new System.Drawing.Size(100, 20);
+            this.textboxcartridge.TabIndex = 57;
+            this.textboxcartridge.TextChanged += new System.EventHandler(this.textbox_TextChanged);
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(3, 216);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(49, 13);
+            this.label10.TabIndex = 58;
+            this.label10.Text = "Cartridge";
+            // 
+            // textboxtitleshot
+            // 
+            this.textboxtitleshot.Location = new System.Drawing.Point(61, 234);
+            this.textboxtitleshot.MaxLength = 50;
+            this.textboxtitleshot.Name = "textboxtitleshot";
+            this.textboxtitleshot.Size = new System.Drawing.Size(100, 20);
+            this.textboxtitleshot.TabIndex = 59;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(3, 237);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(47, 13);
+            this.label11.TabIndex = 60;
+            this.label11.Text = "Titleshot";
+            // 
             // MediaPathSetup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.textboxtitleshot);
+            this.Controls.Add(this.label11);
+            this.Controls.Add(this.textboxcartridge);
+            this.Controls.Add(this.label10);
             this.Controls.Add(this.textboxbezel);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.buttondefault);
             this.Controls.Add(this.buttonExit);
-            this.Controls.Add(this.buttonApply);
+            this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.textboxboxback);
             this.Controls.Add(this.textboxfanart);
             this.Controls.Add(this.textboxmanual);
@@ -276,7 +328,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.labelFolderSetup);
             this.Name = "MediaPathSetup";
-            this.Size = new System.Drawing.Size(183, 262);
+            this.Size = new System.Drawing.Size(183, 296);
             this.Load += new System.EventHandler(this.UserControl1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -304,8 +356,12 @@
         private System.Windows.Forms.TextBox textboxboxback;
         private System.Windows.Forms.Button buttondefault;
         private System.Windows.Forms.Button buttonExit;
-        private System.Windows.Forms.Button buttonApply;
+        private System.Windows.Forms.Button buttonSave;
         private System.Windows.Forms.TextBox textboxbezel;
         private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox textboxcartridge;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox textboxtitleshot;
+        private System.Windows.Forms.Label label11;
     }
 }

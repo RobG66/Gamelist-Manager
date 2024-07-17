@@ -9,7 +9,7 @@ namespace GamelistManager.control
 {
     public partial class SearchAndReplace : UserControl
     {
-        GamelistManagerForm gamelistManagerForm;
+        GamelistManager gamelistManager;
         Stack<UndoAction> undoStack;
 
         public class UndoAction
@@ -19,9 +19,9 @@ namespace GamelistManager.control
             public string ColumnName { get; set; }
         }
 
-        public SearchAndReplace(GamelistManagerForm form)
+        public SearchAndReplace(GamelistManager form)
         {
-            gamelistManagerForm = form;
+            gamelistManager = form;
             InitializeComponent();
             undoStack = new Stack<UndoAction>();
 
@@ -50,11 +50,11 @@ namespace GamelistManager.control
             List<DataGridViewRow> selectedRowsList = new List<DataGridViewRow>();
             if (radioButtonAll.Checked)
             {
-                selectedRowsList = gamelistManagerForm.DataGridView.Rows.Cast<DataGridViewRow>().ToList();
+                selectedRowsList = gamelistManager.DataGridView.Rows.Cast<DataGridViewRow>().ToList();
             }
             else
             {
-                selectedRowsList = gamelistManagerForm.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
+                selectedRowsList = gamelistManager.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
             }
 
             List<string> romPathList = selectedRowsList.Select(row => row.Cells["path"].Value?.ToString()).ToList();

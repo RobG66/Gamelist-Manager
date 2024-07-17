@@ -15,12 +15,12 @@ using System.Windows.Forms;
 
 namespace GamelistManager
 {
-    public partial class ScraperForm : Form
+    public partial class Scraper : Form
     {
         private DateTime lastUpdateTime;
         private static readonly string cacheFilePath = Path.Combine(Environment.CurrentDirectory, "mediaListsCache.json");
         public ListBox ListBoxControl { get; private set; }
-        private GamelistManagerForm gamelistManagerForm;
+        private GamelistManager gamelistManager;
         private ScraperPreview scraperPreview;
         private CancellationTokenSource CancellationTokenSource;
         private CancellationToken CancellationToken => CancellationTokenSource.Token;
@@ -32,12 +32,8 @@ namespace GamelistManager
         private Dictionary<string, List<string>> emumoviesMediaLists;
         private string batoceraSystemName;
         private string previousScraperName;
-        Dictionary<string, string> dictLogoSources;
-        Dictionary<string, string> dictBoxSources;
-        Dictionary<string, string> dictImageSources;
-
-
-        public ScraperForm(GamelistManagerForm form)
+ 
+        public Scraper(GamelistManager form)
         {
             InitializeComponent();
             ListBoxControl = listBoxDownloads;
@@ -46,19 +42,16 @@ namespace GamelistManager
             totalCount = 0;
             scraperErrors = 0;
             scraperFinished = false;
-            gamelistManagerForm = form;
+            gamelistManager = form;
             globalStopwatch = new Stopwatch();
             emumoviesMediaLists = new Dictionary<string, List<string>>();
             batoceraSystemName = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename));
-            dictBoxSources = new Dictionary<string, string>();
-            dictImageSources = new Dictionary<string, string>();
-            dictLogoSources = new Dictionary<string, string>();
-        }
+         }
 
         private List<string> GetElementsToScrape()
         {
             List<string> elements = new List<string>();
-            foreach (Control control in panelCheckboxes.Controls)
+            foreach (Control control in panelSmall.Controls)
             {
                 if (control is CheckBox checkBox && checkBox.Checked && checkBox.Enabled)
                 {
@@ -72,14 +65,14 @@ namespace GamelistManager
         private async void StartScraping()
         {
             // Pre scraping form configuration
-            gamelistManagerForm.Enabled = false; // disable main form
+            gamelistManager.Enabled = false; // disable main form
             if (listBoxLog.Items.Count > 0) { listBoxLog.Items.Clear(); } // clear log
             if (listBoxDownloads.Items.Count > 0) { listBoxDownloads.Items.Clear(); }
             panelScraperOptions.Enabled = false;
             buttonStart.Enabled = false;
             buttonCancel.Enabled = false;
             buttonSetup.Enabled = false;
-            panelCheckboxes.Visible = false;
+            panelSmall.Visible = false;
             labelScrapeCount.Text = "Limit: N/A";
             labelCounts.Text = $"0/0";
             labelProgress.Text = "0%";
@@ -100,11 +93,11 @@ namespace GamelistManager
             List<DataGridViewRow> selectedRowsList = new List<DataGridViewRow>();
             if (radioButtonScrapeAll.Checked)
             {
-                selectedRowsList = gamelistManagerForm.DataGridView.Rows.Cast<DataGridViewRow>().ToList();
+                selectedRowsList = gamelistManager.DataGridView.Rows.Cast<DataGridViewRow>().ToList();
             }
             else
             {
-                selectedRowsList = gamelistManagerForm.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
+                selectedRowsList = gamelistManager.DataGridView.SelectedRows.Cast<DataGridViewRow>().ToList();
             }
 
             if (checkBoxDoNotScrapeHidden.Checked)
@@ -153,6 +146,7 @@ namespace GamelistManager
             string optionsFileName = null;
             string systemID = null; // Batocera system ID
             string boxSource = null;
+            string cartridgeSource = null;
             string imageSource = null;
             string logoSource = null;
             string region = null;
@@ -169,7 +163,8 @@ namespace GamelistManager
             string userAccessToken = null; // EmuMovies Specific
             string imageFolder = $"{parentFolderPath}\\images";
             string[] imageFiles = new string[0];
-            Dictionary<string, string> systems;
+            Dictionary<string, string> section;
+            Dictionary<string, Dictionary<string, string>> allSections;
 
             // For scraper preview
             // If not scraping images, then show existing
@@ -197,8 +192,10 @@ namespace GamelistManager
                         optionsFileName = "ini\\screenscraper_options.ini";
 
                         iniReader = new IniFileReader(optionsFileName);
-                        systems = iniReader.GetSection("Systems");
-                        systemID = systems[batoceraSystemName];
+                        allSections = iniReader.GetAllSections();
+                        allSections.TryGetValue("Systems", out section);
+                                                
+                        systemID = section[batoceraSystemName];
                         if (string.IsNullOrEmpty(systemID) || systemID == "0")
                         {
                             MessageBox.Show($"A system ID is missing for system '{batoceraSystemName}' in {optionsFileName}!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -213,9 +210,14 @@ namespace GamelistManager
                         // Always scrape ID
                         elementsToScrape.Add("id");
 
-                        boxSource = dictBoxSources[comboBoxBoxSource.Text];
-                        imageSource = dictImageSources[comboBoxImageSource.Text];
-                        logoSource = dictLogoSources[comboBoxLogoSource.Text];
+                        // Get source values
+                        allSections.TryGetValue("ImageSource", out section);
+                        section.TryGetValue(comboboxImageSource.Text, out imageSource);
+                        allSections.TryGetValue("BoxSource", out section);
+                        section.TryGetValue(comboboxImageSource.Text, out boxSource);
+                        allSections.TryGetValue("LogoSource", out section);
+                        section.TryGetValue(comboboxImageSource.Text, out logoSource);
+
                         region = RegistryManager.ReadRegistryValue("ScreenScraper", "Region");
                         language = RegistryManager.ReadRegistryValue("ScreenScraper", "language");
 
@@ -258,11 +260,17 @@ namespace GamelistManager
                             StopScraping();
                             return;
                         }
-
-                        boxSource = dictBoxSources[comboBoxBoxSource.Text];
-                        imageSource = dictImageSources[comboBoxImageSource.Text];
-                        logoSource = dictLogoSources[comboBoxLogoSource.Text];
-
+                        AddToLog("Reading configuration file");
+                        optionsFileName = "ini\\arcadedb_options.ini";
+                        iniReader = new IniFileReader(optionsFileName);
+                        allSections = iniReader.GetAllSections();
+                        
+                        allSections.TryGetValue("ImageSource", out section);
+                        section.TryGetValue(comboboxImageSource.Text, out imageSource);
+                        allSections.TryGetValue("BoxSource", out section);
+                        section.TryGetValue(comboboxBoxSource.Text, out boxSource);
+                        allSections.TryGetValue("LogoSource", out section);
+                        section.TryGetValue(comboboxLogoSource.Text, out logoSource);
                     }
                     break;
 
@@ -279,18 +287,25 @@ namespace GamelistManager
                     optionsFileName = "ini\\emumovies_options.ini";
 
                     iniReader = new IniFileReader(optionsFileName);
-                    systems = iniReader.GetSection("Systems");
-                    systemID = systems[batoceraSystemName];
+                    allSections = iniReader.GetAllSections();
+                    allSections.TryGetValue("Systems", out section);
+
+                    systemID = section[batoceraSystemName];
                     if (string.IsNullOrEmpty(systemID))
                     {
                         MessageBox.Show($"A system ID is missing for system '{batoceraSystemName}' in {optionsFileName}!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         StopScraping();
                         return;
                     }
-                    
-                    boxSource = dictBoxSources[comboBoxBoxSource.Text];
-                    imageSource = dictImageSources[comboBoxImageSource.Text];
-                    logoSource = dictLogoSources[comboBoxLogoSource.Text];
+
+                    allSections.TryGetValue("ImageSource", out section);
+                    section.TryGetValue(comboboxImageSource.Text, out imageSource);
+                    allSections.TryGetValue("BoxSource", out section);
+                    section.TryGetValue(comboboxBoxSource.Text, out boxSource);
+                    allSections.TryGetValue("LogoSource", out section);
+                    section.TryGetValue(comboboxLogoSource.Text, out logoSource);
+                    allSections.TryGetValue("CartridgeSource", out section);
+                    section.TryGetValue(comboboxCartridgeSource.Text, out cartridgeSource);
                     maxConcurrency = 2;
 
                     AddToLog("Getting access token");
@@ -318,6 +333,7 @@ namespace GamelistManager
                         {
                             AddToLog($"Downloading {mediaType} medialist");
                             List<string> medialist = await aPI_EmuMovies.GetMediaList(systemID, mediaType);
+                            AddToLog($"{medialist.Count} images found");
                             emumoviesMediaLists[mediaType] = medialist;
                         }
                         string json = JsonSerializer.Serialize(emumoviesMediaLists, new JsonSerializerOptions { WriteIndented = true });
@@ -380,6 +396,7 @@ namespace GamelistManager
             baseScraperParameters.ParentFolderPath = parentFolderPath;
             baseScraperParameters.ElementsToScrape = elementsToScrape;
             baseScraperParameters.BoxSource = boxSource;
+            baseScraperParameters.CartridgeSource = cartridgeSource;
             baseScraperParameters.ImageSource = imageSource;
             baseScraperParameters.LogoSource = logoSource;
             baseScraperParameters.UserID = userID;
@@ -438,25 +455,12 @@ namespace GamelistManager
                                 int scrapeMax = 0;
 
                                 // All settings and variables in a new var
-                                var scraperParameters = new ScraperParameters
-                                {
-                                    Overwrite = baseScraperParameters.Overwrite,
-                                    ParentFolderPath = baseScraperParameters.ParentFolderPath,
-                                    ElementsToScrape = new List<string>(baseScraperParameters.ElementsToScrape),
-                                    BoxSource = baseScraperParameters.BoxSource,
-                                    ImageSource = baseScraperParameters.ImageSource,
-                                    LogoSource = baseScraperParameters.LogoSource,
-                                    UserID = baseScraperParameters.UserID,
-                                    UserPassword = baseScraperParameters.UserPassword,
-                                    Region = baseScraperParameters.Region,
-                                    Language = baseScraperParameters.Language,
-                                    UserAccessToken = baseScraperParameters.UserAccessToken,
-                                    SystemID = baseScraperParameters.SystemID,
-                                    RomFileNameWithoutExtension = romFileNameNoExtension,
-                                    RomFileNameWithExtension = romFileNameWithExtension,
-                                    GameID = gameID,
-                                    Name = gameName
-                                };
+                                var scraperParameters = baseScraperParameters.Clone();
+                                scraperParameters.RomFileNameWithoutExtension = romFileNameNoExtension;
+                                scraperParameters.RomFileNameWithExtension = romFileNameWithExtension;
+                                scraperParameters.GameID = gameID;
+                                scraperParameters.Name = gameName;
+                                
 
                                 string showID = null;
                                 if (!string.IsNullOrEmpty(gameID))
@@ -649,20 +653,20 @@ namespace GamelistManager
             }
 
             // Build new genre list because genres can change
-            int currentIndex = gamelistManagerForm.ComboBoxGenre1.SelectedIndex;
-            string currentGenre = gamelistManagerForm.ComboBoxGenre1.Text;
+            int currentIndex = gamelistManager.ComboBoxGenre1.SelectedIndex;
+            string currentGenre = gamelistManager.ComboBoxGenre1.Text;
             string currentFilter = SharedData.DataSet.Tables["game"].DefaultView.RowFilter;
-            gamelistManagerForm.BuildCombobox();
+            gamelistManager.BuildCombobox();
 
-            if (gamelistManagerForm.ComboBoxGenre1.Enabled)
+            if (gamelistManager.ComboBoxGenre1.Enabled)
             {
-                if (gamelistManagerForm.ComboBoxGenre1.Items.Contains(currentGenre) && currentIndex > 1)
+                if (gamelistManager.ComboBoxGenre1.Items.Contains(currentGenre) && currentIndex > 1)
                 {
-                    gamelistManagerForm.ComboBoxGenre1.Text = currentGenre;
+                    gamelistManager.ComboBoxGenre1.Text = currentGenre;
                 }
                 if (currentIndex == 1)
                 {
-                    gamelistManagerForm.ComboBoxGenre1.SelectedIndex = 1;
+                    gamelistManager.ComboBoxGenre1.SelectedIndex = 1;
                 }
             }
             else
@@ -710,41 +714,14 @@ namespace GamelistManager
                 buttonSetup.Enabled = true;
             }
             globalStopwatch.Stop();
-            panelCheckboxes.Visible = true;
-            gamelistManagerForm.Enabled = true;
+            panelSmall.Visible = true;
+            gamelistManager.Enabled = true;
             contextMenuStripLog.Enabled = true;
         }
 
         private void SaveReminder()
         {
-            gamelistManagerForm.SaveFile(SharedData.XMLFilename);
-        }
-
-
-        private void ButtonSelectAll_Click(object sender, EventArgs e)
-        {
-            foreach (Control control in panelCheckboxes.Controls)
-            {
-                // Check if the control is a checkbox
-                if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
-                {
-                    // Set checked
-                    checkBox.Checked = true;
-                }
-            }
-        }
-
-        private void ButtonSelectNone_Click(object sender, EventArgs e)
-        {
-            foreach (Control control in panelCheckboxes.Controls)
-            {
-                // Check if the control is a checkbox
-                if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
-                {
-                    // Set unchecked
-                    checkBox.Checked = false;
-                }
-            }
+            gamelistManager.SaveFile(SharedData.XMLFilename);
         }
 
         private void Scraper_Load(object sender, EventArgs e)
@@ -776,7 +753,6 @@ namespace GamelistManager
                 pictureBox1.Image = image;
             }
 
-            SetupComboBoxes(lastScraper);
             LoadScraperSettings(lastScraper, batoceraSystemName);
             previousScraperName = lastScraper;
         }
@@ -903,7 +879,7 @@ namespace GamelistManager
             Clipboard.SetText(listBoxItems);
         }
 
-        private void ScraperForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void Scraper_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (buttonStart.Enabled == false)
             {
@@ -926,7 +902,7 @@ namespace GamelistManager
 
             // Save checkbox state
             List<string> elements = new List<string>();
-            foreach (Control control in panelCheckboxes.Controls)
+            foreach (Control control in panelSmall.Controls)
             {
                 if (control is CheckBox checkBox && checkBox.Checked && checkBox.Enabled)
                 {
@@ -939,24 +915,78 @@ namespace GamelistManager
             RegistryManager.WriteRegistryValue(scraper, "Checkboxes", checkboxString);
 
             // Save source settings
-            string logoSource = comboBoxLogoSource.Text;
-            string boxSource = comboBoxBoxSource.Text;
-            string imageSource = comboBoxImageSource.Text;
-
-            string regValue = $"LogoSource={logoSource},BoxSource={boxSource},ImageSource={imageSource}";
-            RegistryManager.WriteRegistryValue(scraper, system, regValue);
-
+            List<string> sources = new List<string>();
+            foreach (Control control in panelSmall.Controls)
+            {
+                if (control is ComboBox comboBox)
+                {
+                    string comboboxvalue = comboBox.Text;
+                    string name = comboBox.Name.Replace("combobox", "");
+                    sources.Add($"{name}={comboboxvalue}");
+                }
+            }
+            string sourcesString = string.Join(",", sources);
+            RegistryManager.WriteRegistryValue(scraper, system, sourcesString);
         }
 
         private void LoadScraperSettings(string scraper, string system)
         {
-
             if (string.IsNullOrEmpty(scraper) || string.IsNullOrEmpty(system))
             {
                 return; 
             }
 
-            // Setup available checkboxes first
+            string regValue = null;
+            regValue = RegistryManager.ReadRegistryValue(scraper, system);
+            Dictionary<string, string> comboboxSavedValues = null;
+            if (!string.IsNullOrEmpty(regValue))
+            {
+                comboboxSavedValues = regValue.Split(',')
+                   .Select(part => part.Split('='))
+                   .Where(parts => parts.Length == 2)
+                   .ToDictionary(parts => parts[0].Trim(), parts => parts[1].Trim());
+            }
+                      
+            string file = $".\\ini\\{scraper.ToLower()}_options.ini";
+            IniFileReader iniReader = new IniFileReader(file);
+            Dictionary<string, Dictionary<string, string>> allSections = iniReader.GetAllSections();
+            
+            foreach (Control control in panelSmall.Controls)
+            {
+                if (control is ComboBox comboBox)
+                {
+                    string name = control.Name.Replace("combobox", "");
+                    comboBox.Items.Clear();
+                    if (allSections.TryGetValue(name, out var section))
+                    {
+                        comboBox.Enabled = true;
+                        comboBox.Items.AddRange(section.Keys.ToArray());
+                        if (comboboxSavedValues != null && comboboxSavedValues.ContainsKey(name))
+                        {
+                            comboboxSavedValues.TryGetValue(name, out string savedValue);
+                            if (comboBox.Items.Contains(savedValue))
+                            {
+                                comboBox.Text = savedValue;
+                            }
+                            else
+                            {
+                                comboBox.SelectedIndex = 0;
+                            }
+                        }
+                        else
+                        {
+                            comboBox.SelectedIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        comboBox.Enabled = false;
+                    }
+                }
+            }
+
+                    
+            // Setup checkboxes
             List<string> availableScraperElements = new List<string>();
             switch (scraper)
             {
@@ -974,7 +1004,8 @@ namespace GamelistManager
                     "marquee",
                     "image",
                     "video",
-                    "thumbnail"
+                    "thumbnail",
+                    "titleshot"
                     };
                     break;
 
@@ -1000,6 +1031,7 @@ namespace GamelistManager
                     "thumbnail",
                     "boxback",
                     "fanart",
+                    "titleshot",
                     "arcadesystemname",
                     "genreid"
                 };
@@ -1016,13 +1048,22 @@ namespace GamelistManager
                     "bezel",
                     "thumbnail",
                     "boxback",
-                    "fanart"
+                    "fanart",
+                    "cartridge",
+                    "titleshot"
                  };
                     break;
             }
 
             // Reset checkboxes
-            foreach (Control control in panelCheckboxes.Controls)
+            regValue = RegistryManager.ReadRegistryValue(scraper, "Checkboxes");
+            string[] savedCheckstates = new string[0];
+            if (regValue != null)
+            {
+                savedCheckstates = regValue.Split(',');
+            }
+
+            foreach (Control control in panelSmall.Controls)
             {
                 if (control is CheckBox checkBox)
                 {
@@ -1031,179 +1072,59 @@ namespace GamelistManager
                     if (availableScraperElements.Contains(checkboxShortName))
                     {
                         checkBox.Enabled = true;
+                        if (savedCheckstates.Contains(checkboxShortName))
+                        {
+                            checkBox.Checked = true;
+                        }
+                        else
+                        {
+                            checkBox.Checked = false;
+                        }
                     }
                     else
                     {
                         checkBox.Enabled = false;
+                        checkBox.Checked = false;
                     }
                 }
-            }
-             
-            string regValue = null;
-
-            regValue = RegistryManager.ReadRegistryValue(scraper, "Checkboxes");
-
-            if (!string.IsNullOrEmpty(regValue))
-            {
-                string[] checkboxes = regValue.Split(',')
-                               .Select(s => s.Trim().ToLower())
-                               .ToArray();
-                
-                foreach (Control control in panelCheckboxes.Controls)
-                {
-                    if (control is CheckBox)
-                    {
-                        string controlID = control.Name.Replace("checkbox", "").ToLower();
-                        if (checkboxes.Contains(controlID))
-                        {
-                            //((CheckBox)control).Enabled = true;
-                            ((CheckBox)control).Checked = true;
-                        }
-                        else
-                        {
-                            //((CheckBox)control).Enabled = true;
-                            ((CheckBox)control).Checked = false;
-                        }
-                    }
-                }
-            }
-
-            regValue = RegistryManager.ReadRegistryValue(scraper, system);
-         
-            if (string.IsNullOrEmpty(regValue))
-            {
-                comboBoxBoxSource.SelectedIndex = 0;
-                comboBoxImageSource.SelectedIndex = 0;
-                comboBoxLogoSource.SelectedIndex = 0;
-                return;
-            }
-
-            string[] stringPairs = regValue.Split(',');
-
-            foreach (string pair in stringPairs)
-            {
-                string[] itemAndValue = pair.Split('=');
-                string item = itemAndValue[0].Trim();
-                string value = itemAndValue[1].Trim();
-
-                switch (item)
-                {
-                    case "LogoSource":
-                        if (comboBoxLogoSource.Items.Contains(value))
-                        {
-                            comboBoxLogoSource.Text = value;
-                        }
-                        else
-                        {
-                            if (comboBoxLogoSource.Items.Count > 0)
-                            {
-                                comboBoxLogoSource.SelectedIndex = 0;
-                            }
-                        }
-
-                    break;
-                    case "BoxSource":
-                        if (comboBoxBoxSource.Items.Contains(value))
-                        {
-                            comboBoxBoxSource.Text = value;
-                        }
-                        else
-                        {
-                            if (comboBoxBoxSource.Items.Count > 0)
-                            {
-                                comboBoxBoxSource.SelectedIndex = 0;
-                            }
-                        }
-                        break;
-                    case "ImageSource":
-                        if (comboBoxImageSource.Items.Contains(value))
-                        {
-                            comboBoxImageSource.Text = value;
-                        }
-                        else
-                        {
-                            if (comboBoxImageSource.Items.Count > 0)
-                            {
-                                comboBoxImageSource.SelectedIndex = 0;
-                            }
-                        }
-                        break;
-
-                }
-
             }
         }
-
-        private void SetupComboBoxes(string scraper)
-        {
-
-            comboBoxBoxSource.Items.Clear();
-            comboBoxImageSource.Items.Clear();
-            comboBoxLogoSource.Items.Clear();
-
-            comboBoxBoxSource.Enabled = true;
-            comboBoxImageSource.Enabled = true;
-            comboBoxLogoSource.Enabled = true;
-
-            string file = null;
-            switch (scraper)
-            {
-                case "EmuMovies":
-                    file = "ini\\emumovies_options.ini";
-                    break;
-                case "ScreenScraper":
-                    file = "ini\\screenscraper_options.ini";
-                    break;
-                case "ArcadeDB":
-                    file = "ini\\arcadedb_options.ini";
-                    break;
-              }
-
-            if (string.IsNullOrEmpty(file))
-            {
-                comboBoxBoxSource.Enabled = false;
-                comboBoxImageSource.Enabled = false;
-                comboBoxLogoSource.Enabled = false;
-                comboBoxBoxSource.Items.Add("N/A");
-                comboBoxBoxSource.Text = "N/A";
-                comboBoxImageSource.Items.Add("N/A");
-                comboBoxImageSource.Text = "N/A";
-                comboBoxLogoSource.Items.Add("N/A");
-                comboBoxLogoSource.Text = "N/A";
-                previousScraperName = scraper;
-                return;
-            }
-
-            // Get source values
-            IniFileReader iniReader = new IniFileReader(file);
-            dictLogoSources = iniReader.GetSection("LogoSource");
-            dictBoxSources = iniReader.GetSection("BoxSource");
-            dictImageSources = iniReader.GetSection("ImageSource");
-
-            if (dictLogoSources != null)
-            {
-                comboBoxLogoSource.Items.AddRange(dictLogoSources.Keys.ToArray());
-            }
-            if (dictBoxSources != null)
-            {
-                comboBoxBoxSource.Items.AddRange(dictBoxSources.Keys.ToArray());
-            }
-            if (dictImageSources != null)
-            {
-                comboBoxImageSource.Items.AddRange(dictImageSources.Keys.ToArray());
-            }
-        } 
-        
 
         private void comboBoxScrapers_SelectionChangeCommitted(object sender, EventArgs e)
         {
             string scraper = comboBoxScrapers.Text;
             SaveScraperSettings(previousScraperName, batoceraSystemName);
-            SetupComboBoxes(scraper);
             LoadScraperSettings(scraper,batoceraSystemName);
             previousScraperName = scraper;
         }
 
+
+        private void buttonSelectAll_Click(object sender, EventArgs e)
+        {
+            foreach (Control control in panelSmall.Controls)
+            {
+                // Check if the control is a checkbox
+                if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
+                {
+                    // Set checked
+                    checkBox.Checked = true;
+                }
+            }
+        }
+
+        private void buttonSelectNone_Click_1(object sender, EventArgs e)
+        {
+
+            foreach (Control control in panelSmall.Controls)
+            {
+                // Check if the control is a checkbox
+                if (control is System.Windows.Forms.CheckBox checkBox && checkBox.Enabled == true)
+                {
+                    // Set unchecked
+                    checkBox.Checked = false;
+                }
+            }
+        }
     }
     
     }

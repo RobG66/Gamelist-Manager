@@ -63,7 +63,7 @@ public class IniFileReader
         }
         else
         {
-            throw new KeyNotFoundException($"Section '{sectionName}' not found in the INI file.");
+            return null;    
         }
     }
 

@@ -14,7 +14,7 @@ namespace GamelistManager
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new GamelistManagerForm());
+            Application.Run(new GamelistManager());
 
         }
     }

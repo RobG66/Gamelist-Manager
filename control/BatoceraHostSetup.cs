@@ -18,7 +18,8 @@ namespace GamelistManager
 
             RegistryManager.WriteRegistryValue(null, "HostName", hostName);
             bool result = CredentialManager.SaveCredentials(hostName, userID, userPassword);
-
+            buttonSave.Enabled = false;
+            buttonSave.Text = "Saved";
             // false means they did not save.  what are the chances?
         }
 
@@ -57,6 +58,12 @@ namespace GamelistManager
             {
                 BatoceraUserPassword.UseSystemPasswordChar = false;
             }
+        }
+
+        private void Textbox_TextChanged(object sender, EventArgs e)
+        {
+            buttonSave.Enabled = true;
+            buttonSave.Text = "Save";
         }
     }
 }

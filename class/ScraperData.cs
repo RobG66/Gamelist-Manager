@@ -13,6 +13,7 @@
         public string marquee { get; set; }
         public string thumbnail { get; set; }
         public string video { get; set; }
+        public string titleshot { get; set; }
         public string releasedate { get; set; }
         public string map { get; set; }
         public string manual { get; set; }
@@ -24,6 +25,7 @@
         public string boxback { get; set; }
         public string fanart { get; set; }
         public string id { get; set; }
-      
+        public string cartridge { get; set; }
+
     }
 }

@@ -18,11 +18,18 @@ namespace GamelistManager
         public string BoxSource { get; set; }
         public string Marquee { get; set; }
         public string LogoSource { get; set; }
+        public string CartridgeSource { get; set; }
         public bool Overwrite { get; set; }
         public string UserAccessToken { get; set; }
         public string ScraperPlatform { get; set; }
         public bool NoZZZ { get; set; }
         public bool HideNonGame { get; set; }
         public List<string> ElementsToScrape { get; set; }
+
+        // Add the Clone method
+        public ScraperParameters Clone()
+        {
+            return (ScraperParameters)this.MemberwiseClone();
+        }
     }
 }

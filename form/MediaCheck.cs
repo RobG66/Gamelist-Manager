@@ -12,7 +12,7 @@ using System.Windows.Forms;
 namespace GamelistManager
 {
 
-    public partial class MediaCheckForm : Form
+    public partial class MediaCheck : Form
     {
         string parentFolderPath;
         List<MediaListObject> mediaList;
@@ -28,7 +28,7 @@ namespace GamelistManager
         private CancellationTokenSource cancellationTokenSource;
         public CancellationToken cancellationToken => cancellationTokenSource.Token;
 
-        public MediaCheckForm()
+        public MediaCheck()
         {
             InitializeComponent();
             parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
@@ -211,7 +211,7 @@ namespace GamelistManager
 
         }
 
-        private void MediaCheckForm_Load(object sender, EventArgs e)
+        private void MediaCheck_Load(object sender, EventArgs e)
         {
             panelCheckMedia.Enabled = false;
             Cursor.Current = Cursors.WaitCursor;
@@ -518,14 +518,14 @@ namespace GamelistManager
             labelTotalVideosCount.Text = video.ToString();
         }
 
-        private void MediaCheckForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void MediaCheck_FormClosing(object sender, FormClosingEventArgs e)
         {
             StopCheckingMedia();
         }
 
-        private void MediaCheckForm_FormClosed(object sender, FormClosedEventArgs e)
+        private void MediaCheck_FormClosed(object sender, FormClosedEventArgs e)
         {
-            this.FormClosing -= MediaCheckForm_FormClosing;
+            this.FormClosing -= MediaCheck_FormClosing;
         }
 
         private void button_Stop_Click(object sender, EventArgs e)
