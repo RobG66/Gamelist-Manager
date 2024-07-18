@@ -1,5 +1,7 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+July 18th.  Work continues on 6.2.  Cartridge (disc, various cartridge views) scraping has been added and there will also (hopefully) be a new menu tool for automatically adding downloaded media packs to the appropriate games.  Of course there are limitations where the media names have to be similar enough to be matched to rom names using a fuzzy search.  I've also added the ability to select the remote video source from scrapers, but I'm not sure how much, if any difference there is.  No update from TheGamesDB on getting an API key yet.  
+
 July 14th.  The next version will see the addition of configurable media paths for each type of media item.  TheGameDB scraping is being looked into and I am awaiting API access.
 
 July 13th.  Version 6.1.  I think the MameHelper for CHD will be very useful.  Text search and replace implemented as well.  Please, use the "ISSUES" menu item on github to report anything or request a feature.  If it's possible and a good idea, I will try to add it!
