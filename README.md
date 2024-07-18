@@ -11,12 +11,13 @@ July 11th.  Version 6 is finally out!  Feedback is welcome, please report any is
 Gamelist Manager is a comprehensive gamelist management tool for Batocera gamelists.    
 
 It offers functionality to quickly and easily:
-
-- Easy media updating by local or HTTP drag and drop.  
-- Scrape data from ScreenScraper, ArcadeDB and EmuMovies
+  
+- Scrape data from ScreenScraper, ArcadeDB and now EmuMovies (media only)
+- Easy media updating by drag and drop locally or from HTTP browser.
 - Configurable persistent settings per system and per scraper
+- Configurable filepaths for each media type (version 6.2)
 - Quickly load and view gamelist data in a grid table
-- Change visibility of items
+- Single or bulk change visibility of items
 - Identify new and missing gamelist items
 - View and change favorites easily
 - Fast sorting and filtering of views 
@@ -26,11 +27,12 @@ It offers functionality to quickly and easily:
 - Clear or update scraper dates
 - Identify non-playable MAME roms
 - Identify MAME clones
-- Run specific remote SSH commands on your Batocera host
-- Securely save your Batocera credentials
-- Map a network drive assistance
-- Open images in default editor
-- Create M3U files
+- Identify MAME games requiring CHD and check if the file is present
+- Run remote SSH commands on your Batocera host
+- Securely save all your credentials using Windows Credential Manager
+- Quick drive mapping assistance
+- Open images in a default editor
+- Create M3U files from selected items
 - Export gamelist data to csv
 - Create a terminal session to your Batocera host (openSSH)
 - Save your cleaned up gamelist!
