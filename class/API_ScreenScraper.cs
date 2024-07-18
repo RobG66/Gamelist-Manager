@@ -50,7 +50,7 @@ namespace GamelistManager
         public async Task<XmlNode> AuthenticateScreenScraperAsync(string username, string password)
         {
             string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={username}&sspassword={password}";
-            XMLResponder responder = new XMLResponder();
+            GetXMLResponse responder = new GetXMLResponse();
             XmlNode xmlResponse = await responder.GetXMLResponseAsync(url);
             return xmlResponse;
         }
@@ -63,7 +63,7 @@ namespace GamelistManager
             string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={scrapeName}";
             string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
 
-            XMLResponder xmlResponder = new XMLResponder();
+            GetXMLResponse xmlResponder = new GetXMLResponse();
             XmlNode xmlResponse = await xmlResponder.GetXMLResponseAsync(url);
 
             if (xmlResponse == null)
@@ -193,7 +193,7 @@ namespace GamelistManager
                         break;
 
                     case "bezel":
-                        destinationFolder = SharedData.GetMediaTypePath("bezel");
+                        destinationFolder = scraperParameters.MediaFilePaths["bezel"];
                         remoteElementName = "bezel-16-9";
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
 
@@ -215,7 +215,7 @@ namespace GamelistManager
                         break;
 
                     case "fanart":
-                        destinationFolder = SharedData.GetMediaTypePath("fanart");
+                        destinationFolder = scraperParameters.MediaFilePaths["fanart"];
                         remoteElementName = "fanart";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
@@ -237,7 +237,7 @@ namespace GamelistManager
                         break;
 
                     case "boxback":
-                        destinationFolder = SharedData.GetMediaTypePath("boxback");
+                        destinationFolder = scraperParameters.MediaFilePaths["boxback"];
                         remoteElementName = "box-2D-back";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
@@ -259,7 +259,7 @@ namespace GamelistManager
                         break;
 
                     case "manual":
-                        destinationFolder = SharedData.GetMediaTypePath("manual");
+                        destinationFolder = scraperParameters.MediaFilePaths["manual"];
                         remoteElementName = "manuel";
 
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
@@ -281,7 +281,7 @@ namespace GamelistManager
                         break;
 
                     case "image":
-                        destinationFolder = SharedData.GetMediaTypePath("image");
+                        destinationFolder = scraperParameters.MediaFilePaths["image"];
                         remoteElementName = scraperParameters.ImageSource;
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
@@ -302,7 +302,7 @@ namespace GamelistManager
                         break;
 
                     case "thumbnail":
-                        destinationFolder = SharedData.GetMediaTypePath("thumbnail");
+                        destinationFolder = scraperParameters.MediaFilePaths["thumbnail"];
                         remoteElementName = scraperParameters.BoxSource;
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
@@ -324,7 +324,7 @@ namespace GamelistManager
                         break;
 
                     case "marquee":
-                        destinationFolder = SharedData.GetMediaTypePath("marquee");
+                        destinationFolder = scraperParameters.MediaFilePaths["marquee"];
                         remoteElementName = scraperParameters.LogoSource;
                         
                         (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
@@ -348,9 +348,10 @@ namespace GamelistManager
 
 
                     case "video":
-                        destinationFolder = SharedData.GetMediaTypePath("video");
-
-                        (remoteDownloadURL, fileFormat) = ParseVideo(mediasNode);
+                        Console.WriteLine("here"); 
+                        destinationFolder = scraperParameters.MediaFilePaths["video"];
+                        remoteElementName = scraperParameters.VideoSource;
+                        (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region);
                         if (remoteDownloadURL != null)
                         {
                             if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
@@ -373,32 +374,12 @@ namespace GamelistManager
             return new Tuple<int, int, ScraperData>(scrapeTotal, scrapeMax, scraperData);
 
         }
-
-        private (string Url, string Format) ParseVideo(XmlNode XmlElement)
-        {
-            if (XmlElement == null) { return (null, null); }
-
-            var media = XmlElement.SelectSingleNode($"//media[@type='video-normalized']");
-            if (media == null)
-            {
-                media = XmlElement.SelectSingleNode($"//media[@type='video']");
-            }
-
-            if (media != null)
-            {
-                string url = media.InnerText;
-                string format = media.Attributes["format"]?.Value;
-                return (url, format);
-            }
-
-            return (null, null);
-        }
-
         private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
         {
             if (xmlMedias == null) { return (null, null); }
-
+                    
             // User selected region (first) followed by fallback regions
+            // This method will be ok for video because it has a fallback with no region
             string[] regions = { region, "us", "ss", "eu", "uk", "wor", "" };
 
             XmlNode media = null;
@@ -408,10 +389,12 @@ namespace GamelistManager
                 // Find first matching region
                 if (!string.IsNullOrEmpty(currentRegion))
                 {
+                    // Look for region specific media first
                     media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{currentRegion}']");
                 }
                 else
                 {
+                    // Fallback when for there is no region value at all
                     media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}']");
                 }
                 if (media != null)

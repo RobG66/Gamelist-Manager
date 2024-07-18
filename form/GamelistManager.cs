@@ -289,11 +289,7 @@ namespace GamelistManager
                 toolStripColorComboBox.Text = dataGridColor;
             }
             dataGridView1.AlternatingRowsDefaultCellStyle.BackColor = Color.FromName(dataGridColor);
-
-            // Load media path values into shared data
-            SharedData.ConfigureMediaPaths();
-
-
+                   
         }
 
         private void toolStripComboBox_DrawItem(object sender, DrawItemEventArgs e)
@@ -620,6 +616,9 @@ namespace GamelistManager
                 ClearTableLayoutPanel();
             }
 
+            // Identify which elements are media types
+            var mediaTypes = ScraperMediaTypes.GetMediaTypesOnly();
+
             bool allowDrop = dataGridView1.Columns["name"].ReadOnly ? false : true;
             string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename);
 
@@ -656,7 +655,7 @@ namespace GamelistManager
                 string cellValue = cell.Value.ToString();
 
                 // Always skip non media and video
-                if (!SharedData.MediaTypes.Contains(columnName) || columnName == "video")
+                if (!mediaTypes.Contains(columnName) || columnName == "video")
                 {
                     continue;
                 }
@@ -675,9 +674,9 @@ namespace GamelistManager
 
                 if (allowDrop)
                 {
-                    // Don't show these colums in drap and drop mode
+                    // Don't show these columns in drag and drop mode
                     // Video is added later because it's not a picturebox
-                    string pattern = @"map|manual|magazine";
+                    string pattern = @"manual|magazine";
                     if (Regex.Matches(columnName, pattern).Count > 0)
                     {
                         continue;
@@ -1250,6 +1249,7 @@ namespace GamelistManager
             ("map",false),
             ("bezel",false),
             ("cartridge",false),
+            ("titleshot",false),
             ("video",false),
             ("manual",false),
             ("scrap_ScreenScraper",false),
@@ -1618,24 +1618,33 @@ namespace GamelistManager
 
         private void MediaPathsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            bool show = MediaPathsToolStripMenuItem.Checked;
+            ShowOrHideMediaColumns(show);
+        }
+
+        private void ShowOrHideMediaColumns(bool show)
+        {
+            var mediaTypes = ScraperMediaTypes.GetMediaTypesOnly();
 
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
                 // Check if the column is image
-                if (!SharedData.MediaTypes.Contains(column.Name.ToString()))
+                if (!mediaTypes.Contains(column.Name.ToString()))
                 {
                     continue;
                 }
 
+                /* 
+                 * I might make hiding empty columns a different setting
                 bool isColumnEmpty = SharedData.DataSet.Tables["game"].AsEnumerable().All(row => row.IsNull(column.DataPropertyName) || string.IsNullOrWhiteSpace(row[column.DataPropertyName].ToString()));
                 if (isColumnEmpty)
                 {
                     column.Visible = false;
                     continue;
                 }
+                */
 
-                column.Visible = MediaPathsToolStripMenuItem.Checked;
-
+                column.Visible = show;
             }
         }
 

@@ -35,7 +35,7 @@ namespace GamelistManager
                 switch (element)
                 {
                     case "fanart":
-                        destinationFolder = SharedData.GetMediaTypePath("fanart");
+                        destinationFolder = scraperParameters.MediaFilePaths["fanart"];
                         remoteMediaType = "Background";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -70,7 +70,7 @@ namespace GamelistManager
                         break;
 
                     case "boxback":
-                        destinationFolder = SharedData.GetMediaTypePath("boxback");
+                        destinationFolder = scraperParameters.MediaFilePaths["boxback"];
                         remoteMediaType = "BoxBack";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -105,7 +105,7 @@ namespace GamelistManager
                         break;
 
                     case "manual":
-                        destinationFolder = SharedData.GetMediaTypePath("manual");
+                        destinationFolder = scraperParameters.MediaFilePaths["manual"];
                         remoteMediaType = "Manual";
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -137,11 +137,10 @@ namespace GamelistManager
                             scraperData.boxback = $"./{destinationFolder}/{newFileName}";
                             ShowDownload(ListBoxControl, $"{newFileName}");
                         }
-
                         break;
 
                     case "image":
-                        destinationFolder = SharedData.GetMediaTypePath("image");
+                        destinationFolder = scraperParameters.MediaFilePaths["image"];
                         remoteMediaType = scraperParameters.ImageSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -175,8 +174,43 @@ namespace GamelistManager
                         }
                         break;
 
+                    case "titleshot":
+                        destinationFolder = scraperParameters.MediaFilePaths["titleshot"];
+                        remoteMediaType = "Title";
+                        mediaList = emumoviesMediaLists[remoteMediaType];
+                        if (mediaList == null)
+                        {
+                            // No media
+                            continue;
+                        }
+                        remoteFileName = FuzzySearch(scraperParameters.Name, mediaList);
+                        if (string.IsNullOrEmpty(remoteFileName))
+                        {
+                            remoteFileName = FuzzySearch(scraperParameters.RomFileNameWithoutExtension, mediaList);
+                            if (string.IsNullOrEmpty(remoteFileName))
+                            {
+                                continue;
+                            }
+                        }
+                        fileFormat = null;
+                        fileFormat = Path.GetExtension(remoteFileName);
+                        if (string.IsNullOrEmpty(fileFormat))
+                        {
+                            continue;
+                        }
+                        newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}{fileFormat}";
+                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
+                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+                        downloadResult = await FileTransfer.DownloadFile(scraperParameters.Overwrite, fileToDownload, remoteDownloadURL);
+                        if (downloadResult == true)
+                        {
+                            scraperData.titleshot = $"./{destinationFolder}/{newFileName}";
+                            ShowDownload(ListBoxControl, $"{newFileName}");
+                        }
+                        break;
+
                     case "thumbnail":
-                        destinationFolder = SharedData.GetMediaTypePath("thumbnail");
+                        destinationFolder = scraperParameters.MediaFilePaths["thumbnail"];
                         remoteMediaType = scraperParameters.BoxSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
                         if (mediaList == null)
@@ -199,7 +233,7 @@ namespace GamelistManager
                         {
                             continue;
                         }
-                        // Use thumb instead of thumbnail, same as batocera scraping
+                        // Batocera uses thumb instead of thumbnail, so I do the same
                         newFileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb{fileFormat}";
                         fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{newFileName}";
                         remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
@@ -214,7 +248,7 @@ namespace GamelistManager
                     case "marquee":
                         remoteMediaType = scraperParameters.LogoSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
-                        destinationFolder = SharedData.GetMediaTypePath("marquee");
+                        destinationFolder = scraperParameters.MediaFilePaths["marquee"];
                         if (mediaList == null)
                         {
                             // No media
@@ -249,7 +283,7 @@ namespace GamelistManager
                     case "cartridge":
                         remoteMediaType = scraperParameters.CartridgeSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
-                        destinationFolder = SharedData.GetMediaTypePath("cartridge");
+                        destinationFolder = scraperParameters.MediaFilePaths["cartridge"];
                         if (mediaList == null)
                         {
                             // No media
@@ -283,9 +317,9 @@ namespace GamelistManager
 
 
                     case "video":
-                        destinationFolder = SharedData.GetMediaTypePath("video");
-                        remoteMediaType = "Video_MP4";
+                        remoteMediaType = scraperParameters.VideoSource;
                         mediaList = emumoviesMediaLists[remoteMediaType];
+                        destinationFolder = scraperParameters.MediaFilePaths["video"];
                         if (mediaList == null)
                         {
                             // No media
@@ -398,62 +432,23 @@ namespace GamelistManager
                     return null;
                 }
             }
-
-
         }
 
         public async Task<List<string>> GetMediaTypes(string system)
         {
             string url = $"{apiURL}/Media/MediaTypes?systemName={system}";
-            List<string> mediaTypes = await FetchAndParseJsonResponse(url);
+            GetJsonResponse getJsonResponse = new GetJsonResponse();
+            List<string> mediaTypes = await getJsonResponse.GetJsonResponseAsync(url);
             return mediaTypes;
         }
 
         public async Task<List<string>> GetMediaList(string system, string mediaTitle)
         {
             string url = $"{apiURL}/Media/MediaList?systemName={system}&mediaType={mediaTitle}&mediaSet=default";
-            List<string> mediaList = await FetchAndParseJsonResponse(url);
+            GetJsonResponse getJsonResponse = new GetJsonResponse();
+            List<string> mediaList = await getJsonResponse.GetJsonResponseAsync(url);
             return mediaList;
         }
 
-        async Task<List<string>> FetchAndParseJsonResponse(string url)
-        {
-
-            using (HttpClient client = new HttpClient())
-            {
-                HttpResponseMessage response;
-                try
-                {
-                    response = await client.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
-                }
-                catch (HttpRequestException ex)
-                {
-                    Console.WriteLine($"HTTP request failed: {ex.Message}");
-                    return null;
-                }
-
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                try
-                {
-                    JsonDocument doc = JsonDocument.Parse(jsonResponse);
-                    JsonElement root = doc.RootElement;
-                    JsonElement dataElement = root.GetProperty("data");
-
-                    List<string> dataList = new List<string>();
-                    foreach (JsonElement element in dataElement.EnumerateArray())
-                    {
-                        dataList.Add(element.GetString());
-                    }
-                    return dataList;
-                }
-                catch (JsonException ex)
-                {
-                    Console.WriteLine($"JSON parsing failed: {ex.Message}");
-                    return null;
-                }
-            }
-        }
     }
 }

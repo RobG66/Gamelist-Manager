@@ -11,6 +11,14 @@ using System.Windows.Forms;
 
 namespace GamelistManager
 {
+    internal class MediaListObject
+    {
+        public string FullPath { get; set; }
+        public string Type { get; set; }
+        public int RowIndex { get; set; }
+        public int ColumnIndex { get; set; }
+        public string Status { get; set; }
+    }
 
     public partial class MediaCheck : Form
     {
@@ -47,50 +55,47 @@ namespace GamelistManager
         private List<MediaListObject> GetMediaList()
         {
             mediaList = new List<MediaListObject>();
+            var mediaTypes = ScraperMediaTypes.GetMediaTypesOnly();
 
             foreach (DataRow row in SharedData.DataSet.Tables["game"].Rows)
             {
-                int rowIndex = row.Table.Rows.IndexOf(row);
-
-                for (int i = 0; i < SharedData.DataSet.Tables["game"].Columns.Count; i++)
+                // Loop through each media type column
+                foreach (string columnName in mediaTypes)
                 {
-                    string columnName = SharedData.DataSet.Tables["game"].Columns[i].ColumnName;
-                    int columnIndex = SharedData.DataSet.Tables["game"].Columns.IndexOf(columnName);
-                    if (Array.IndexOf(SharedData.MediaTypes, columnName) != -1)
+                    // Skip manuals
+                    if (columnName == "manual")
                     {
-                        string cellPathValue = row[i].ToString();
-                        if (!string.IsNullOrEmpty(cellPathValue))
-                        {
-                            // Build file list
-                            string fullPath = Path.Combine(parentFolderPath, cellPathValue.Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
-                            string extension = Path.GetExtension(fullPath);
-
-                            // Skip PDF Media
-                            // Will revisit this later
-                            if (extension != null && extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-                            {
-                                continue;
-                            }
-
-                            // Validate the path is valid before adding to list
-                            char[] invalidChars = Path.GetInvalidFileNameChars();
-                            bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
-
-                            if (badPath)
-                            {
-                                continue;
-                            }
-
-                            mediaList.Add(new MediaListObject
-                            {
-                                FullPath = fullPath,
-                                Type = (columnName == "video") ? "video" : "image",
-                                RowIndex = rowIndex,
-                                ColumnIndex = columnIndex,
-                                Status = string.Empty
-                            });
-                        }
+                        continue;
                     }
+
+                    // Get the value from the current row and column
+                    var cellValue = row[columnName];
+                    if (cellValue == DBNull.Value || cellValue == null)
+                    {
+                        continue;
+                    }
+                   
+                    // Build file list
+                    string fullPath = Path.Combine(parentFolderPath, cellValue.ToString().Replace("./", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                    string extension = Path.GetExtension(fullPath);
+                                      
+                    // Validate the path is valid before adding to list
+                    char[] invalidChars = Path.GetInvalidFileNameChars();
+                    bool badPath = fullPath.IndexOfAny(invalidChars) == -1;
+
+                    if (badPath)
+                    {
+                        continue;
+                    }
+
+                    mediaList.Add(new MediaListObject
+                    {
+                        FullPath = fullPath,
+                        Type = (columnName == "video") ? "video" : "image",
+                        RowIndex = SharedData.DataSet.Tables["game"].Rows.IndexOf(row),
+                        Status = string.Empty
+                    });
+                
                 }
             }
             return mediaList;

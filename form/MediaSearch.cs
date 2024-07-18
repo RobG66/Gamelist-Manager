@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -37,40 +38,33 @@ namespace GamelistManager.form
                 return;
             }
 
-            string[] knownImageTypes = {
-                "image",
-                "thumb",
-                "boxback",
-                "fanart",
-                "marquee",
-                "map",
-                "cartridge"
-                };
+            var allMediaTypes = ScraperMediaTypes.GetMediaTypesOnly();
+            var allMediapaths = MediaPathHelper.GetMediaPaths();
 
-            foreach (string imageType in knownImageTypes) { 
-                Reassociate(SharedData.GetMediaTypePath(imageType), knownImageTypes);
+            foreach (var mediaPath in allMediapaths.Values) { 
+                Reassociate(mediaPath, allMediaTypes);
             }
-
-            string[] knownVideoTypes = { "video" };
-            Reassociate(SharedData.GetMediaTypePath("videos"), knownVideoTypes);
-
-            string[] knownManualTypes = { "manual" };
-            Reassociate(SharedData.GetMediaTypePath("manuals"), knownManualTypes);
-
+         
             MessageBox.Show("Media reassociation is completed.\n\nPlease remember to save!", "Completed!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+         
         }
 
-        private void Reassociate(string folder, string[] types)
+        private void Reassociate(string folder, IEnumerable<string> types)
         {
             string dir = Path.Combine(Path.GetDirectoryName(SharedData.XMLFilename), folder);
+            if (!Directory.Exists(dir))
+            {
+                return;
+            }
+            
             string[] files = Directory.GetFiles(dir);
             files = files
-               .Select(file => $"./{folder}/{Path.GetFileName(file)}")
-               .ToArray();
+                .Select(file => $"{folder}/{Path.GetFileName(file)}")
+                .ToArray();
 
             var dataTable = SharedData.DataSet.Tables["game"];
             var lockObject = new object();
+            var rowsToAdd = new List<DataGridViewRow>();
 
             Parallel.ForEach(dataTable.AsEnumerable(), row =>
             {
@@ -89,14 +83,30 @@ namespace GamelistManager.form
                         {
                             row[column] = firstMatch;
                         }
+
+                        // Create a new DataGridViewRow with the updated data
+                        var newRow = new DataGridViewRow();
+                        newRow.CreateCells(dataGridView1);
+                        newRow.Cells[0].Value = row["path"];
+                        //newRow.Cells[0].Value = romNameWithoutExtension;
+                        newRow.Cells[1].Value = firstMatch; // Adjust the index based on your DataGridView columns
+                        lock (rowsToAdd)
+                        {
+                            rowsToAdd.Add(newRow);
+                        }
                     }
                 }
             });
 
+            // Add the rows to the DataGridView on the UI thread
+            this.Invoke((MethodInvoker)delegate
+            {
+                dataGridView1.Rows.AddRange(rowsToAdd.ToArray());
+            });
+
             SharedData.DataSet.AcceptChanges();
-
-
         }
+
 
 
         private void buttonChooseSource_Click(object sender, EventArgs e)

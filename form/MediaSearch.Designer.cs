@@ -36,11 +36,11 @@
             this.textboxDestination = new System.Windows.Forms.TextBox();
             this.buttonDestination = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.romname = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.foundimage = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.buttonSearch = new System.Windows.Forms.Button();
             this.checkBoxExisting = new System.Windows.Forms.CheckBox();
             this.checkBoxSearchDefault = new System.Windows.Forms.CheckBox();
+            this.romname = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.foundimage = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -120,22 +120,8 @@
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridView1.RowTemplate.Height = 20;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(435, 168);
+            this.dataGridView1.Size = new System.Drawing.Size(548, 168);
             this.dataGridView1.TabIndex = 6;
-            // 
-            // romname
-            // 
-            this.romname.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.romname.HeaderText = "Rom Name";
-            this.romname.Name = "romname";
-            this.romname.ReadOnly = true;
-            // 
-            // foundimage
-            // 
-            this.foundimage.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.foundimage.HeaderText = "Matched Image";
-            this.foundimage.Name = "foundimage";
-            this.foundimage.ReadOnly = true;
             // 
             // buttonSearch
             // 
@@ -169,11 +155,26 @@
             this.checkBoxSearchDefault.Text = "Search Default Paths";
             this.checkBoxSearchDefault.UseVisualStyleBackColor = true;
             // 
+            // romname
+            // 
+            this.romname.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.romname.FillWeight = 50F;
+            this.romname.HeaderText = "Rom Name";
+            this.romname.Name = "romname";
+            this.romname.ReadOnly = true;
+            // 
+            // foundimage
+            // 
+            this.foundimage.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.foundimage.HeaderText = "Matched Image";
+            this.foundimage.Name = "foundimage";
+            this.foundimage.ReadOnly = true;
+            // 
             // MediaSearch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(455, 339);
+            this.ClientSize = new System.Drawing.Size(568, 339);
             this.Controls.Add(this.checkBoxSearchDefault);
             this.Controls.Add(this.checkBoxExisting);
             this.Controls.Add(this.buttonSearch);
@@ -198,10 +199,10 @@
         private System.Windows.Forms.TextBox textboxDestination;
         private System.Windows.Forms.Button buttonDestination;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn romname;
-        private System.Windows.Forms.DataGridViewTextBoxColumn foundimage;
         private System.Windows.Forms.Button buttonSearch;
         private System.Windows.Forms.CheckBox checkBoxExisting;
         private System.Windows.Forms.CheckBox checkBoxSearchDefault;
+        private System.Windows.Forms.DataGridViewTextBoxColumn romname;
+        private System.Windows.Forms.DataGridViewTextBoxColumn foundimage;
     }
 }

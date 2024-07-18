@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static GamelistManager.API_ArcadeDB;
 
 namespace GamelistManager
 {
@@ -139,7 +138,7 @@ namespace GamelistManager
                                                 
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = SharedData.GetMediaTypePath("image"); 
+                            destinationFolder = scraperParameters.MediaFilePaths["image"]; 
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-image.png";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
@@ -159,7 +158,7 @@ namespace GamelistManager
                                                
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = SharedData.GetMediaTypePath("thumbnail");
+                            destinationFolder = scraperParameters.MediaFilePaths["thumbnail"];
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb.png";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
@@ -178,7 +177,7 @@ namespace GamelistManager
                         remoteDownloadURL = logoInfo.GetValue(gameInfo) as string;
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = SharedData.GetMediaTypePath("marquee");
+                            destinationFolder = scraperParameters.MediaFilePaths["marquee"];
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-marquee.png";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";
@@ -192,14 +191,16 @@ namespace GamelistManager
                         break;
 
                     case "video":
-                        remoteDownloadURL = gameInfo.url_video_shortplay_hd;
+                        propertyName = scraperParameters.VideoSource;
+                        PropertyInfo videoInfo = typeof(ArcadeDBMetaData).GetProperty(propertyName);
+                        remoteDownloadURL = videoInfo.GetValue(gameInfo) as string;
                         if (string.IsNullOrEmpty(remoteDownloadURL))
                         {
                             remoteDownloadURL = gameInfo.url_video_shortplay;
                         }
                         if (!string.IsNullOrEmpty(remoteDownloadURL))
                         {
-                            destinationFolder = SharedData.GetMediaTypePath("video");
+                            destinationFolder = scraperParameters.MediaFilePaths["video"];
                             fileName = $"{scraperParameters.RomFileNameWithoutExtension}-video.mp4";
                             downloadPath = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}";
                             fileToDownload = $"{downloadPath}\\{fileName}";

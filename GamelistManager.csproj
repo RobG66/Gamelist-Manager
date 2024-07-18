@@ -135,6 +135,8 @@
     <Compile Include="class\API_ScreenScraper.cs" />
     <Compile Include="class\API_ArcadeDB.cs" />
     <Compile Include="class\API_ScraperParameters.cs" />
+    <Compile Include="class\GetJSONResponse.cs" />
+    <Compile Include="class\MediaPathHelper.cs" />
     <Compile Include="class\FuzzySearchHelper.cs" />
     <Compile Include="class\TextNormalizer.cs" />
     <Compile Include="class\ScraperData.cs" />
@@ -142,9 +144,8 @@
     <Compile Include="class\ImageConverter.cs" />
     <Compile Include="class\XMLSerializer.cs" />
     <Compile Include="class\ISO8601Converter.cs" />
-    <Compile Include="class\MediaListObject.cs" />
     <Compile Include="class\SharedData.cs" />
-    <Compile Include="class\XMLResponder.cs" />
+    <Compile Include="class\GetXMLResponse.cs" />
     <Compile Include="class\SSHCommander.cs" />
     <Compile Include="class\CredentialManager.cs" />
     <Compile Include="class\FileTransfer.cs" />
@@ -186,9 +187,7 @@
     <Compile Include="control\ScraperPreview.Designer.cs">
       <DependentUpon>ScraperPreview.cs</DependentUpon>
     </Compile>
-    <Compile Include="form\MediaCheck.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="form\MediaCheck.cs" />
     <Compile Include="form\MediaCheck.Designer.cs">
       <DependentUpon>MediaCheck.cs</DependentUpon>
     </Compile>

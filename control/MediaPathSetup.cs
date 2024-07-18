@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -14,74 +13,39 @@ namespace GamelistManager.control
 
         private void UserControl1_Load(object sender, EventArgs e)
         {
-            LoadTextBoxes();
-            
+            LoadMediaPaths();
         }
 
-        private void LoadTextBoxes()
+        private void LoadMediaPaths()
         {
-            var mediaTypes = global::GamelistManager.SharedData.MediaTypes;
+            var mediaPaths = MediaPathHelper.GetMediaPaths();
 
-            foreach (var mediaType in mediaTypes)
+            foreach (Control control in this.Controls)
             {
-                // Construct the control name based on the media type
-                string controlName = "textbox" + mediaType.ToLower();
-
-                // Find the control by name
-                var controls = Controls.Find(controlName, true);
-                Console.WriteLine(controlName);
-                if (controls.Length > 0 && controls[0] is TextBox textBox)
+                if (control is TextBox textBox)
                 {
-                    // Set the text of the TextBox to the corresponding path
-                    string currentValue = global::GamelistManager.SharedData.GetMediaTypePath(mediaType);
-                    if (!string.IsNullOrEmpty(currentValue))
-                    {
-                        textBox.Text = global::GamelistManager.SharedData.GetMediaTypePath(mediaType);
-                    }
-                    else
-                    {
-                        textBox.Text = "./images";
-                    }
+                    string name = textBox.Name.Replace("textbox","").ToLower();
+                    string value = mediaPaths[name];
+                    textBox.Text = value;
                 }
-
             }
         }
-
 
         private void buttondefault_Click(object sender, EventArgs e)
         {
-            RegistryManager.WriteRegistryValue(null,"MediaPaths", string.Empty);
-            SharedData.ConfigureMediaPaths();
-            LoadTextBoxes();
+            RegistryManager.WriteRegistryValue(null, "MediaPaths", string.Empty);
+            LoadMediaPaths();
+            buttonSave.Enabled = true;
+            buttonSave.Text = "Save";
         }
 
-        private void buttonApply_Click(object sender, EventArgs e)
+        private void buttonSave_Click(object sender, EventArgs e)
         {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var mediaType in global::GamelistManager.SharedData.MediaTypes)
-            {
-                string textBoxName = $"textbox{mediaType}".ToLower();
-                Control[] controls = this.Controls.Find(textBoxName, true);
-                if (controls.Length > 0 && controls[0] is TextBox textBox)
-                {
-                    string textboxValue = textBox.Text.Trim();
-                    global::GamelistManager.SharedData.SetMediaTypePath(mediaType, textboxValue);
-                    if (sb.Length > 0)
-                    {
-                        sb.Append(",");
-                    }
-                    sb.Append($"{mediaType}={textboxValue}");
-                }
-            }
-
-            RegistryManager.WriteRegistryValue(null, "MediaPaths", sb.ToString());
-            
+            SaveMediaPaths();
             buttonSave.Enabled = false;
             buttonSave.Text = "Saved";
-
         }
-    
+
         private void buttonExit_Click(object sender, EventArgs e)
         {
             this.Dispose();
@@ -92,5 +56,32 @@ namespace GamelistManager.control
             buttonSave.Enabled = true;
             buttonSave.Text = "Save";
         }
+
+        public void SaveMediaPaths()
+        {
+            var mediaTypes = ScraperMediaTypes.GetMediaTypesOnly();
+            StringBuilder regValue = new StringBuilder();
+
+            foreach (Control control in this.Controls)
+            {
+                if (control is TextBox textBox)
+                {
+                    string mediaType = textBox.Name.Replace("textbox", "").ToLower();
+                    string value = textBox.Text;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        if (regValue.Length > 0)
+                        {
+                            regValue.Append(",");
+                        }
+                        regValue.Append($"{mediaType}={value}");
+                    }
+                }
+
+                RegistryManager.WriteRegistryValue(null, "MediaPaths", regValue.ToString());
+            }
+
+        }
+
     }
 }

@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace GamelistManager
 {
-    internal class XMLResponder
+    internal class GetXMLResponse
     {
         public async Task<XmlDocument> GetXMLResponseAsync(string url)
         {
