@@ -1360,8 +1360,8 @@ namespace GamelistManager
             dataGridView1.Columns["path"].Visible = true;
             dataGridView1.Columns["name"].Visible = true;
             dataGridView1.Columns["genre"].Visible = true;
-            //dataGridView1.Columns["players"].Visible = true;
-            //dataGridView1.Columns["rating"].Visible = true;
+            //dataGridViewImages.Columns["players"].Visible = true;
+            //dataGridViewImages.Columns["rating"].Visible = true;
 
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
@@ -3131,7 +3131,7 @@ namespace GamelistManager
                 richTextBoxDescription.ForeColor = Color.Blue;
                 richTextBoxDescription.ReadOnly = false;
                 //setting multiselect false causes big problems, disabled
-                //dataGridView1.MultiSelect = false;
+                //dataGridViewImages.MultiSelect = false;
                 dataGridView1.CellEndEdit += dataGridView1_CellEndEdit;
                 {
 
@@ -3142,7 +3142,7 @@ namespace GamelistManager
                 richTextBoxDescription.ForeColor = Color.Black;
                 richTextBoxDescription.ReadOnly = true;
                 //disabled the change of multiselect due to issues encountered
-                //dataGridView1.MultiSelect = true;
+                //dataGridViewImages.MultiSelect = true;
                 dataGridView1.CellValueChanged -= dataGridView1_CellEndEdit;
             }
 

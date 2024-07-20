@@ -229,8 +229,8 @@
   <data name="dropicon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\dropicon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="pyxel" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\pyxel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="cavestory" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\cavestory.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="manual" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\manual.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -255,9 +255,6 @@
   </data>
   <data name="gx4000" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\gx4000.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="colecovision" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\colecovision.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="wii" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\wii.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -285,9 +282,6 @@
   </data>
   <data name="mrboom" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\mrboom.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="raze" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\raze.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="sg1000" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\sg1000.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -403,8 +397,14 @@
   <data name="ecwolf" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ecwolf.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="reset" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\reset1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="easyrpg" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\easyrpg.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="atari7800" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\atari7800.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="pc98" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pc98.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -472,8 +472,8 @@
   <data name="wasm4" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\wasm4.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="cavestory" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\cavestory.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="abuse" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\abuse.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="missing" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\missing.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -496,11 +496,17 @@
   <data name="snes" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\snes.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="pyxel" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\pyxel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="atari800" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\atari800.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="cdi" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\cdi.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="backgroundtech" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\backgroundtech1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="adam" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\adam.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -538,8 +544,8 @@
   <data name="hcl" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\hcl.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="atari7800" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\atari7800.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="vgmplay" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\vgmplay.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="amigacdtv" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\amigacdtv.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -667,11 +673,11 @@
   <data name="pico" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pico.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="vgmplay" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\vgmplay.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="colecovision" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\colecovision.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="abuse" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\abuse.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="raze" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\raze.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="pdp1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pdp1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -730,7 +736,7 @@
   <data name="laser310" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\laser310.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="reset" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\reset1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="backgroundtech1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\backgroundtech2.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

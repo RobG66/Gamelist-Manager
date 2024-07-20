@@ -83,7 +83,7 @@ namespace GamelistManager
             {
                 string normalizedName = NormalizeText(name); // Normalize name
                 int distance = LevenshteinDistance(searchName, normalizedName);
-
+                Console.WriteLine(searchName + " : " + normalizedName);
                 lock (this) // Ensure thread-safe access to shared variables
                 {
                     if (distance < lowestDistance && distance <= cutoff)
