@@ -1,5 +1,19 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+August 8th, 2024.
+ I have transitioned into using WPF instead of WinForms for the GUI.  A lot of the codebase is re-usable, but some needs refactoring which takes time.  I think it's worth it.  I just finished implementing undo/redo functionality for changes being made, including bulk changes.  
+
+  As for the GUI, it closely resembles what I had before, but with some aesthetic updates.  Custom buttons was something I really wanted to do and WPF lets me 'easily' do that.  A few things require considerable work to get just right, but it is a learning process.  It's not ready for release, but here's a sneak peak:  
+
+
+ ![image](https://github.com/user-attachments/assets/cffcf79c-fb5e-4584-a6be-f19f2303268b)
+
+![image](https://github.com/user-attachments/assets/5a2ea355-c774-4bf5-b47d-677c087e2a15)
+
+ 
+
+
+
 July 18th.  Work continues on 6.2.  Cartridge (disc, various cartridge views) scraping has been added and there will also (hopefully) be a new menu tool for automatically adding downloaded media packs to the appropriate games.  Of course there are limitations where the media names have to be similar enough to be matched to rom names using a fuzzy search.  I've also added the ability to select the remote video source from scrapers, but I'm not sure how much, if any difference there is.  No update from TheGamesDB on getting an API key yet.  
 
 July 14th.  The next version will see the addition of configurable media paths for each type of media item.  TheGameDB scraping is being looked into and I am awaiting API access.
