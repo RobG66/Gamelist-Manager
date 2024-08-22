@@ -1,5 +1,12 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+August 21st, 2024
+ Work continues on  the new version.  I have all 3 scrapers working and plan to add a fourth soon (TheGamesDB).  I've added music downloads for the EmuMovies scraper and a jukebox for playing those (and videos).  As I pull pieces of the older codebase into the new program, I found a few bugs and fixed those.  I've done other little things like switch to an HTTP singleton because it's just more efficient.  Release is when it's ready, but probably some time in September.  I may release a version with a few things missing, but main functionality is there.  Oh, one more thing and I think it's quite a big thing: **Scraper Cache**!!  It makes sense to keep a cache scraper data so you can always go back and scrape metdata locally instead of the web every single time.    
+
+
+ ![Screenshot 2024-08-21 210505](https://github.com/user-attachments/assets/95a41dd4-5794-4429-93ce-d49a15ff2e77)
+
+
 August 8th, 2024.
  I have transitioned into using WPF instead of WinForms for the GUI.  A lot of the codebase is re-usable, but some needs refactoring which takes time.  I think it's worth it.  I just finished implementing undo/redo functionality for changes being made, including bulk changes.  
 
