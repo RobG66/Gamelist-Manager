@@ -1,5 +1,8 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+September 22,2024
+ V7 beta has been released.  See release notes and please report any issues you find
+
 September 13th, 2024
 Soon!!!
 
