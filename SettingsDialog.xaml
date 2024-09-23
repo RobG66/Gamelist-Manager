@@ -1,0 +1,142 @@
+﻿<Window x:Class="GamelistManager.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Batocera Host Settings" Height="370" Width="520" ResizeMode="NoResize" Loaded="Window_Loaded" SizeToContent="WidthAndHeight">
+    <Grid Width="Auto" Height="Auto">
+        <Grid.Background>
+            <ImageBrush
+            ImageSource="pack://application:,,,/Resources/backgrounds/gears.png"
+            Opacity=".1"
+            Stretch="UniformToFill"    
+          />
+        </Grid.Background>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel HorizontalAlignment="Left" Margin="0,0,0,5">
+            <TextBlock Text="Batocera Hostname:" Margin="5"/>
+            <TextBox x:Name="textBox_HostName" Width="100" MaxLength="50" Margin="0,0,0,5" TextChanged="textBox_TextChanged"/>
+            <TextBlock Text="Batocera UserID:" Margin="5"/>
+            <TextBox x:Name="textBox_UserID" MaxLength="50" Width="100" Margin="0,0,0,5" TextChanged="textBox_TextChanged"/>
+            <TextBlock Text="Batocera Password:" Margin="5"/>
+            <TextBox x:Name="textBox_Password" MaxLength="50" Width="100" TextChanged="textBox_TextChanged"/>
+            <TextBlock Margin="5,10,0,0">
+                Alternating Row Color:
+            </TextBlock>
+            <ComboBox x:Name="comboBox_AlternatingRowColor" Margin="5,0,5,0" SelectionChanged="comboBox_AlternatingRowColor_SelectionChanged"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                <Button x:Name="button_Save" Content="Save" Style="{StaticResource CoolButtonStyle1}" Width="40" Height="20" HorizontalAlignment="Center" Margin="0,0,5,0" Click="buttonSave_Click" IsEnabled="False"/>
+                <Button x:Name="button_Close" Content="Close" Style="{StaticResource CoolButtonStyle1}" Width="40" Height="20" Margin="5,0,0,0" Click="buttonClose_Click"/>
+            </StackPanel>
+
+            <Border BorderBrush="Red" BorderThickness="1" Padding="3" CornerRadius="5" Margin="5,10,5,5">
+                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left">
+Note: Changes to tracking
+<LineBreak/>
+will not take effect until a 
+<LineBreak/>
+new gamelist is loaded
+                </TextBlock>
+            </Border>
+        </StackPanel>
+
+        <!-- Second StackPanel with the textboxes -->
+        <StackPanel Grid.Column="1" HorizontalAlignment="Left" Orientation="Vertical" Margin="10,10,5,5">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,5">
+                <CheckBox x:Name="checkBox_TrackChanges" VerticalAlignment="Center" Content="Change Tracking Maximum:" IsChecked="False" Click="CheckBox_Click"/>
+                <TextBox x:Name="textBox_ChangeCount" Text="15"
+                     FontSize="12" VerticalAlignment="Center" Margin="5,0,0,0"
+                     Width="20" MaxLength="2" MaxLines="1" Background="#FFFDFDFD"
+                     PreviewTextInput="NumericTextBox_PreviewTextInput"
+                     DataObject.Pasting="NumericTextBox_Pasting"/>
+            </StackPanel>
+            <CheckBox x:Name="checkBox_ConfirmBulkChanges" VerticalAlignment="Center" Content="Confirm Bulk Changes" IsChecked="True" Margin="0,0,0,5" Click="CheckBox_Click"/>
+            <CheckBox x:Name="checkBox_EnableSaveReminder" VerticalAlignment="Center" Content="Enable Save Reminder" IsChecked="True" Margin="0,0,0,5" Click="CheckBox_Click"/>
+            <Label Content="Folder Paths:" FontSize="14" Foreground="Blue" FontWeight="Bold"/>
+            <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1">
+
+                <Grid x:Name="Paths" Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Image Path -->
+                    <Label Grid.Row="0" Grid.Column="0" Content="Image:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" Tag="image" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Title Shot Path -->
+                    <Label Grid.Row="1" Grid.Column="0" Content="Title Shot:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" Tag="titleshot" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Marquee Path -->
+                    <Label Grid.Row="2" Grid.Column="0" Content="Marquee:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" Tag="marquee" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Thumbnail Path -->
+                    <Label Grid.Row="3" Grid.Column="0" Content="Thumbnail:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_thumbnail" Tag="thumbnail" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Cartridge Path -->
+                    <Label Grid.Row="4" Grid.Column="0" Content="Cartridge:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_cartridge" Tag="cartridge" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Video Path -->
+                    <Label Grid.Row="5" Grid.Column="0" Content="Video:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_video" Tag="video" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Music Path -->
+                    <Label Grid.Row="6" Grid.Column="0" Content="Music:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_music" Tag="music" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Map Path -->
+                    <Label Grid.Row="7" Grid.Column="0" Content="Map:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_map" Tag="map" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Bezel Path -->
+                    <Label Grid.Row="8" Grid.Column="0" Content="Bezel:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_bezel" Tag="bezel" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Manual Path -->
+                    <Label Grid.Row="0" Margin="5,0,0,0" Grid.Column="2" Content="Manual:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_manual" Tag="manual" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Fanart Path -->
+                    <Label Grid.Row="1" Margin="5,0,0,0" Grid.Column="2" Content="Fanart:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_fanart" Tag="fanart" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Box Back Path -->
+                    <Label Grid.Row="2" Margin="5,0,0,0" Grid.Column="2" Content="Box Back:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_boxback" Tag="boxback" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Magazine Path -->
+                    <Label Grid.Row="3" Margin="5,0,0,0" Grid.Column="2" Content="Magazine:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_magazine" Tag="magazine" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <!-- Mix Path -->
+                    <Label Grid.Row="4" Margin="5,0,0,0" Grid.Column="2" Content="Mix:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_mix" Tag="mix" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                    <Button Grid.Row="8" Grid.Column="2"  x:Name="button_Reset" Content="Reset Folder Paths" Style="{StaticResource CoolButtonStyle1}" Width="100" Height="20" Click="button_Reset_Click" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="0,3,0,3"/>
+
+
+                </Grid>
+            </Border>
+        </StackPanel>
+    </Grid>
+</Window>
