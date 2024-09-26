@@ -12,7 +12,7 @@ namespace GamelistManager.classes
         private readonly ConcurrentDictionary<(string, string), int> memo = new ConcurrentDictionary<(string, string), int>();
         private readonly string apiURL = "http://api3.emumovies.com/api";
         private readonly string apiKey = "";
-      
+
         public async Task<MetaDataList> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, Dictionary<string, List<string>> emumoviesMediaLists)
         {
             string destinationFolder = string.Empty;

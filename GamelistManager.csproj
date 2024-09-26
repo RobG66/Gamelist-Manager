@@ -14,6 +14,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="cache\**" />
+    <Compile Remove="controls\**" />
+    <Compile Remove="Resources\flags\**" />
+    <EmbeddedResource Remove="cache\**" />
+    <EmbeddedResource Remove="controls\**" />
+    <EmbeddedResource Remove="Resources\flags\**" />
+    <None Remove="cache\**" />
+    <None Remove="controls\**" />
+    <None Remove="Resources\flags\**" />
+    <Page Remove="cache\**" />
+    <Page Remove="controls\**" />
+    <Page Remove="Resources\flags\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\3do.png" />
     <None Remove="Resources\3ds.png" />
     <None Remove="Resources\abuse.png" />
@@ -99,28 +114,6 @@
     <None Remove="Resources\electron.png" />
     <None Remove="Resources\fbneo.png" />
     <None Remove="Resources\fds.png" />
-    <None Remove="Resources\flags\au.png" />
-    <None Remove="Resources\flags\br.png" />
-    <None Remove="Resources\flags\ca.png" />
-    <None Remove="Resources\flags\ch.png" />
-    <None Remove="Resources\flags\de.png" />
-    <None Remove="Resources\flags\es.png" />
-    <None Remove="Resources\flags\eu.png" />
-    <None Remove="Resources\flags\fr.png" />
-    <None Remove="Resources\flags\gr.png" />
-    <None Remove="Resources\flags\in.png" />
-    <None Remove="Resources\flags\it.png" />
-    <None Remove="Resources\flags\jp.png" />
-    <None Remove="Resources\flags\kr.png" />
-    <None Remove="Resources\flags\nl.png" />
-    <None Remove="Resources\flags\no.png" />
-    <None Remove="Resources\flags\pl.png" />
-    <None Remove="Resources\flags\pt.png" />
-    <None Remove="Resources\flags\ru.png" />
-    <None Remove="Resources\flags\sw.png" />
-    <None Remove="Resources\flags\uk.png" />
-    <None Remove="Resources\flags\us.png" />
-    <None Remove="Resources\flags\wr.png" />
     <None Remove="Resources\flash.png" />
     <None Remove="Resources\flatpak.png" />
     <None Remove="Resources\fm7.png" />
@@ -549,72 +542,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\dropicon.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\au.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\br.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\ca.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\ch.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\de.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\es.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\eu.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\fr.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\gr.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\in.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\it.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\jp.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\kr.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\nl.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\no.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\pl.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\pt.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\ru.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\sw.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\uk.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\us.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\flags\wr.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\foldericon.png">
@@ -1901,11 +1828,6 @@
     <Page Update="MainWindow.xaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="cache\" />
-    <Folder Include="controls\" />
   </ItemGroup>
 
 </Project>

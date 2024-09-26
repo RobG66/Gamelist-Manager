@@ -28,10 +28,7 @@ namespace GamelistManager
             string userPassword = string.Empty;
             (userName, userPassword) = CredentialManager.GetCredentials(currentScraper);
 
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
-            {
-                return;
-            }
+           
             textBox_UserID.Text = userName;
             textBox_Password.Text = userPassword;
             button_Save.IsEnabled = false;

@@ -281,7 +281,7 @@ namespace GamelistManager.classes
                         if (descriptionNode != null)
                         {
                             string description = descriptionNode.InnerText;
-                            if (string.IsNullOrEmpty(description))
+                            if (!string.IsNullOrEmpty(description))
                             {
                                 metaDataList.SetMetadataValue(MetaDataKeys.desc, description);
                             }

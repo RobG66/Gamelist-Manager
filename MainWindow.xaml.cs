@@ -101,7 +101,6 @@ namespace GamelistManager
             return (DataTemplate)XamlReader.Parse(xaml);
         }
 
-
         private bool LoadXMLFile(string fileName)
         {
             if (string.IsNullOrEmpty(fileName) || !Path.Exists(fileName))
@@ -122,16 +121,20 @@ namespace GamelistManager
 
             if (!string.IsNullOrEmpty(SharedData.XMLFilename) && SharedData.IsDataChanged)
             {
-               SaveGamelist();
+                SaveGamelist();
             }
 
             MainDataGrid.ItemsSource = null;
             MainDataGrid.Columns.Clear();
 
-            SharedData.DataSet = GamelistLoader.LoadGamelist(fileName);
+            var data = GamelistLoader.LoadGamelist(fileName);
 
-            if (SharedData.DataSet == null)
+            if (data != null)
             {
+                SharedData.DataSet = data;
+            }
+            else
+            { 
                 return false;
             }
 
@@ -469,6 +472,7 @@ namespace GamelistManager
             if (saveResult)
             {
                 MessageBox.Show("File saved successfully", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                SharedData.IsDataChanged = false;
             }
             else
             {
@@ -966,14 +970,14 @@ namespace GamelistManager
                         
             if (string.IsNullOrEmpty(hostName))
             {
-                MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Missing Hostname", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The batocera hostname is not set.\nPlease use the Settings menu to configure this", "Missing Hostname", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
             (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
-                MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The batocera credentials are missing.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -1018,7 +1022,7 @@ namespace GamelistManager
 
             if (hostName == null || hostName == string.Empty)
             {
-                MessageBox.Show("The batocera hostname is not set.\nPlease run SSH setup", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The batocera hostname is not set.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -1026,7 +1030,7 @@ namespace GamelistManager
 
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
-                MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The batocera credentials are missing.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
                 return;
             }
@@ -1356,7 +1360,7 @@ namespace GamelistManager
 
             if (string.IsNullOrEmpty(hostName))
             {
-                MessageBox.Show("The batocera hostname is not configured.\nPlease run SSH setup", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The batocera hostname is not configured.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null!;
             }
 
@@ -1364,7 +1368,7 @@ namespace GamelistManager
 
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
-                MessageBox.Show("The batocera credentials are missing.\nPlease run SSH setup", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The batocera credentials are missing.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null!;
             }
 

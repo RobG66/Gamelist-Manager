@@ -29,7 +29,7 @@ namespace GamelistManager.classes
                     }
                     else
                     {
-                        return false; // Do not overwrite and the file already exists
+                        return true; // Do not overwrite and the file already exists
                     }
                 }
 

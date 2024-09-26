@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.IO;
 using System.Windows;
+using System.Windows.Documents.DocumentStructures;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -65,47 +66,46 @@ namespace GamelistManager.classes
                             }
 
                             // Update the XML elements based on dataset values
-                            foreach (var element in gameNode.Elements().ToList())
+
+                            foreach (var item in typeToNameMap)
                             {
-                                var elementName = element.Name.LocalName; // Get the local name of the element
-                                var elementValue = element.Value;
+                                string elementName = item.Key;
+                                string columnName = item.Value;
 
-                                // Check if there's a matching column in the dataset
-                                if (typeToNameMap.TryGetValue(elementName, out var columnName))
+                                // skip id, it's a game attribute, not an element
+                                if (elementName == "id")
                                 {
-                                    if (row.Table.Columns.Contains(columnName))
-                                    {
-                                        var datasetValue = row[columnName];
-
-                                        // Check for DBNull, null, or empty strings in the dataset
-                                        if (datasetValue == DBNull.Value || datasetValue == null || string.IsNullOrEmpty(datasetValue.ToString()))
-                                        {
-                                            // Remove elements with empty or null values
-                                            element.Remove();
-                                            continue;
-                                        }
-
-                                        // Handle boolean values
-                                        if (datasetValue is bool boolValue)
-                                        {
-                                            if (!boolValue)
-                                            {
-                                                // Remove elements that are "false"
-                                                element.Remove();
-                                                continue;
-                                            }
-                                            elementValue = boolValue.ToString().ToLower(); // Convert boolean to string
-                                        }
-                                        else
-                                        {
-                                            // For non-boolean values, update the element's value
-                                            elementValue = datasetValue.ToString();
-                                        }
-
-                                        // Set the new value for the element
-                                        element.Value = elementValue!;
-                                    }
+                                    continue;
                                 }
+
+                                string columnValue = row[columnName] == null || row[columnName] is DBNull
+                                 ? string.Empty
+                                 : row[columnName] is bool boolValue
+                                     ? (boolValue ? "true" : string.Empty)
+                                     : string.IsNullOrWhiteSpace(row[columnName]?.ToString())
+                                         ? string.Empty
+                                         : row[columnName]!.ToString()!;
+
+                                bool elementExists = gameNode.Element(elementName) != null;
+
+                                if (!elementExists && !string.IsNullOrEmpty(columnValue))
+                                {
+                                    gameNode.Add(new XElement(elementName, columnValue));
+                                    continue;
+                                }
+
+                                if (elementExists && string.IsNullOrEmpty(columnValue))
+                                {
+                                    gameNode.Element(elementName)!.Remove();
+                                    continue;
+                                }
+
+                                if (elementExists && !string.IsNullOrEmpty(columnValue))
+                                {
+                                    gameNode.Element(elementName)!.Value = columnValue;
+                                    continue;
+                                }
+                                    
                             }
 
                             // Write the updated <game> node to the new XML
@@ -134,7 +134,12 @@ namespace GamelistManager.classes
                         {
                             string elementName = item.Key;
                             string columnName = item.Value;
-                            
+
+                            if (elementName == "id")
+                            {
+                                continue;
+                            }
+
                             var datasetValue = row[columnName];
 
                             // Skip if the value is null or empty

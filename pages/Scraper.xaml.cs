@@ -516,15 +516,14 @@ namespace GamelistManager.pages
             // Is there a systems section?
             // ArcadeDB for example does use this
             allSections.TryGetValue("Systems", out var section);
-            string systemID = string.Empty;
+            var systemID = string.Empty;
             if (section != null)
             {
-                systemID = section[SharedData.CurrentSystem];
-                if (string.IsNullOrEmpty(systemID) || systemID == "0")
-                {
+              if (!section.TryGetValue(SharedData.CurrentSystem, out systemID))
+              {                
                     StopScraping($"A system ID is missing for system '{SharedData.CurrentSystem}'");
                     return;
-                }
+              }
             }
 
             int maxConcurrency = 1;
@@ -842,7 +841,7 @@ namespace GamelistManager.pages
                                                 continue;
                                             }
 
-                                            string existingValue = tableRow!.Field<string>(nameValue) ?? string.Empty;
+                                            string existingValue = tableRow?.Field<string>(nameValue) is string value && !string.IsNullOrEmpty(value) ? value : string.Empty;
                                             if (!overWrite && !string.IsNullOrEmpty(existingValue))
                                             {
                                                 continue;
