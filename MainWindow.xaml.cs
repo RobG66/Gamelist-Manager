@@ -435,7 +435,7 @@ namespace GamelistManager
             CheckChanged(menuItem_ReleaseDate, null!);
         }
 
-
+        
         private void ReloadFile_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult result = MessageBox.Show($"Do you want to reload the file '{SharedData.XMLFilename}'?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -753,6 +753,9 @@ namespace GamelistManager
 
             if (menuItem == null) return;
 
+            // Check if the MenuItem is checked
+            bool isMenuItemChecked = menuItem.IsChecked == true; 
+
             if (menuItem.Name == "menuItem_Description")
             {
                 if (!menuItem_Description.IsChecked)
@@ -768,7 +771,6 @@ namespace GamelistManager
                 }
                 return;
             }
-
 
             if (menuItem.Name == "menuItem_MediaPaths")
             {
@@ -787,26 +789,29 @@ namespace GamelistManager
                 {
                     if (mediaItems.Contains(column1.Header.ToString()!))
                     {
-                        column1.Visibility = (menuItem_MediaPaths.IsChecked == true) ? Visibility.Visible : Visibility.Collapsed;
+                        column1.Visibility = (isMenuItemChecked) ? Visibility.Visible : Visibility.Collapsed;
                         column1.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
 
                     }
                 }
+                MainDataGrid.UpdateLayout();
+
+                menuItem_ColumnAutoSize.IsChecked = !isMenuItemChecked ;
+                _autosizeColumns = !isMenuItemChecked;
+                AdjustDataGridColumnWidths(MainDataGrid);
+
                 return;
             }
 
             string columnName = menuItem.Header.ToString()!; // Extract header as the column name
-
-            // Check if the MenuItem is checked
-            bool isChecked = menuItem.IsChecked == true; // This will be true if checked, false if unchecked or null
-
+                     
             // Find the column with the specified header
             var column = MainDataGrid.Columns
                 .FirstOrDefault(col => col.Header.ToString() == columnName);
             if (column != null)
             {
                 // Show or hide the column based on the menu item state
-                column.Visibility = isChecked ? Visibility.Visible : Visibility.Collapsed;
+                column.Visibility = isMenuItemChecked ? Visibility.Visible : Visibility.Collapsed;
             }
 
             UpdateSearchAndReplaceCombobox();
@@ -921,6 +926,10 @@ namespace GamelistManager
             menuItem_ShowAll.IsChecked = true;
             menuItem_ShowHidden.IsChecked = false;
             menuItem_ShowVisible.IsChecked = false;
+            menuItem_ColumnAutoSize.IsChecked = false;
+
+            // Set autosize to true, which is default
+            _autosizeColumns = true;
 
             // Clear any filters
             _genreFilter = string.Empty;
