@@ -1,7 +1,11 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
 
-September 25, 2025
+September 30th, 2024
+ V7 beta has been re-posted with some necessary bug fixes.  Is there anyone willing to write up some documentation for me please?
+ 
+
+September 25, 2024
 
  V7 beta has been removed temporarily until a few issues are resolved.  I'm sorry about that, I will have an update hopefully end of week.
 
