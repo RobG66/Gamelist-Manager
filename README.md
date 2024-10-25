@@ -1,6 +1,10 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
 
+October 25th, 2024
+ I took a break.. needed it!  I noticed the API URL for emumovies has changed so emumovies scraping is currently not working.  I have asked the folks over there what the new URL is.  I haven't looked at adding other scrapers just yet, I will soon.  I also want to finish fixing the media manager so I can enable it again.  This allows re-adding local media as well as scraping downloaded media from a local folder instead of the internet.
+
+
 September 30th, 2024
  V7 beta has been re-posted with some necessary bug fixes.  Is there anyone willing to write up some documentation for me please?
  
