@@ -1,5 +1,11 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+November 4th, 2024
+ Version 7.1 beta now released with quite a few fixes and a few small improvements.  
+ 
+
+
+
 October 31st, 2024
  I believe Emumovies scraping should be working again after they fixed issues on their end.  I am putting together another release soon which contains a few improvements and also has some bug fixes.  Maybe this weekend I will post something.
 
