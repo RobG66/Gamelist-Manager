@@ -18,7 +18,9 @@
         public string? LogoSource { get; set; }
         public string? VideoSource { get; set; }
         public string? CartridgeSource { get; set; }
-        public bool Overwrite { get; set; }
+        public bool OverwriteNames { get; set; }
+        public bool OverwriteMedia { get; set; }
+        public bool OverwriteMetadata { get; set; }
         public bool Verify { get; set; }
         public string? UserAccessToken { get; set; }
         public string? ScraperPlatform { get; set; }

@@ -5,52 +5,52 @@ namespace GamelistManager.classes
     // This is global data accessible by all forms, methods and classes
     public static class SharedData
     {
-        private static DataSet dataSet = new DataSet();
-        private static string xmlFilename = string.Empty;
-        private static bool isDataChanged;
-        private static string currentSystem = string.Empty;
-        private static string programDirectory = string.Empty;
-        private static ChangeTracker? changeTracker;
-             
-        public static void InitializeChangeTracker(DataTable table, int maxUndo)
+        private static DataSet _dataSet = new DataSet();
+        private static string _xmlFilename = string.Empty;
+        private static bool _isDataChanged;
+        private static string _currentSystem = string.Empty;
+        private static string _programDirectory = string.Empty;
+        private static ChangeTracker? _changeTracker;
+                  
+        public static void InitializeChangeTracker()
         {
-            changeTracker = new ChangeTracker(table, maxUndo);
+            _changeTracker = new ChangeTracker();
         }
-                
+                        
         public static ChangeTracker? ChangeTracker
         {
-            get => changeTracker;
-            set => changeTracker = value;
+            get => _changeTracker;
+            set => _changeTracker = value;
         }
 
         public static bool IsDataChanged
         {
-            get { return isDataChanged; }
-            set { isDataChanged = value; }
+            get { return _isDataChanged; }
+            set { _isDataChanged = value; }
         }
-
+        
         public static DataSet DataSet
         {
-            get { return dataSet; }
-            set { dataSet = value; }
+            get { return _dataSet; }
+            set { _dataSet = value; }
         }
 
         public static string XMLFilename
         {
-            get { return xmlFilename; }
-            set { xmlFilename = value; }
+            get { return _xmlFilename; }
+            set { _xmlFilename = value; }
         }
 
         public static string ProgramDirectory
         {
-            get { return programDirectory; }
-            set { programDirectory = value; }
+            get { return _programDirectory; }
+            set { _programDirectory = value; }
         }
 
         public static string CurrentSystem
         {
-            get { return currentSystem; }
-            set { currentSystem = value; }
+            get { return _currentSystem; }
+            set { _currentSystem = value; }
         }
     }
 }

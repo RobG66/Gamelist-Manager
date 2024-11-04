@@ -704,7 +704,9 @@ namespace GamelistManager.pages
             var tasks = new List<Task>();
 
             // Setup overWrite bool
-            bool overWrite = checkBox_Overwrite.IsChecked == true ? true : false;
+            bool overWriteNames = checkBox_OverwriteNames.IsChecked == true ? true : false;
+            bool overWriteMetadata = checkBox_OverwriteMetadata.IsChecked == true ? true : false;
+            bool overWriteMedia = checkBox_OverwriteMedia.IsChecked == true ? true : false;
 
             // Declare basic scraper parameters
             // These do not change
@@ -720,7 +722,9 @@ namespace GamelistManager.pages
             baseScraperParameters.LogoSource = logoSource;
             baseScraperParameters.CartridgeSource = cartridgeSource;
             baseScraperParameters.VideoSource = videoSource;
-            baseScraperParameters.Overwrite = overWrite;
+            baseScraperParameters.OverwriteMedia = overWriteMedia;
+            baseScraperParameters.OverwriteMetadata = overWriteMetadata;
+            baseScraperParameters.OverwriteNames = overWriteNames;
             baseScraperParameters.UserAccessToken = userAccessToken;
             baseScraperParameters.ScraperPlatform = _currentScraper;
             baseScraperParameters.MediaPaths = mediaPaths;
@@ -842,7 +846,13 @@ namespace GamelistManager.pages
                                             }
 
                                             string existingValue = tableRow?.Field<string>(nameValue) is string value && !string.IsNullOrEmpty(value) ? value : string.Empty;
-                                            if (!overWrite && !string.IsNullOrEmpty(existingValue))
+                                            
+                                            if (elementName == "name" && !overWriteNames && !string.IsNullOrEmpty(existingValue))
+                                            { 
+                                                continue;
+                                            }
+
+                                            if (elementName != "name" && !overWriteMetadata && !string.IsNullOrEmpty(existingValue))
                                             {
                                                 continue;
                                             }

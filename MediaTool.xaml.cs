@@ -367,7 +367,7 @@ namespace GamelistManager
 
         private void button_AddMedia_Click(object sender, RoutedEventArgs e)
         {
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
 
             var pathToRowMap = SharedData.DataSet.Tables[0].AsEnumerable()
             .ToDictionary(row => row.Field<string>("Rom Path")!, row => row);

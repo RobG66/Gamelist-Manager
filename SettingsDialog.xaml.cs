@@ -37,9 +37,10 @@ namespace GamelistManager
             Properties.Settings.Default.SaveReminder = (bool)checkBox_EnableSaveReminder.IsChecked!;
            
             string changeTrackerValue = textBox_ChangeCount.Text;
+     
             int maxUndo = string.IsNullOrEmpty(changeTrackerValue) || !int.TryParse(changeTrackerValue, out maxUndo) ? 0 : maxUndo;
             Properties.Settings.Default.MaxUndo = maxUndo;
-
+            
             bool result = CredentialManager.SaveCredentials(hostName, userID, password);
 
             var textBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<TextBox>(Paths);
@@ -185,10 +186,12 @@ namespace GamelistManager
             if (checkBox_TrackChanges.IsChecked == true)
             {
                 textBox_ChangeCount.IsEnabled = true;
+                textBox_ChangeCount.Text = "15";
             }
             else
             {
                 textBox_ChangeCount.IsEnabled = false;
+                textBox_ChangeCount.Text = "0";
             }
         }
 

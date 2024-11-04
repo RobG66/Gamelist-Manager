@@ -25,9 +25,14 @@
                     <ComboBoxItem Content="EmuMovies"/>
                     <ComboBoxItem Content="ScreenScraper"/>
                 </ComboBox>
-                <Button x:Name="button_AllOrSelected" HorizontalAlignment="Center" Margin="5,0,0,0" Height="20" Width="75" Content="Selected Items" Style="{StaticResource CoolButtonStyle1}" VerticalAlignment="Center" Click="Button_Click"/>
+                <Button x:Name="button_AllOrSelected" HorizontalAlignment="Center" Margin="10,0,0,0" Height="20" Width="75" Content="Selected Items" Style="{StaticResource CoolButtonStyle1}" VerticalAlignment="Center" Click="Button_Click"/>
             </StackPanel>
-            <CheckBox x:Name="checkBox_Overwrite" Margin="5,3,0,0" Content="Overwrite existing metadata and files"/>
+            <StackPanel Orientation="Horizontal">
+                <Label VerticalAlignment="Center" Height="18" Margin="5,0,0,0" Padding="0">Overwite:</Label>
+                <CheckBox Content="Name" x:Name="checkBox_OverwriteNames" VerticalAlignment="Center" IsChecked="True" Margin="3,0,2,0"/>
+                <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" VerticalAlignment="Center" Margin="2,0,2,0"/>
+                <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" VerticalAlignment="Center" Margin="2,0,2,0"/>
+            </StackPanel>
             <CheckBox x:Name="checkBox_ScrapeFromCache" VerticalAlignment="Center" Margin="5,3,0,0" Content="Scrape From Cache (if available)"/>
             <CheckBox x:Name="checkBox_ScrapeHidden" Margin="5,3,0,0" Content="Scrape hidden items" IsChecked="False"/>
             <CheckBox x:Name="checkBox_VerifyImages" Margin="5,3,0,0" Content="Verify and discard bad images"/>

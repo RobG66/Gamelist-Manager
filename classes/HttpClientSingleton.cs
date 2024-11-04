@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace GamelistManager.classes
 {
@@ -19,6 +20,21 @@ namespace GamelistManager.classes
             }
 
             public static HttpClient Instance => _instance;
+
+            // Method to set the Bearer token
+            public static void SetBearerToken(string token)
+            {
+                if (string.IsNullOrEmpty(token))
+                {
+                    // If token is null or empty, remove the Authorization header
+                    _instance.DefaultRequestHeaders.Authorization = null;
+                }
+                else
+                {
+                    // Set the Authorization header with Bearer token
+                    _instance.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+            }
         }
     }
 }

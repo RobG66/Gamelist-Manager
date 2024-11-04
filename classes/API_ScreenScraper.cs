@@ -73,7 +73,7 @@ namespace GamelistManager.classes
         {
             string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={username}&sspassword={password}";
             GetXMLResponse responder = new GetXMLResponse();
-            string xmlResponse = await responder.GetXMLResponseAsync(url);
+            string xmlResponse = await responder.GetXMLResponseAsync(string.Empty,url);
             return xmlResponse;
         }
 
@@ -126,7 +126,7 @@ namespace GamelistManager.classes
             if (string.IsNullOrEmpty(xmlResponse))
             {
                 GetXMLResponse xmlResponder = new GetXMLResponse();
-                xmlResponse = await xmlResponder.GetXMLResponseAsync(url);
+                xmlResponse = await xmlResponder.GetXMLResponseAsync(string.Empty,url);
 
                 if (string.IsNullOrEmpty(xmlResponse))
                 {
@@ -134,7 +134,7 @@ namespace GamelistManager.classes
                     string metaName = scraperParameters.Name!;
                     scrapInfo = $"&romtype=rom&romnom={metaName}";
                     url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
-                    xmlResponse = await xmlResponder.GetXMLResponseAsync(url);
+                    xmlResponse = await xmlResponder.GetXMLResponseAsync(string.Empty,url);
                 }
 
                 // If it's still null, failed.
@@ -175,7 +175,7 @@ namespace GamelistManager.classes
             string destinationFolder = string.Empty;
             string remoteElementName = string.Empty;
             bool downloadResult = false;
-            bool overwrite = scraperParameters.Overwrite;
+            bool overwrite = scraperParameters.OverwriteMedia;
             bool verify = scraperParameters.Verify;
             var mediaPaths = scraperParameters.MediaPaths!;
             var elementsToScrape = scraperParameters.ElementsToScrape!;
@@ -496,6 +496,13 @@ namespace GamelistManager.classes
                         if (mediasNode != null)
                         {
                             (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
+
+                            // wheel-hd and wheel are the same, a clear logo, but sometimes only one is present
+                            // so both need to be checked for, wheel-hd first
+                            if (!string.IsNullOrEmpty(remoteDownloadURL) && remoteElementName == "wheel-hd") 
+                            {
+                                (remoteDownloadURL, fileFormat) = ParseMedia("wheel", mediasNode, scraperParameters.Region!);
+                            }
 
                             if (!string.IsNullOrEmpty(remoteDownloadURL))
                             {

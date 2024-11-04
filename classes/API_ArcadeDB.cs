@@ -15,7 +15,7 @@ namespace GamelistManager.classes
             try
             {
                 // Fetch the JSON response using the GetJsonResponse class
-                string jsonResponse = await getJsonResponse.GetJsonResponseAsync(url);
+                string jsonResponse = await getJsonResponse.GetJsonResponseAsync(string.Empty,url);
                 return jsonResponse;
             }
             catch
@@ -108,7 +108,7 @@ namespace GamelistManager.classes
 
             var elementsToScrape = scraperParameters.ElementsToScrape!;
             var mediaPaths = scraperParameters.MediaPaths!;
-            bool overwrite = scraperParameters.Overwrite;
+            bool overwrite = scraperParameters.OverwriteMedia;
             bool verify = scraperParameters.Verify;
             string parentFolderPath = scraperParameters.ParentFolderPath!;
             string remoteDownloadURL = string.Empty;

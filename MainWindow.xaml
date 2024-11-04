@@ -87,7 +87,7 @@
 
                 </MenuItem>
                 <MenuItem x:Name="menuItem_Tools" Header="Tools" IsEnabled="False" Template="{DynamicResource MenuItemControlTemplate1}">
-                    <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Add/Cleanup Media" IsEnabled="False" Click="menuItem_AddMedia_Click"/>
+                    <!-- <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Add/Cleanup Media" IsEnabled="False" Click="menuItem_AddMedia_Click"/> -->
                     <Separator/>
                     <MenuItem x:Name="menuItem_FindNewItems" Margin="-30,0,-40,0" Header="Find New Items" Click="menuItem_FindNewItems_Click"/>
                     <MenuItem x:Name="menuItem_FindMissing" Margin="-30,0,-40,0" Header="Find Missing Items" Click="menuItem_FindMissingItems_Click"/>

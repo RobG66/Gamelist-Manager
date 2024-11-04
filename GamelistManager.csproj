@@ -11,6 +11,7 @@
     <ApplicationIcon>resources\icon.ico</ApplicationIcon>
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
+    <FileVersion>7.1b</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -5,10 +5,11 @@ namespace GamelistManager.classes
 {
     internal class GetJsonResponse
     {
-        public async Task<string> GetJsonResponseAsync(string url)
+        public async Task<string> GetJsonResponseAsync(string bearerToken,string url)
         {
             // Use the singleton instance
             var client = HttpClientSingleton.Instance;
+            HttpClientSingleton.SetBearerToken(bearerToken);
 
             HttpResponseMessage response;
             try

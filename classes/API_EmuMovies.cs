@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -11,8 +12,8 @@ namespace GamelistManager.classes
     {
         private readonly ConcurrentDictionary<(string, string), int> memo = new ConcurrentDictionary<(string, string), int>();
         private readonly string apiURL = "http://api3.emumovies.com/api";
-        private readonly string apiKey = "";
-
+        private readonly string bearerToken = "";
+       
         public async Task<MetaDataList> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, Dictionary<string, List<string>> emumoviesMediaLists)
         {
             string destinationFolder = string.Empty;
@@ -21,7 +22,7 @@ namespace GamelistManager.classes
             string fileName = string.Empty;
             string fileToDownload = string.Empty;
             bool downloadResult = false;
-            bool overwrite = scraperParameters.Overwrite;
+            bool overwrite = scraperParameters.OverwriteMedia;
             bool verify = scraperParameters.Verify;
             string remoteMediaType = string.Empty;
             List<string> mediaList = [];
@@ -383,20 +384,7 @@ namespace GamelistManager.classes
             string bestMatch = fuzzySearchHelper.FuzzySearch(searchName, names);
             return bestMatch;
         }
-
-        /* This method is no longer used, but will keep for reference
-        private HttpClient CreateHttpClient()
-        {
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-            };
-            var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            return client;
-        }
-        */
-
+               
         public async Task<string> AuthenticateEmuMoviesAsync(string username, string password)
         {
             var credentials = new
@@ -419,6 +407,7 @@ namespace GamelistManager.classes
 
             // Use the singleton instance
             var client = HttpClientSingleton.Instance;
+            HttpClientSingleton.SetBearerToken(bearerToken);
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             if (response.IsSuccessStatusCode)
@@ -444,7 +433,7 @@ namespace GamelistManager.classes
         {
             string url = $"{apiURL}/Media/MediaTypes?systemName={system}";
             GetJsonResponse getJsonResponse = new GetJsonResponse();
-            string jsonResponse = await getJsonResponse.GetJsonResponseAsync(url);
+            string jsonResponse = await getJsonResponse.GetJsonResponseAsync(bearerToken,url);
             if (string.IsNullOrEmpty(jsonResponse))
             {
                 return null!;
@@ -478,7 +467,7 @@ namespace GamelistManager.classes
         {
             string url = $"{apiURL}/Media/MediaList?systemName={system}&mediaType={mediaTitle}&mediaSet=default";
             GetJsonResponse getJsonResponse = new GetJsonResponse();
-            string jsonResponse = await getJsonResponse.GetJsonResponseAsync(url);
+            string jsonResponse = await getJsonResponse.GetJsonResponseAsync(bearerToken,url);
 
             if (string.IsNullOrEmpty(jsonResponse))
             {

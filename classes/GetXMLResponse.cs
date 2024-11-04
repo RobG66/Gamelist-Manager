@@ -6,9 +6,10 @@ namespace GamelistManager.classes
     internal class GetXMLResponse
     {
         // Method to get XML response asynchronously
-        public async Task<string> GetXMLResponseAsync(string url)
+        public async Task<string> GetXMLResponseAsync(string bearerToken,string url)
         {
             var client = HttpClientSingleton.Instance; // Use the singleton instance
+            HttpClientSingleton.SetBearerToken(bearerToken);
 
             try
             {
