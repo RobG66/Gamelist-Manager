@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<theme defaultView="Gamecarousel Detailed">
+<formatVersion>7</formatVersion>
+
+<view name="screen">
+
+<text name="clock">
+<color>ffffff</color>
+<glowColor>000000</glowColor>
+<pos>0.89 0.96</pos>
+<size>0.10 0.058</size>
+<verticalAlignment>right</verticalAlignment>
+</text>
+	
+<controllerActivity name="controllerActivity">
+<pos>0.01 0.010</pos>
+<size>0.085 0.025</size>
+<itemSpacing>0.003</itemSpacing>
+<imagePath>./art/icons/gamepad.svg</imagePath>
+<color>FFFFFF1A</color>
+<activityColor>ff00001A</activityColor>
+<hotkeyColor>ffffff1A</hotkeyColor>
+</controllerActivity>
+
+<batteryIndicator name="batteryIndicator">
+<pos>0.955 0.0125</pos>
+<size>0.033 0.033</size>
+<incharge>./art/battery/incharge.svg</incharge>
+<full>./art/battery/full.svg</full>
+<at75>./art/battery/75.svg</at75>
+<at50>./art/battery/50.svg</at50>
+<at25>./art/battery/25.svg</at25>
+<empty>./art/battery/empty.svg</empty>
+<color>FFFFFFA0</color>
+</batteryIndicator>
+
+<batteryIndicator name="batteryIndicator" tinyScreen="true">
+<pos>0.915 0.013</pos>
+<size>0.07 0.07</size>
+</batteryIndicator>
+</view>
+
+<view name="menu">
+<menuText name="menutitle">
+</menuText>
+
+<menuText name="menufooter">
+</menuText>
+
+<menuText name="menutext">
+<selectorGradientType>horizontal</selectorGradientType>
+<color>DCDCDC</color> 
+</menuText>
+
+<menuTextSmall name="menutextsmall">
+</menuTextSmall>
+
+<menuBackground name="menubg">
+<color>000000B7</color>
+<cornerSize>32 32</cornerSize>
+</menuBackground>
+
+<menuIcons name="menuicons">
+<iconKodi>./art/icons/kodi.png</iconKodi>
+<iconSystem>./art/icons/system.png</iconSystem>
+<iconUpdates>./art/icons/updates.png</iconUpdates>
+<iconGames>./art/icons/games.png</iconGames>
+<iconControllers>./art/icons/controllers.png</iconControllers>
+<iconUI>./art/icons/ui.png</iconUI>
+<iconSound>./art/icons/sound.png</iconSound>
+<iconNetwork>./art/icons/network.png</iconNetwork>
+<iconScraper>./art/icons/scraper.png</iconScraper>
+<iconAdvanced>./art/icons/advanced.png</iconAdvanced>
+<iconQuit>./art/icons/quit.png</iconQuit>
+<iconRestart>./art/icons/restart.png</iconRestart>
+<iconShutdown>./art/icons/shutdown.png</iconShutdown>
+<iconFastShutdown>./art/icons/fastshutdown.png</iconFastShutdown>
+<iconRetroachievements>./art/icons/contest.png</iconRetroachievements>
+</menuIcons>
+
+<menuTextEdit name="menutextedit">
+<inactive>./textinput_ninepatch.png</inactive>
+<active>./textinput_ninepatch_active.png</active>
+</menuTextEdit>
+</view>
+ 
+<subset name="Wheel Position" displayName="Wheel Position">
+<include name="Right" displayName="Right"/>
+<include name="Left" displayName="Left"/>
+</subset>
+
+<subset name="Wheel Background" displayName="Wheel Background">
+<include name="Light" displayName="Light"/>
+<include name="Dark" displayName="Dark"/>
+<include name="Bright" displayName="Bright"/>
+<include name="OFF" displayName="OFF"/>
+</subset>
+
+<subset name="Logo Opacity" displayName="Logo Opacity">  
+<include name="100%" displayName="100%">./includes/logo opacity/100%.xml</include>
+<include name="75%" displayName="75%">./includes/logo opacity/75%.xml</include>
+<include name="50%" displayName="50%">./includes/logo opacity/50%.xml</include>
+<include name="25%" displayName="25%">./includes/logo opacity/25%.xml</include>
+</subset>
+
+<subset name="Logo Type" displayName="Logo Style">
+<include name="Clean" displayName="Clean">./includes/wheel/clean.xml</include>
+<include name="Classic" displayName="Classic">./includes/wheel/classic.xml</include>
+<include name="Rectangle" displayName="Rectangle">./includes/wheel/rectangle.xml</include>
+<include name="Long" displayName="Long">./includes/wheel/long.xml</include>
+<include name="Silver" displayName="Silver">./includes/wheel/silver.xml</include>
+<include name="Colorful" displayName="Colorful">./includes/wheel/colorful.xml</include>
+<!--<include name="Spiral" displayName="Spiral">./includes/wheel/spiral.xml</include>-->
+<!--<include name="Circular" displayName="Circular">./includes/wheel/circular.xml</include>-->
+</subset>
+
+<subset name="Main Menu" displayName="System View Style">
+<include name="Main Menu Wheel" displayName="Vertical Wheel">./views/system/wheel.xml</include>
+<include name="Main Menu Grid" displayName="Horizontal Grid">./views/system/grid.xml</include>
+</subset>
+
+<subset name="Background" displayName="System Background Image">
+<include name="Videogames" displayName="Videogame Hardware">./includes/background/videogames.xml</include>
+<include name="Wallpapers" displayName="Fan Art Theme">./includes/background/fanart.xml</include>
+<include name="OFF" displayName="OFF"/>
+</subset>
+
+<subset name="Video" displayName="System Video">
+<include name="Large" displayName="Large Size">./includes/video/large.xml</include>
+<include name="Reduced" displayName="Small Size">./includes/video/small.xml</include>
+<include name="OFF" displayName="OFF">./includes/video/off.xml</include>
+</subset>
+
+<subset name="Wheel Extra" displayName="Wheel Gamelist Box or Character Art">
+<include name="Box" displayName="Box"/>
+<include name="Character" displayName="Character"/>
+<include name="OFF" displayName="OFF"/>
+</subset>
+
+<subset name="Color" displayName="Font Color">
+<include name="white" displayName="White">./includes/color/white.xml</include>
+<include name="blue" displayName="Blue">./includes/color/blue.xml</include>
+<include name="darkblue" displayName="DarkBlue">./includes/color/darkblue.xml</include>
+<include name="candy" displayName="Candy">./includes/color/candy.xml</include>
+<include name="green" displayName="Green">./includes/color/green.xml</include>
+<include name="grey" displayName="Grey">./includes/color/grey.xml</include>
+<include name="orange" displayName="Orange">./includes/color/orange.xml</include>
+<include name="pink" displayName="Pink">./includes/color/pink.xml</include>
+<include name="plus" displayName="Teal">./includes/color/teal.xml</include>
+<include name="purple" displayName="Purple">./includes/color/purple.xml</include>
+<include name="red" displayName="Red">./includes/color/red.xml</include>
+<include name="violet" displayName="Violet">./includes/color/violet.xml</include>
+<include name="yellow" displayName="Yellow">./includes/color/yellow.xml</include>
+</subset>
+
+<subset name="Font Size" displayName="Font Size"> 
+<include subset="Medium" name="Medium Font">./includes/font size/medium.xml</include>
+<include subset="Small" name="Small Font">./includes/font size/small.xml</include>
+</subset>
+
+<subset name="Font" displayName="Font Type"> 
+<include subset="Font" name="Zrnic">./includes/fonts/zrnic.xml</include>
+<include subset="Font" name="Adelaide">./includes/fonts/adelaide.xml</include>
+<include subset="Font" name="Algerian">./includes/fonts/algerian.xml</include>
+<include subset="Font" name="Allenia">./includes/fonts/allenia.xml</include>
+<include subset="Font" name="American">./includes/fonts/American.xml</include>
+<include subset="Font" name="Anthony">./includes/fonts/Anthony.xml</include>
+<include subset="Font" name="Beauty">./includes/fonts/Beauty.xml</include>
+<include subset="Font" name="Bold">./includes/fonts/Bold.xml</include>
+<include subset="Font" name="Brothery">./includes/fonts/Brothery.xml</include>
+<include subset="Font" name="Calligraphy">./includes/fonts/Calligraphy.xml</include>
+<include subset="Font" name="Digib">./includes/fonts/Digib.xml</include>
+<include subset="Font" name="Digital-Serial-Bold">./includes/fonts/Digital-Serial-Bold.xml</include>
+<include subset="Font" name="Doo">./includes/fonts/Doo.xml</include>
+<include subset="Font" name="El Mayor">./includes/fonts/El Mayor.xml</include>
+<include subset="Font" name="Fiker">./includes/fonts/Fiker.xml</include>
+<include subset="Font" name="Fornire">./includes/fonts/Fornire.xml</include>
+<include subset="Font" name="Franchise">./includes/fonts/Franchise.xml</include>
+<include subset="Font" name="FridayBeach">./includes/fonts/FridayBeach.xml</include>
+<include subset="Font" name="Free">./includes/fonts/Free.xml</include>
+<include subset="Font" name="Happy">./includes/fonts/Happy.xml</include>
+<include subset="Font" name="Good">./includes/fonts/good.xml</include>
+<include subset="Font" name="GROBOLD">./includes/fonts/GROBOLD.xml</include>
+<include subset="Font" name="Homizio">./includes/fonts/Homizio.xml</include>
+<include subset="Font" name="Impact">./includes/fonts/impact.xml</include>
+<include subset="Font" name="Kenyan">./includes/fonts/kenyan.xml</include>
+<include subset="Font" name="Light">./includes/fonts/light.xml</include>
+<include subset="Font" name="Mario">./includes/fonts/Mario.xml</include>
+<include subset="Font" name="Mod">./includes/fonts/mod.xml</include>
+<include subset="Font" name="Mono">./includes/fonts/Mono.xml</include>
+<include subset="Font" name="OpenSans-Bold">./includes/fonts/OpenSans-Bold.xml</include>
+<include subset="Font" name="OpenSans-Light">./includes/fonts/OpenSans-Light.xml</include>
+<include subset="Font" name="PORKYS">./includes/fonts/PORKYS.xml</include>
+<include subset="Font" name="Pricedown">./includes/fonts/pricedown.xml</include>
+<include subset="Font" name="RG">./includes/fonts/rg.xml</include>
+<include subset="Font" name="Royalacid">./includes/fonts/Royalacid.xml</include>
+<include subset="Font" name="Segoeuil">./includes/fonts/segoeuil.xml</include>
+<include subset="Font" name="Shaka_Pow">./includes/fonts/Shaka_Pow.xml</include>
+<include subset="Font" name="Sketch3D">./includes/fonts/Sketch3D.xml</include>
+<include subset="Font" name="Ubuntu-Medium">./includes/fonts/Ubuntu-Medium.xml</include>
+<include subset="Font" name="Ubuntu_condensed">./includes/fonts/ubuntu_condensed.xml</include>
+<include subset="Font" name="Verdana">./includes/fonts/verdana.xml</include>
+<include subset="Font" name="Zelek">./includes/fonts/Sketch3D.xml</include>
+</subset>
+
+<subset name="Background Effects" displayName="Screen Background Zoom">
+<include name="Zoom In" displayName="Zoom In">./includes/background effects/zoom in.xml</include>
+<include name="Zoom Out" displayName="Zoom Out">./includes/background effects/zoom out.xml</include>
+<include name="OFF" displayName="OFF"/>
+</subset>
+
+<subset name="Shader" displayName="Screen Shader Effect">
+<include name="OFF" displayName="OFF"/>
+<include name="ScanLines" displayName="Scanlines">./includes/shader/scanlines.xml</include>
+<include name="Crt" displayName="CRT">./includes/shader/crt.xml</include>
+</subset>
+
+<subset name="Screen Shadow" displayName="Screen Edge Shadow">
+<include name="BottomOnly" displayName="Bottom Only">./includes/frame/frame1.xml</include>
+<include name="AllAround" displayName="All Around">./includes/frame/frame2.xml</include>
+<include name="OFF" displayName="OFF"/>
+</subset>
+
+<subset name="Button Icons" displayName="Help Button Icons"> 
+<include subset="iconset" name="Default">./includes/buttons/default.xml</include>
+<include subset="iconset" name="PSX">./includes/buttons/psx.xml</include>
+<include subset="iconset" name="SNES">./includes/buttons/snes.xml</include>
+<include subset="iconset" name="XBOX">./includes/buttons/xbox.xml</include>
+<include subset="iconset" name="ARCADE">./includes/buttons/arcade.xml</include>
+<include subset="iconset" name="Xbox One">./includes/buttons/xboxone.xml</include>
+<include subset="iconset" name="Switch">./includes/buttons/switch.xml</include>
+<include subset="iconset" name="PSX ALT">./includes/buttons/psx1.xml</include>
+<include subset="iconset" name="SNES ALT">./includes/buttons/snesalt.xml</include>
+</subset>
+
+
+<include name="gamecarousel">./views/gamelist/wheel.xml</include>
+<include name="basic">./views/gamelist/basic.xml</include>
+<include name="grid">./views/gamelist/grid.xml</include>
+<include name="video">./views/gamelist/video.xml</include>
+<include name="Gamecarousel Detailed">./views/gamelist/wheel detailed.xml</include>
+<include name="detailed">./views/gamelist/detailed.xml</include>
+</theme>
