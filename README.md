@@ -1,5 +1,10 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+
+December 3rd, 2024
+ I've been spending a lot of time working on media management and adding a tool to do various media related tasks (add/cleanup/etc).  I didn't think it would take as long as it did, but it is getting close.  Some more bug fixes coming too, but nothing urgent or I would have released something much sooner.   
+
+
 November 4th, 2024
  Version 7.1 beta now released with quite a few fixes and a few small improvements.  
  
