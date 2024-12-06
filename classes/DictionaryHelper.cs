@@ -13,6 +13,6 @@
 
         var nestedDictionary = mainDictionary[scraper];
         nestedDictionary[system] = defaultValue;
-       
+
     }
 }

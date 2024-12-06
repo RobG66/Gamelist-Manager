@@ -1,17 +1,15 @@
 ﻿using GamelistManager.classes;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
 namespace GamelistManager
 {
-   public partial class SettingsDialog : Window
+    public partial class SettingsDialog : Window
     {
         private DataGrid dg;
         public SettingsDialog(DataGrid dataGrid)
@@ -33,18 +31,18 @@ namespace GamelistManager
             }
 
             Properties.Settings.Default.Hostname = hostName;
-            Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;  
+            Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;
             Properties.Settings.Default.SaveReminder = (bool)checkBox_EnableSaveReminder.IsChecked!;
-           
+            Properties.Settings.Default.VerifyDownloadedImages = (bool)checkBox_VerifyImageDownloads.IsChecked!;
             string changeTrackerValue = textBox_ChangeCount.Text;
-     
+
             int maxUndo = string.IsNullOrEmpty(changeTrackerValue) || !int.TryParse(changeTrackerValue, out maxUndo) ? 0 : maxUndo;
             Properties.Settings.Default.MaxUndo = maxUndo;
-            
+
             bool result = CredentialManager.SaveCredentials(hostName, userID, password);
 
             var textBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<TextBox>(Paths);
-            Dictionary<string,string> mediaPaths = new Dictionary<string, string>();
+            Dictionary<string, string> mediaPaths = new Dictionary<string, string>();
             foreach (TextBox textBox in textBoxes)
             {
                 // Clean the text to keep only alphanumeric characters
@@ -128,7 +126,7 @@ namespace GamelistManager
             {
                 comboBox_AlternatingRowColor.SelectedItem = item2;
             }
-                        
+
             string hostName = Properties.Settings.Default.Hostname;
 
             (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
@@ -148,6 +146,9 @@ namespace GamelistManager
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             checkBox_EnableSaveReminder.IsChecked = saveReminder;
 
+            bool verifyImages = Properties.Settings.Default.VerifyDownloadedImages;
+            checkBox_VerifyImageDownloads.IsChecked = verifyImages;
+
             int maxUndo = Properties.Settings.Default.MaxUndo;
             if (maxUndo == 0)
             {
@@ -161,7 +162,7 @@ namespace GamelistManager
                 textBox_ChangeCount.IsEnabled = true;
                 textBox_ChangeCount.Text = maxUndo.ToString();
             }
-                  
+
         }
 
         private void SetTextBoxDefaults()

@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using LibVLCSharp.Shared;
+using System.Data;
+using System.IO;
 using System.Xml;
 
 namespace GamelistManager.classes
@@ -12,13 +14,15 @@ namespace GamelistManager.classes
 
         public async Task<int> GetMaxThreadsAsync(string userID, string userPassword)
         {
-            string? xmlData = await GetXMLResponse(userID, userPassword);
-            if (!string.IsNullOrEmpty(xmlData))
+            string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={userID}&sspassword={userPassword}";
+            string xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
+
+            if (!string.IsNullOrEmpty(xmlResponse))
             {
                 try
                 {
                     XmlDocument xmlUserData = new XmlDocument();
-                    xmlUserData.LoadXml(xmlData);
+                    xmlUserData.LoadXml(xmlResponse);
                     XmlNode? xmlNode = xmlUserData.SelectSingleNode("//ssuser/maxthreads");
                     if (xmlNode == null)
                     {
@@ -38,10 +42,11 @@ namespace GamelistManager.classes
             return 1;
         }
 
-        public async Task<bool> VerifyScreenScraperCredentialsAsync(string userId, string userPassword)
+        public async Task<bool> VerifyScreenScraperCredentialsAsync(string userID, string userPassword)
         {
             // Return boolean true or false if authentication is successful
-            string xmlResponse = await GetXMLResponse(userId, userPassword);
+            string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={userID}&sspassword={userPassword}";
+            string xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
             if (string.IsNullOrEmpty(xmlResponse))
             {
                 return false;
@@ -56,7 +61,7 @@ namespace GamelistManager.classes
                 {
                     return false;
                 }
-                if (string.Equals(xmlNode.InnerText, userId, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(xmlNode.InnerText, userID, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -68,16 +73,9 @@ namespace GamelistManager.classes
 
             return false;
         }
+               
 
-        public async Task<string> GetXMLResponse(string username, string password)
-        {
-            string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={username}&sspassword={password}";
-            GetXMLResponse responder = new GetXMLResponse();
-            string xmlResponse = await responder.GetXMLResponseAsync(string.Empty,url);
-            return xmlResponse;
-        }
-
-        public void SaveXmlNodeToCacheFile(string xmlString, string cacheFolder, string romName)
+        public void SaveXmlToCacheFile(string xmlString, string cacheFolder, string romName)
         {
             if (!Directory.Exists(cacheFolder))
             {
@@ -106,27 +104,34 @@ namespace GamelistManager.classes
         }
 
 
-        public async Task<Tuple<int, int, MetaDataList>> ScrapeScreenScraperAsync(ScraperParameters scraperParameters)
+        public async Task<Tuple<int, int>> ScrapeScreenScraperAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
-
             string romName = scraperParameters.RomFileNameWithoutExtension!;
             string cacheFolder = scraperParameters.CacheFolder!;
             bool scrapeByCache = scraperParameters.ScrapeByCache;
+            bool skipNonCached = scraperParameters.SkipNonCached;
+            bool cachedInfo = false;
             string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={romName}";
             string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
 
             string xmlResponse = string.Empty;
 
             // Scrape by cache if selected
-            if (scrapeByCache == true)
+            if (scrapeByCache)
             {
                 xmlResponse = ReadXmlFromCache(romName, cacheFolder);
+                if (string.IsNullOrEmpty(xmlResponse) && skipNonCached)
+                {
+                    return null!;
+                }
+                cachedInfo = true;
             }
 
             if (string.IsNullOrEmpty(xmlResponse))
             {
-                GetXMLResponse xmlResponder = new GetXMLResponse();
-                xmlResponse = await xmlResponder.GetXMLResponseAsync(string.Empty,url);
+                cachedInfo = false;
+                xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
+
 
                 if (string.IsNullOrEmpty(xmlResponse))
                 {
@@ -134,7 +139,7 @@ namespace GamelistManager.classes
                     string metaName = scraperParameters.Name!;
                     scrapInfo = $"&romtype=rom&romnom={metaName}";
                     url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
-                    xmlResponse = await xmlResponder.GetXMLResponseAsync(string.Empty,url);
+                    xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
                 }
 
                 // If it's still null, failed.
@@ -143,412 +148,215 @@ namespace GamelistManager.classes
                     return (null!);
                 }
 
-                SaveXmlNodeToCacheFile(xmlResponse, cacheFolder, romName);
+                SaveXmlToCacheFile(xmlResponse, cacheFolder, romName);
             }
 
             XmlDocument xmlData = new XmlDocument();
             xmlData.LoadXml(xmlResponse);
-
-            MetaDataList metaDataList = new MetaDataList();
-
+                     
             int scrapeTotal = 0;
             int scrapeMax = 0;
 
-            // Retrieve total requests for today
-            var totalRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/requeststoday");
-            if (totalRequestsNode != null && int.TryParse(totalRequestsNode.InnerText, out int total))
+            if (!cachedInfo)
             {
-                scrapeTotal = total;
+                // Retrieve total requests for today
+                var totalRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/requeststoday");
+                if (totalRequestsNode != null && int.TryParse(totalRequestsNode.InnerText, out int total))
+                {
+                    scrapeTotal = total;
+                }
+
+                // Retrieve maximum allowed requests per day
+                var allowedRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/maxrequestsperday");
+                if (allowedRequestsNode != null && int.TryParse(allowedRequestsNode.InnerText, out int max))
+                {
+                    scrapeMax = max;
+                }
             }
 
-            // Retrieve maximum allowed requests per day
-            var allowedRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/maxrequestsperday");
-            if (allowedRequestsNode != null && int.TryParse(allowedRequestsNode.InnerText, out int max))
-            {
-                scrapeMax = max;
-            }
-
-            string remoteDownloadURL = string.Empty;
-            string fileFormat = string.Empty;
-            string fileName = string.Empty;
-            string fileToDownload = string.Empty;
-            string destinationFolder = string.Empty;
-            string remoteElementName = string.Empty;
-            bool downloadResult = false;
-            bool overwrite = scraperParameters.OverwriteMedia;
-            bool verify = scraperParameters.Verify;
-            var mediaPaths = scraperParameters.MediaPaths!;
             var elementsToScrape = scraperParameters.ElementsToScrape!;
-
-            // medias xmlnode contains media download URL     
+            bool overwriteMetaData = scraperParameters.OverwriteMetadata;
             XmlNode? mediasNode = xmlData.SelectSingleNode("/Data/jeu/medias");
+            bool downloadSuccessful = false;
 
             foreach (string element in elementsToScrape)
             {
                 switch (element)
                 {
                     case "publisher":
-                        XmlNode? publisherNode = xmlData.SelectSingleNode("/Data/jeu/editeur");
-                        if (publisherNode != null)
-                        {
-                            string publisher = publisherNode.InnerText;
-                            if (!string.IsNullOrEmpty(publisher))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.publisher, publisher);
-                            }
-                        }
+                        string? publisher = xmlData.SelectSingleNode("/Data/jeu/editeur")?.InnerText;
+                        UpdateMetadata(rowView, "Publisher", publisher!, overwriteMetaData);
                         break;
 
                     case "developer":
-                        XmlNode? developerNode = xmlData.SelectSingleNode("/Data/jeu/developpeur");
-                        if (developerNode != null)
-                        {
-                            string developer = developerNode.InnerText;
-                            if (!string.IsNullOrEmpty(developer))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.developer, developer);
-                            }
-                        }
+                        string? developer = xmlData.SelectSingleNode("/Data/jeu/developpeur")?.InnerText;
+                        UpdateMetadata(rowView, "Developer", developer!, overwriteMetaData);
                         break;
 
                     case "players":
-                        XmlNode? playersNode = xmlData.SelectSingleNode("/Data/jeu/joueurs");
-                        if (playersNode != null)
-                        {
-                            string players = playersNode.InnerText;
-                            if (!string.IsNullOrEmpty(players))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.players, players);
-                            }
-                        }
+                        string? players = xmlData.SelectSingleNode("/Data/jeu/joueurs")?.InnerText;
+                        UpdateMetadata(rowView, "Players", players!, overwriteMetaData);
                         break;
-
+                                           
                     case "lang":
-                        XmlNode? languageNode = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues");
-                        if (languageNode != null)
-                        {
-                            string? language = languageNode.InnerText;
-                            if (!string.IsNullOrEmpty(language))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.lang, language);
-                            }
-                        }
+                        string? language = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText; ;
+                        UpdateMetadata(rowView, "Language", language!, overwriteMetaData);
                         break;
 
                     case "id":
-                        XmlNode? gameNode = xmlData.SelectSingleNode("/Data/jeu");
-                        if (gameNode != null && gameNode is XmlElement xmlElement)
-                        {
-                            string? id = xmlElement.GetAttribute("id");
-                            if (!string.IsNullOrEmpty(id))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.id, id);
-                            }
-                        }
+                        string? id = (xmlData.SelectSingleNode("/Data/jeu") as XmlElement)?.GetAttribute("id");
+                        UpdateMetadata(rowView, "Game Id", id!, overwriteMetaData);
                         break;
 
                     case "arcadesystemname":
-                        XmlNode? asnNode = xmlData.SelectSingleNode("/Data/jeu/systeme");
-                        if (asnNode != null)
-                        {
-                            string arcadesystemname = asnNode.InnerText;
-                            if (!string.IsNullOrEmpty(arcadesystemname))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.arcadesystemname, arcadesystemname);
-                            }
-                        }
+                        string? arcadeSystemName = xmlData.SelectSingleNode("/Data/jeu/systeme")?.InnerText; ;
+                        UpdateMetadata(rowView, "Arcade System Name", arcadeSystemName!, overwriteMetaData);
                         break;
 
                     case "rating":
-                        XmlNode? ratingNode = xmlData.SelectSingleNode("/Data/jeu/note");
-                        if (ratingNode != null)
-                        {
-                            string rating = ratingNode.InnerText;
-                            if (!string.IsNullOrEmpty(rating))
-                            {
-                                string convertedRating = ConvertRating(rating);
-                                metaDataList.SetMetadataValue(MetaDataKeys.rating, convertedRating);
-                            }
-                        }
+                        string? rating = xmlData.SelectSingleNode("/Data/jeu/note")?.InnerText;
+                        string convertedRating = ConvertRating(rating!);
+                        UpdateMetadata(rowView, "Rating", convertedRating!, overwriteMetaData);
                         break;
 
                     case "desc":
-                        XmlNode? descriptionNode = xmlData.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{scraperParameters.Language}']");
-                        if (descriptionNode == null)
-                        {
-                            descriptionNode = xmlData.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='en']");
-                        }
-                        if (descriptionNode != null)
-                        {
-                            string description = descriptionNode.InnerText;
-                            if (!string.IsNullOrEmpty(description))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.desc, description);
-                            }
-                        }
+                        string? description = xmlData
+                        .SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{scraperParameters.Language}']")
+                        ?.InnerText
+                        ?? xmlData.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='en']")?.InnerText;
+                        UpdateMetadata(rowView, "Description", description!, overwriteMetaData);
                         break;
 
                     case "name":
-                        XmlNode? namesNode = xmlData.SelectSingleNode("/Data/jeu/noms");
-                        if (namesNode != null)
-                        {
-                            string name = ParseNames(namesNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(name))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.name, name);
-                            }
-                        }
+                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms"), scraperParameters.Region!);
+                        UpdateMetadata(rowView, "Name", name!, overwriteMetaData);
                         break;
 
                     case "genre":
-                        XmlNode? genresNode = xmlData.SelectSingleNode("/Data/jeu/genres");
+                        var genresNode = xmlData.SelectSingleNode("/Data/jeu/genres");
                         if (genresNode != null)
                         {
-                            (string genreID, string genreName) = ParseGenres(genresNode, scraperParameters.Language!);
-                            if (!string.IsNullOrEmpty(genreName))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.genre, genreName);
-                                //metaDataList.SetMetadataValue(MetaDataKeys.genreIds, genreID);
-                            }
+                            var (_, genreName) = ParseGenres(genresNode, scraperParameters.Language!);
+                            UpdateMetadata(rowView, "Genre", genreName!, overwriteMetaData);
                         }
                         break;
 
                     case "family":
-                        XmlNode? familyNode = xmlData.SelectSingleNode("/Data/jeu/familles/famille");
-                        if (familyNode != null)
-                        {
-                            string family = familyNode.InnerText;
-                            if (!string.IsNullOrEmpty(family))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.family, family);
-                            }
-                        }
+                        string? family = xmlData.SelectSingleNode("/Data/jeu/familles/famille")?.InnerText;
+                        UpdateMetadata(rowView, "Family", family!, overwriteMetaData);
                         break;
 
                     case "region":
-                        XmlNode? regionNode = xmlData.SelectSingleNode("/Data/jeu/rom/romregions");
-                        if (regionNode != null)
-                        {
-                            string region = regionNode.InnerText;
-                            if (!string.IsNullOrEmpty(region))
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.region, region);
-                            }
-                        }
+                        string? region = xmlData.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText; ;
+                        UpdateMetadata(rowView, "Region", region!, overwriteMetaData);
                         break;
 
                     case "releasedate":
-                        XmlNode? releaseDateNode = xmlData.SelectSingleNode("/Data/jeu/dates");
-                        if (releaseDateNode != null)
-                        {
-                            string releaseDate = ParseReleaseDate(releaseDateNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(releaseDate))
-                            {
-                                string convertedReleaseDate = ISO8601Converter.ConvertToISO8601(releaseDate);
-                                metaDataList.SetMetadataValue(MetaDataKeys.releasedate, convertedReleaseDate);
-                            }
-                        }
+                        string? releaseDate = ParseReleaseDate(xmlData.SelectSingleNode("/Data/jeu/dates"), scraperParameters.Region!);
+                        UpdateMetadata(rowView, "Release Date", releaseDate!, overwriteMetaData);
                         break;
 
-                    case "bezel":
-                        destinationFolder = mediaPaths["bezel"];
-                        remoteElementName = "bezel-16-9";
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
 
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.bezel, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                    case "bezel":
+                        await DownloadFile(rowView, "bezel", "Bezel", "bezel-16-9", scraperParameters, mediasNode!);
                         break;
 
                     case "fanart":
-                        destinationFolder = mediaPaths["fanart"];
-                        remoteElementName = "fanart";
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.fanart, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                        await DownloadFile(rowView, "fanart", "Fan Art", "fanart", scraperParameters, mediasNode!);
                         break;
 
                     case "boxback":
-                        destinationFolder = mediaPaths["boxback"];
-                        remoteElementName = "box-2D-back";
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.boxback, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                        await DownloadFile(rowView, "boxback", "Box Back", "box-2D-back", scraperParameters, mediasNode!);
                         break;
 
                     case "manual":
-                        destinationFolder = mediaPaths["manual"];
-                        remoteElementName = "manuel";
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.manual, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                        await DownloadFile(rowView, "manual", "Manual", "manuel", scraperParameters, mediasNode!);
                         break;
 
                     case "image":
-                        destinationFolder = mediaPaths["image"];
-                        remoteElementName = scraperParameters.ImageSource!;
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.image, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                        await DownloadFile(rowView, "image", "Image", scraperParameters.ImageSource!, scraperParameters, mediasNode!);
                         break;
 
                     case "thumbnail":
-                        destinationFolder = mediaPaths["thumbnail"];
-                        remoteElementName = scraperParameters.BoxSource!;
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                // Use thumb instead of thumbnail, same as batocera scraping
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-thumb.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.thumbnail, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                        await DownloadFile(rowView, "thumbnail", "Box", scraperParameters.BoxSource!, scraperParameters, mediasNode!);
                         break;
 
                     case "marquee":
-                        destinationFolder = mediaPaths["marquee"];
-                        remoteElementName = scraperParameters.LogoSource!;
-                        if (mediasNode != null)
+                        string logosource = scraperParameters.LogoSource!;
+                        downloadSuccessful = await DownloadFile(rowView, "marquee", "Logo", scraperParameters.LogoSource!, scraperParameters, mediasNode!);
+                        if (logosource == "wheel-hd" && downloadSuccessful == false)
                         {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-
-                            // wheel-hd and wheel are the same, a clear logo, but sometimes only one is present
-                            // so both need to be checked for, wheel-hd first
-                            if (!string.IsNullOrEmpty(remoteDownloadURL) && remoteElementName == "wheel-hd") 
-                            {
-                                (remoteDownloadURL, fileFormat) = ParseMedia("wheel", mediasNode, scraperParameters.Region!);
-                            }
-
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.marquee, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
+                            await DownloadFile(rowView, "marquee", "Logo", "wheel", scraperParameters, mediasNode!);
                         }
                         break;
 
-
                     case "video":
-                        destinationFolder = mediaPaths["video"];
-                        remoteElementName = scraperParameters.VideoSource!;
-                        if (mediasNode != null)
-                        {
-                            (remoteDownloadURL, fileFormat) = ParseMedia(remoteElementName, mediasNode, scraperParameters.Region!);
-                            if (!string.IsNullOrEmpty(remoteDownloadURL))
-                            {
-                                if (!Directory.Exists($"{scraperParameters.ParentFolderPath}\\{destinationFolder}"))
-                                {
-                                    Directory.CreateDirectory($"{scraperParameters.ParentFolderPath}\\{destinationFolder}");
-                                }
-                                fileName = $"{scraperParameters.RomFileNameWithoutExtension}-{element}.{fileFormat}";
-                                fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                                downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                                if (downloadResult == true)
-                                {
-                                    metaDataList.SetMetadataValue(MetaDataKeys.video, $"./{destinationFolder}/{fileName}");
-                                }
-                            }
-                        }
+                        await DownloadFile(rowView, "video", "Video", scraperParameters.VideoSource!, scraperParameters, mediasNode!);
                         break;
                 }
             }
 
-            return new Tuple<int, int, MetaDataList>(scrapeTotal, scrapeMax, metaDataList);
+            return new Tuple<int, int>(scrapeTotal, scrapeMax);
 
+        }
+
+        private void UpdateMetadata(DataRowView rowView, string column, string newValue, bool overwrite)
+        {
+            if (string.IsNullOrEmpty(newValue))
+            {
+                return;
+            }
+
+            var currentValue = rowView[column];
+
+            // Check if the current value is DBNull or null, and if overwrite is allowed
+            if (overwrite || currentValue == DBNull.Value || string.IsNullOrEmpty(currentValue.ToString()))
+            {
+                rowView[column] = newValue;
+            }
+        }
+
+        private async Task<bool> DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, XmlNode mediasNode)
+        {            
+            (string downloadURL, string fileFormat) = ParseMedia(remoteMediaType, mediasNode, scraperParameters.Region!);
+                        
+            if (string.IsNullOrEmpty(downloadURL) || string.IsNullOrEmpty(fileFormat))
+            {
+                return false;
+            }
+
+            bool overwriteMedia = scraperParameters.OverwriteMedia;
+
+            var currentValue = rowView[mediaType];
+            if (currentValue != DBNull.Value && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
+            {
+                return false;
+            }
+
+            string name = scraperParameters.Name!;
+            string romFileNameWithoutExtension = scraperParameters.RomFileNameWithoutExtension!;
+            var mediaPaths = scraperParameters.MediaPaths!;
+            string destinationFolder = mediaPaths[mediaName];
+            string parentFolderPath = scraperParameters.ParentFolderPath!;
+            bool verify = scraperParameters.Verify;
+            bool overwrite = scraperParameters.OverwriteMedia;
+
+            if (mediaName == "thumbnail")
+            {
+                mediaName = "thumb";
+            }
+
+            string fileName = $"{romFileNameWithoutExtension}-{mediaName}.{fileFormat}";
+            string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
+            string fileToDownload = $"{downloadPath}\\{fileName}";
+
+            bool downloadSuccessful = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, downloadURL);
+            if (downloadSuccessful)
+            {
+                rowView[mediaType] = $"./{destinationFolder}/{fileName}";
+                return true;
+            }
+            return false;
         }
 
         private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
@@ -597,22 +405,22 @@ namespace GamelistManager.classes
         }
 
 
-        private string ParseReleaseDate(XmlNode namesElement, string region)
+        private string ParseReleaseDate(XmlNode xmlNode, string currentRegion)
         {
-            if (namesElement == null)
+            if (xmlNode == null)
             {
                 return string.Empty;
             }
 
-            string[] regions = { region, "wor", "us", "ss", "eu", "jp" };
+            string[] regions = { currentRegion, "wor", "us", "ss", "eu", "jp" };
 
-            foreach (string currentRegion in regions)
+            foreach (string region in regions)
             {
-                XmlNode? xmlNode = namesElement.SelectSingleNode($"date[@region='{region}']");
-                if (xmlNode != null)
+                XmlNode? xmlNode2 = xmlNode.SelectSingleNode($"date[@region='{region}']");
+                if (xmlNode2 != null)
                 {
                     // Get the InnerText of the found node
-                    string releaseDate = xmlNode.InnerText ?? string.Empty;
+                    string releaseDate = xmlNode2.InnerText ?? string.Empty;
 
                     // Return the releaseDate if it's not empty
                     if (!string.IsNullOrEmpty(releaseDate))

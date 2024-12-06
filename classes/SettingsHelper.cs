@@ -1,6 +1,5 @@
-﻿using System;
+﻿using System.Configuration;
 using System.Reflection;
-using System.Configuration;
 
 namespace GamelistManager.classes
 {

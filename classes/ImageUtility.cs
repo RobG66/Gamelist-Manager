@@ -1,20 +1,25 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
-
-// Check if an image is single color or corrupt
 
 namespace GamelistManager.classes
 {
-    internal static class ImageVerify
+    internal static class ImageUtility
     {
+        public static void ConvertToPng(string inputFilePath, string outputFilePath)
+        {
+            using (Image image = Image.FromFile(inputFilePath))
+            {
+                image.Save(outputFilePath, ImageFormat.Png);
+            }
+        }
+
         public static string CheckImage(string imagePath)
         {
             // First check if file exists
-            bool fileExists = File.Exists(imagePath);
-
-            if (!fileExists)
+            if (!File.Exists(imagePath))
             {
-                return "missing";
+                return "Missing";
             }
 
             try
@@ -22,28 +27,31 @@ namespace GamelistManager.classes
                 using (Bitmap bitmap = new Bitmap(imagePath))
                 {
                     Color firstPixelColor = bitmap.GetPixel(0, 0);
-                    for (int x = 0; x < bitmap.Width; x++)
+
+                    // Skip every 3rd pixel and alternate lines
+                    int skipInterval = 3;
+
+                    for (int y = 0; y < bitmap.Height; y += 2) // Skip every other line
                     {
-                        for (int y = 0; y < bitmap.Height; y++)
+                        for (int x = 0; x < bitmap.Width; x += skipInterval)
                         {
                             Color pixelColor = bitmap.GetPixel(x, y);
 
                             // Check if the current pixel color is different from the first pixel color
                             if (pixelColor != firstPixelColor)
                             {
-                                return "ok"; // image contains multiple colors
+                                return "OK"; // Image contains multiple colors
                             }
                         }
                     }
-                    return "singlecolor";
+
+                    return "Single Color";
                 }
             }
             catch
             {
-                return "corrupt";
+                return "Corrupt";
             }
-
         }
     }
 }
-

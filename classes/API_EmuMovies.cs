@@ -1,8 +1,7 @@
 ﻿using GamelistManager.classes.GamelistManager;
-using System.Collections.Concurrent;
+using System.Data;
 using System.IO;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,381 +9,136 @@ namespace GamelistManager.classes
 {
     internal class API_EmuMovies
     {
-        private readonly ConcurrentDictionary<(string, string), int> memo = new ConcurrentDictionary<(string, string), int>();
         private readonly string apiURL = "http://api3.emumovies.com/api";
         private readonly string bearerToken = "";
-       
-        public async Task<MetaDataList> ScrapeEmuMoviesAsync(ScraperParameters scraperParameters, Dictionary<string, List<string>> emumoviesMediaLists)
+
+        public async Task<bool> ScrapeEmuMoviesAsync(DataRowView rowView, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
         {
-            string destinationFolder = string.Empty;
-            string remoteDownloadURL = string.Empty;
-            string remoteFileName = string.Empty;
-            string fileName = string.Empty;
-            string fileToDownload = string.Empty;
-            bool downloadResult = false;
-            bool overwrite = scraperParameters.OverwriteMedia;
-            bool verify = scraperParameters.Verify;
-            string remoteMediaType = string.Empty;
-            List<string> mediaList = [];
-            string fileFormat = string.Empty;
-            string romFileNameWithoutExtension = scraperParameters.RomFileNameWithoutExtension!; 
-            string name = scraperParameters.Name!;
-            var mediaPaths = scraperParameters.MediaPaths!;
             var elementsToScrape = scraperParameters.ElementsToScrape!;
-
-            MetaDataList metaDataList = new MetaDataList();
-
+        
             foreach (string element in elementsToScrape)
             {
                 switch (element)
                 {
                     case "fanart":
-                        destinationFolder = mediaPaths["fanart"];
-                        remoteMediaType = "Background";
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.fanart, $"./{destinationFolder}/{fileName}");
-                        }
-                        break;
+                        await DownloadFile(rowView, "fanart", "Fan Art", "Background", scraperParameters, mediaLists);
+                    break;
 
                     case "boxback":
-                        destinationFolder = mediaPaths["boxback"];
-                        remoteMediaType = "BoxBack";
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.boxback, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "boxback", "Box Back", "BoxBack", scraperParameters, mediaLists);
                         break;
 
                     case "manual":
-                        destinationFolder = mediaPaths["manual"];
-                        remoteMediaType = "Manual";
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.manual, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "manual", "Manual", "Manual", scraperParameters, mediaLists);
                         break;
 
                     case "music":
-                        destinationFolder = mediaPaths["music"];
-                        remoteMediaType = "Music";
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.music, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "music", "Music", "Music", scraperParameters, mediaLists);
                         break;
 
-
                     case "image":
-                        destinationFolder = mediaPaths["image"];
-                        remoteMediaType = scraperParameters.ImageSource;
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.image, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "image", "Image", scraperParameters.ImageSource!, scraperParameters, mediaLists);
                         break;
 
                     case "titleshot":
-                        destinationFolder = mediaPaths["titleshot"];
-                        remoteMediaType = "Title";
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.titleshot, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "titleshot", "Title Shot", "Title", scraperParameters, mediaLists);
                         break;
 
                     case "thumbnail":
-                        destinationFolder = mediaPaths["thumbnail"];
-                        remoteMediaType = scraperParameters.BoxSource;
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        // Batocera uses thumb instead of thumbnail, so I do the same
-                        fileName = $"{romFileNameWithoutExtension}-thumb{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.thumbnail, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "thumbnail", "Box", scraperParameters.BoxSource!, scraperParameters, mediaLists);
                         break;
 
                     case "marquee":
-                        remoteMediaType = scraperParameters.LogoSource;
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        destinationFolder = mediaPaths["marquee"];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.marquee, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "marquee", "Logo", scraperParameters.LogoSource!, scraperParameters, mediaLists);
                         break;
 
                     case "cartridge":
-                        remoteMediaType = scraperParameters.CartridgeSource;
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        destinationFolder = mediaPaths["cartridge"];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.cartridge, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "cartridge", "Cartridge", scraperParameters.CartridgeSource!, scraperParameters, mediaLists);
                         break;
 
-
                     case "video":
-                        remoteMediaType = scraperParameters.VideoSource;
-                        mediaList = emumoviesMediaLists[remoteMediaType];
-                        destinationFolder = mediaPaths["video"];
-                        if (mediaList == null)
-                        {
-                            // No media
-                            continue;
-                        }
-                        remoteFileName = FuzzySearch(name, mediaList);
-                        if (string.IsNullOrEmpty(remoteFileName))
-                        {
-                            remoteFileName = FuzzySearch(romFileNameWithoutExtension, mediaList);
-                            if (string.IsNullOrEmpty(remoteFileName))
-                            {
-                                continue;
-                            }
-                        }
-                        fileFormat = Path.GetExtension(remoteFileName);
-                        if (string.IsNullOrEmpty(fileFormat))
-                        {
-                            continue;
-                        }
-                        fileName = $"{romFileNameWithoutExtension}-{element}{fileFormat}";
-                        fileToDownload = $"{scraperParameters.ParentFolderPath}\\{destinationFolder}\\{fileName}";
-                        remoteDownloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-                        downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                        if (downloadResult == true)
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.video, $"./{destinationFolder}/{fileName}");
-                        }
+                        await DownloadFile(rowView, "video", "Video", scraperParameters.VideoSource!, scraperParameters, mediaLists);
                         break;
                 }
             }
-            return metaDataList;
+            return true;
         }
 
-        private string FuzzySearch(string searchName, List<string> names)
+        private string FindString(List<string> searchText, List<string> mediaList)
         {
-            var fuzzySearchHelper = new FuzzySearchHelper();
-            string bestMatch = fuzzySearchHelper.FuzzySearch(searchName, names);
-            return bestMatch;
+            string result = string.Empty;
+
+            foreach (string item in searchText)
+            {
+                result = TextSearch.FindTextMatch(item, mediaList);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    break;
+                }
+            }
+                       
+            return result;
+        }        
+        
+        private async Task DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
+        {
+
+            bool overwriteMedia = scraperParameters.OverwriteMedia;
+
+            var currentValue = rowView[mediaType];
+            if (currentValue != DBNull.Value && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
+            {
+                return;
+            }
+
+            string name = scraperParameters.Name!;
+            string romFileNameWithoutExtension = scraperParameters.RomFileNameWithoutExtension!;
+
+            List<string> mediaList = mediaLists[remoteMediaType];
+
+            List<string> items = new List<string> { name, romFileNameWithoutExtension };
+            string remoteFileName = FindString(items, mediaList);
+            if (string.IsNullOrEmpty(remoteFileName))
+            {
+                return;
+            }
+
+            string fileFormat = Path.GetExtension(remoteFileName);
+            
+            if (string.IsNullOrEmpty(fileFormat)) {
+                return;
+            }
+
+            var mediaPaths = scraperParameters.MediaPaths!;
+            string destinationFolder = mediaPaths[mediaName];
+            string parentFolderPath = scraperParameters.ParentFolderPath!;
+            bool verify = scraperParameters.Verify;
+            bool overwrite = scraperParameters.OverwriteMedia;      
+
+            if (mediaName == "thumbnail")
+            {
+                mediaName = "thumb";
+            }
+
+            string fileName = $"{romFileNameWithoutExtension}-{mediaName}{fileFormat}";
+            string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
+            string fileToDownload = $"{downloadPath}\\{fileName}";
+
+            string downloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+            bool result = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, downloadURL);
+          
+            // Music can be downloaded, but I do not create gamelist entries for it
+            if (mediaType == "music")
+            {
+                return;
+            }
+
+            if (result)
+            {
+                rowView[mediaType] = $"./{destinationFolder}/{fileName}";
+            }
         }
-               
+
         public async Task<string> AuthenticateEmuMoviesAsync(string username, string password)
         {
             var credentials = new
@@ -432,8 +186,7 @@ namespace GamelistManager.classes
         public async Task<List<string>> GetMediaTypes(string system)
         {
             string url = $"{apiURL}/Media/MediaTypes?systemName={system}";
-            GetJsonResponse getJsonResponse = new GetJsonResponse();
-            string jsonResponse = await getJsonResponse.GetJsonResponseAsync(bearerToken,url);
+            string jsonResponse = await GetJSONResponse.GetJsonResponseAsync(bearerToken, url);
             if (string.IsNullOrEmpty(jsonResponse))
             {
                 return null!;
@@ -463,11 +216,11 @@ namespace GamelistManager.classes
             }
         }
 
+
         public async Task<List<string>> GetMediaList(string system, string mediaTitle)
         {
             string url = $"{apiURL}/Media/MediaList?systemName={system}&mediaType={mediaTitle}&mediaSet=default";
-            GetJsonResponse getJsonResponse = new GetJsonResponse();
-            string jsonResponse = await getJsonResponse.GetJsonResponseAsync(bearerToken,url);
+            string jsonResponse = await GetJSONResponse.GetJsonResponseAsync(bearerToken, url);
 
             if (string.IsNullOrEmpty(jsonResponse))
             {

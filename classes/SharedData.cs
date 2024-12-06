@@ -11,12 +11,12 @@ namespace GamelistManager.classes
         private static string _currentSystem = string.Empty;
         private static string _programDirectory = string.Empty;
         private static ChangeTracker? _changeTracker;
-                  
+
         public static void InitializeChangeTracker()
         {
             _changeTracker = new ChangeTracker();
         }
-                        
+
         public static ChangeTracker? ChangeTracker
         {
             get => _changeTracker;
@@ -28,7 +28,7 @@ namespace GamelistManager.classes
             get { return _isDataChanged; }
             set { _isDataChanged = value; }
         }
-        
+
         public static DataSet DataSet
         {
             get { return _dataSet; }

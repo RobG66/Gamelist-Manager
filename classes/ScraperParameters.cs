@@ -1,4 +1,6 @@
-﻿namespace GamelistManager.classes
+﻿using System.Data;
+
+namespace GamelistManager.classes
 {
     public class ScraperParameters
     {
@@ -22,11 +24,14 @@
         public bool OverwriteMedia { get; set; }
         public bool OverwriteMetadata { get; set; }
         public bool Verify { get; set; }
+        public DataRowView CurrentRow { get; set; }
+        public bool ConvertToPNG { get; set; }
         public string? UserAccessToken { get; set; }
         public string? ScraperPlatform { get; set; }
         public bool ScrapeByGameID { get; set; }
         public string? CacheFolder { get; set; }
         public bool ScrapeByCache { get; set; }
+        public bool SkipNonCached { get; set; }
         public List<string>? ElementsToScrape { get; set; }
         public Dictionary<string, string>? MediaPaths { get; set; }
 

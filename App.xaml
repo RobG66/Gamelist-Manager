@@ -149,19 +149,113 @@
         <Style x:Key="GreenButtonStyle" TargetType="Button" BasedOn="{StaticResource CoolButtonStyle1}">
             <Setter Property="Background" Value="#FF98FB98"/>
             <!-- Light green background -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFA8FFAA"/>
+                                <!-- Brighter green when hovered -->
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FF66C266"/>
+                                <!-- Darker green when pressed -->
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#FFA9A9A9"/>
+                                <Setter Property="Foreground" Value="#FF808080"/>
+                                <Setter Property="BorderBrush" Value="#FF808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Red Button Style -->
         <Style x:Key="RedButtonStyle" TargetType="Button" BasedOn="{StaticResource CoolButtonStyle1}">
             <Setter Property="Background" Value="#FFFFA07A"/>
             <!-- Light red background -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFFFB090"/>
+                                <!-- Brighter red when hovered -->
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFCD5C5C"/>
+                                <!-- Darker red when pressed -->
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#FFA9A9A9"/>
+                                <Setter Property="Foreground" Value="#FF808080"/>
+                                <Setter Property="BorderBrush" Value="#FF808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Yellow Button Style -->
         <Style x:Key="YellowButtonStyle" TargetType="Button" BasedOn="{StaticResource CoolButtonStyle1}">
-            <Setter Property="Background" Value="#FFFFFFE0"/>
+            <Setter Property="Background" Value="#FFFFFFA0"/>
             <!-- Light yellow background -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFFFFFB5"/>
+                                <!-- Brighter yellow when hovered -->
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FFCCCC00"/>
+                                <!-- Darker yellow when pressed -->
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#FFA9A9A9"/>
+                                <Setter Property="Foreground" Value="#FF808080"/>
+                                <Setter Property="BorderBrush" Value="#FF808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
+
 
         <Style x:Key="GridSplitterVerticalGripStyle" TargetType="{x:Type GridSplitter}">
             <Setter Property="VerticalAlignment" Value="Stretch" />
@@ -198,7 +292,7 @@
         <Style x:Key="GridSplitterHorizontalGripStyle" TargetType="{x:Type GridSplitter}">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-            <Setter Property="Cursor" Value="SizeNS" />
+            <Setter Property="Cursor" Value="SizeWE" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Background"
            Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />

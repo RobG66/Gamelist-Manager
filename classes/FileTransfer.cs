@@ -4,13 +4,14 @@ using System.Net.Http;
 
 namespace GamelistManager.classes
 {
-    internal static class FileTransfer
+     internal static class FileTransfer
     {
-        public static async Task<bool> DownloadFile(bool verify, bool overWriteData, string fileToDownload, string url)
+        public static async Task<bool> DownloadFile(bool verify, bool overWriteExistingFile, string fileDownloadPath, string url)
         {
             var client = HttpClientSingleton.Instance;
 
-            string parentFolder = Path.GetDirectoryName(fileToDownload)!;
+            string fileExtension = Path.GetExtension(fileDownloadPath).ToLowerInvariant();
+            string parentFolder = Path.GetDirectoryName(fileDownloadPath)!;
 
             try
             {
@@ -21,15 +22,15 @@ namespace GamelistManager.classes
                 }
 
                 // Handle file overwriting logic
-                if (File.Exists(fileToDownload))
+                if (File.Exists(fileDownloadPath))
                 {
-                    if (overWriteData)
+                    if (overWriteExistingFile)
                     {
-                        File.Delete(fileToDownload);
+                        File.Delete(fileDownloadPath);
                     }
                     else
                     {
-                        return true; // Do not overwrite and the file already exists
+                        return true;
                     }
                 }
 
@@ -42,38 +43,51 @@ namespace GamelistManager.classes
                     using (Stream contentStream = await response.Content.ReadAsStreamAsync())
                     {
                         // Open the file stream for writing
-                        using (FileStream fileStream = new FileStream(fileToDownload, FileMode.Create, FileAccess.Write, FileShare.None))
+                        using (FileStream fileStream = new FileStream(fileDownloadPath, FileMode.Create, FileAccess.Write, FileShare.None))
                         {
                             // Copy the content stream to the file stream
                             await contentStream.CopyToAsync(fileStream);
                         }
                     }
                 }
-
-                string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico", ".webp" };
-                if (verify && imageExtensions.Contains(Path.GetExtension(fileToDownload).ToLowerInvariant()))
-                {
-                    string verifyResult = ImageVerify.CheckImage(fileToDownload);
-
-                    if (verifyResult != "ok")
-                    {
-                        File.Delete(fileToDownload); // Delete invalid image file
-                        return false; // Treat as a failed download
-                    }
-                }
-
-                return true; // Return true if the download was successful
             }
             catch
             {
-                // Handle any exceptions that occur during the download
-                if (File.Exists(fileToDownload))
-                {
-                    File.Delete(fileToDownload); // Clean up the file if an error occurred
-                }
-
-                return false; // Return false if an error occurred
+            // Handle any exceptions that occur during the download
+            if (File.Exists(fileDownloadPath))
+            {
+                File.Delete(fileDownloadPath); // Clean up the file if an error occurred
             }
+
+                return false;
+            }
+            
+            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico", ".webp" };
+
+            if (verify && imageExtensions.Contains(fileExtension))
+            {
+                string verifyResult = ImageUtility.CheckImage(fileDownloadPath);
+                if (verifyResult != "OK")
+                {
+                    File.Delete(fileDownloadPath); // Delete invalid image file
+                    return false; // Treat as a failed download
+                }
+            }
+
+            /*
+            if (convertToPNG)
+            {
+                if (fileExtension != ".png" && imageExtensions.Contains(fileExtension))
+                {
+                    string pngFilePath = Path.ChangeExtension(fileDownloadPath, ".png");
+                    ImageUtility.ConvertToPng(fileDownloadPath, pngFilePath);
+                    File.Delete(fileDownloadPath); // Remove the original file
+                    return pngFilePath;
+                }
+            }
+            */
+
+            return true;
         }
     }
 }

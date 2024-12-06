@@ -16,35 +16,38 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left Main Grid -->
-        <StackPanel Grid.Column="0" x:Name="LeftMainGrid" Width="250" HorizontalAlignment="Left">
-            <Image x:Name="MainLogo" Height="63" Width="Auto" Margin="0" Source="/Resources/scraperlogo.png"/>
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Scraper:" Foreground="Blue" FontWeight="Bold" FontSize="12" Width="Auto" VerticalAlignment="Center"/>
-                <ComboBox x:Name="comboBox_SelectedScraper" Margin="0,2,0,0" VerticalAlignment="Center"  Width="105" Height="22" SelectionChanged="comboBox_SelectedScraper_SelectionChanged">
-                    <ComboBoxItem Content="ArcadeDB"/>
-                    <ComboBoxItem Content="EmuMovies"/>
-                    <ComboBoxItem Content="ScreenScraper"/>
-                </ComboBox>
-                <Button x:Name="button_AllOrSelected" HorizontalAlignment="Center" Margin="10,0,0,0" Height="20" Width="75" Content="Selected Items" Style="{StaticResource CoolButtonStyle1}" VerticalAlignment="Center" Click="Button_Click"/>
+        <StackPanel Grid.Column="0" x:Name="LeftMainGrid" Width="260" HorizontalAlignment="Left">
+            <Image x:Name="MainLogo" Height="60" Width="Auto" Margin="0" Source="/Resources/scraperlogo.png"/>
+            <StackPanel x:Name="stackPanel_ScraperControls" Orientation="Vertical">
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Label Content="Scraper:" Foreground="Blue" Padding="0,0,0,0" Margin="5,0,0,0" FontWeight="Bold" FontSize="12" Width="Auto" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="comboBox_SelectedScraper" Margin="10,0,0,0" VerticalAlignment="Center"  Width="105" Height="22" SelectionChanged="comboBox_SelectedScraper_SelectionChanged">
+                        <ComboBoxItem Content="ArcadeDB"/>
+                        <ComboBoxItem Content="EmuMovies"/>
+                        <ComboBoxItem Content="ScreenScraper"/>
+                    </ComboBox>
+                    <Button x:Name="button_AllOrSelected" HorizontalAlignment="Center" Margin="10,0,0,0" Height="20" Width="75" Content="Selected Items" Style="{StaticResource CoolButtonStyle1}" VerticalAlignment="Center" Click="Button_Click"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <Label VerticalAlignment="Center" Height="18" Margin="5,0,0,0" Padding="0">Overwite:</Label>
+                    <CheckBox Content="Name" x:Name="checkBox_OverwriteNames" VerticalAlignment="Center" IsChecked="True" Margin="5,0,0,0"/>
+                    <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                </StackPanel>
+                <CheckBox x:Name="checkBox_ScrapeFromCache" VerticalAlignment="Center" Margin="5,3,0,0" Content="Scrape from cache first (if available) " Checked="checkBox_ScrapeFromCache_Checked" Unchecked="checkBox_ScrapeFromCache_Unchecked"/>
+                <CheckBox x:Name="checkBox_OnlyScrapeFromCache" IsEnabled="False" VerticalAlignment="Center" Margin="5,3,0,0" Content="Skip non-cached items"/>
+                <CheckBox x:Name="checkBox_ScrapeHidden" Margin="5,3,0,0" Content="Scrape hidden items" IsChecked="False"/>
+                
             </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label VerticalAlignment="Center" Height="18" Margin="5,0,0,0" Padding="0">Overwite:</Label>
-                <CheckBox Content="Name" x:Name="checkBox_OverwriteNames" VerticalAlignment="Center" IsChecked="True" Margin="3,0,2,0"/>
-                <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" VerticalAlignment="Center" Margin="2,0,2,0"/>
-                <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" VerticalAlignment="Center" Margin="2,0,2,0"/>
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0" HorizontalAlignment="Center">
+                <Button x:Name="button_Start" Width="40" VerticalAlignment="Center" Content="Start" Style="{StaticResource GreenButtonStyle}" Height="20" Click="button_Start_Click"/>
+                <Button x:Name="button_Stop" Margin="10,0,10,0" Width="40" VerticalAlignment="Center" Content="Stop" Style="{StaticResource RedButtonStyle}" Height="20" IsEnabled="False" Click="button_Stop_Click"/>
+                <StackPanel x:Name="stackPanel_ScraperButtons" Orientation="Horizontal">
+                    <Button x:Name="button_Setup" Width="40" VerticalAlignment="Center" Content="Setup" Style="{StaticResource YellowButtonStyle}" Height="20" IsEnabled="False" Click="button_Setup_Click" />
+                    <Button x:Name="button_ClearCache" Margin="10,0,0,0" Width="70" VerticalAlignment="Center" Content="Clear Cache" Style="{StaticResource CoolButtonStyle1}" Height="20" IsEnabled="False" Click="button_ClearCache_Click" />
+                </StackPanel>
             </StackPanel>
-            <CheckBox x:Name="checkBox_ScrapeFromCache" VerticalAlignment="Center" Margin="5,3,0,0" Content="Scrape From Cache (if available)"/>
-            <CheckBox x:Name="checkBox_ScrapeHidden" Margin="5,3,0,0" Content="Scrape hidden items" IsChecked="False"/>
-            <CheckBox x:Name="checkBox_VerifyImages" Margin="5,3,0,0" Content="Verify and discard bad images"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="button_Start" Margin="0,5,0,5" Width="40" VerticalAlignment="Center" Content="Start" Style="{StaticResource GreenButtonStyle}" Height="20" Click="button_Start_Click"/>
-                <Button x:Name="button_Stop" Margin="10,5,10,5" Width="40" VerticalAlignment="Center" Content="Stop" Style="{StaticResource RedButtonStyle}" Height="20" IsEnabled="False" Click="button_Stop_Click"/>
-                <Button x:Name="button_Setup" Margin="0,5,0,5" Width="40" VerticalAlignment="Center" Content="Setup" Style="{StaticResource YellowButtonStyle}" Height="20" IsEnabled="False" Click="button_Setup_Click" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Label VerticalAlignment="Center" FontWeight="Medium" x:Name="label_cacheCount" Foreground="Blue" Content="0 items in cache"/>
-                <Button x:Name="button_ClearCache" Margin="10,0,0,0" Width="90" VerticalAlignment="Center" Content="Clear Cache" Style="{StaticResource YellowButtonStyle}" Height="20" IsEnabled="False" Click="button_ClearCache_Click" />
-            </StackPanel>
+                <Label VerticalAlignment="Center" Padding="0" Margin="0,5,0,0" HorizontalAlignment="Center" FontWeight="Medium" x:Name="label_cacheCount" Foreground="Blue" Content="0 items in cache"/>
         </StackPanel>
         <Grid Grid.Column="1">
             <Grid>
@@ -175,8 +178,8 @@
                         </Grid>
                         <Label x:Name="label_Percentage" Content="0%" Foreground="Black" />
                     </StackPanel>
-                    <Label x:Name="label_ScrapeErrors" Foreground="Blue" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Content="Errors:"/>
-                    <Label x:Name="label_ScrapeErrorCount" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="0" HorizontalAlignment="Left" Foreground="Red"/>
+                    <Label x:Name="label_ScrapeErrors" Foreground="Blue" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Visibility="Hidden" Content="Errors:"/>
+                    <Label x:Name="label_ScrapeErrorCount" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="0" Visibility="Hidden" HorizontalAlignment="Left" Foreground="Red"/>
                     <Label x:Name="label_ScrapeLimit" Foreground="Blue" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Content="Limit:"/>
                     <Label x:Name="label_ScrapeLimitCount" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="N/A" HorizontalAlignment="Left" Foreground="ForestGreen"/>
                  </Grid>
@@ -184,7 +187,7 @@
         </Grid>
         <Border Grid.Column="3" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,0">
             <Grid Width="200" Height="Auto">
-                <Image x:Name="image_Preview" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"/>
+                
             </Grid>
         </Border>
     </Grid>

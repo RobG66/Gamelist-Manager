@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" MinHeight="450" Width="830" MinWidth="830" Loaded="Window_Loaded">
+        Title="MainWindow" Height="450" MinHeight="450" Width="830" MinWidth="830" Loaded="Window_Loaded" Closing="Window_Closing">
    
     <Grid x:Name="MainGrid">
         <!-- Define rows for Menu, Content, GridSplitter, and Additional Content -->
@@ -66,6 +66,9 @@
                     <Separator Margin="-30,0,-40,0"/>
                     <MenuItem x:Name="menuItem_ClearSelected" Margin="-30,0,-40,0" Header="Clear Selected Item Data" Click="menuItem_ClearSelected_Click"/>
                     <MenuItem x:Name="menuItem_ClearAllData" Margin="-30,0,-40,0" Header="Clear All Data" Click="menuItem_ClearAllData_Click"/>
+                    <Separator Margin="-30,0,-40,0"/>
+                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Margin="-30,0,-40,0" Header="Clear Selected Item Media Paths" Click="menuItem_ClearMediaPaths_Click" />
+                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Margin="-30,0,-40,0" Header="Clear All Item Media Paths" Click="menuItem_ClearMediaPaths_Click"/>
                 </MenuItem>
                 <MenuItem x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
                     <MenuItem x:Name="menuItem_Description" Header="Description" Click="CheckChanged" IsCheckable="true"/>
@@ -87,7 +90,7 @@
 
                 </MenuItem>
                 <MenuItem x:Name="menuItem_Tools" Header="Tools" IsEnabled="False" Template="{DynamicResource MenuItemControlTemplate1}">
-                    <!-- <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Add/Cleanup Media" IsEnabled="False" Click="menuItem_AddMedia_Click"/> -->
+                    <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Find/Add/Cleanup Media" IsEnabled="True" Click="menuItem_AddMedia_Click"/>
                     <Separator/>
                     <MenuItem x:Name="menuItem_FindNewItems" Margin="-30,0,-40,0" Header="Find New Items" Click="menuItem_FindNewItems_Click"/>
                     <MenuItem x:Name="menuItem_FindMissing" Margin="-30,0,-40,0" Header="Find Missing Items" Click="menuItem_FindMissingItems_Click"/>
@@ -121,7 +124,7 @@
             <!-- Slider and TextBlock on the far right -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
                     <TextBlock Text="Grid Font Size:" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
-                    <Slider x:Name="FontSizeSlider" Minimum="8" Maximum="14" Value="12" TickFrequency="1" IsSnapToTickEnabled="True" Width="100" Margin="0" ValueChanged="FontSizeSlider_ValueChanged" Background="#FFFDFDFD"/>
+                    <Slider x:Name="FontSizeSlider" Minimum="8" Maximum="14" Value="12" TickFrequency="1" IsSnapToTickEnabled="True" Width="100" Margin="0" Background="#FFFDFDFD"/>
                     <TextBlock x:Name="FontSizeValue" Text="12" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
                 </StackPanel>
           </DockPanel>
@@ -167,7 +170,7 @@
                                 </Style>
                             </DataGrid.RowStyle>
                         </DataGrid>
-                        <DockPanel x:Name="dockPanel_SearchAndReplace" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24" LastChildFill="False">
+                        <DockPanel LastChildFill="True" x:Name="dockPanel_SearchAndReplace" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
                             <TextBlock Text="Replace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333" Margin="2,0,0,0"/>
                             <TextBox x:Name="textBox_ChangeFrom" Width="100" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
                             <TextBlock Text="with" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
@@ -177,7 +180,7 @@
                             <TextBlock Text="in" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
                             <ComboBox x:Name="comboBox_Columns" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns_SelectionChanged"/>
                             <Button x:Name="button_Apply" IsEnabled="False" Style="{StaticResource GreenButtonStyle}" HorizontalAlignment="Left" Height="20" Width="50" Content="Replace" Margin="5,0,0,0" Click="button_Apply_Click"/>
-                            <Button x:Name="button_CloseSearchAndReplace" Style="{StaticResource TransparentButton}" Margin="5,0,0,0" Click="button_CloseSearchAndReplace_Click">
+                            <Button x:Name="button_CloseSearchAndReplace" Style="{StaticResource TransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseSearchAndReplace_Click">
                                 <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Close Panel" VerticalAlignment="Center"/>
                             </Button>
 

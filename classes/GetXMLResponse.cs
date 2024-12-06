@@ -3,10 +3,10 @@ using System.Text;
 
 namespace GamelistManager.classes
 {
-    internal class GetXMLResponse
+    internal static class GetXMLResponse
     {
-        // Method to get XML response asynchronously
-        public async Task<string> GetXMLResponseAsync(string bearerToken,string url)
+        // Static method to get XML response asynchronously
+        public static async Task<string> GetXMLResponseAsync(string bearerToken, string url)
         {
             var client = HttpClientSingleton.Instance; // Use the singleton instance
             HttpClientSingleton.SetBearerToken(bearerToken);
@@ -18,8 +18,7 @@ namespace GamelistManager.classes
                 {
                     return string.Empty;
                 }
-                string responseString = Encoding.UTF8.GetString(responseBytes);
-                return responseString;
+                return Encoding.UTF8.GetString(responseBytes);
             }
             catch (Exception)
             {

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Data;
+using System.IO;
 using System.Text.Json;
 
 namespace GamelistManager.classes
@@ -10,12 +11,11 @@ namespace GamelistManager.classes
         public async Task<string> ScrapeGame(string romName)
         {
             string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
-            GetJsonResponse getJsonResponse = new GetJsonResponse();
-
+            
             try
             {
                 // Fetch the JSON response using the GetJsonResponse class
-                string jsonResponse = await getJsonResponse.GetJsonResponseAsync(string.Empty,url);
+                string jsonResponse = await GetJSONResponse.GetJsonResponseAsync(string.Empty, url);
                 return jsonResponse;
             }
             catch
@@ -79,17 +79,26 @@ namespace GamelistManager.classes
             return jsonString;
         }
 
-        public async Task<MetaDataList> ScrapeArcadeDBAsync(ScraperParameters scraperParameters)
+        public async Task<bool> ScrapeArcadeDBAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
-            string romName = scraperParameters.RomFileNameWithoutExtension;
-            string cacheFolder = scraperParameters.CacheFolder;
+          
+            string romPath = rowView["Rom Path"].ToString()!;
+            string romName = Path.GetFileNameWithoutExtension(romPath);
+            string gameName = rowView["Name"]?.ToString()!; // Never empty
+          
+            string cacheFolder = scraperParameters.CacheFolder!;
             bool scrapeByCache = scraperParameters.ScrapeByCache;
+            bool skipNonCached = scraperParameters.SkipNonCached;
             string jsonResponse = string.Empty;
 
             // Scrape by cache if selected
-            if (scrapeByCache == true)
+            if (scrapeByCache)
             {
                 jsonResponse = ReadJsonFromCache(romName, cacheFolder);
+                if (string.IsNullOrEmpty(jsonResponse) && skipNonCached)
+                {
+                    return false;
+                }
             }
 
             // Scrape from website or if there was no cache file
@@ -99,7 +108,7 @@ namespace GamelistManager.classes
 
                 if (string.IsNullOrEmpty(jsonResponse))
                 {
-                    return null!;
+                    return false;
                 }
 
                 // Save json response to cache
@@ -107,19 +116,8 @@ namespace GamelistManager.classes
             }
 
             var elementsToScrape = scraperParameters.ElementsToScrape!;
-            var mediaPaths = scraperParameters.MediaPaths!;
-            bool overwrite = scraperParameters.OverwriteMedia;
-            bool verify = scraperParameters.Verify;
-            string parentFolderPath = scraperParameters.ParentFolderPath!;
-            string remoteDownloadURL = string.Empty;
-            string destinationFolder = string.Empty;
-            string fileName = string.Empty;
-            string downloadPath = string.Empty;
-            string fileToDownload = string.Empty;
-            bool downloadResult;
-            string propertyName = string.Empty;
-
-            MetaDataList metaDataList = new MetaDataList();
+            bool overwriteMetaData = scraperParameters.OverwriteMetadata;
+            string downloadURL = string.Empty;
 
             foreach (var element in elementsToScrape)
             {
@@ -127,198 +125,149 @@ namespace GamelistManager.classes
                 {
                     case "publisher":
                         string publisher = GetJsonElementValue(jsonResponse, "manufacturer");
-                        if (!string.IsNullOrEmpty(publisher))
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.publisher, publisher);
-                        }
+                        UpdateMetadata(rowView, "Publisher", publisher, overwriteMetaData);
                         break;
 
                     case "players":
                         string players = GetJsonElementValue(jsonResponse, "players");
-                        if (!string.IsNullOrEmpty(players))
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.players, players);
-                        }
+                        UpdateMetadata(rowView, "Players", players, overwriteMetaData);
                         break;
-                            
+
                     case "rating":
                         string rating = GetJsonElementValue(jsonResponse, "rate");
-                        if (!string.IsNullOrEmpty(rating))
+                        if (int.TryParse(rating, out int parseResult))
                         {
-                            if (int.TryParse(rating, out int parseResult))
-                            {
-                                if (parseResult == 100)
-                                {
-                                    rating = "1";
-                                }
-                                else if (parseResult > 0 && parseResult < 100)
-                                {
-                                    rating = "." + parseResult.ToString().TrimStart('0');
-                                }
-                                metaDataList.SetMetadataValue(MetaDataKeys.rating, rating);
-                            }
+                            rating = parseResult == 100
+                                ? "1"
+                                : parseResult > 0 && parseResult < 100
+                                    ? "." + parseResult.ToString().TrimStart('0')
+                                    : rating;
+                            UpdateMetadata(rowView, "Rating", rating, overwriteMetaData);
                         }
                         break;
 
                     case "desc":
                         string description = GetJsonElementValue(jsonResponse, "history");
-                        if (!string.IsNullOrEmpty(description))
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.desc, description);
-                        }
+                        UpdateMetadata(rowView, "Description", description, overwriteMetaData);
                         break;
 
                     case "name":
                         string name = GetJsonElementValue(jsonResponse, "title");
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.name, name);
-                        }
+                        UpdateMetadata(rowView, "Name", name, overwriteMetaData);
                         break;
 
                     case "genre":
                         string genre = GetJsonElementValue(jsonResponse, "genre");
-                        if (!string.IsNullOrEmpty(genre))
-                        {
-                            metaDataList.SetMetadataValue(MetaDataKeys.genre, genre);
-                        }
+                        UpdateMetadata(rowView, "Genre", genre, overwriteMetaData);
                         break;
 
                     case "releasedate":
                         string releasedate = GetJsonElementValue(jsonResponse, "year");
-                        if (!string.IsNullOrEmpty(releasedate))
-                        {
-                            string isoDate = ISO8601Converter.ConvertToISO8601(releasedate);
-                            metaDataList.SetMetadataValue(MetaDataKeys.releasedate, isoDate);
-                        }
+                        UpdateMetadata(rowView, "Release Date", releasedate, overwriteMetaData);
                         break;
 
                     case "image":
-                        string imageSource = scraperParameters.ImageSource;
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, imageSource);
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["image"].ToString();
-                            fileName = $"{romName}-image.png";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.image, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.ImageSource!);
+                        await DownloadFile(downloadURL, rowView, romName, "image", "Image", scraperParameters);
                         break;
 
                     case "thumbnail":
-                        string boxSource = scraperParameters.BoxSource;
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, boxSource);
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["thumbnail"].ToString();
-                            fileName = $"{romName}-thumb.png";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.thumbnail, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.BoxSource!);
+                        await DownloadFile(downloadURL, rowView, romName, "thumbnail", "Box", scraperParameters);
                         break;
-                        
-                        case "bezel":
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, "url_image_bezel");
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["bezel"].ToString();
-                            fileName = $"{romName}-bezel.png";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.bezel, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+
+                    case "bezel":
+                        downloadURL = GetJsonElementValue(jsonResponse, "url_image_bezel");
+                        await DownloadFile(downloadURL, rowView, romName, "bezel", "Bezel", scraperParameters);
                         break;
 
                     case "manual":
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, "url_manual");
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["manual"].ToString();
-                            fileName = $"{romName}-manual.pdf";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.manual, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+                        downloadURL = GetJsonElementValue(jsonResponse, "url_manual");
+                        await DownloadFile(downloadURL, rowView, romName, "manual", "Manual", scraperParameters);
                         break;
 
-
-
-
                     case "titleshot":
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, "url_image_title");
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["titleshot"].ToString();
-                            fileName = $"{romName}-titleshot.png";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.titleshot, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+                        downloadURL = GetJsonElementValue(jsonResponse, "url_image_title");
+                        await DownloadFile(downloadURL, rowView, romName, "titleshot", "Title Shot", scraperParameters);
                         break;
 
                     case "marquee":
-                        string logoSource = scraperParameters.LogoSource;
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, logoSource);
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["marquee"].ToString();
-                            fileName = $"{romName}-marquee.png";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.marquee, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.LogoSource!);
+                        await DownloadFile(downloadURL, rowView, romName, "marquee", "Logo", scraperParameters);
                         break;
 
                     case "video":
-                        string videoSource = scraperParameters.VideoSource;
-                        remoteDownloadURL = GetJsonElementValue(jsonResponse, videoSource);
-                        if (string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            remoteDownloadURL = GetJsonElementValue(jsonResponse, "url_video_shortplay");
-                        }
-                        if (!string.IsNullOrEmpty(remoteDownloadURL))
-                        {
-                            destinationFolder = mediaPaths["video"] as string;
-                            fileName = $"{romName}-video.mp4";
-                            downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-                            fileToDownload = $"{downloadPath}\\{fileName}";
-                            downloadResult = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, remoteDownloadURL);
-                            if (downloadResult)
-                            {
-                                metaDataList.SetMetadataValue(MetaDataKeys.video, $"./{destinationFolder}/{fileName}");
-                            }
-                        }
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.VideoSource!)
+                            ?? GetJsonElementValue(jsonResponse, "url_video_shortplay");
+                        await DownloadFile(downloadURL, rowView, romName, "video", "Video", scraperParameters);
                         break;
+
                 }
             }
+            return true;
+        }
 
-            return metaDataList;
+        private void UpdateMetadata(DataRowView rowView, string column, string newValue, bool overwrite)
+        {
+            if (string.IsNullOrEmpty(newValue))
+            {
+                return;
+            }
+
+            var currentValue = rowView[column];
+
+            // Check if the current value is DBNull or null, and if overwrite is allowed
+            if (overwrite || currentValue == DBNull.Value || string.IsNullOrEmpty(currentValue.ToString()))
+            {
+                rowView[column] = newValue;
+            }
+        }
+
+        private async Task DownloadFile(string downloadURL, DataRowView rowView, string romName, string mediaName, string mediaType, ScraperParameters scraperParameters)
+        {
+            if (string.IsNullOrEmpty(downloadURL))
+            { 
+                return;
+            }
+
+            bool overwriteMedia = scraperParameters.OverwriteMedia;
+
+            var currentValue = rowView[mediaType];
+            if (currentValue != DBNull.Value && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
+            {
+                return;
+            }
+
+            var mediaPaths = scraperParameters.MediaPaths!;
+            string destinationFolder = mediaPaths[mediaName];
+            string parentFolderPath = scraperParameters.ParentFolderPath!;
+            bool verify = scraperParameters.Verify;
+                       
+            string extension = "png";
+            if (mediaName == "video")
+            {
+                extension = "mp4";
+            }
+            if (mediaName == "manual")
+            {
+                extension = "pdf";
+            }
+
+            if (mediaName == "thumbnail")
+            {
+                mediaName = "thumb";
+            }
+
+            string fileName = $"{romName}-{mediaName}.{extension}";
+            string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
+            string fileToDownload = $"{downloadPath}\\{fileName}";
+            bool downloadSuccessful = await FileTransfer.DownloadFile(verify, overwriteMedia, fileToDownload, downloadURL);
+
+            // true is a successful download
+            if (downloadSuccessful)
+            {
+                rowView[mediaType] = $"./{destinationFolder}/{fileName}";
+            }
         }
     }
 }

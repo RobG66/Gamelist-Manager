@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using System.IO;
 using System.Windows;
-using System.Windows.Documents.DocumentStructures;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -21,7 +20,7 @@ namespace GamelistManager.classes
             // Rewriting the new gamelist based off the original gamelist
             // This preserves structure and elements that are not managed or unknown
             try
-            {               
+            {
                 string newfile = xmlFilename + ".tmp";
                 using (XmlReader reader = XmlReader.Create(xmlFilename))
                 using (XmlWriter writer = XmlWriter.Create(newfile, new XmlWriterSettings { Indent = true }))
@@ -43,6 +42,13 @@ namespace GamelistManager.classes
 
                             // Get the 'path' attribute to match rows in the dataset
                             var pathValue = gameNode.Element("path")!.Value;
+
+                            // Do not save duplicates!
+                            if (savedItems.Contains(pathValue))
+                            {
+                                continue;
+                            }
+
                             savedItems.Add(pathValue);
 
                             // Find the corresponding row in the dataset
@@ -102,10 +108,14 @@ namespace GamelistManager.classes
 
                                 if (elementExists && !string.IsNullOrEmpty(columnValue))
                                 {
+                                    if (elementName == "releasedate")
+                                    {
+                                        columnValue = ISO8601Converter.ConvertToISO8601(columnValue);
+                                    }
                                     gameNode.Element(elementName)!.Value = columnValue;
                                     continue;
                                 }
-                                    
+
                             }
 
                             // Write the updated <game> node to the new XML
@@ -115,14 +125,14 @@ namespace GamelistManager.classes
 
                     // Save new items now, if any
                     var newRows = from row in SharedData.DataSet.Tables[0].AsEnumerable()
-                    where !savedItems.Contains(row.Field<string>("Rom Path")!)
-                    select row;
+                                  where !savedItems.Contains(row.Field<string>("Rom Path")!)
+                                  select row;
 
                     foreach (var row in newRows)
                     {
                         // Start the <game> element
                         writer.WriteStartElement("game");
-                                    
+
                         // Add 'id' if it exists
                         var gameId = row["Game Id"];
                         if (gameId != DBNull.Value && !string.IsNullOrEmpty(gameId.ToString()))
@@ -157,7 +167,7 @@ namespace GamelistManager.classes
 
                             // Add the element with its value
                             writer.WriteElementString(elementName, datasetValue.ToString());
-                            
+
                         }
 
                         // End the <game> element
@@ -169,7 +179,7 @@ namespace GamelistManager.classes
                     reader.Close();
                     writer.Close();
                     File.Delete(xmlFilename);
-                    File.Move(newfile, newfile.Replace(".tmp",string.Empty));
+                    File.Move(newfile, newfile.Replace(".tmp", string.Empty));
                 }
 
             }
@@ -178,7 +188,7 @@ namespace GamelistManager.classes
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
-        
+
             return true;
 
         }
@@ -237,7 +247,7 @@ namespace GamelistManager.classes
 
         public static void BackupGamelist(string system, string fileName)
         {
-            string backupDirectory = $"{SharedData.ProgramDirectory}\\backups\\{system}";
+            string backupDirectory = $"{SharedData.ProgramDirectory}\\gamelist backup\\{system}";
             if (!Directory.Exists(backupDirectory))
             {
                 Directory.CreateDirectory(backupDirectory);

@@ -1,4 +1,6 @@
 ﻿using System.Data;
+using System.Text;
+using System.Windows;
 
 namespace GamelistManager.classes
 {
@@ -8,12 +10,18 @@ namespace GamelistManager.classes
         {
             DataSet destinationDataSet = new DataSet();
             DataSet sourceDataSet = new DataSet();
+            List<string> duplicateRomPaths = new List<string>();
 
             try
             {
                 sourceDataSet.ReadXml(xmlFilePath);
             }
             catch
+            {
+                return null!;
+            }
+
+            if (sourceDataSet.Tables.Count == 0 || sourceDataSet.Tables["game"] == null)
             {
                 return null!;
             }
@@ -37,10 +45,8 @@ namespace GamelistManager.classes
             newTable.Columns[0].SetOrdinal(0);
 
             int ordinal = 1;
-            // Add columns to the new datatable
             foreach (var metaDataDecl in viewableMetaData)
             {
-                // Check if the metadata type is bool, otherwise use string
                 Type dataType = metaDataDecl.DataType == MetaDataType.Bool ? typeof(bool) : typeof(string);
 
                 DataColumn column = new DataColumn
@@ -53,36 +59,30 @@ namespace GamelistManager.classes
                 ordinal++;
             }
 
-
-            // Add the new DataTable to the destination DataSet
             destinationDataSet.Tables.Add(newTable);
             destinationDataSet.AcceptChanges();
 
-            // Copy data from sourceDataSet to destinationDataSet
-            foreach (DataRow sourceRow in sourceDataSet.Tables[0].Rows)
+            // Track "Rom Path" to ensure no duplicates
+            var uniqueRomPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (DataRow sourceRow in sourceDataSet.Tables["game"].Rows)
             {
                 DataRow destinationRow = destinationDataSet.Tables[0].NewRow();
 
                 foreach (var metaDataDecl in viewableMetaData)
                 {
-                    // Source column name is Type
-                    // Destination column name is Name
-                    // This is purely for aesthetics
-                    // It's a little bit more work, but the datagrid looks better
                     string sourceColumnName = metaDataDecl.Type;
                     string destinationColumnName = metaDataDecl.Name;
 
-                    // Check if the source column exists
-                    if (sourceDataSet.Tables[0].Columns.Contains(sourceColumnName))
+                    if (sourceDataSet.Tables["game"].Columns.Contains(sourceColumnName))
                     {
                         var sourceValue = sourceRow[sourceColumnName];
 
                         Type columnType = destinationDataSet.Tables[0].Columns[destinationColumnName]!.DataType;
 
-                        // Handle different column types
                         if (columnType == typeof(bool))
                         {
-                            bool destinationValue = false; // Default value for bool columns
+                            bool destinationValue = false;
                             if (sourceValue != DBNull.Value && sourceValue != null)
                             {
                                 destinationValue = Convert.ToBoolean(sourceValue);
@@ -91,7 +91,21 @@ namespace GamelistManager.classes
                         }
                         else
                         {
-                            // Handle other column types and default to empty string if necessary
+                            if (sourceValue == DBNull.Value || string.IsNullOrEmpty(sourceValue.ToString()))
+                            {
+                                continue;
+                            }
+
+                            if (destinationColumnName == "Release Date")
+                            {
+                                string formattedDate = ISO8601Converter.ConvertFromISO8601(sourceValue.ToString());
+                                if (!string.IsNullOrEmpty(formattedDate))
+                                {
+                                    destinationRow[destinationColumnName] = formattedDate;
+                                }
+                                continue;
+                            }
+
                             destinationRow[destinationColumnName] = sourceValue == DBNull.Value ? string.Empty : sourceValue.ToString();
                         }
                     }
@@ -103,8 +117,32 @@ namespace GamelistManager.classes
                         }
                     }
                 }
+
+                // Check and handle duplicates in "Rom Path"
+                string? romPath = destinationRow["Rom Path"]?.ToString();
+                if (!string.IsNullOrEmpty(romPath))
+                {
+                    if (uniqueRomPaths.Contains(romPath))
+                    {
+                        // Track duplicates for later warning
+                        duplicateRomPaths.Add(romPath);
+                        continue; // Skip duplicate
+                    }
+                    uniqueRomPaths.Add(romPath);
+                }
+
                 destinationDataSet.Tables[0].Rows.Add(destinationRow);
             }
+
+            // Show a warning if duplicates were removed
+            if (duplicateRomPaths.Count > 0)
+            {
+                StringBuilder warningMessage = new StringBuilder("The following duplicates were removed:\n");
+                warningMessage.Append(string.Join(", ", duplicateRomPaths));
+
+                MessageBox.Show(warningMessage.ToString(), "Duplicate Detected", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
             return destinationDataSet;
         }
     }

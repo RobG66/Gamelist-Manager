@@ -28,7 +28,7 @@ namespace GamelistManager
             string userPassword = string.Empty;
             (userName, userPassword) = CredentialManager.GetCredentials(currentScraper);
 
-           
+
             textBox_UserID.Text = userName;
             textBox_Password.Text = userPassword;
             button_Save.IsEnabled = false;
@@ -56,7 +56,7 @@ namespace GamelistManager
 
             string language = Properties.Settings.Default.Language;
             string region = Properties.Settings.Default.Region;
-            
+
             if (!string.IsNullOrEmpty(language) && languages.ContainsKey(language))
             {
                 comboBox_Language.Text = language;
@@ -96,7 +96,7 @@ namespace GamelistManager
             {
                 string region = comboBox_Region.Text;
                 string language = comboBox_Language.Text;
-                
+
                 Properties.Settings.Default.Region = region;
                 Properties.Settings.Default.Language = language;
                 Properties.Settings.Default.Save();

@@ -3,29 +3,27 @@ using System.Net.Http;
 
 namespace GamelistManager.classes
 {
-    internal class GetJsonResponse
+    internal static class GetJSONResponse
     {
-        public async Task<string> GetJsonResponseAsync(string bearerToken,string url)
+        public static async Task<string> GetJsonResponseAsync(string bearerToken, string url)
         {
             // Use the singleton instance
             var client = HttpClientSingleton.Instance;
             HttpClientSingleton.SetBearerToken(bearerToken);
 
-            HttpResponseMessage response;
             try
             {
-                response = await client.GetAsync(url);
+                var response = await client.GetAsync(url);
                 // Throws an exception if the status code is not 2xx
                 response.EnsureSuccessStatusCode();
+
+                // Read and return the response content
+                return await response.Content.ReadAsStringAsync();
             }
             catch
             {
                 return string.Empty;
             }
-
-            // Try to read the response content
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            return jsonResponse;
         }
     }
 }

@@ -1,49 +1,41 @@
 ﻿using GamelistManager.classes;
-using LibVLCSharp.Shared;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
-using System.IO.Enumeration;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Markup;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace GamelistManager
 {
-    /// <summary>
-    /// Interaction logic for MediaTool.xaml
-    /// </summary>
+
     public partial class MediaTool : Window
     {
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private CancellationToken _cancellationToken => _cancellationTokenSource.Token;
         Dictionary<string, string> _mediaItems;
         Dictionary<string, string> _mediaPaths;
-        private ObservableCollection<MediaSearchDataItem> _dataSearchItems = new ObservableCollection<MediaSearchDataItem>();
-        private ObservableCollection<MediaCleanupDataItem> _dataCleanupItems = new ObservableCollection<MediaCleanupDataItem>();
+        private ObservableCollection<MediaSearchItem> _mediaSearchCollection = new ObservableCollection<MediaSearchItem>();
+        private ObservableCollection<MediaCleanupItem> _mediaCleanupCollection = new ObservableCollection<MediaCleanupItem>();
         string _parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename)!;
 
-        public class FileInfo
-        {
-            public string FileName { get; set; }
-            public string FullPath { get; set; }
-        }
 
-        public class MediaSearchDataItem
+        public class MediaSearchItem
         {
             public required string RomPath { get; set; }
             public required string MediaType { get; set; }
-            public required string MatchedItem { get; set; }
+            public required string MatchedFile { get; set; }
         }
 
-        public class MediaCleanupDataItem
+        public class MediaCleanupItem
         {
             public required string Status { get; set; }
-            public required string Folder { get; set; }
+            public required string MediaType { get; set; }
             public required string FileName { get; set; }
         }
 
@@ -53,7 +45,7 @@ namespace GamelistManager
 
             string jsonString = Properties.Settings.Default.MediaPaths;
             _mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString)!;
-      
+
             MetaDataList metaDataList = new MetaDataList();
             _mediaItems = metaDataList.GetMetaDataDictionary().Values
              .Where(decl => decl.DataType == MetaDataType.Image ||
@@ -61,17 +53,15 @@ namespace GamelistManager
                      decl.DataType == MetaDataType.Document)
                     .ToDictionary(decl => decl.Name, decl => decl.Type);
 
-            comboBox_MediaTypes.SelectionChanged += ComboBox_SelectionChanged;
-            comboBox_MediaTypes.SelectedIndex = 0;
-            dataGrid_Media.ItemsSource = _dataSearchItems;
-            dataGrid_BadMedia.ItemsSource = _dataCleanupItems;
-                      
+            dataGrid_Media.ItemsSource = _mediaSearchCollection;
+            dataGrid_BadMedia.ItemsSource = _mediaCleanupCollection;
+
         }
         private void DeleteSelectedRows_Click(object sender, RoutedEventArgs e)
         {
             // Get the selected dataGridItems
-            
-            var selectedItems = dataGrid_Media.SelectedItems.Cast<MediaSearchDataItem>().ToList();
+
+            var selectedItems = dataGrid_Media.SelectedItems.Cast<MediaSearchItem>().ToList();
 
             if (selectedItems.Count > 0)
             {
@@ -84,7 +74,7 @@ namespace GamelistManager
                     // Remove each selected uniqueFolderName from the collection
                     foreach (var item in selectedItems)
                     {
-                        _dataSearchItems.Remove(item);
+                        _mediaSearchCollection.Remove(item);
                     }
                 }
             }
@@ -92,37 +82,85 @@ namespace GamelistManager
             {
                 MessageBox.Show("No rows selected.", "Delete Rows", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+
+            if (_mediaSearchCollection.Count == 0)
+            {
+                button_AddExistingMedia.IsEnabled = false;
+            }
+
         }
 
-        private async void button_ScanNewMedia_Click(object sender, RoutedEventArgs e)
+
+        private async void button_ScanForNewMedia_Click(object sender, RoutedEventArgs e)
         {
             string folderToScan = textBox_SourceFolder.Text;
 
             if (string.IsNullOrEmpty(folderToScan))
+                if (string.IsNullOrEmpty(folderToScan))
+                {
+                    MessageBox.Show("Please specify a folder to scan.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+            // Validate folder path
+            try
             {
+                if (!Directory.Exists(folderToScan))
+                {
+                    MessageBox.Show($"The folder '{folderToScan}' does not exist!", "Notice", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"The folder path is invalid: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            if (!Directory.Exists(folderToScan))
+            // Get search parameters
+            var mediaType = comboBox_MediaTypes.Text;
+            if (!_mediaItems.TryGetValue(mediaType, out string? mediaElementName))
             {
-                MessageBox.Show($"The folder {folderToScan} does not exist!", "Notice", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"Media type '{mediaType}' is not recognized.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
+            if (!_mediaPaths.TryGetValue(mediaElementName, out string? mediaFolderName))
+            {
+                MessageBox.Show($"Media path for '{mediaElementName}' is not configured.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+
+            //blah check below if can be cleaned up
+            // Update UI for scanning
             contextMenu_DeleteItems.IsEnabled = false;
             progressBar_ProgressBar.IsIndeterminate = true;
-            button_ScanNewMedia.IsEnabled = false;
+            button_ScanForNewMediaStart.IsEnabled = false;
             button_ScanFolder.IsEnabled = false;
             textBox_SourceFolder.IsEnabled = false;
+            button_AddNewMedia.IsEnabled = false;
+            button_ScanForNewMediaCancel.IsEnabled = true;
+            bool isCancelled = false;
 
-            _dataSearchItems.Clear();
+            // Clear previous results
+            _mediaSearchCollection.Clear();
 
-            var mediaType = comboBox_MediaTypes.Text;
-            string mediaPath = textBox_SourceFolder.Text;
+            // New cancel token
+            _cancellationTokenSource = new CancellationTokenSource();
+
             bool excludeHidden = checkBox_SkipHiddenItems.IsChecked == true;
+            bool recurse = checkBox_IncludeSubFolders.IsChecked == true;
+            var searchOption = recurse ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly;
 
-            var romList = SharedData.DataSet.Tables[0].AsEnumerable()
-                .Where(row => string.IsNullOrEmpty(row.Field<string>(mediaType)))
+            var romQuery = SharedData.DataSet.Tables[0].AsEnumerable();
+
+            if (checkBox_ScanOnlyNeededMedia.IsChecked == true)
+            {
+                romQuery = romQuery.Where(row => string.IsNullOrEmpty(row.Field<string>(mediaType)));
+            }
+
+            var romList = romQuery
                 .Where(row => !excludeHidden || !row.Field<bool>("Hidden"))
                 .Select(row => (
                     RomPath: row.Field<string>("Rom Path"),
@@ -130,267 +168,290 @@ namespace GamelistManager
                 ))
                 .ToList();
 
-            string key = _mediaItems[mediaType];
-            string value = _mediaPaths[key];
-            bool useFuzzy = true;
-            bool recurse = checkBox_IncludeSubFolders.IsChecked == true;
+            label_ScanningMessage2.Content = $"Searching for {mediaType} media...";
+            var foundMedia = new ConcurrentBag<Tuple<string, string, string>>();
 
-            label_ScanningMessage.Content = mediaType;
-            var rows = new ConcurrentBag<Tuple<string, string, string>>();
-
-            rows = await FindMedia(romList, folderToScan, key, value, string.Empty, useFuzzy, recurse);
-            foreach (var tuple in rows)
+            try
             {
-                _dataSearchItems.Add(new MediaSearchDataItem { RomPath = tuple.Item1, MediaType = tuple.Item2, MatchedItem = tuple.Item3 });
+                // Build the dictionary in a separate thread
+                var newMediaFilesDictionary = await Task.Run(() =>
+                    Directory.GetFiles(folderToScan, "*.*", searchOption)
+                      .ToDictionary(
+                          file => Path.GetFileName(file), // Key: File name
+                          file => file,                  // Value: Full file path
+                          StringComparer.OrdinalIgnoreCase
+                      ),
+                    _cancellationToken
+                );
+
+                // Create a list of keys to avoid repeatedly converting dictionary keys to a list
+                var mediaFileKeys = newMediaFilesDictionary.Keys.ToList();
+
+                // Perform fuzzy matching in parallel
+                await Task.Run(() =>
+                {
+                    // Iterate over the ROM list sequentially
+                    foreach (var romTuple in romList)
+                    {
+                        string romPath = romTuple.RomPath;
+                        string romName = romTuple.Name;
+                        string filteredRomPath = Path.GetFileNameWithoutExtension(romPath)?.Replace("./", "") ?? string.Empty;
+
+                        // Perform fuzzy matching
+                        string? matchedFile = TextSearch.FindTextMatch(filteredRomPath, mediaFileKeys)
+                            ?? TextSearch.FindTextMatch(romName, mediaFileKeys);
+
+                        if (!string.IsNullOrEmpty(matchedFile))
+                        {
+                            // Get the full path of the matched file
+                            var matchedValue = newMediaFilesDictionary[matchedFile];
+
+                            // Add to the thread-safe collection (if necessary, use locks here if this list is accessed concurrently)
+                            foundMedia.Add(Tuple.Create(romPath, mediaType, matchedValue));
+                        }
+                    }
+                }, _cancellationToken);
+
+                // Add found media to the observable collection
+                foreach (var media in foundMedia)
+                {
+                    _mediaSearchCollection.Add(new MediaSearchItem
+                    {
+                        RomPath = media.Item1,
+                        MediaType = media.Item2,
+                        MatchedFile = media.Item3
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Graceful cancellation
+                isCancelled = true;
+            }
+            catch (Exception ex)
+            {
+                // Handle errors
+                MessageBox.Show($"An error occurred while scanning: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
+
+            // Reset UI
             progressBar_ProgressBar.IsIndeterminate = false;
-            button_ScanNewMedia.IsEnabled = true;
+            button_ScanForNewMediaStart.IsEnabled = true;
             button_ScanFolder.IsEnabled = true;
             textBox_SourceFolder.IsEnabled = true;
+            button_ScanForNewMediaCancel.IsEnabled = false;
 
-            if (_dataSearchItems.Count > 0)
+            if (isCancelled)
+            {
+                label_ScanningMessage2.Content = $"Cancelled!";
+                return;
+            }
+
+            if (_mediaSearchCollection.Count > 0)
             {
                 button_AddNewMedia.IsEnabled = true;
                 contextMenu_DeleteItems.IsEnabled = true;
             }
 
+            label_ScanningMessage2.Content = $"Found {_mediaSearchCollection.Count} items.";
+
         }
 
 
-        private async void button_ScanMedia_Click(object sender, RoutedEventArgs e)
+        private async void button_FindExistingMedia_Click(object sender, RoutedEventArgs e)
         {
-            // Start progress bar animation
+
+            // GUI changes
             progressBar_ProgressBar.IsIndeterminate = true;
-            
-            // Set button states
-            button_ScanForExistingMedia.IsEnabled = false;
-            button_ScanForExistingMediaCancel.IsEnabled = true;
+            button_FindExistingMediaStart.IsEnabled = false;
+            button_FindExistingMediaCancel.IsEnabled = true;
             button_AddExistingMedia.IsEnabled = false;
-
-            // Set default label color
             label_Missing.Foreground = Brushes.Black;
-
-            // Disable context menu
             contextMenu_DeleteItems.IsEnabled = false;
 
             // New cancel token
             _cancellationTokenSource = new CancellationTokenSource();
 
-            // Clear datagrid (source)
-            _dataSearchItems.Clear();
+            // Clear results datagrid
+            _mediaSearchCollection.Clear();
 
-            // Bool flag for excluding hidden items
+            // Setup bool values
             bool excludeHidden = checkBox_SkipHiddenItems.IsChecked == true;
-            
-            // Cancel flag starts false
             bool isCancelled = false;
 
-            await Task.Run(async () =>
+            // Task with exception try/catch for cancelling
+            try
             {
-                try
+                await Task.Run(() =>
                 {
                     foreach (var mediaItem in _mediaItems)
                     {
+                        // Throw if cancelled
                         _cancellationToken.ThrowIfCancellationRequested();
-                        string mediaName = mediaItem.Key;
-                        string mediaType = mediaItem.Value;
+
+                        // Media strings
+                        string mediaDisplayName = mediaItem.Key;
+                        string mediaElementName = mediaItem.Value;
+
+                        // Update GUI in a safe manner
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            label_ScanningMessage.Content = mediaName;
+                            label_ScanningMessage.Content = mediaDisplayName;
                         });
-                        string currentPath = Path.Combine(Path.GetDirectoryName(SharedData.XMLFilename)!, _mediaPaths[mediaType]);
-                        if (!Directory.Exists(currentPath))
+
+                        // Build a full media path string
+                        string mediaFolderPath = Path.Combine(
+                            Path.GetDirectoryName(SharedData.XMLFilename)!,
+                            _mediaPaths[mediaElementName]
+                        );
+
+                        // Skip if the directory does not exist
+                        if (!Directory.Exists(mediaFolderPath)) continue;
+
+                        // Make a list of roms where the column of the current media (mediaDisplayName)
+                        // is empty.  Skip hidden roms if excludeHidden is true
+                        // Roms with existing media are skipped
+                        var romsWithoutMedia = SharedData.DataSet.Tables[0].AsEnumerable()
+                            .Where(row => string.IsNullOrEmpty(row.Field<string>(mediaDisplayName)))
+                            .Where(row => !excludeHidden || !row.Field<bool>("Hidden"))
+                            .Select(row => (
+                                RomPath: row.Field<string>("Rom Path"),
+                                Name: row.Field<string>("Name")
+                            ))
+                            .ToList();
+
+                        // Skip if there's no roms without media
+                        if (romsWithoutMedia.Count == 0)
                         {
                             continue;
                         }
 
-                        string pattern = (mediaType == "thumbnail" ? "thumb" : mediaType);
-                        bool recurse = false;
-                        bool useFuzzy = false;
+                        // Correct any element names to what is currently used
+                        string correctedMediaElementName = mediaElementName == "thumbnail" ? "thumb" : mediaElementName;
 
-                        var romList = SharedData.DataSet.Tables[0].AsEnumerable()
-                        .Where(row => string.IsNullOrEmpty(row.Field<string>(mediaName)))
-                        .Where(row => !excludeHidden || !row.Field<bool>("Hidden"))
-                        .Select(row => (
-                            RomPath: row.Field<string>("Rom Path"),
-                            Name: row.Field<string>("Name")
-                        ))
-                        .ToList();
+                        // Make a dictionary of the existingMediaFiles in the existing media folder
+                        // Filter for the current media element
+                        var existingMediaFilesDictionary = Directory.GetFiles(mediaFolderPath, $"*{correctedMediaElementName}.*")
+                        .ToDictionary(
+                            file => Path.GetFileName(file), // Key: File name
+                            file => file,                  // Value: Full file path
+                            StringComparer.OrdinalIgnoreCase
+                        );
 
-                        if (romList.Count > 0)
+                        // New concurrent bag consisting of a 3 item tuple
+                        var foundMedia = new ConcurrentBag<Tuple<string, string, string>>();
+
+                        // Process all the roms without media
+                        Parallel.ForEach(romsWithoutMedia, romTuple =>
                         {
-                            var rows = await FindMedia(romList, currentPath, mediaName, mediaType, pattern, useFuzzy, recurse);
-                            foreach (var tuple in rows)
+
+                            // Rom Variables
+                            string romPath = romTuple.RomPath;
+                            string romName = romTuple.Name;
+
+                            string filteredRomPath = Path.GetFileNameWithoutExtension(romPath).Replace("./", "");
+
+                            // First search
+                            string searchPattern = $"{filteredRomPath}-{correctedMediaElementName}";
+                            var matchedFile = existingMediaFilesDictionary.Keys
+                            .FirstOrDefault(key => key.StartsWith(searchPattern, StringComparison.OrdinalIgnoreCase));
+
+                            //Second search if first did not match
+                            if (matchedFile == null)
                             {
-                                _cancellationToken.ThrowIfCancellationRequested();
-                                _dataSearchItems.Add(new MediaSearchDataItem { RomPath = tuple.Item1, MediaType = tuple.Item2, MatchedItem = tuple.Item3 });
+                                string searchPatternName = $"{romName}-{correctedMediaElementName}";
+                                matchedFile = existingMediaFilesDictionary.Keys
+                                .FirstOrDefault(key => key.StartsWith(searchPattern, StringComparison.OrdinalIgnoreCase));
                             }
-                        }
-                    }
-                }
-                catch
-                {
-                    isCancelled = true;
-                }
-            }, _cancellationToken);
 
-            if (isCancelled == true)
-            {
-                label_ScanningMessage.Content = "Cancelled!";
-                label_ScanningMessage.Foreground = Brushes.Red;
-                button_ScanForExistingMedia.IsEnabled = true;
-                progressBar_ProgressBar.IsIndeterminate = false;
-                return;
-            }
-
-            string count = "0";
-            if (_dataSearchItems.Count > 0)
-            {
-                button_AddExistingMedia.IsEnabled = true;
-                count = _dataSearchItems.Count.ToString();
-                contextMenu_DeleteItems.IsEnabled = true;
-            }
-
-            string message = $" {count} items were found.";
-            label_ScanningMessage.Content = $"Scan completed! {message}";
-
-            progressBar_ProgressBar.IsIndeterminate = false;
-            button_ScanForExistingMedia.IsEnabled = true;
-
-        }
-
-        private async Task<ConcurrentBag<Tuple<string, string, string>>> FindMedia(
-           List<(string? RomPath, string? Name)> romList,
-           string folder,
-           string mediaName,
-           string mediaType,
-           string dirPattern,
-           bool useFuzzy,
-           bool recurse)
-        {
-            // Determine the search option based on the recurse flag
-            SearchOption searchOption = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-
-            // Get the list of files matching the directory pattern
-            List<FileInfo> files = await Task.Run(() =>
-                Directory.GetFiles(folder, $"*{dirPattern}.*", searchOption)
-                .Select(file => new FileInfo { FileName = Path.GetFileName(file), FullPath = file })
-                .ToList()
-            );
-
-            var foundMedia = new ConcurrentBag<Tuple<string, string, string>>();
-
-            // Use Task.Run for parallel processing to keep the UI responsive
-            await Task.Run(() =>
-            {
-                Parallel.ForEach(romList, romTuple =>
-                {
-                    string romPath = romTuple.RomPath;
-                    string romName = romTuple.Name;
-                    string filteredRomPath = Path.GetFileNameWithoutExtension(romPath);
-                    filteredRomPath = romName.Replace("./", "");
-                    string? firstMatch = null;
-
-                    // Check for match using RomPath
-                    if (!useFuzzy)
-                    {
-                        string abbreviatedType = mediaType == "thumbnail" ? "thumb" : mediaType;
-                        string searchPatternPath = $"{filteredRomPath}-{abbreviatedType}";
-
-                        var matchedFile = files.FirstOrDefault(file =>
-                            file.FileName.StartsWith(searchPatternPath, StringComparison.OrdinalIgnoreCase));
-
-                        if (matchedFile != null)
-                        {
-                            firstMatch = matchedFile.FullPath;
-                        }
-                    }
-                    else
-                    {
-                        FuzzySearchHelper fuzzySearchHelper = new FuzzySearchHelper();
-                        var matchedFileNamePath = fuzzySearchHelper.FuzzySearch(filteredRomPath, files.Select(file => file.FileName).ToList());
-
-                        if (matchedFileNamePath != null)
-                        {
-                            var matchedFile = files.FirstOrDefault(file =>
-                                file.FileName.Equals(matchedFileNamePath, StringComparison.OrdinalIgnoreCase));
-
-                            firstMatch = matchedFile?.FullPath;
-                        }
-                    }
-
-                    // If no match found using RomPath, check using RomName
-                    if (firstMatch == null)
-                    {
-                        if (!useFuzzy)
-                        {
-                            string abbreviatedType = mediaType == "thumbnail" ? "thumb" : mediaType;
-                            string searchPatternName = $"{romName}-{abbreviatedType}";
-
-                            var matchedFile = files.FirstOrDefault(file =>
-                                file.FileName.StartsWith(searchPatternName, StringComparison.OrdinalIgnoreCase));
-
+                            // Add to concurrentbag tuple
                             if (matchedFile != null)
                             {
-                                firstMatch = matchedFile.FullPath;
+                                var matchedValue = existingMediaFilesDictionary[matchedFile];
+                                foundMedia.Add(Tuple.Create(romPath, mediaDisplayName, matchedValue));
                             }
-                        }
-                        else
+                        });
+
+                        // Add any found items to the datagrid
+                        foreach (var media in foundMedia)
                         {
-                            FuzzySearchHelper fuzzySearchHelper = new FuzzySearchHelper();
-                            var matchedFileNameName = fuzzySearchHelper.FuzzySearch(romName, files.Select(file => file.FileName).ToList());
-
-                            if (matchedFileNameName != null)
+                            // Safe update in gui thread
+                            Application.Current.Dispatcher.Invoke(() =>
                             {
-                                var matchedFile = files.FirstOrDefault(file =>
-                                    file.FileName.Equals(matchedFileNameName, StringComparison.OrdinalIgnoreCase));
-
-                                firstMatch = matchedFile?.FullPath;
-                            }
+                                _mediaSearchCollection.Add(new MediaSearchItem
+                                {
+                                    RomPath = media.Item1,
+                                    MediaType = media.Item2,
+                                    MatchedFile = media.Item3
+                                });
+                            });
                         }
                     }
+                }, _cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                isCancelled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                isCancelled = true;
+            }
 
-                    // If a match is found, add it to the result list
-                    if (!string.IsNullOrEmpty(firstMatch))
-                    {
-                        var newMediaItem = Tuple.Create(romPath, mediaName, firstMatch);
-                        foundMedia.Add(newMediaItem);
-                    }
-                });
-            });
+            // Finalize UI stuff
+            if (isCancelled)
+            {
+                label_ScanningMessage.Content = "Scan cancelled!";
+                label_ScanningMessage.Foreground = Brushes.Red;
+            }
+            else
+            {
+                int count = _mediaSearchCollection.Count;
+                label_ScanningMessage.Content = $"Scan completed! {count} media items were found.";
+                button_AddExistingMedia.IsEnabled = count > 0;
+                contextMenu_DeleteItems.IsEnabled = count > 0;
+            }
 
-            return foundMedia;
+            progressBar_ProgressBar.IsIndeterminate = false;
+            button_FindExistingMediaStart.IsEnabled = true;
+            button_FindExistingMediaCancel.IsEnabled = false;
         }
 
 
-
-        private void button_AddMedia_Click(object sender, RoutedEventArgs e)
+        private void button_AddExistingMedia_Click(object sender, RoutedEventArgs e)
         {
-            SharedData.ChangeTracker?.StartBulkOperation();
+            var rowLookup = SharedData.DataSet.Tables[0].AsEnumerable()
+            .ToDictionary(
+                row => row.Field<string>("Rom Path")!,
+                StringComparer.OrdinalIgnoreCase
+            );
 
-            var pathToRowMap = SharedData.DataSet.Tables[0].AsEnumerable()
-            .ToDictionary(row => row.Field<string>("Rom Path")!, row => row);
-
-            foreach (var item in _dataSearchItems)
+            foreach (var item in _mediaSearchCollection)
             {
                 string romPath = item.RomPath;
                 string mediaType = item.MediaType;
-                string matchedItem = item.MatchedItem;
+                string matchedFile = item.MatchedFile;
 
-                // Find the corresponding DataRow in the DataTable
-                if (pathToRowMap.TryGetValue(romPath, out DataRow? foundRow))
-                {
-                    // Update the found row
-                    foundRow[mediaType] = matchedItem;
-                }
+                // Convert the full path to a relative path
+                string relativePath = PathConverter.ConvertToRelativePath(matchedFile);
+
+                if (rowLookup.TryGetValue(item.RomPath, out DataRow? foundRow))
+
+                    if (foundRow != null)
+                    {
+                        // Update the found row
+                        foundRow[mediaType] = relativePath;
+                    }
             }
 
             // Commit all changes to the DataSet once after processing
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker.EndBulkOperation();
 
             button_AddExistingMedia.IsEnabled = false;
+
+            _mediaSearchCollection.Clear();
 
             MessageBox.Show("Existing gamelistMediaPaths has been added back to the the gamelist.\n\n You will still need to save the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -419,7 +480,7 @@ namespace GamelistManager
 
             }
 
-            _dataSearchItems.Clear();
+            _mediaSearchCollection.Clear();
 
             button_AddExistingMedia.IsEnabled = false;
             button_AddNewMedia.IsEnabled = false;
@@ -433,7 +494,7 @@ namespace GamelistManager
                 return;
             }
 
-            _dataSearchItems.Clear();
+            _mediaSearchCollection.Clear();
 
             button_AddNewMedia.IsEnabled = false;
 
@@ -441,11 +502,15 @@ namespace GamelistManager
             if (selectedIndex >= 0)
             {
                 var selectedItem = comboBox_MediaTypes.SelectedItem;
-                string selectedText = (selectedItem as ComboBoxItem)?.Content.ToString() ?? selectedItem.ToString();
-                string textValue = _mediaItems[selectedText];
-                string destinationFolder = _mediaPaths[textValue];
+                string selectedText = comboBox_MediaTypes.Items[selectedIndex].ToString()!;
+                string itemValue = _mediaItems[selectedText];
+                string destinationFolder = _mediaPaths[itemValue];
                 textBox_DestinationFolder.Text = destinationFolder;
-
+                button_ScanForNewMediaStart.IsEnabled = true;
+            }
+            else
+            {
+                button_ScanForNewMediaStart.IsEnabled = false;
             }
         }
 
@@ -458,12 +523,17 @@ namespace GamelistManager
                 Title = "Select Folder",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer)
             };
-
+            //blahcom
             if (folderDialog.ShowDialog() == true)
             {
+                ResetAddFolderControls();
+                // The combobox has a default empty first item
+                // Only want to see the choose text after folder is selected
+                comboBox_MediaTypes.Items[0] = "<choose>";
                 var folderName = folderDialog.FolderName;
                 textBox_SourceFolder.Text = folderName;
-                button_ScanNewMedia.IsEnabled = true;
+                comboBox_MediaTypes.SelectedIndex = 0;
+                comboBox_MediaTypes.IsEnabled = true;
             }
         }
 
@@ -472,31 +542,40 @@ namespace GamelistManager
             string mediaName = comboBox_MediaTypes.Text;
             string mediaFolder = textBox_DestinationFolder.Text;
 
+            bool overwrite = checkBox_OverwriteExisting.IsChecked == true;
+
+            string overwriteMessage = string.Empty;
+            if (overwrite)
+            {
+                overwriteMessage = "Existing files will be backed up first, then overwritten\n\n";
+            }
+
             MessageBoxResult result = MessageBox.Show(
-            $"This will copy all found gamelistMediaPaths dataGridItems to the ./{mediaFolder} directory\n\n" +
-            $"The files will be renamed and then added to the gamelist",
+            $"This will copy all new media items to the ./{mediaFolder} directory\n\n" +
+            $"{overwriteMessage}Make sure you have picked the correct media type before proceeding or else the files will have incorrect metadata naming and possibly be in the wrong folder",
             "Confirm Action",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question
-          );
+            );
 
             if (result != MessageBoxResult.Yes)
             {
                 return;
             }
 
-
-            SharedData.ChangeTracker?.StartBulkOperation();
-
             var pathToRowMap = SharedData.DataSet.Tables[0].AsEnumerable()
             .ToDictionary(row => row.Field<string>("Rom Path")!, row => row);
 
-            foreach (var item in _dataSearchItems)
+            int itemsAdded = 0;
+            progressBar_ProgressBar.IsIndeterminate = true;
+
+            foreach (var item in _mediaSearchCollection)
             {
                 // Extract values from the DataGrid row
                 string romPath = item.RomPath;
                 string mediaType = item.MediaType;
-                string matchedItem = item.MatchedItem;
+                string elementName = _mediaItems[mediaType];
+                string filePath = item.MatchedFile;
 
                 string parentFolder = Path.GetDirectoryName(SharedData.XMLFilename)!;
 
@@ -508,58 +587,113 @@ namespace GamelistManager
                 }
 
                 // Batocera naming standard
-                mediaType = (mediaType == "thumbnail" ? "thumb" : mediaType);
+                elementName = (elementName == "thumbnail" ? "thumb" : elementName);
 
-                string fileExtension = Path.GetExtension(matchedItem);
-                string newFileName = romPath.Replace("./", "");
-                newFileName = Path.GetFileNameWithoutExtension(newFileName);
-                newFileName = $"{newFileName}-{mediaType}{fileExtension}";
-                File.Copy(matchedItem, $"{destinationFolder}\\{newFileName}", overwrite: false);
+                string filteredRomPath = Path.GetFileNameWithoutExtension(romPath.TrimStart('.', '/'));
+                string fileName = Path.GetFileName(filePath);
+                string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+                string fileExtension = Path.GetExtension(fileName);
+                string newFileName = $"{filteredRomPath}-{elementName}{fileExtension}";
+                string destinationFile = $"{destinationFolder}\\{newFileName}";
+
+                //blah fix this or check to make sure names are right
+
+                if (System.IO.File.Exists(destinationFile))
+                {
+                    if (overwrite)
+                    {
+                        string parentDirectory = Directory.GetParent(destinationFile)!.Name;
+                        string backupFolder = $"{SharedData.ProgramDirectory}\\media backup\\replaced\\{SharedData.CurrentSystem}\\{parentDirectory}";
+
+                        if (!Directory.Exists(backupFolder))
+                        {
+                            Directory.CreateDirectory(backupFolder);
+                        }
+
+                        string backupFile = Path.Combine(backupFolder, fileName);
+                        System.IO.File.Copy(destinationFile, backupFile, true);
+
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                try
+                {
+                    System.IO.File.Copy(filePath, destinationFile, true);
+                    itemsAdded++;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"File Copy Error: {ex.Message}", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
                 // Find the corresponding DataRow in the DataTable
                 if (pathToRowMap.TryGetValue(romPath, out DataRow? foundRow))
                 {
-                    // Update the found row
                     foundRow[mediaType] = $"./{mediaFolder}/{newFileName}";
                 }
             }
 
+            progressBar_ProgressBar.IsIndeterminate = false;
 
             // Commit all changes to the DataSet once after processing
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker?.EndBulkOperation();
 
             button_AddExistingMedia.IsEnabled = false;
 
-            MessageBox.Show("Existing gamelistMediaPaths has been added back to the the gamelist.\n\n You will still need to save the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+            _mediaSearchCollection.Clear();
+            button_AddNewMedia.IsEnabled = false;
 
+            SharedData.DataSet.AcceptChanges();
+
+            MessageBox.Show($"{itemsAdded} {mediaName} items have been added to the gamelist\n\n You will still need to save the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private async void button_ScanForProblems_Click(object sender, RoutedEventArgs e)
+
+        private async void button_ScanExistingMedia_Click(object sender, RoutedEventArgs e)
         {
             // Start indeterminite progressbar animation
             progressBar_ProgressBar2.IsIndeterminate = true;
 
-            // Set button states
-            button_ScanForProblemsStart.IsEnabled = false;
-            button_ScanForProblemsStop.IsEnabled = true;
-            
             // New cancel token
             _cancellationTokenSource = new CancellationTokenSource();
 
+            // Set button states
+            button_ScanExistingMediaStart.IsEnabled = false;
+            button_ScanExistingMediaCancel.IsEnabled = true;
+            button_FixMissing.Visibility = Visibility.Hidden;
+            button_FixMissing.IsEnabled = false;
+            button_FixUnused.Visibility = Visibility.Hidden;
+            button_FixUnused.IsEnabled = false;
+            button_FixBad.Visibility = Visibility.Hidden;
+            button_FixBad.IsEnabled = false;
+
+            // Reset labels            
             label_Missing.Content = string.Empty;
             label_SingleColor.Content = string.Empty;
             label_Unused.Content = string.Empty;
-            label_Missing.Foreground = Brushes.Black;
 
-            _dataCleanupItems.Clear();
+            // Clear datagrid
+            _mediaCleanupCollection.Clear();
 
+            // Get a list of media paths as defined in the gamelist
             var gamelistMediaPaths = await GetGamelistMediaPathsAsync();
+
+            // Get a list of all media in the media folders
             var allMedia = await GetExistingMediaFiles();
 
+            // Cancel flag
+            bool isCancelled = false;
+
+            // Check for missing media first
+            // Using gamelistMediaPaths collection
             if (checkBox_MissingMedia.IsChecked == true)
             {
-                bool isCancelled = false;
+                label_Missing.Foreground = Brushes.Blue;
                 label_Missing.Content = "Running scan...";
                 int missingCount = 0;
 
@@ -567,18 +701,228 @@ namespace GamelistManager
                 {
                     try
                     {
-                        foreach (var file in gamelistMediaPaths)
+                        // Normalize all media paths by replacing forward slashes with backslashes
+                        var allMediaNormalized = allMedia.Select(p => Path.GetFullPath(p).Replace('/', '\\')).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                        // Thread-safe collection to collect missing media items
+                        var missingItems = new ConcurrentBag<MediaCleanupItem>();
+
+                        var parallelOptions = new ParallelOptions
                         {
-                            _cancellationToken.ThrowIfCancellationRequested();
-                            string fullPath = Path.Combine(_parentFolderPath, file);
-                            if (!allMedia.Contains(fullPath))
+                            CancellationToken = _cancellationToken
+                        };
+
+                        // Use Parallel.ForEach to loop through gamelistMediaPaths in parallel
+                        Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
+                        {
+                            string itemType = item.Key;
+                            string itemPath = item.Value;
+
+                            // Normalize the path (replace '/' with '\\')
+                            string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, itemPath)).Replace('/', '\\');
+
+                            // Check if the media item exists in allMedia (case-insensitive and normalized comparison)
+                            if (!allMediaNormalized.Contains(fullPath))
                             {
-                                string fileName = Path.GetFileName(fullPath);
-                                string parentDirectory = Path.GetFileName(Path.GetDirectoryName(fullPath));
-                                _dataCleanupItems.Add(new MediaCleanupDataItem { Status = "Missing", Folder = parentDirectory, FileName = fileName });
-                                missingCount++;
+                                // Add missing item to the thread-safe collection
+                                missingItems.Add(new MediaCleanupItem
+                                {
+                                    Status = "Missing",
+                                    MediaType = itemType,
+                                    FileName = itemPath
+                                });
+
+                                // Increment missingCount in a thread-safe manner
+                                Interlocked.Increment(ref missingCount);
                             }
-                        }
+                        });
+
+                        // Perform UI updates after the parallel loop completes
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            foreach (var missingItem in missingItems)
+                            {
+                                _mediaCleanupCollection.Add(missingItem);
+                            }
+                        });
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Task was canceled, exit gracefully
+                        isCancelled = true;
+                    }
+                }, _cancellationToken);
+
+
+                if (isCancelled == true)
+                {
+                    label_Missing.Content = "Cancelled!";
+                    label_Missing.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    label_Missing.Content = $"[{missingCount} missing media items]";
+                    if (missingCount == 0)
+                    {
+                        label_Missing.Foreground = Brushes.Green;
+                    }
+                    else
+                    {
+                        button_FixMissing.Visibility = Visibility.Visible;
+                        label_Missing.Foreground = Brushes.Red;
+                    }
+                }
+            }
+
+
+            if (!isCancelled && checkBox_UnusedMedia.IsChecked == true)
+            {
+                label_Unused.Foreground = Brushes.Blue;
+                label_Unused.Content = "Running scan...";
+                int unusedCount = 0;
+
+
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        // Precompute gamelistMediaPaths full paths for fast lookup
+                        var gamelistPathsLookup = gamelistMediaPaths
+                            .ToLookup(
+                                kvp => Path.GetFullPath(Path.Combine(_parentFolderPath, kvp.Value)),  // Key is the full path
+                                kvp => kvp.Key, // MediaType as the value
+                                StringComparer.OrdinalIgnoreCase);  // Case-insensitive comparison
+
+                        // Concurrent collection for collecting missing items in a thread-safe manner
+                        var missingItems = new ConcurrentBag<MediaCleanupItem>();
+
+                        var parallelOptions = new ParallelOptions
+                        {
+                            CancellationToken = _cancellationToken
+                        };
+
+                        // Process allMedia in parallel
+                        Parallel.ForEach(allMedia, parallelOptions, (mediaItem) =>
+                        {
+                            // Check if the mediaItem exists in the precomputed lookup
+                            var matchingItems = gamelistPathsLookup[mediaItem];
+
+                            if (!matchingItems.Any())
+                            {
+                                // Item is not in gamelistMediaPaths, add to the missing items collection
+                                missingItems.Add(new MediaCleanupItem
+                                {
+                                    Status = "Unused",
+                                    MediaType = string.Empty, // Optionally handle media type
+                                    FileName = mediaItem
+                                });
+
+                                // Increment unusedCount in a thread-safe manner
+                                Interlocked.Increment(ref unusedCount);
+                            }
+                        });
+
+                        // Perform UI updates after the parallel loop completes
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            foreach (var missingItem in missingItems)
+                            {
+                                _mediaCleanupCollection.Add(missingItem);
+                            }
+                        });
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Task was canceled, exit gracefully
+                        isCancelled = true;
+                    }
+                }, _cancellationToken);
+
+
+                if (isCancelled == true)
+                {
+                    label_Unused.Content = "Cancelled!";
+                    label_Unused.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    label_Unused.Content = $"[{unusedCount} unused media items]";
+                    if (unusedCount == 0)
+                    {
+                        label_Unused.Foreground = Brushes.Green;
+                    }
+                    else
+                    {
+                        button_FixUnused.Visibility = Visibility.Visible;
+                        label_Unused.Foreground = Brushes.Red;
+                    }
+                }
+            }
+
+            if (!isCancelled && checkBox_SingleColor.IsChecked == true)
+            {
+                label_SingleColor.Foreground = Brushes.Blue;
+                label_SingleColor.Content = "Running scan...";
+                int badCount = 0;
+
+                await Task.Run(() =>
+                {
+                    // Thread-safe collection to collect missing media items
+                    var badItems = new ConcurrentBag<MediaCleanupItem>();
+
+                    try
+                    {
+                        var parallelOptions = new ParallelOptions
+                        {
+                            CancellationToken = _cancellationToken
+                        };
+
+                        Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
+                        {
+                            string mediaPath = item.Value;
+                            string mediaType = item.Key;
+
+                            // Extract the file name from the media path
+                            string fileName = Path.GetFileName(mediaPath);
+
+                            // Extract the parent directory from the media path
+                            string parentDirectory = Path.GetDirectoryName(mediaPath);
+
+                            // Extract the file extension
+                            string fileExtension = Path.GetExtension(fileName);
+
+                            // Combine the _parentFolderPath with mediaPath, ensuring it resolves correctly
+                            string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, mediaPath));
+
+                            // Filter by file extensions
+                            if (fileExtension is not (".jpg" or ".png"))
+                            {
+                                return;
+                            }
+
+                            string result = ImageUtility.CheckImage(fullPath);
+
+                            if (result is ("Corrupt" or "Single Color"))
+                            {
+                                badItems.Add(new MediaCleanupItem
+                                {
+                                    Status = result,
+                                    MediaType = mediaType,
+                                    FileName = fullPath
+                                });
+                                Interlocked.Increment(ref badCount);
+                            }
+                        });
+
+                        // Perform UI updates after the parallel loop completes
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            foreach (var badItem in badItems)
+                            {
+                                _mediaCleanupCollection.Add(badItem);
+                            }
+                        });
+
                     }
                     catch (OperationCanceledException)
                     {
@@ -587,128 +931,361 @@ namespace GamelistManager
                     }
                 }, _cancellationToken);
 
+
                 if (isCancelled == true)
                 {
-                    label_Missing.Content = "Cancelled!";
-                    label_Missing.Foreground = Brushes.Red;
-                    button_ScanForProblemsStart.IsEnabled = true;
-                    progressBar_ProgressBar2.IsIndeterminate = false;
-                    return;
-                }
-
-                label_Missing.Content = $"[{missingCount} missing media items]";
-                if (missingCount == 0)
-                {
-                    label_Missing.Foreground = Brushes.LightGreen;
+                    label_SingleColor.Content = "Cancelled!";
+                    label_SingleColor.Foreground = Brushes.Red;
                 }
                 else
                 {
-                    label_Missing.Foreground = Brushes.Red;
-                }
-            }
-
-            if (checkBox_UnusedMedia.IsChecked == true)
-            {
-                label_Unused.Content = "Running scan...";
-                int unusedCount = 0;
-
-            
-                foreach (var file in allMedia)
-                {
-                    string fileName = Path.GetFileName(file);
-                    string parentDirectory = Path.GetFileName(Path.GetDirectoryName(file));
-                    string relativePath = Path.Combine(parentDirectory,fileName);
-          
-                    if (!gamelistMediaPaths.Contains(relativePath)) 
+                    label_SingleColor.Content = $"[{badCount} bad media items]";
+                    if (badCount == 0)
                     {
-                        _dataCleanupItems.Add(new MediaCleanupDataItem { Status = "Unused", Folder = parentDirectory, FileName = fileName  });
-                        unusedCount++;
+                        label_SingleColor.Foreground = Brushes.Green;
+                    }
+                    else
+                    {
+                        label_SingleColor.Foreground = Brushes.Red;
+                        button_FixBad.Visibility = Visibility.Visible;
                     }
                 }
-
-                label_Unused.Content = $"[{unusedCount} unused media items]";
-                if (unusedCount == 0)
-                {
-                    label_Unused.Foreground = Brushes.LightGreen;
-                }
-                else
-                {
-                    label_Unused.Foreground = Brushes.Red;
-                }
-
             }
 
+
             progressBar_ProgressBar2.IsIndeterminate = false;
+            button_ScanExistingMediaStart.IsEnabled = true;
+            button_ScanExistingMediaCancel.IsEnabled = false;
 
-            button_ScanForProblemsStart.IsEnabled = true;
-
+            // Fix buttons enabled now that scanning is done
+            if (button_FixMissing.IsVisible)
+            {
+                button_FixMissing.IsEnabled = true;
+            }
+            if (button_FixUnused.IsVisible)
+            {
+                button_FixUnused.IsEnabled = true;
+            }
+            if (button_FixBad.IsVisible)
+            {
+                button_FixBad.IsEnabled = true;
+            }
         }
 
-        private async Task<List<string>> GetGamelistMediaPathsAsync()
+        private async Task<ConcurrentBag<KeyValuePair<string, string>>> GetGamelistMediaPathsAsync()
         {
-            var media = new ConcurrentBag<string>();
+            var media = new ConcurrentBag<KeyValuePair<string, string>>();
 
+            // Task.Run is used to offload work to a background thread
             await Task.Run(() =>
             {
+                // Loop over each row in parallel (thread-safe)
                 Parallel.ForEach(SharedData.DataSet.Tables[0].AsEnumerable(), row =>
                 {
-                    // Loop through each gamelistMediaPaths type column in parallel
+                    // Loop through each mediaItem column in parallel
                     foreach (var mediaItem in _mediaItems.Keys)
                     {
                         string columnName = mediaItem;
-                   
-                        // Get the mediaType from the current row and column
-                        var cellValue = row[columnName];
+
+                        // Get the value from the current row and column
+                        object cellValue = row[columnName];
+
+                        // Check for null, DBNull, or empty value
                         if (cellValue != null && cellValue != DBNull.Value && !string.IsNullOrEmpty(cellValue.ToString()))
                         {
-                            string convertedName = (cellValue.ToString().Substring(2)).Replace("/", "\\");
-                            media.Add(convertedName);
+                            // Add key-value pair to the ConcurrentBag
+                            media.Add(new KeyValuePair<string, string>(columnName, cellValue.ToString()!));
                         }
                     }
                 });
             });
 
-            return  media.ToList();
+            // Return the ConcurrentBag
+            return media;
         }
 
         private async Task<List<string>> GetExistingMediaFiles()
         {
-            // Use ConcurrentBag for thread-safe access
-            var allFiles = new List<string>();
+            // Use ConcurrentBag for thread-safe access to individual existingMediaFiles
+            var allFiles = new ConcurrentBag<string>();
             var uniqueFolders = new HashSet<string>(_mediaPaths.Values);
 
             await Task.Run(() =>
             {
-                foreach(var uniqueFolderName in uniqueFolders)
+                Parallel.ForEach(uniqueFolders, uniqueFolderName =>
                 {
                     // Skip music folder, it's not used in gamelists
                     if (uniqueFolderName == "music")
                     {
-                        return;         
+                        return;
                     }
 
-                    string folderPath = $@"{_parentFolderPath}\{uniqueFolderName}";
+                    string folderPath = Path.Combine(_parentFolderPath, uniqueFolderName);
 
                     if (Directory.Exists(folderPath))
                     {
-                        // Retrieve files from the folder
-                        List<string> files = new List<string>(Directory.GetFiles(folderPath));
-                        allFiles.AddRange(files);
-                      }
-                }
+                        // Retrieve existingMediaFiles from the folder and add each to the ConcurrentBag
+                        foreach (string file in Directory.GetFiles(folderPath))
+                        {
+                            allFiles.Add(file);
+                        }
+                    }
+                });
             });
 
-            // Return distinct files as a List
+            // Return distinct existingMediaFiles as a List
             return allFiles.Distinct().ToList();
         }
 
-        private void button_CancelScan_Click(object sender, RoutedEventArgs e)
+        private void button_Cancel_Click(object sender, RoutedEventArgs e)
         {
             Button? button = sender as Button;
             if (button != null)
             {
                 button.IsEnabled = false;
                 _cancellationTokenSource.Cancel();
+            }
+        }
+
+        private async void button_FixMissing_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Do you want to remove the paths for missing media items in the gamelist?",
+                                    "Confirm",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                var missingItems = _mediaCleanupCollection
+                    .Where(MediaCleanupDataItem => MediaCleanupDataItem.Status == "Missing")
+                    .ToList();
+
+                var fileNames = missingItems.Select(item => item.FileName).ToList();
+
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                await ClearMediaPathsAsync(fileNames);
+
+                foreach (var item in missingItems)
+                {
+                    _mediaCleanupCollection.Remove(item);
+                }
+
+                Mouse.OverrideCursor = null;
+
+                button_FixMissing.IsEnabled = false;
+
+                SharedData.IsDataChanged = true;
+                SharedData.DataSet.AcceptChanges();
+
+                MessageBox.Show("Completed!", "Cleanup", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            }
+        }
+
+
+        private void BackupMedia(string system, List<string> files, string folder, bool delete)
+        {
+
+            foreach (string filePath in files)
+            {
+                if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+                {
+                    continue;
+                }
+                
+                if (delete)
+                {
+                    // Just delete the file
+                    FileSystem.DeleteFile(filePath,
+                    UIOption.OnlyErrorDialogs,
+                    RecycleOption.SendToRecycleBin);
+                }
+                else
+                {
+                    string parentDirectory = Directory.GetParent(filePath)!.Name;
+                    string backupFolder = $"{SharedData.ProgramDirectory}\\media backup\\{folder}\\{system}\\{parentDirectory}";
+                    if (!Directory.Exists(backupFolder))
+                    {
+                        Directory.CreateDirectory(backupFolder);
+                    }
+                    string fileName = Path.GetFileName(filePath);
+                    string backupPath = Path.Combine(backupFolder, fileName);
+                    System.IO.File.Move(filePath, backupPath, true);
+                }
+            }
+        }
+
+
+        private void button_FixUnused_Click(object sender, RoutedEventArgs e)
+        {
+
+            var result = MessageBox.Show("Do you want to backup the unused media first?  Selecting 'No' will send them straight to the windows recycle bin.  \n\nSelect Cancel to abort",
+            "Confirm",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Cancel)
+            {
+                return;
+            }
+
+            bool delete = true;
+
+            if (result == MessageBoxResult.Yes)
+            {
+                delete = false;
+            }
+
+            // Identify items to remove based on "Unused" status
+            var unusedItems = _mediaCleanupCollection
+            .Where(item => item.Status == "Unused")
+            .ToList();
+
+            var fileNames = unusedItems.Select(item => item.FileName).ToList();
+
+            Mouse.OverrideCursor = Cursors.Wait;
+            
+            BackupMedia(SharedData.CurrentSystem, fileNames, "unused", delete);
+            
+            Mouse.OverrideCursor = null;
+            
+            foreach (var item in unusedItems)
+            {
+                _mediaCleanupCollection.Remove(item);
+            }
+
+            button_FixUnused.IsEnabled = false;
+
+            MessageBox.Show("Completed!", "Cleanup", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        }
+
+        private async void button_FixBad_Click(object sender, RoutedEventArgs e)
+        {
+
+            var result = MessageBox.Show("Do you want to backup the bad media first?  Selecting 'No' will send them straight to the windows recycle bin.  \n\nSelect Cancel to abort",
+               "Confirm",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Cancel)
+            {
+                return;
+            }
+
+            bool delete = true;
+            SharedData.IsDataChanged = true;
+
+            if (result == MessageBoxResult.Yes)
+            {
+
+                delete = false;
+            }
+
+            // Identify items to remove based on status
+            var badItems = _mediaCleanupCollection
+            .Where(MediaCleanupDataItem => MediaCleanupDataItem.Status == "Single Color" || MediaCleanupDataItem.Status == "Corrupt")
+            .ToList();
+
+            var fileNames = badItems.Select(item => item.FileName).ToList();
+
+            Mouse.OverrideCursor = Cursors.Wait;
+
+            BackupMedia(SharedData.CurrentSystem, fileNames, "bad", delete);
+
+            Mouse.OverrideCursor = null;
+
+            foreach (var item in badItems)
+            {
+                _mediaCleanupCollection.Remove(item);
+            }
+
+            // Convert full paths to relative paths for cleanup
+            var relativePaths = PathConverter.ConvertListToRelativePaths(fileNames);
+
+            await ClearMediaPathsAsync(relativePaths);
+            progressBar_ProgressBar2.IsIndeterminate = false;
+                        
+            button_FixBad.IsEnabled = false;
+            SharedData.DataSet.AcceptChanges();
+
+            MessageBox.Show("Completed!", "Cleanup", MessageBoxButton.OK, MessageBoxImage.Information);
+
+
+        }
+
+        private async Task ClearMediaPathsAsync(List<string> itemsToRemove)
+        {
+            var dataTable = SharedData.DataSet.Tables[0];
+            var changes = new ConcurrentBag<(DataRow Row, DataColumn Column)>(); // Thread-safe collection
+
+            await Task.Run(() =>
+            {
+                Parallel.ForEach(dataTable.AsEnumerable(), row =>
+                {
+                    foreach (DataColumn column in dataTable.Columns)
+                    {
+                        if (row[column] is string cellValue && itemsToRemove.Contains(cellValue))
+                        {
+                            changes.Add((row, column)); // Collect changes
+                        }
+                    }
+                });
+            });
+
+            // Apply changes sequentially to avoid threading issues
+            foreach (var change in changes)
+            {
+                change.Row[change.Column] = DBNull.Value;
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            TextSearch.ClearCache(); 
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            ResetAddFolderControls();
+        }
+
+        private void ResetAddFolderControls()
+        {
+            comboBox_MediaTypes.SelectionChanged -= ComboBox_SelectionChanged;
+
+            textBox_DestinationFolder.Text = string.Empty;
+
+            button_AddNewMedia.IsEnabled = false;
+            button_ScanForNewMediaCancel.IsEnabled = false;
+            button_ScanForNewMediaStart.IsEnabled = false;
+
+            textBox_SourceFolder.Text = "<select a folder>";
+            comboBox_MediaTypes.Items.Clear();
+            comboBox_MediaTypes.Items.Add(string.Empty);
+            comboBox_MediaTypes.IsEnabled = false;
+
+            comboBox_MediaTypes.Items.Clear();
+            comboBox_MediaTypes.Items.Add(string.Empty);
+            foreach (var item in _mediaItems)
+            {
+                comboBox_MediaTypes.Items.Add(item.Key);
+            }
+            comboBox_MediaTypes.SelectedIndex = 0;
+        }
+
+        private void comboBox_MediaTypes_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (comboBox_MediaTypes.IsEnabled == false)
+            {
+                return;
+            }
+
+            if (comboBox_MediaTypes.Items[0] == "<choose>")
+            {
+                comboBox_MediaTypes.SelectedIndex = 1;
+                comboBox_MediaTypes.Items.RemoveAt(0);
+                comboBox_MediaTypes.SelectionChanged += ComboBox_SelectionChanged;
+                button_ScanForNewMediaStart.IsEnabled = true;
             }
         }
     }
