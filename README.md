@@ -1,5 +1,9 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+
+December 12th, 2024 - Version 7.4 non beta is released.  I realized that Title Shot was missing for screenscraper scrapes so I added it.  A few fixes here and there.  I'm not going to do anything with scrape dates any more since I don't find them particularily useful and it's too much work for so little value.  I do want to add media drag/drop back at some point....   
+
+
 December 6th, 2024
  Version 7.3b is release.... and it was a lot of work.  The media management tool alone was a frustration over many months.  I don't have everything there I would like, but it can still do a lot to make lives easier for managing this stuff.  I also had to slow down since I've been getting painful tendonitis in my hands from too much keyboard work (getting old!).  
 
