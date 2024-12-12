@@ -1,5 +1,4 @@
-﻿using LibVLCSharp.Shared;
-using System.Data;
+﻿using System.Data;
 using System.IO;
 using System.Xml;
 
@@ -38,6 +37,7 @@ namespace GamelistManager.classes
                 {
                     return 1;
                 }
+
             }
             return 1;
         }
@@ -73,7 +73,7 @@ namespace GamelistManager.classes
 
             return false;
         }
-               
+
 
         public void SaveXmlToCacheFile(string xmlString, string cacheFolder, string romName)
         {
@@ -153,7 +153,7 @@ namespace GamelistManager.classes
 
             XmlDocument xmlData = new XmlDocument();
             xmlData.LoadXml(xmlResponse);
-                     
+
             int scrapeTotal = 0;
             int scrapeMax = 0;
 
@@ -197,7 +197,7 @@ namespace GamelistManager.classes
                         string? players = xmlData.SelectSingleNode("/Data/jeu/joueurs")?.InnerText;
                         UpdateMetadata(rowView, "Players", players!, overwriteMetaData);
                         break;
-                                           
+
                     case "lang":
                         string? language = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText; ;
                         UpdateMetadata(rowView, "Language", language!, overwriteMetaData);
@@ -228,7 +228,7 @@ namespace GamelistManager.classes
                         break;
 
                     case "name":
-                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms"), scraperParameters.Region!);
+                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms")!, scraperParameters.Region!);
                         UpdateMetadata(rowView, "Name", name!, overwriteMetaData);
                         break;
 
@@ -252,10 +252,13 @@ namespace GamelistManager.classes
                         break;
 
                     case "releasedate":
-                        string? releaseDate = ParseReleaseDate(xmlData.SelectSingleNode("/Data/jeu/dates"), scraperParameters.Region!);
+                        string? releaseDate = ParseReleaseDate(xmlData.SelectSingleNode("/Data/jeu/dates")!, scraperParameters.Region!);
                         UpdateMetadata(rowView, "Release Date", releaseDate!, overwriteMetaData);
                         break;
 
+                    case "titleshot":
+                        await DownloadFile(rowView, "titleshot", "Title Shot", "sstitle", scraperParameters, mediasNode!);
+                        break;
 
                     case "bezel":
                         await DownloadFile(rowView, "bezel", "Bezel", "bezel-16-9", scraperParameters, mediasNode!);
@@ -317,9 +320,9 @@ namespace GamelistManager.classes
         }
 
         private async Task<bool> DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, XmlNode mediasNode)
-        {            
+        {
             (string downloadURL, string fileFormat) = ParseMedia(remoteMediaType, mediasNode, scraperParameters.Region!);
-                        
+
             if (string.IsNullOrEmpty(downloadURL) || string.IsNullOrEmpty(fileFormat))
             {
                 return false;

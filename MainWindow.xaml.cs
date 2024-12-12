@@ -979,21 +979,7 @@ namespace GamelistManager
 
         }
 
-        private void ClearScraperDate_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Clear Scraper Date clicked");
-        }
-
-        private void UpdateScraperDate_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Update Scraper Date clicked");
-        }
-
-        private void ResetName_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Reset Name clicked");
-        }
-
+         
         private void SearchAndReplace_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Search And Replace clicked");
@@ -1601,10 +1587,7 @@ namespace GamelistManager
             menuItem_SetAllHidden.Header = (selectedItemCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
             menuItem_RemoveItem.Header = (selectedItemCount < 2) ? "Remove Item" : "Remove Selected Items";
             menuItem_ResetName.Header = (selectedItemCount < 2) ? "Reset Name" : "Reset Selected Names";
-
-            menuItem_ClearScraperDate.Header = (selectedItemCount < 2) ? "Clear Scraper Date" : "Clear Selected Scraper Dates";
-            menuItem_SetScraperDate.Header = (selectedItemCount < 2) ? "Update Scraper Date" : "Update Selected Scraper Dates";
-
+                        
             if (selectedItemCount == 1)
             {
                 menuItem_SetAllGenreVisible.IsEnabled = true;
@@ -2290,74 +2273,70 @@ namespace GamelistManager
 
         private int AddNewItems()
         {
-
             string[] m3uFiles = Directory.GetFiles(_parentFolderPath!, "*.m3u");
 
-            // List to store contents of all M3U files
-            List<string> m3uContents = new List<string>();
+            // Use HashSet for fast lookups and avoid duplicates
+            var m3uContents = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // Read contents of each M3U file
+            // Read and store contents of each M3U file
             foreach (var m3uFile in m3uFiles)
             {
-                // Read the contents of the file and add to the list
-                string[] fileLines = File.ReadAllLines(m3uFile);
-                m3uContents.AddRange(fileLines);
-            }
-
-            List<string> fileList = SharedData.DataSet.Tables[0].AsEnumerable()
-              .Select(row => row.Field<string>("Rom Path"))
-              .Select(path => path!.StartsWith("./") ? path.Substring(2) : path)
-              .ToList();
-
-            List<string> uniqueFileExtensions = new List<string>();
-            foreach (string path in fileList)
-            {
-                // Extract the file extension using path.GetExtension
-                string extension = Path.GetExtension(path).TrimStart('.');
-                if (!uniqueFileExtensions.Contains(extension))
+                foreach (var line in File.ReadLines(m3uFile))
                 {
-                    uniqueFileExtensions.Add(extension);
+                    m3uContents.Add(line.Trim());
                 }
             }
 
-            List<string> newFileList = uniqueFileExtensions
-               .SelectMany(ext => Directory.GetFiles(_parentFolderPath!, $"*.{ext}"))
-               .Select(file => Path.GetFileName(file))
-               .ToList();
+            // Get existing file paths from the DataTable
+            var fileList = SharedData.DataSet.Tables[0].AsEnumerable()
+                .Select(row => row.Field<string>("Rom Path"))
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!.StartsWith("./") ? path.Substring(2) : path)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            string m3uContentsString = string.Join(Environment.NewLine, fileList);
+            // Extract unique file extensions
+            var uniqueFileExtensions = fileList
+                .Select(path => Path.GetExtension(path).TrimStart('.'))
+                .Where(ext => !string.IsNullOrEmpty(ext))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            newFileList.RemoveAll(file => fileList.Contains(file, StringComparer.OrdinalIgnoreCase));
-            newFileList.RemoveAll(file => m3uContents.Contains(file, StringComparer.OrdinalIgnoreCase));
+            // Find new files in the directory based on extensions
+            var newFileList = uniqueFileExtensions
+                .SelectMany(ext => Directory.GetFiles(_parentFolderPath!, $"*.{ext}"))
+                .Select(file => Path.GetFileName(file))
+                .Where(file => !fileList.Contains(file) && !m3uContents.Contains(file))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             int totalNewItems = newFileList.Count;
 
             if (totalNewItems == 0)
             {
-                return newFileList.Count;
+                return 0;
             }
 
+            // Begin bulk operations
             SharedData.ChangeTracker!.StartBulkOperation();
 
             foreach (string fileName in newFileList)
             {
                 string newName = Path.GetFileNameWithoutExtension(fileName);
-                DataRow newRow = SharedData.DataSet.Tables[0].NewRow();
+                var newRow = SharedData.DataSet.Tables[0].NewRow();
                 newRow["Name"] = newName;
                 newRow["Rom Path"] = $"./{fileName}";
                 newRow["Hidden"] = false;
                 newRow["Favorite"] = false;
                 newRow["Status"] = "New";
-                // Add the new row to the Rows collection of the DataTable
+
                 SharedData.DataSet.Tables[0].Rows.Add(newRow);
             }
 
+            // Finalize changes
             SharedData.DataSet.AcceptChanges();
-
             SharedData.ChangeTracker!.EndBulkOperation();
 
             return totalNewItems;
-
         }
 
         private void menuItem_AddMedia_Click(object sender, RoutedEventArgs e)
@@ -2365,7 +2344,7 @@ namespace GamelistManager
             MediaTool mediaSearch = new MediaTool();
 
             SharedData.ChangeTracker!.StopTracking();
-                       
+
             mediaSearch.ShowDialog();
 
             int maxUndo = Properties.Settings.Default.MaxUndo;
@@ -2413,25 +2392,52 @@ namespace GamelistManager
         {
             int missingCount = 0;
 
-            string[] files = Directory.GetFiles(_parentFolderPath!);
+            // Create a HashSet for fast lookups
+            var filesSet = new HashSet<string>(Directory.GetFiles(_parentFolderPath!));
+            var missingItems = new List<DataRowView>(); // To store rows with missing files
 
-            foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
+            // Temporarily disable DataGrid updates
+            MainDataGrid.IsEnabled = false;
+
+            try
             {
-                // Get the file path from the "PathColumn"
-                string romPath = row["Rom Path"].ToString()!;
-                romPath = romPath.Substring(2);
-                string filePath = Path.Combine(_parentFolderPath!, romPath);
-
-                if (!files.Contains(filePath))
+                // First loop: Find missing items
+                foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
                 {
-                    missingCount++;
-                    row["Status"] = "Missing";
+                    if (row["Rom Path"] is string romPath)
+                    {
+                        string trimmedRomPath = romPath.StartsWith("./") ? romPath.Substring(2) : romPath;
+                        string filePath = Path.Combine(_parentFolderPath!, trimmedRomPath);
+
+                        if (!filesSet.Contains(filePath))
+                        {
+                            missingItems.Add(row); // Add to missing items
+                            missingCount++;
+                        }
+                    }
                 }
+
+                // Second loop: Update the status of missing items
+                foreach (var row in missingItems)
+                {
+                    // Update safely on the UI thread
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        row["Status"] = "Missing";
+                    });
+                }
+            }
+            finally
+            {
+                // Re-enable UI updates
+                MainDataGrid.IsEnabled = true;
             }
 
             return missingCount;
-
         }
+
+
+
 
         private void menuItem_MameIdentifyUnplayable_Click(object sender, RoutedEventArgs e)
         {
@@ -2963,7 +2969,7 @@ namespace GamelistManager
         {
             bool confirmBulkChanges = Properties.Settings.Default.ConfirmBulkChange;
 
-            
+
             MenuItem? menuItem = sender as MenuItem;
 
             DataTable dataTable = SharedData.DataSet.Tables[0];
@@ -3026,7 +3032,7 @@ namespace GamelistManager
                                    decl.DataType == MetaDataType.Document)
                                    .Select(decl => decl.Name)
                                    .ToList();
-            
+
             // Iterate through each column in the DataTable
             foreach (var columnName in mediaItems)
             {
@@ -3050,7 +3056,7 @@ namespace GamelistManager
             if (MainDataGrid.Items.Count > 1)
             {
                 int modifier = 1;
-                if (MainDataGrid.Items.Count -1 == index)
+                if (MainDataGrid.Items.Count - 1 == index)
                 {
                     modifier = -1;
                 }
@@ -3065,8 +3071,13 @@ namespace GamelistManager
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             if (SharedData.IsDataChanged && saveReminder)
             {
-             SaveGamelist();
+                SaveGamelist();
             }
+        }
+
+        private void menuItem_ResetName_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

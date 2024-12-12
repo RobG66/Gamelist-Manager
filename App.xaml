@@ -292,7 +292,7 @@
         <Style x:Key="GridSplitterHorizontalGripStyle" TargetType="{x:Type GridSplitter}">
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-            <Setter Property="Cursor" Value="SizeWE" />
+            <Setter Property="Cursor" Value="SizeNS" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="Background"
            Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />

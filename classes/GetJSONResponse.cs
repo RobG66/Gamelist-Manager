@@ -1,5 +1,4 @@
 ﻿using GamelistManager.classes.GamelistManager;
-using System.Net.Http;
 
 namespace GamelistManager.classes
 {

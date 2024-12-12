@@ -11,7 +11,8 @@
     <ApplicationIcon>resources\icon.ico</ApplicationIcon>
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
-    <FileVersion>7.3b</FileVersion>
+    <PackageIcon>icon.png</PackageIcon>
+    <FileVersion>7.4</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -467,11 +468,9 @@
 
   <ItemGroup>
     <PackageReference Include="CredentialManagement" Version="1.0.2" />
-    <PackageReference Include="LibVLCSharp" Version="3.9.1" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.0" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.11" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
@@ -1651,6 +1650,10 @@
     </None>
     <None Update="reset1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
     </None>
     <None Update="Resources\systems\3do.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

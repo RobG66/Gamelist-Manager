@@ -57,10 +57,7 @@
                     <Separator Margin="-30,0,-40,0"/>
                     <MenuItem x:Name="menuItem_RemoveItem" Margin="-30,0,-40,0" Header="Remove Item" Click="menuItem_RemoveItem_Click"/>
                     <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_ClearScraperDate" Margin="-30,0,-40,0" Header="Clear Scraper Date"/>
-                    <MenuItem x:Name="menuItem_SetScraperDate" Margin="-30,0,-40,0" Header="Set Scraper Date"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_ResetName" Margin="-30,0,-40,0" Header="Reset Name"/>
+                    <MenuItem x:Name="menuItem_ResetName" Margin="-30,0,-40,0" Header="Reset Name" Click="menuItem_ResetName_Click"/>
                     <Separator Margin="-30,0,-40,0"/>
                     <MenuItem x:Name="menuItem_SearchAndReplace" Margin="-30,0,-40,0" Header="Search And Replace" Click="menuItem_SearchAndReplace_Click"/>
                     <Separator Margin="-30,0,-40,0"/>

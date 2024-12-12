@@ -8,11 +8,11 @@ namespace GamelistManager.classes
     {
         public class ChdInfo
         {
-            public string GameName { get; set; }
-            public string DiskName { get; set; }
+            public string? GameName { get; set; }
+            public string? DiskName { get; set; }
             public bool Required { get; set; }
             public bool Present { get; set; }
-            public string Status { get; set; }
+            public string? Status { get; set; }
         }
 
         public static async Task<List<ChdInfo>> GetMameRequiresCHD(string mameExePath, string mameRomPath)
@@ -40,15 +40,17 @@ namespace GamelistManager.classes
                 {
                     DtdProcessing = DtdProcessing.Parse
                 };
-
                 using (var reader = XmlReader.Create(process.StandardOutput, settings))
                 {
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+                    bool hasDisk = false;
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
                     while (reader.Read())
                     {
                         if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
                         {
                             string gameName = reader.GetAttribute("name")!;
-                            bool hasDisk = false;
+                            hasDisk = false;
 
                             while (reader.Read())
                             {
@@ -173,7 +175,7 @@ namespace GamelistManager.classes
                     {
                         if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
                         {
-                            string gameName = reader.GetAttribute("name");
+                            string gameName = reader.GetAttribute("name")!;
                             if (!string.IsNullOrEmpty(gameName))
                             {
                                 if (ShouldIncludeMachine(reader))

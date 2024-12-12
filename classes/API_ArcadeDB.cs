@@ -11,7 +11,7 @@ namespace GamelistManager.classes
         public async Task<string> ScrapeGame(string romName)
         {
             string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
-            
+
             try
             {
                 // Fetch the JSON response using the GetJsonResponse class
@@ -81,11 +81,10 @@ namespace GamelistManager.classes
 
         public async Task<bool> ScrapeArcadeDBAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
-          
+
             string romPath = rowView["Rom Path"].ToString()!;
             string romName = Path.GetFileNameWithoutExtension(romPath);
-            string gameName = rowView["Name"]?.ToString()!; // Never empty
-          
+
             string cacheFolder = scraperParameters.CacheFolder!;
             bool scrapeByCache = scraperParameters.ScrapeByCache;
             bool skipNonCached = scraperParameters.SkipNonCached;
@@ -226,7 +225,7 @@ namespace GamelistManager.classes
         private async Task DownloadFile(string downloadURL, DataRowView rowView, string romName, string mediaName, string mediaType, ScraperParameters scraperParameters)
         {
             if (string.IsNullOrEmpty(downloadURL))
-            { 
+            {
                 return;
             }
 
@@ -242,7 +241,7 @@ namespace GamelistManager.classes
             string destinationFolder = mediaPaths[mediaName];
             string parentFolderPath = scraperParameters.ParentFolderPath!;
             bool verify = scraperParameters.Verify;
-                       
+
             string extension = "png";
             if (mediaName == "video")
             {

@@ -193,8 +193,8 @@ namespace GamelistManager
                     // Iterate over the ROM list sequentially
                     foreach (var romTuple in romList)
                     {
-                        string romPath = romTuple.RomPath;
-                        string romName = romTuple.Name;
+                        string romPath = romTuple.RomPath!;
+                        string romName = romTuple.Name!;
                         string filteredRomPath = Path.GetFileNameWithoutExtension(romPath)?.Replace("./", "") ?? string.Empty;
 
                         // Perform fuzzy matching
@@ -347,8 +347,8 @@ namespace GamelistManager
                         {
 
                             // Rom Variables
-                            string romPath = romTuple.RomPath;
-                            string romName = romTuple.Name;
+                            string romPath = romTuple.RomPath!;
+                            string romName = romTuple.Name!;
 
                             string filteredRomPath = Path.GetFileNameWithoutExtension(romPath).Replace("./", "");
 
@@ -886,7 +886,7 @@ namespace GamelistManager
                             string fileName = Path.GetFileName(mediaPath);
 
                             // Extract the parent directory from the media path
-                            string parentDirectory = Path.GetDirectoryName(mediaPath);
+                            string parentDirectory = Path.GetDirectoryName(mediaPath)!;
 
                             // Extract the file extension
                             string fileExtension = Path.GetExtension(fileName);
@@ -1091,7 +1091,7 @@ namespace GamelistManager
                 {
                     continue;
                 }
-                
+
                 if (delete)
                 {
                     // Just delete the file
@@ -1143,11 +1143,11 @@ namespace GamelistManager
             var fileNames = unusedItems.Select(item => item.FileName).ToList();
 
             Mouse.OverrideCursor = Cursors.Wait;
-            
+
             BackupMedia(SharedData.CurrentSystem, fileNames, "unused", delete);
-            
+
             Mouse.OverrideCursor = null;
-            
+
             foreach (var item in unusedItems)
             {
                 _mediaCleanupCollection.Remove(item);
@@ -1204,7 +1204,7 @@ namespace GamelistManager
 
             await ClearMediaPathsAsync(relativePaths);
             progressBar_ProgressBar2.IsIndeterminate = false;
-                        
+
             button_FixBad.IsEnabled = false;
             SharedData.DataSet.AcceptChanges();
 
@@ -1241,7 +1241,7 @@ namespace GamelistManager
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            TextSearch.ClearCache(); 
+            TextSearch.ClearCache();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -1280,7 +1280,7 @@ namespace GamelistManager
                 return;
             }
 
-            if (comboBox_MediaTypes.Items[0] == "<choose>")
+            if (comboBox_MediaTypes.Items[0].ToString() == "<choose>")
             {
                 comboBox_MediaTypes.SelectedIndex = 1;
                 comboBox_MediaTypes.Items.RemoveAt(0);

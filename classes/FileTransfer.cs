@@ -4,7 +4,7 @@ using System.Net.Http;
 
 namespace GamelistManager.classes
 {
-     internal static class FileTransfer
+    internal static class FileTransfer
     {
         public static async Task<bool> DownloadFile(bool verify, bool overWriteExistingFile, string fileDownloadPath, string url)
         {
@@ -53,15 +53,15 @@ namespace GamelistManager.classes
             }
             catch
             {
-            // Handle any exceptions that occur during the download
-            if (File.Exists(fileDownloadPath))
-            {
-                File.Delete(fileDownloadPath); // Clean up the file if an error occurred
-            }
+                // Handle any exceptions that occur during the download
+                if (File.Exists(fileDownloadPath))
+                {
+                    File.Delete(fileDownloadPath); // Clean up the file if an error occurred
+                }
 
                 return false;
             }
-            
+
             string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico", ".webp" };
 
             if (verify && imageExtensions.Contains(fileExtension))

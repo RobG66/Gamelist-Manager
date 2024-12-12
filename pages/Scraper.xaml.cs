@@ -334,7 +334,7 @@ namespace GamelistManager.pages
             _lastScraper = _currentScraper;
 
             checkBox_ScrapeFromCache.IsEnabled = true;
-            
+
             if (_currentScraper == "ArcadeDB")
             {
                 button_Setup.IsEnabled = false;
@@ -400,7 +400,7 @@ namespace GamelistManager.pages
 
         private void StopScraping(string message)
         {
-        
+
             button_Stop.IsEnabled = false;
             TextSearch.ClearCache();
 
@@ -488,7 +488,7 @@ namespace GamelistManager.pages
             // Create bool values based on gui element state
             bool scrapeAll = button_AllOrSelected.Content.ToString() == "All Items";
             bool scrapeHidden = checkBox_ScrapeHidden.IsChecked == true;
-          
+
             // All or selected based on scrapeAll bool
             var datagridRowSelection = scrapeAll
             ? _mainWindow.MainDataGrid.Items.OfType<DataRowView>().ToList()
@@ -744,7 +744,7 @@ namespace GamelistManager.pages
             baseScraperParameters.CacheFolder = cacheFolder;
             baseScraperParameters.ScrapeByGameID = false;
             baseScraperParameters.Verify = Properties.Settings.Default.VerifyDownloadedImages;
-          
+
             // Zero daily scrape counters
             int scrapeLimitMax = 0;
             int scrapeLimitProgress = 0;

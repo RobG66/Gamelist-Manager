@@ -15,14 +15,14 @@ namespace GamelistManager.classes
         public async Task<bool> ScrapeEmuMoviesAsync(DataRowView rowView, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
         {
             var elementsToScrape = scraperParameters.ElementsToScrape!;
-        
+
             foreach (string element in elementsToScrape)
             {
                 switch (element)
                 {
                     case "fanart":
                         await DownloadFile(rowView, "fanart", "Fan Art", "Background", scraperParameters, mediaLists);
-                    break;
+                        break;
 
                     case "boxback":
                         await DownloadFile(rowView, "boxback", "Box Back", "BoxBack", scraperParameters, mediaLists);
@@ -76,10 +76,10 @@ namespace GamelistManager.classes
                     break;
                 }
             }
-                       
+
             return result;
-        }        
-        
+        }
+
         private async Task DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
         {
 
@@ -104,8 +104,9 @@ namespace GamelistManager.classes
             }
 
             string fileFormat = Path.GetExtension(remoteFileName);
-            
-            if (string.IsNullOrEmpty(fileFormat)) {
+
+            if (string.IsNullOrEmpty(fileFormat))
+            {
                 return;
             }
 
@@ -113,7 +114,7 @@ namespace GamelistManager.classes
             string destinationFolder = mediaPaths[mediaName];
             string parentFolderPath = scraperParameters.ParentFolderPath!;
             bool verify = scraperParameters.Verify;
-            bool overwrite = scraperParameters.OverwriteMedia;      
+            bool overwrite = scraperParameters.OverwriteMedia;
 
             if (mediaName == "thumbnail")
             {
@@ -126,7 +127,7 @@ namespace GamelistManager.classes
 
             string downloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
             bool result = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, downloadURL);
-          
+
             // Music can be downloaded, but I do not create gamelist entries for it
             if (mediaType == "music")
             {
