@@ -1,6 +1,9 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
 
+December 20th, 2024 - I am working to implement media drag/drop similar to the older Winforms version.  It's not difficult, just time consuming.  
+
+
 December 12th, 2024 - Version 7.4 non beta is released.  I realized that Title Shot was missing for screenscraper scrapes so I added it.  A few fixes here and there.  I'm not going to do anything with scrape dates any more since I don't find them particularily useful and it's too much work for so little value.  I do want to add media drag/drop back at some point....   
 
 
