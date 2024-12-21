@@ -1,5 +1,9 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
+
+December 21st, 2024.  I added a donation link at the top of the read me.  It's been about a year since I started this project and there are still things I want to do with it.  I've never asked for anything before - it was never my expectation or intent.  The program will never be paywalled.  But sometimes a person needs help....        
+
 
 December 20th, 2024 - I am working to implement media drag/drop similar to the older Winforms version.  It's not difficult, just time consuming.  
 
