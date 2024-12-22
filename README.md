@@ -1,6 +1,6 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
-https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
+Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 Sneak peak of WIP:
 ![image](https://github.com/user-attachments/assets/3fce76b1-6114-438f-b8bd-b0127de59a87)
