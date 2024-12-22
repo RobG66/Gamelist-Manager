@@ -2,6 +2,12 @@
 
 https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+Sneak peak of WIP:
+![image](https://github.com/user-attachments/assets/3fce76b1-6114-438f-b8bd-b0127de59a87)
+
+
+
+
 December 21st, 2024.  I added a donation link at the top of the read me.  It's been about a year since I started this project and there are still things I want to do with it.  I've never asked for anything before - it was never my expectation or intent.  The program will never be paywalled.  But sometimes a person needs help....        
 
 
