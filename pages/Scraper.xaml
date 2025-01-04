@@ -186,8 +186,17 @@
             </Grid>
         </Grid>
         <Border Grid.Column="3" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,0">
-            <Grid Width="200" Height="Auto">
-                
+            <Grid Width="Auto" Height="Auto">
+
+
+                <ListBox x:Name="LogListBox" Margin="2">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Message}" Foreground="{Binding Color}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
             </Grid>
         </Border>
     </Grid>

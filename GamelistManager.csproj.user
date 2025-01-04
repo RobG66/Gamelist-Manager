@@ -7,6 +7,9 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="controls\MediaEditButtons.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="pages\MediaDisplay.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -27,6 +30,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="controls\MediaEditButtons.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

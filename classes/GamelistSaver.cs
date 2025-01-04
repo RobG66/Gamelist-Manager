@@ -12,8 +12,6 @@ namespace GamelistManager.classes
         {
 
             // Create a map of XML element names to dataset column names
-            MetaDataList metaDataList = new MetaDataList();
-            var typeToNameMap = CreateNameToTypeMap(metaDataList);
 
             List<string> savedItems = new List<string>();
 
@@ -73,7 +71,7 @@ namespace GamelistManager.classes
 
                             // Update the XML elements based on dataset values
 
-                            foreach (var item in typeToNameMap)
+                            foreach (var item in GamelistMetaData.NameToTypeMap)
                             {
                                 string elementName = item.Key;
                                 string columnName = item.Value;
@@ -140,7 +138,7 @@ namespace GamelistManager.classes
                             writer.WriteAttributeString("id", gameId.ToString());
                         }
 
-                        foreach (var item in typeToNameMap)
+                        foreach (var item in GamelistMetaData.NameToTypeMap)
                         {
                             string elementName = item.Key;
                             string columnName = item.Value;
@@ -271,16 +269,6 @@ namespace GamelistManager.classes
         private static XDocument LoadXmlDocument(string xmlFilename)
         {
             return XDocument.Load(xmlFilename);
-        }
-
-        // Create a mapping from XML element names to dataset column names
-        private static Dictionary<string, string> CreateNameToTypeMap(MetaDataList metaDataList)
-        {
-            return metaDataList.GetMetaDataDictionary()
-                .ToDictionary(
-                    kvp => kvp.Value.Type,  // Element name
-                    kvp => kvp.Value.Name   // Dataset column name
-                );
         }
     }
 }

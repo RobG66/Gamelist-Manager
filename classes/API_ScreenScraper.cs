@@ -1,5 +1,7 @@
 ﻿using System.Data;
 using System.IO;
+using System.Net.Http;
+using System.Text;
 using System.Xml;
 
 namespace GamelistManager.classes
@@ -10,18 +12,44 @@ namespace GamelistManager.classes
         private readonly string devId = "";
         private readonly string devPassword = "";
         private readonly string software = "GamelistManager";
+        private readonly HttpClient _httpClientService;
+        private readonly FileTransfer _fileTransfer;
+
+        public API_ScreenScraper(HttpClient httpClientService)
+        {
+            _httpClientService = httpClientService;
+            _fileTransfer = new FileTransfer(_httpClientService);
+        }
+
+        public async Task<string> ConvertHttpResponseMessageToString(HttpResponseMessage httpResponse)
+        {
+            // Ensure the response is successful
+            httpResponse.EnsureSuccessStatusCode();
+
+            // Read the response content as a byte array asynchronously
+            var responseBytes = await httpResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+            // Convert the byte array to a UTF-8 string
+            string responseString = Encoding.UTF8.GetString(responseBytes);
+
+            // Return the XML content as a string
+            return responseString;
+        }
+
 
         public async Task<int> GetMaxThreadsAsync(string userID, string userPassword)
         {
             string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={userID}&sspassword={userPassword}";
-            string xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
 
-            if (!string.IsNullOrEmpty(xmlResponse))
+            HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+            string responseString = await ConvertHttpResponseMessageToString(httpResponse);
+
+            if (!string.IsNullOrEmpty(responseString))
             {
                 try
                 {
                     XmlDocument xmlUserData = new XmlDocument();
-                    xmlUserData.LoadXml(xmlResponse);
+                    xmlUserData.LoadXml(responseString);
                     XmlNode? xmlNode = xmlUserData.SelectSingleNode("//ssuser/maxthreads");
                     if (xmlNode == null)
                     {
@@ -46,8 +74,11 @@ namespace GamelistManager.classes
         {
             // Return boolean true or false if authentication is successful
             string url = $"{apiURL}/ssuserInfos.php?devid={devId}&devpassword={devPassword}&softname={software}&output=xml&ssid={userID}&sspassword={userPassword}";
-            string xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
-            if (string.IsNullOrEmpty(xmlResponse))
+
+            HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+            string responseString = await ConvertHttpResponseMessageToString(httpResponse);
+
+            if (string.IsNullOrEmpty(responseString))
             {
                 return false;
             }
@@ -55,7 +86,7 @@ namespace GamelistManager.classes
             try
             {
                 XmlDocument xmlUserData = new XmlDocument();
-                xmlUserData.LoadXml(xmlResponse);
+                xmlUserData.LoadXml(responseString);
                 XmlNode? xmlNode = xmlUserData.SelectSingleNode("//ssuser/id");
                 if (xmlNode == null)
                 {
@@ -106,53 +137,70 @@ namespace GamelistManager.classes
 
         public async Task<Tuple<int, int>> ScrapeScreenScraperAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
-            string romName = scraperParameters.RomFileNameWithoutExtension!;
+            string romFileNameWithoutExtension = scraperParameters.RomFileNameWithoutExtension!;
             string cacheFolder = scraperParameters.CacheFolder!;
             bool scrapeByCache = scraperParameters.ScrapeByCache;
             bool skipNonCached = scraperParameters.SkipNonCached;
             bool cachedInfo = false;
-            string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={romName}";
+            string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={romFileNameWithoutExtension}";
             string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
 
-            string xmlResponse = string.Empty;
+            string responseString = string.Empty;
 
             // Scrape by cache if selected
             if (scrapeByCache)
             {
-                xmlResponse = ReadXmlFromCache(romName, cacheFolder);
-                if (string.IsNullOrEmpty(xmlResponse) && skipNonCached)
+                responseString = ReadXmlFromCache(romFileNameWithoutExtension, cacheFolder);
+                if (string.IsNullOrEmpty(responseString) && skipNonCached)
                 {
                     return null!;
                 }
                 cachedInfo = true;
             }
 
-            if (string.IsNullOrEmpty(xmlResponse))
+            if (string.IsNullOrEmpty(responseString))
             {
                 cachedInfo = false;
-                xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
 
+                try
+                {
+                    HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                    responseString = await ConvertHttpResponseMessageToString(httpResponse);
+                }
+                catch
+                {
+                    responseString = string.Empty;
+                }
 
-                if (string.IsNullOrEmpty(xmlResponse))
+                if (string.IsNullOrEmpty(responseString))
                 {
                     // Try one more time with the name of the rom file
-                    string metaName = scraperParameters.Name!;
-                    scrapInfo = $"&romtype=rom&romnom={metaName}";
+                    string romName = scraperParameters.Name!;
+                    scrapInfo = $"&romtype=rom&romnom={romName}";
                     url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
-                    xmlResponse = await GetXMLResponse.GetXMLResponseAsync(string.Empty, url);
+
+                    try
+                    {
+                        HttpResponseMessage httpResponse2 = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                        responseString = await ConvertHttpResponseMessageToString(httpResponse2);
+                    }
+                    catch
+                    {
+                        responseString = string.Empty;
+                    }
                 }
 
                 // If it's still null, failed.
-                if (string.IsNullOrEmpty(xmlResponse))
+                if (string.IsNullOrEmpty(responseString))
                 {
                     return (null!);
                 }
 
-                SaveXmlToCacheFile(xmlResponse, cacheFolder, romName);
+                SaveXmlToCacheFile(responseString, cacheFolder, romFileNameWithoutExtension);
             }
 
             XmlDocument xmlData = new XmlDocument();
-            xmlData.LoadXml(xmlResponse);
+            xmlData.LoadXml(responseString);
 
             int scrapeTotal = 0;
             int scrapeMax = 0;
@@ -177,7 +225,6 @@ namespace GamelistManager.classes
             var elementsToScrape = scraperParameters.ElementsToScrape!;
             bool overwriteMetaData = scraperParameters.OverwriteMetadata;
             XmlNode? mediasNode = xmlData.SelectSingleNode("/Data/jeu/medias");
-            bool downloadSuccessful = false;
 
             foreach (string element in elementsToScrape)
             {
@@ -281,15 +328,15 @@ namespace GamelistManager.classes
                         break;
 
                     case "thumbnail":
-                        await DownloadFile(rowView, "thumbnail", "Box", scraperParameters.BoxSource!, scraperParameters, mediasNode!);
+                        await DownloadFile(rowView, "thumbnail", "Thumbnail", scraperParameters.BoxSource!, scraperParameters, mediasNode!);
                         break;
 
                     case "marquee":
                         string logosource = scraperParameters.LogoSource!;
-                        downloadSuccessful = await DownloadFile(rowView, "marquee", "Logo", scraperParameters.LogoSource!, scraperParameters, mediasNode!);
+                        bool downloadSuccessful = await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.LogoSource!, scraperParameters, mediasNode!);
                         if (logosource == "wheel-hd" && downloadSuccessful == false)
                         {
-                            await DownloadFile(rowView, "marquee", "Logo", "wheel", scraperParameters, mediasNode!);
+                            await DownloadFile(rowView, "marquee", "Marquee", "wheel", scraperParameters, mediasNode!);
                         }
                         break;
 
@@ -331,18 +378,16 @@ namespace GamelistManager.classes
             bool overwriteMedia = scraperParameters.OverwriteMedia;
 
             var currentValue = rowView[mediaType];
-            if (currentValue != DBNull.Value && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
+            if (currentValue != DBNull.Value && currentValue != null && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
             {
                 return false;
             }
 
-            string name = scraperParameters.Name!;
             string romFileNameWithoutExtension = scraperParameters.RomFileNameWithoutExtension!;
             var mediaPaths = scraperParameters.MediaPaths!;
             string destinationFolder = mediaPaths[mediaName];
             string parentFolderPath = scraperParameters.ParentFolderPath!;
             bool verify = scraperParameters.Verify;
-            bool overwrite = scraperParameters.OverwriteMedia;
 
             if (mediaName == "thumbnail")
             {
@@ -353,7 +398,7 @@ namespace GamelistManager.classes
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
 
-            bool downloadSuccessful = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, downloadURL);
+            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL);
             if (downloadSuccessful)
             {
                 rowView[mediaType] = $"./{destinationFolder}/{fileName}";

@@ -129,9 +129,13 @@ namespace GamelistManager
             // Normalize the search name
             string normalizedSearchName = NormalizeText(searchName);
 
-            // Attempt to find the match in the cached normalized dictionary
-            return CachedNormalizedLists[cacheKey]
-                .FirstOrDefault(x => x.Key == normalizedSearchName).Value ?? string.Empty;
+            // Attempt to find the match using TryGetValue
+            if (CachedNormalizedLists[cacheKey].TryGetValue(normalizedSearchName, out var originalName))
+            {
+                return originalName;
+            }
+
+            return string.Empty;
         }
 
         // Clear all caches

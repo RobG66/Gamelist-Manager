@@ -28,10 +28,9 @@ namespace GamelistManager
         bool _autosizeColumns = true;
         private DispatcherTimer _dataGridSelectionChangedTimer;
         private DataRowView _pendingSelectedRow = null!;
-        private Scraper _scraper;
         private MediaDisplay _mediaDisplay;
         private JukeBoxWindow _jukeBoxWindow = null!;
-
+        private Scraper _scraper;
 
         public MainWindow()
         {
@@ -43,12 +42,12 @@ namespace GamelistManager
                 Interval = TimeSpan.FromMilliseconds(500) // Set the delay interval
             };
 
-            _mediaDisplay = new MediaDisplay();
-            _scraper = new Scraper(this);
             _dataGridSelectionChangedTimer.Tick += DataGridSelectionChangedTimer_Tick;
             SharedData.ProgramDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
             SharedData.InitializeChangeTracker();
             SharedData.ChangeTracker!.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
+            _mediaDisplay = new MediaDisplay();
+            _scraper = new Scraper(this);
         }
 
         private void ChangeTracker_UndoRedoStateChanged(object sender, EventArgs e)
@@ -243,7 +242,7 @@ namespace GamelistManager
 
             // Set default states
             stackPanel_Filters.IsEnabled = true;
-            // blah fix
+            // blah fix - shit I forgot what I was supposed to fix!
             textBox_CustomFilter.Text = string.Empty;
             menuItem_Reload.IsEnabled = true;
             menuItem_Save.IsEnabled = true;
@@ -274,6 +273,7 @@ namespace GamelistManager
             SharedData.IsDataChanged = false;
 
             UpdateSearchAndReplaceCombobox();
+            SetEditMode(false);
 
             _scraper.button_Start.IsEnabled = true;
             _scraper.button_ClearCache.IsEnabled = false;
@@ -321,21 +321,20 @@ namespace GamelistManager
                         ColumnDescription = string.IsNullOrEmpty(column.Header.ToString()) ? propertyName : column.Header.ToString()
                     };
                 });
-            // blah
+
             string previousText = comboBox_Columns.Text;
-            comboBox_Columns.ItemsSource = null;
-            // Bind the ComboBox to the list of visible columns
-            comboBox_Columns.ItemsSource = visibleColumns.ToList();
-            comboBox_Columns.DisplayMemberPath = "ColumnDescription"; // Display column description (or name if no description)
-            comboBox_Columns.SelectedValuePath = "ColumnName";        // The value will be the column name
+            comboBox_Columns.Items.Clear();
 
-            var searchForText = comboBox_Columns.ItemsSource
-            .OfType<dynamic>()
-            .FirstOrDefault(item => item.ColumnDescription == previousText);
-
-            if (searchForText != null)
+            foreach (var item in visibleColumns)
             {
-                comboBox_Columns.SelectedValue = searchForText.ColumnName;
+                comboBox_Columns.Items.Add(item.ColumnName);
+            }
+            comboBox_Columns.Items.Add("Description");
+
+
+            if (comboBox_Columns.Items.Contains(previousText))
+            {
+                comboBox_Columns.Text = previousText;
             }
             else
             {
@@ -365,9 +364,7 @@ namespace GamelistManager
         {
             // The metadata has a property 'AlwaysVisible' for columns
             // which should always be visible in the datagrid.
-            MetaDataList metaDataList = new MetaDataList();
-            var metaDataDictionary = metaDataList.GetMetaDataDictionary();
-            var alwaysVisible = metaDataDictionary.Values
+            var alwaysVisible = GamelistMetaData.GetMetaDataDictionary().Values
             .Where(decl => decl.AlwaysVisible)
             .Select(decl => decl.Name)
             .ToList();
@@ -800,10 +797,7 @@ namespace GamelistManager
 
             if (menuItem.Name == "menuItem_MediaPaths")
             {
-                MetaDataList metaDataList = new MetaDataList();
-                var metaDataDictionary = metaDataList.GetMetaDataDictionary();
-
-                var mediaItems = metaDataDictionary.Values
+                var mediaItems = GamelistMetaData.GetMetaDataDictionary().Values
                     .Where(decl => decl.DataType == MetaDataType.Image ||
                                    decl.DataType == MetaDataType.Video ||
                                    decl.DataType == MetaDataType.Music ||
@@ -825,7 +819,7 @@ namespace GamelistManager
                 menuItem_ColumnAutoSize.IsChecked = !isMenuItemChecked;
                 _autosizeColumns = !isMenuItemChecked;
                 AdjustDataGridColumnWidths(MainDataGrid);
-
+                UpdateSearchAndReplaceCombobox();
                 return;
             }
 
@@ -979,7 +973,7 @@ namespace GamelistManager
 
         }
 
-         
+
         private void SearchAndReplace_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Search And Replace clicked");
@@ -1061,7 +1055,7 @@ namespace GamelistManager
 
             try
             {
-                ProcessStartInfo psi = new ProcessStartInfo(sshPath)
+                ProcessStartInfo psi = new(sshPath)
                 {
                     Arguments = $"-t {userName}@{hostName}",
                     UseShellExecute = true,
@@ -1070,7 +1064,7 @@ namespace GamelistManager
                     CreateNoWindow = false // Set this to false to see the terminal window
                 };
 
-                Process process = new Process { StartInfo = psi };
+                Process process = new() { StartInfo = psi };
                 process.Start();
 
             }
@@ -1226,76 +1220,15 @@ namespace GamelistManager
 
             textBox_Description.Text = _pendingSelectedRow["Description"] is DBNull ? string.Empty : _pendingSelectedRow?["Description"]?.ToString() ?? string.Empty;
 
+
             if (button_Media.Content.ToString() == "Hide Media" && _pendingSelectedRow != null)
             {
-                ShowMedia(_pendingSelectedRow);
+                _mediaDisplay.ShowMedia(_pendingSelectedRow);
             }
 
         }
 
-        private void ShowMedia(DataRowView selectedRow)
-        {
-            if (button_Media.Content.ToString() == "Show Media")
-            {
-                return;
-            }
 
-            bool mediaDisplayed = false;
-            _pendingSelectedRow = null!;
-
-            MetaDataList metaDataList = new MetaDataList();
-            var metaDataDictionary = metaDataList.GetMetaDataDictionary();
-
-            var imageItems = metaDataDictionary
-                .Where(entry => entry.Value.DataType == MetaDataType.Image)
-                .Select(entry => entry.Value.Name)
-                .ToList();
-
-            _mediaDisplay.ClearContent();
-
-            foreach (var item in imageItems)
-            {
-                string columnName = item;
-                if (!selectedRow.Row.Table.Columns.Contains(columnName))
-                {
-                    continue;
-                }
-
-                var value = selectedRow[columnName];
-                string cellValue = value.ToString() ?? string.Empty;
-
-                if (string.IsNullOrEmpty(cellValue))
-                {
-                    continue;
-                }
-
-                string imagePath = Path.Combine(_parentFolderPath!, cellValue.TrimStart('.', '/').Replace('/', '\\'));
-
-                // File exist checking is now done in the page
-                _mediaDisplay.DisplayImage(imagePath, columnName);
-                mediaDisplayed = true;
-
-            }
-
-            var videoValue = selectedRow["Video"];
-            string videoFileName = videoValue.ToString() ?? string.Empty;
-
-            if (!string.IsNullOrEmpty(videoFileName))
-            {
-                string videoPath = Path.Combine(_parentFolderPath!, videoFileName.TrimStart('.', '/').Replace('/', '\\'));
-
-                // File exist checking is now done in the page
-                _mediaDisplay.DisplayVideo(videoPath, "Video");
-                mediaDisplayed = true;
-            }
-
-            if (!mediaDisplayed)
-            {
-                string noMediaImagePath = "pack://application:,,,/Resources/nomedia.png";
-                _mediaDisplay.DisplayImage(noMediaImagePath, string.Empty);
-            }
-            _mediaDisplay.FadeIn();
-        }
 
         private void Export_Click(object sender, RoutedEventArgs e)
         {
@@ -1587,7 +1520,7 @@ namespace GamelistManager
             menuItem_SetAllHidden.Header = (selectedItemCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
             menuItem_RemoveItem.Header = (selectedItemCount < 2) ? "Remove Item" : "Remove Selected Items";
             menuItem_ResetName.Header = (selectedItemCount < 2) ? "Reset Name" : "Reset Selected Names";
-                        
+
             if (selectedItemCount == 1)
             {
                 menuItem_SetAllGenreVisible.IsEnabled = true;
@@ -1777,11 +1710,32 @@ namespace GamelistManager
             .OfType<DataGridTextColumn>()
             .FirstOrDefault(c => c.Header.ToString() == "Name")?.IsReadOnly ?? false;
 
-            bool editMode = !readOnly;
+            bool editMode = readOnly;
+            SharedData.EditMode = editMode;
+            SetEditMode(editMode);
 
-            MetaDataList metaDataList = new MetaDataList();
-            var metaDataDictionary = metaDataList.GetMetaDataDictionary();
-            var editible = metaDataDictionary.Values
+            if (button_Media.Content.ToString() == "Hide Media")
+            {
+                if (MainDataGrid.SelectedItems.Count == 0 && MainDataGrid.Items.Count > 0)
+                {
+                    MainDataGrid.SelectedIndex = 0; // Select the first row
+                }
+
+                // Get the first selected row
+                DataRowView? selectedRow = MainDataGrid.SelectedItems
+                .OfType<DataRowView>()
+                .FirstOrDefault();
+
+                _mediaDisplay.ShowMedia(selectedRow!);
+            }
+
+        }
+
+        private void SetEditMode(bool editMode)
+        {
+            editMode = !editMode;
+
+            var editible = GamelistMetaData.GetMetaDataDictionary().Values
             .Where(decl => decl.editible)
             .Select(decl => decl.Name)
             .ToList();
@@ -1799,8 +1753,11 @@ namespace GamelistManager
                 }
             }
 
-            textBox_Description.IsReadOnly = false;
+            textBox_Description.IsReadOnly = editMode;
             textBox_Description.Foreground = editMode ? Brushes.Black : Brushes.Blue;
+
+            EditModeIndicator.Text = editMode ? "Off" : "On";
+            EditModeIndicator.Foreground = editMode ? Brushes.Red : Brushes.Green;
 
         }
 
@@ -1909,7 +1866,7 @@ namespace GamelistManager
                 textBox_CustomFilter.Text = string.Empty;
                 comboBox_CustomFilter.SelectedIndex = 0;
 
-                ApplyFilters(new string[] { _visibilityFilter, _genreFilter });
+                ApplyFilters([_visibilityFilter, _genreFilter]);
             }
         }
 
@@ -2155,7 +2112,6 @@ namespace GamelistManager
             if (MainContentFrame.Content == _mediaDisplay)
             {
                 _mediaDisplay.StopPlaying();
-                _mediaDisplay.ClearContent();
             }
 
             button_Media.Content = "Show Media";
@@ -2219,13 +2175,18 @@ namespace GamelistManager
                 MainGrid.RowDefinitions[3].Height = new GridLength(235);
                 gridSplitter_Horizontal.Visibility = Visibility.Visible;
 
-                var selectedRow = MainDataGrid.SelectedItems.OfType<DataRowView>().FirstOrDefault();
-
-                if (selectedRow != null)
+                if (MainDataGrid.SelectedItems.Count == 0 && MainDataGrid.Items.Count > 0)
                 {
-                    DataRowView dataRowView = (DataRowView)MainDataGrid.SelectedItems[0]!;
-                    ShowMedia(dataRowView);
+                    MainDataGrid.SelectedIndex = 0; // Select the first row
                 }
+
+                // Get the first selected row
+                DataRowView? selectedRow = MainDataGrid.SelectedItems
+                .OfType<DataRowView>()
+                .FirstOrDefault();
+
+                _mediaDisplay.ShowMedia(selectedRow!);
+
             }
             else
             {
@@ -2234,7 +2195,6 @@ namespace GamelistManager
                 if (_mediaDisplay != null)
                 {
                     _mediaDisplay.StopPlaying();
-                    _mediaDisplay.ClearContent();
                 }
             }
         }
@@ -2979,7 +2939,7 @@ namespace GamelistManager
 
             int index = 0;
 
-            if (menuItem.Name == "menuItem_ClearAllMediaPaths")
+            if (menuItem?.Name == "menuItem_ClearAllMediaPaths")
             {
                 if (MainDataGrid.Items.Count == 0)
                 {
@@ -3022,10 +2982,7 @@ namespace GamelistManager
 
             SharedData.ChangeTracker!.StartBulkOperation();
 
-            MetaDataList metaDataList = new MetaDataList();
-            var metaDataDictionary = metaDataList.GetMetaDataDictionary();
-
-            var mediaItems = metaDataDictionary.Values
+            var mediaItems = GamelistMetaData.GetMetaDataDictionary().Values
                     .Where(decl => decl.DataType == MetaDataType.Image ||
                                    decl.DataType == MetaDataType.Video ||
                                    decl.DataType == MetaDataType.Music ||

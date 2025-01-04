@@ -12,21 +12,17 @@
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>7.4</FileVersion>
+    <FileVersion>7.5</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="cache\**" />
-    <Compile Remove="controls\**" />
     <Compile Remove="Resources\flags\**" />
     <EmbeddedResource Remove="cache\**" />
-    <EmbeddedResource Remove="controls\**" />
     <EmbeddedResource Remove="Resources\flags\**" />
     <None Remove="cache\**" />
-    <None Remove="controls\**" />
     <None Remove="Resources\flags\**" />
     <Page Remove="cache\**" />
-    <Page Remove="controls\**" />
     <Page Remove="Resources\flags\**" />
   </ItemGroup>
 
@@ -469,6 +465,7 @@
   <ItemGroup>
     <PackageReference Include="CredentialManagement" Version="1.0.2" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.9.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.11" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
@@ -535,7 +532,7 @@
     <Resource Include="resources\buttons\x-button.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\checkmark.png">
+    <Resource Include="Resources\buttons\checkmark.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\close.png">

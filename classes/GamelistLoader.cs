@@ -26,10 +26,7 @@ namespace GamelistManager.classes
                 return null!;
             }
 
-            MetaDataList metaDataList = new MetaDataList();
-            var metaDataDictionary = metaDataList.GetMetaDataDictionary();
-
-            var viewableMetaData = metaDataDictionary.Values
+            var viewableMetaData = GamelistMetaData.GetMetaDataDictionary().Values
                 .Where(decl => decl.Viewable)
                 .ToList();
 
@@ -98,7 +95,7 @@ namespace GamelistManager.classes
 
                             if (destinationColumnName == "Release Date")
                             {
-                                string formattedDate = ISO8601Converter.ConvertFromISO8601(sourceValue.ToString());
+                                string formattedDate = ISO8601Converter.ConvertFromISO8601(sourceValue.ToString()!);
                                 if (!string.IsNullOrEmpty(formattedDate))
                                 {
                                     destinationRow[destinationColumnName] = formattedDate;

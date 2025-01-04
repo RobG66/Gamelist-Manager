@@ -1,7 +1,7 @@
-﻿using GamelistManager.classes.GamelistManager;
-using System.Data;
+﻿using System.Data;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,8 +9,17 @@ namespace GamelistManager.classes
 {
     internal class API_EmuMovies
     {
-        private readonly string apiURL = "http://api3.emumovies.com/api";
-        private readonly string bearerToken = "";
+        private readonly string _apiURL = "http://api3.emumovies.com/api";
+        private readonly string _bearerToken = "";
+        private readonly HttpClient _httpClientService;
+        private readonly FileTransfer _fileTransfer;
+
+        public API_EmuMovies(HttpClient httpClientService)
+        {
+            _httpClientService = httpClientService;
+            _fileTransfer = new FileTransfer(_httpClientService);
+        }
+
 
         public async Task<bool> ScrapeEmuMoviesAsync(DataRowView rowView, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
         {
@@ -45,11 +54,11 @@ namespace GamelistManager.classes
                         break;
 
                     case "thumbnail":
-                        await DownloadFile(rowView, "thumbnail", "Box", scraperParameters.BoxSource!, scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "thumbnail", "Thumbnail", scraperParameters.BoxSource!, scraperParameters, mediaLists);
                         break;
 
                     case "marquee":
-                        await DownloadFile(rowView, "marquee", "Logo", scraperParameters.LogoSource!, scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.LogoSource!, scraperParameters, mediaLists);
                         break;
 
                     case "cartridge":
@@ -82,11 +91,12 @@ namespace GamelistManager.classes
 
         private async Task DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
         {
+            await Task.Delay(5); // There needs to be a delay because the gui cannot keep up!
 
             bool overwriteMedia = scraperParameters.OverwriteMedia;
 
             var currentValue = rowView[mediaType];
-            if (currentValue != DBNull.Value && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
+            if (currentValue != DBNull.Value && currentValue != null && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
             {
                 return;
             }
@@ -114,7 +124,6 @@ namespace GamelistManager.classes
             string destinationFolder = mediaPaths[mediaName];
             string parentFolderPath = scraperParameters.ParentFolderPath!;
             bool verify = scraperParameters.Verify;
-            bool overwrite = scraperParameters.OverwriteMedia;
 
             if (mediaName == "thumbnail")
             {
@@ -125,8 +134,8 @@ namespace GamelistManager.classes
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
 
-            string downloadURL = $"{apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-            bool result = await FileTransfer.DownloadFile(verify, overwrite, fileToDownload, downloadURL);
+            string downloadURL = $"{_apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
+            bool downloadResult = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL);
 
             // Music can be downloaded, but I do not create gamelist entries for it
             if (mediaType == "music")
@@ -134,7 +143,7 @@ namespace GamelistManager.classes
                 return;
             }
 
-            if (result)
+            if (downloadResult)
             {
                 rowView[mediaType] = $"./{destinationFolder}/{fileName}";
             }
@@ -148,7 +157,7 @@ namespace GamelistManager.classes
                 password
             };
 
-            string url = $"{apiURL}/User/authenticate";
+            string url = $"{_apiURL}/User/authenticate";
 
             var options = new JsonSerializerOptions
             {
@@ -160,14 +169,10 @@ namespace GamelistManager.classes
             var jsonContent = JsonSerializer.Serialize(credentials, options);
             var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-            // Use the singleton instance
-            var client = HttpClientSingleton.Instance;
-            HttpClientSingleton.SetBearerToken(bearerToken);
-
-            HttpResponseMessage response = await client.PostAsync(url, content);
-            if (response.IsSuccessStatusCode)
+            var httpResponse = await _httpClientService.PostAsync(url, content);
+            if (httpResponse.IsSuccessStatusCode)
             {
-                string responseBody = await response.Content.ReadAsStringAsync();
+                string responseBody = await httpResponse.Content.ReadAsStringAsync();
                 using (JsonDocument doc = JsonDocument.Parse(responseBody))
                 {
                     JsonElement root = doc.RootElement;
@@ -186,14 +191,25 @@ namespace GamelistManager.classes
 
         public async Task<List<string>> GetMediaTypes(string system)
         {
-            string url = $"{apiURL}/Media/MediaTypes?systemName={system}";
-            string jsonResponse = await GetJSONResponse.GetJsonResponseAsync(bearerToken, url);
-            if (string.IsNullOrEmpty(jsonResponse))
+            string url = $"{_apiURL}/Media/MediaTypes?systemName={system}";
+            string jsonString = string.Empty;
+            try
+            {
+                _httpClientService.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+                HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                jsonString = await httpResponse.Content.ReadAsStringAsync();
+            }
+            catch
             {
                 return null!;
             }
 
-            var mediaTypes = DeserializeJSON(jsonResponse);
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                return null!;
+            }
+
+            var mediaTypes = DeserializeJSON(jsonString);
             return mediaTypes;
         }
 
@@ -220,16 +236,29 @@ namespace GamelistManager.classes
 
         public async Task<List<string>> GetMediaList(string system, string mediaTitle)
         {
-            string url = $"{apiURL}/Media/MediaList?systemName={system}&mediaType={mediaTitle}&mediaSet=default";
-            string jsonResponse = await GetJSONResponse.GetJsonResponseAsync(bearerToken, url);
+            string jsonString = string.Empty;
 
-            if (string.IsNullOrEmpty(jsonResponse))
+            string url = $"{_apiURL}/Media/MediaList?systemName={system}&mediaType={mediaTitle}&mediaSet=default";
+
+            try
+            {
+                _httpClientService.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+                HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                jsonString = await httpResponse.Content.ReadAsStringAsync();
+            }
+            catch
             {
                 return null!;
             }
 
-            var mediaList = DeserializeJSON(jsonResponse);
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                 return null!;
+            }
+
+            var mediaList = DeserializeJSON(jsonString);
             return mediaList;
         }
+
     }
 }

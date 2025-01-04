@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 
 namespace GamelistManager.classes
@@ -7,16 +8,21 @@ namespace GamelistManager.classes
     internal class API_ArcadeDB
     {
         private readonly string apiURL = "http://adb.arcadeitalia.net/service_scraper.php";
+        private readonly HttpClient _httpClientService;
+        private readonly FileTransfer _fileTransfer;
 
-        public async Task<string> ScrapeGame(string romName)
+        public API_ArcadeDB(HttpClient httpClientService)
         {
-            string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
+            _httpClientService = httpClientService;
+            _fileTransfer = new FileTransfer(_httpClientService);
+        }
 
+        public async Task<string> ScrapeGame(string url)
+        {
             try
             {
-                // Fetch the JSON response using the GetJsonResponse class
-                string jsonResponse = await GetJSONResponse.GetJsonResponseAsync(string.Empty, url);
-                return jsonResponse;
+                HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                return await httpResponse.Content.ReadAsStringAsync();
             }
             catch
             {
@@ -103,11 +109,12 @@ namespace GamelistManager.classes
             // Scrape from website or if there was no cache file
             if (string.IsNullOrEmpty(jsonResponse))
             {
-                jsonResponse = await ScrapeGame(romName);
+                string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
+                jsonResponse = await ScrapeGame(url);
 
                 if (string.IsNullOrEmpty(jsonResponse))
                 {
-                    return false;
+                    return false; // Scrape failed
                 }
 
                 // Save json response to cache
@@ -172,7 +179,7 @@ namespace GamelistManager.classes
 
                     case "thumbnail":
                         downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.BoxSource!);
-                        await DownloadFile(downloadURL, rowView, romName, "thumbnail", "Box", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, romName, "thumbnail", "Thumbnail", scraperParameters);
                         break;
 
                     case "bezel":
@@ -192,7 +199,7 @@ namespace GamelistManager.classes
 
                     case "marquee":
                         downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.LogoSource!);
-                        await DownloadFile(downloadURL, rowView, romName, "marquee", "Logo", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, romName, "marquee", "Marquee", scraperParameters);
                         break;
 
                     case "video":
@@ -232,7 +239,7 @@ namespace GamelistManager.classes
             bool overwriteMedia = scraperParameters.OverwriteMedia;
 
             var currentValue = rowView[mediaType];
-            if (currentValue != DBNull.Value && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
+            if (currentValue != DBNull.Value && currentValue != null && !string.IsNullOrEmpty(currentValue.ToString()) && !overwriteMedia)
             {
                 return;
             }
@@ -260,8 +267,8 @@ namespace GamelistManager.classes
             string fileName = $"{romName}-{mediaName}.{extension}";
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
-            bool downloadSuccessful = await FileTransfer.DownloadFile(verify, overwriteMedia, fileToDownload, downloadURL);
 
+            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL);
             // true is a successful download
             if (downloadSuccessful)
             {

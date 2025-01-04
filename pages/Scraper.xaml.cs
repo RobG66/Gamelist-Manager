@@ -1,7 +1,11 @@
 ﻿using GamelistManager.classes;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -15,20 +19,33 @@ namespace GamelistManager.pages
     {
         private string _lastScraper = string.Empty;
         private string _currentScraper;
-        private static Stopwatch globalStopwatch = new Stopwatch();
+        private static Stopwatch _globalStopwatch = new Stopwatch();
         private Dictionary<string, List<string>> _emumoviesMediaLists = new Dictionary<string, List<string>>();
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private CancellationToken _cancellationToken => _cancellationTokenSource.Token;
-        private static Stopwatch _globalStopwatch = new Stopwatch();
+        private CancellationToken CancellationToken => _cancellationTokenSource.Token;
         private MainWindow _mainWindow;
-        private readonly object _lockObject = new object();
+        private readonly IServiceProvider _serviceProvider;
+
 
         public Scraper(MainWindow window)
         {
             InitializeComponent();
             _currentScraper = comboBox_SelectedScraper.Text;
             _mainWindow = window;
+            Logger.Instance.Initialize(LogListBox);
+            var serviceCollection = new ServiceCollection();
+            var startup = new Startup(new ConfigurationBuilder().Build());
+            startup.ConfigureServices(serviceCollection);
+            _serviceProvider = serviceCollection.BuildServiceProvider();
+
         }
+
+        private static readonly HttpClientHandler HttpClientHandler = new HttpClientHandler()
+        {
+            MaxConnectionsPerServer = 10 // Adjust this value as needed
+
+        };
+
 
         private void SaveScraperSettings(string scraper, string system)
         {
@@ -120,8 +137,7 @@ namespace GamelistManager.pages
         {
             var allCheckBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<CheckBox>(stackPanel_AllScraperCheckboxes);
 
-            MetaDataList metaDataList = new MetaDataList();
-            List<string> availableElements = metaDataList.GetScraperElements(scraper);
+            List<string> availableElements = GamelistMetaData.GetScraperElements(scraper);
 
             // Set previous checkbox states
             var propertyName = $"{scraper}_Checkboxes";
@@ -334,6 +350,7 @@ namespace GamelistManager.pages
             _lastScraper = _currentScraper;
 
             checkBox_ScrapeFromCache.IsEnabled = true;
+            checkBox_OverwriteMetadata.IsEnabled = true;
 
             if (_currentScraper == "ArcadeDB")
             {
@@ -350,8 +367,9 @@ namespace GamelistManager.pages
                 checkBox_ScrapeFromCache.IsChecked = false;
                 checkBox_OnlyScrapeFromCache.IsEnabled = false;
                 checkBox_OnlyScrapeFromCache.IsChecked = false;
+                checkBox_OverwriteMetadata.IsChecked = false;
+                checkBox_OverwriteMetadata.IsEnabled = false;
             }
-
 
             UpdateCacheCount(_currentScraper, SharedData.CurrentSystem);
 
@@ -398,14 +416,12 @@ namespace GamelistManager.pages
             StartScraping();
         }
 
-        private void StopScraping(string message)
+        private async void StopScraping(string message)
         {
-
             button_Stop.IsEnabled = false;
             TextSearch.ClearCache();
 
-            globalStopwatch.Stop();
-            label_CurrentScrape.Content = "Completed!";
+            _globalStopwatch.Stop();
             _mainWindow.menu_Main.IsEnabled = true;
             _mainWindow.stackPanel_Filters.IsEnabled = true;
             _mainWindow.stackPanel_UndoRedoButtons.IsEnabled = true;
@@ -413,8 +429,13 @@ namespace GamelistManager.pages
 
             if (!string.IsNullOrEmpty(message))
             {
-                MessageBox.Show(message, "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
                 label_CurrentScrape.Content = "Cancelled!";
+                await Logger.Instance.LogAsync(message, System.Windows.Media.Brushes.Red);
+            }
+            else
+            {
+                await Logger.Instance.LogAsync("Scraping Completed!", System.Windows.Media.Brushes.Blue);
+                label_CurrentScrape.Content = "Completed!";
             }
 
             SharedData.DataSet.AcceptChanges();
@@ -422,7 +443,6 @@ namespace GamelistManager.pages
 
             stackPanel_ScraperControls.IsEnabled = true;
             stackPanel_AllScraperCheckboxes.IsEnabled = true;
-            label_CurrentScrape.Content = "Completed!";
             UpdateCacheCount(_currentScraper, SharedData.CurrentSystem);
 
             button_Start.IsEnabled = true;
@@ -432,6 +452,13 @@ namespace GamelistManager.pages
 
         private async void StartScraping()
         {
+            await Logger.Instance.ClearLogAsync();
+                        
+            string verificationStatus = Properties.Settings.Default.VerifyDownloadedImages ? "Image verification is ON" : "Image verification is OFF";
+            await Logger.Instance.LogAsync(verificationStatus, System.Windows.Media.Brushes.Blue);
+
+
+
             stackPanel_AllScraperCheckboxes.IsEnabled = false;
 
             // ParentFolderPath string
@@ -470,19 +497,6 @@ namespace GamelistManager.pages
             {
                 StopScraping("There were no items selected!");
                 return;
-            }
-
-            // Get the media paths dictionary
-            string jsonString = Properties.Settings.Default.MediaPaths;
-            Dictionary<string, string> mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString)!;
-
-            string imagePath = mediaPaths["image"];
-            string imageFolder = $"{parentFolderPath}\\{imagePath}";
-
-            string[] imageFiles = Array.Empty<string>();
-            if (Directory.Exists(imageFolder))
-            {
-                imageFiles = Directory.GetFiles(imageFolder, "*-image.png");
             }
 
             // Create bool values based on gui element state
@@ -563,9 +577,8 @@ namespace GamelistManager.pages
                         return;
                     }
 
-                    API_EmuMovies aPI_EmuMovies = new API_EmuMovies();
-
                     // Get the user access token
+                    API_EmuMovies aPI_EmuMovies = new API_EmuMovies(new HttpClient());
                     userAccessToken = await aPI_EmuMovies.AuthenticateEmuMoviesAsync(userName, userPassword);
                     if (userAccessToken == null)
                     {
@@ -613,28 +626,33 @@ namespace GamelistManager.pages
 
                 case "ScreenScraper":
                     label_CurrentScrape.Content = "Authenticating...";
-                    Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
 
-                    elementsToScrape.Add("id");
                     (userName, userPassword) = CredentialManager.GetCredentials("ScreenScraper");
                     if (string.IsNullOrEmpty(userName))
                     {
                         StopScraping($"Credentials for {_currentScraper} are not configured");
+                        await Logger.Instance.LogAsync($"The ScreenScraper credentials are not configured", System.Windows.Media.Brushes.Red);
                         return;
                     }
 
-                    API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
-
-                    // true = success, false = fail
+                    await Logger.Instance.LogAsync($"Verifying credentials are valid...", System.Windows.Media.Brushes.Blue);
+                    Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
+                                        
+                    API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper(new HttpClient());
                     bool credCheck = await aPI_ScreenScraper.VerifyScreenScraperCredentialsAsync(userName, userPassword);
 
                     if (!credCheck)
                     {
                         StopScraping("The ScreenScraper credentials failed to logon to remote server");
+                        await Logger.Instance.LogAsync($"Logon failed, please check the credentials!", System.Windows.Media.Brushes.Red);
                         return;
                     }
 
+                    elementsToScrape.Add("id");
+
                     maxConcurrency = await aPI_ScreenScraper.GetMaxThreadsAsync(userName, userPassword);
+
+                    await Logger.Instance.LogAsync($"Max Threads: {maxConcurrency}", System.Windows.Media.Brushes.Blue);
 
                     string pattern = @"\((.*?)\)";
 
@@ -649,6 +667,8 @@ namespace GamelistManager.pages
                         }
                     }
 
+                    await Logger.Instance.LogAsync($"Region: {region}", System.Windows.Media.Brushes.Blue);
+
                     string languageValue = Properties.Settings.Default.Language;
                     language = "en"; // Default
                     if (!string.IsNullOrEmpty(languageValue))
@@ -659,6 +679,9 @@ namespace GamelistManager.pages
                             language = match.Groups[1].Value;
                         }
                     }
+
+                    await Logger.Instance.LogAsync($"Language: {language}", System.Windows.Media.Brushes.Blue);
+
                     break;
             };
 
@@ -696,8 +719,8 @@ namespace GamelistManager.pages
 
             // Setup counters 
             int scraperCount = 0;
-            int scraperErrors = 0;
             int scraperTotal = datagridRowSelection.Count();
+            await Logger.Instance.LogAsync($"Items To Scrape: {scraperTotal}", System.Windows.Media.Brushes.Blue);
             DateTime startTime = DateTime.Now;
 
             // Setup progress bar
@@ -709,14 +732,15 @@ namespace GamelistManager.pages
             label_ThreadCount.Content = maxConcurrency.ToString();
 
             // Reset timer
-            globalStopwatch.Reset();
-            globalStopwatch.Start();
+            _globalStopwatch.Reset();
+            _globalStopwatch.Start();
 
             // Reset cancellation tokensource
             _cancellationTokenSource = new CancellationTokenSource();
 
-            // Setup task list
-            var tasks = new List<Task>();
+            // Get the media paths dictionary
+            string jsonString = Properties.Settings.Default.MediaPaths;
+            Dictionary<string, string> mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString)!;
 
             // Declare basic scraper parameters
             // These do not change
@@ -745,6 +769,8 @@ namespace GamelistManager.pages
             baseScraperParameters.ScrapeByGameID = false;
             baseScraperParameters.Verify = Properties.Settings.Default.VerifyDownloadedImages;
 
+
+
             // Zero daily scrape counters
             int scrapeLimitMax = 0;
             int scrapeLimitProgress = 0;
@@ -756,21 +782,31 @@ namespace GamelistManager.pages
             button_Stop.IsEnabled = true;
 
             // Actual scraping starts here
+           
+            var serviceCollection = new ServiceCollection();
+            var startup = new Startup(new ConfigurationBuilder().Build());
+            startup.ConfigureServices(serviceCollection);
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            await Logger.Instance.LogAsync("Starting in 5 seconds!", System.Windows.Media.Brushes.Blue);
+
+            await Task.Delay(5000);
+    
+            var tasks = new List<Task>();
+
             using (var semaphore = new SemaphoreSlim(maxConcurrency))
             {
                 try
                 {
                     foreach (DataRowView rowView in datagridRowSelection)
                     {
-                        _cancellationToken.ThrowIfCancellationRequested();
-
-                        await semaphore.WaitAsync(_cancellationToken);
+                        await semaphore.WaitAsync(CancellationToken);
 
                         var task = Task.Run(async () =>
                         {
                             try
                             {
-                                _cancellationToken.ThrowIfCancellationRequested();
+                                CancellationToken.ThrowIfCancellationRequested();
 
                                 string romPath = rowView["Rom Path"].ToString()!; // Never empty
                                 string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);
@@ -785,7 +821,7 @@ namespace GamelistManager.pages
                                     progressBar_ProgressBar.Value++;
                                 });
 
-                                UpdateProgressLabels(gameName, startTime, scraperCount, scraperTotal, scraperErrors, scrapeLimitProgress, scrapeLimitMax);
+                                UpdateProgressLabels(gameName, startTime, scraperCount, scraperTotal, scrapeLimitProgress, scrapeLimitMax);
 
                                 var scraperParameters = baseScraperParameters.Clone();
                                 scraperParameters.RomFileNameWithoutExtension = romFileNameNoExtension;
@@ -794,81 +830,121 @@ namespace GamelistManager.pages
                                 scraperParameters.Name = gameName;
 
                                 bool scrapeResult = false;
+                                await Logger.Instance.LogAsync($"Scraping {romFileNameWithExtension}", System.Windows.Media.Brushes.Green);
+                                scrapeResult = false;
 
                                 switch (_currentScraper)
                                 {
                                     case "ArcadeDB":
-                                        API_ArcadeDB aPI_ArcadeDB = new API_ArcadeDB();
-                                        scrapeResult = await aPI_ArcadeDB.ScrapeArcadeDBAsync(rowView, scraperParameters);
+                                        var arcadedb_scraper = _serviceProvider.GetRequiredService<API_ArcadeDB>();
+                                        scrapeResult = await arcadedb_scraper.ScrapeArcadeDBAsync(rowView, scraperParameters);
                                         break;
 
                                     case "EmuMovies":
-                                        API_EmuMovies aPI_EmuMovies = new API_EmuMovies();
-                                        scrapeResult = await aPI_EmuMovies.ScrapeEmuMoviesAsync(rowView, scraperParameters, _emumoviesMediaLists);
+                                        var emumovies_scraper = _serviceProvider.GetRequiredService<API_EmuMovies>();
+                                        scrapeResult = await emumovies_scraper.ScrapeEmuMoviesAsync(rowView, scraperParameters, _emumoviesMediaLists);
                                         break;
 
                                     case "ScreenScraper":
-                                        API_ScreenScraper aPI_ScreenScraper = new API_ScreenScraper();
-                                        Tuple<int, int> result = await aPI_ScreenScraper.ScrapeScreenScraperAsync(rowView, scraperParameters);
+                                        var screenscraper_scraper = _serviceProvider.GetRequiredService<API_ScreenScraper>();
+                                        Tuple<int, int> result = await screenscraper_scraper.ScrapeScreenScraperAsync(rowView, scraperParameters).ConfigureAwait(false);
                                         if (result != null)
                                         {
+                                            scrapeResult = true;
                                             scrapeLimitProgress = result.Item1;
                                             scrapeLimitMax = result.Item2;
-                                            UpdateProgressLabels(gameName, startTime, scraperCount, scraperTotal, scraperErrors, scrapeLimitProgress, scrapeLimitMax);
+                                            UpdateProgressLabels(gameName, startTime, scraperCount, scraperTotal, scrapeLimitProgress, scrapeLimitMax);
                                             if (scrapeLimitProgress >= scrapeLimitMax && scrapeLimitMax > 0)
                                             {
+                                                await Logger.Instance.LogAsync($"Daily scrape limit reached!", System.Windows.Media.Brushes.Red);
                                                 _cancellationTokenSource.Cancel();
                                             }
                                         }
+                                        else
+                                        {
+                                            scrapeResult = false;
+                                        }
                                         break;
                                 }
-                                // The method is thread safe
+
+                                if (!scrapeResult)
+                                {
+                                    await Logger.Instance.LogAsync($"Could not scrape '{romFileNameWithExtension}'", System.Windows.Media.Brushes.Red);
+                                }
+                                else
+                                {
+                                    await Logger.Instance.LogAsync($"Finished scrape for {romFileNameWithExtension}", System.Windows.Media.Brushes.Green);
+                                }
+
                                 ShowOrHideCounts(true);
                             }
                             catch (OperationCanceledException)
                             {
-                                StopScraping("Scraping cancelled!");
-                                return;
+                                // Gracefully handle cancellation inside the task.
                             }
-                            catch
+                            catch (Exception ex)
                             {
-                                Interlocked.Increment(ref scraperErrors);
+                                await Logger.Instance.LogAsync($"Error: '{ex.Message}'", System.Windows.Media.Brushes.Red);
                             }
                             finally
                             {
                                 semaphore.Release();
                             }
-                        }, _cancellationToken);
+                        }, CancellationToken);
 
                         tasks.Add(task);
                     }
-
-                    await Task.WhenAll(tasks);
                 }
                 catch (OperationCanceledException)
                 {
-                    StopScraping("Scraping cancelled!");
-                    return;
+                    await Logger.Instance.LogAsync($"Scraping cancelled by user request", System.Windows.Media.Brushes.Red);
                 }
                 catch (Exception ex)
                 {
-                    StopScraping($"Unexpected error during scraping process: {ex.Message}");
-                    return;
+                    await Logger.Instance.LogAsync($"Unexpected error: {ex.Message}", System.Windows.Media.Brushes.Red);
+                }
+                finally
+                {
+                    try
+                    {
+                        // Ensure all tasks are awaited, even if canceled or failed.
+                        await Task.WhenAll(tasks);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Catch any remaining task exceptions after waiting.
+                        await Logger.Instance.LogAsync($"Error while waiting for tasks to complete: {ex.Message}", System.Windows.Media.Brushes.Red);
+                    }
+
+                    // Ensure StopScraping is always executed after all tasks finish.
+                    await Logger.Instance.LogAsync($"Total time: {FormatElapsedTime(_globalStopwatch.Elapsed)}", System.Windows.Media.Brushes.Green);
+                    
+                    // Empty message means it was ok.
+                    StopScraping(string.Empty);
                 }
             }
-            StopScraping(string.Empty);
+
+
+
         }
 
-
-        public void UpdateErrorCount(int errorCount)
+        private static string FormatElapsedTime(TimeSpan elapsed)
         {
-            Dispatcher.BeginInvoke(() =>
+            if (elapsed.TotalSeconds < 60)
             {
-                label_ScrapeErrorCount.Content = errorCount.ToString();
-            });
+                return $"{elapsed.Seconds} seconds";
+            }
+            else if (elapsed.TotalMinutes < 60)
+            {
+                return $"{elapsed.Minutes} minutes {elapsed.Seconds} seconds";
+            }
+            else
+            {
+                return $"{elapsed.Hours} hours {elapsed.Minutes} minutes";
+            }
         }
 
-        public void UpdateProgressLabels(string romLabel, DateTime startTime, int current, int total, int errors, int scrapeLimitProgress, int scrapeLimitMax)
+        public void UpdateProgressLabels(string romLabel, DateTime startTime, int current, int total, int scrapeLimitProgress, int scrapeLimitMax)
         {
             // Updates in UI thread:
             Dispatcher.BeginInvoke(() =>
@@ -916,7 +992,7 @@ namespace GamelistManager.pages
 
         private void button_Setup_Click(object sender, RoutedEventArgs e)
         {
-            ScraperCredentialDialog scraperCredentialDialog = new ScraperCredentialDialog(_currentScraper);
+            ScraperCredentialDialog scraperCredentialDialog = new(_currentScraper);
             scraperCredentialDialog.ShowDialog();
         }
 
@@ -924,7 +1000,7 @@ namespace GamelistManager.pages
         {
             button_Stop.IsEnabled = false;
             _cancellationTokenSource.Cancel();
-            globalStopwatch.Stop();
+            label_CurrentScrape.Content = "Waiting for task(s) to complete...";
         }
 
         private void button_Log_Click(object sender, RoutedEventArgs e)
@@ -992,13 +1068,11 @@ namespace GamelistManager.pages
                 }
 
 
-                MetaDataList metaDataList = new MetaDataList();
-
                 foreach (CheckBox checkBox in checkBoxes)
                 {
                     var elementName = checkBox.Tag.ToString()!;
                     var metaDataKey = Enum.Parse<MetaDataKeys>(elementName, true);
-                    var nameValue = metaDataList.GetMetaDataDictionary()[metaDataKey].Name;
+                    var nameValue = GamelistMetaData.GetMetaDataDictionary()[metaDataKey].Name;
                     int count = SharedData.DataSet.Tables[0].AsEnumerable()
                     .Count(row => !row.IsNull(nameValue) && !string.IsNullOrWhiteSpace(row[nameValue].ToString()));
 
@@ -1047,5 +1121,7 @@ namespace GamelistManager.pages
         {
             checkBox_OnlyScrapeFromCache.IsEnabled = false;
         }
+
+
     }
 }

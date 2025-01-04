@@ -16,15 +16,10 @@
                 <!-- Define two rows in the grid -->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <!-- For the TextBlock -->
                     <RowDefinition Height="*"/>
-                    <!-- For the Image/Video -->
-                </Grid.RowDefinitions>
-                <!-- Define one column in the grid -->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-            </Grid>
+                    <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+             </Grid>
         </Viewbox>
     </Grid>
 </Page>

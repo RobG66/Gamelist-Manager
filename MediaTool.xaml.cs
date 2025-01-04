@@ -46,8 +46,7 @@ namespace GamelistManager
             string jsonString = Properties.Settings.Default.MediaPaths;
             _mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString)!;
 
-            MetaDataList metaDataList = new MetaDataList();
-            _mediaItems = metaDataList.GetMetaDataDictionary().Values
+            _mediaItems = GamelistMetaData.GetMetaDataDictionary().Values
              .Where(decl => decl.DataType == MetaDataType.Image ||
                      decl.DataType == MetaDataType.Video ||
                      decl.DataType == MetaDataType.Document)

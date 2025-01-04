@@ -1,14 +1,19 @@
-﻿using GamelistManager.classes.GamelistManager;
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 
 namespace GamelistManager.classes
 {
-    internal static class FileTransfer
+    internal class FileTransfer
     {
-        public static async Task<bool> DownloadFile(bool verify, bool overWriteExistingFile, string fileDownloadPath, string url)
+        private readonly HttpClient _httpClientService;
+
+        public FileTransfer(HttpClient httpClientService)
         {
-            var client = HttpClientSingleton.Instance;
+            _httpClientService = httpClientService;
+        }
+
+        public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url)
+        {
 
             string fileExtension = Path.GetExtension(fileDownloadPath).ToLowerInvariant();
             string parentFolder = Path.GetDirectoryName(fileDownloadPath)!;
@@ -21,21 +26,17 @@ namespace GamelistManager.classes
                     Directory.CreateDirectory(parentFolder);
                 }
 
-                // Handle file overwriting logic
+                // If we are this far, always overwrite
                 if (File.Exists(fileDownloadPath))
                 {
-                    if (overWriteExistingFile)
-                    {
-                        File.Delete(fileDownloadPath);
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    File.Delete(fileDownloadPath);
                 }
 
+                string fileName = Path.GetFileName(fileDownloadPath);
+                await Logger.Instance.LogAsync($"Downloading file: {fileName}", System.Windows.Media.Brushes.Blue);
+
                 // Download the file using HttpClient
-                using (HttpResponseMessage response = await client.GetAsync(url))
+                using (HttpResponseMessage response = await _httpClientService.GetAsync(url))
                 {
                     response.EnsureSuccessStatusCode(); // Throw if the status code is not success
 
@@ -70,6 +71,8 @@ namespace GamelistManager.classes
                 if (verifyResult != "OK")
                 {
                     File.Delete(fileDownloadPath); // Delete invalid image file
+                    string fileName = Path.GetFileName(fileDownloadPath);
+                    await Logger.Instance.LogAsync($"Discarding bad image '{fileName}'", System.Windows.Media.Brushes.Red);
                     return false; // Treat as a failed download
                 }
             }

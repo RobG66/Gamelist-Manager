@@ -54,6 +54,7 @@
         Music
     }
 
+
     public class MetaDataDecl
     {
         public MetaDataKeys Key { get; set; }
@@ -66,12 +67,13 @@
         public bool editible { get; set; } = false; // Property to determine if metadata is editable
     }
 
-    public class MetaDataList
+    public static class GamelistMetaData
     {
-        private Dictionary<MetaDataKeys, MetaDataDecl> metaDataDictionary;
-        private Dictionary<MetaDataKeys, object> metadataValues; // Store metadata values here
+        private static readonly Dictionary<MetaDataKeys, MetaDataDecl> metaDataDictionary;
+        private static readonly Dictionary<MetaDataKeys, object> metadataValues; // Store metadata values here
 
-        public MetaDataList()
+
+        static GamelistMetaData()
         {
             var gameDecls = new List<MetaDataDecl>
             {
@@ -93,12 +95,12 @@
                 new MetaDataDecl { Key = MetaDataKeys.lastplayed, Type = "lastplayed", Name = "Last Played", DataType = MetaDataType.String, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.desc, Type = "desc", Name = "Description", DataType = MetaDataType.String, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.image, Type = "image", Name = "Image", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
-                new MetaDataDecl { Key = MetaDataKeys.marquee, Type = "marquee", Name = "Logo", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
-                new MetaDataDecl { Key = MetaDataKeys.thumbnail, Type = "thumbnail", Name = "Box", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
+                new MetaDataDecl { Key = MetaDataKeys.marquee, Type = "marquee", Name = "Marquee", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
+                new MetaDataDecl { Key = MetaDataKeys.thumbnail, Type = "thumbnail", Name = "Thumbnail", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.boxback, Type = "boxback", Name = "Box Back", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.fanart, Type = "fanart", Name = "Fan Art", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.map, Type = "map", Name = "Map", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
-                new MetaDataDecl { Key = MetaDataKeys.bezel, Type = "bezel", Name = "Bezel (16:9)", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies", "ArcadeDB" }, Viewable = true, editible = false },
+                new MetaDataDecl { Key = MetaDataKeys.bezel, Type = "bezel", Name = "Bezel", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies", "ArcadeDB" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.cartridge, Type = "cartridge", Name = "Cartridge", DataType = MetaDataType.Image, Scrapers = new List<string>{ "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.titleshot, Type = "titleshot", Name = "Title Shot", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.video, Type = "video", Name = "Video", DataType = MetaDataType.Video, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
@@ -107,8 +109,8 @@
                 new MetaDataDecl { Key = MetaDataKeys.magazine, Type = "magazine", Name = "Magazine", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.mix, Type = "mix", Name = "Mix", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.family, Type = "family", Name = "Family", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = false },
-                //new MetaDataDecl { Key = MetaDataKeys.genreIds, Type = "genreIds", Name = "Genre Ids", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = true },
                 new MetaDataDecl { Key = MetaDataKeys.arcadesystemname, Type = "arcadesystemname", Name = "Arcade System Name", DataType = MetaDataType.String, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper" }, Viewable = true, editible = true },
+                //new MetaDataDecl { Key = MetaDataKeys.genreIds, Type = "genreIds", Name = "Genre Ids", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = true },
                 //new MetaDataDecl { Key = MetaDataKeys.kidgame, Type = "kidgame", Name = "Kid Game", DataType = MetaDataType.Bool, Viewable = false, editible = false },
                 //new MetaDataDecl { Key = MetaDataKeys.crc32, Type = "crc32", Name = "Crc32", DataType = MetaDataType.String, Viewable = false, editible = false },
                 //new MetaDataDecl { Key = MetaDataKeys.md5, Type = "md5", Name = "Md5", DataType = MetaDataType.String, Viewable = false, editible = false },
@@ -117,7 +119,7 @@
                 //new MetaDataDecl { Key = MetaDataKeys.scraperId, Type = "scraperId", Name = "Scraper Id", DataType = MetaDataType.String, Viewable = false, editible = false },
             };
 
-            // Initialize the dictionaries
+            // Initialize the dictionary
             metaDataDictionary = gameDecls.ToDictionary(
                 decl => decl.Key,
                 decl => decl
@@ -126,7 +128,13 @@
             metadataValues = new Dictionary<MetaDataKeys, object>();
         }
 
-        public List<string> GetScraperElements(string scraperName)
+        public static Dictionary<string, string> NameToTypeMap => metaDataDictionary
+           .ToDictionary(
+               kvp => kvp.Value.Type,  // Element name
+               kvp => kvp.Value.Name   // Dataset column name
+           );
+
+        public static List<string> GetScraperElements(string scraperName)
         {
             return metaDataDictionary.Values
                 .Where(decl => decl.Scrapers.Contains(scraperName))
@@ -134,64 +142,31 @@
                 .ToList();
         }
 
-        public Dictionary<MetaDataKeys, MetaDataDecl> GetMetaDataDictionary()
+        public static string GetMetaDataTypeByName(string name)
+        {
+            // Search the dictionary for a matching Name
+            var metaDataDecl = GamelistMetaData.GetMetaDataDictionary()
+                .Values
+                .FirstOrDefault(decl => decl.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            // Return the DataType as a string or an empty string if no match is found
+            return metaDataDecl?.Type.ToString() ?? string.Empty;
+        }
+
+        public static string GetMetaDataNameByType(string type)
+        {
+            // Search the dictionary for a matching Name
+            var metaDataDecl = GamelistMetaData.GetMetaDataDictionary()
+                .Values
+                .FirstOrDefault(decl => decl.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
+
+            // Return the DataType as a string or an empty string if no match is found
+            return metaDataDecl?.Name.ToString() ?? string.Empty;
+        }
+
+        public static Dictionary<MetaDataKeys, MetaDataDecl> GetMetaDataDictionary()
         {
             return metaDataDictionary;
-        }
-
-        public object? GetMetadataValue(string keyName)
-        {
-            // Try to parse the string keyName to MetaDataKeys enum
-            if (Enum.TryParse<MetaDataKeys>(keyName, true, out MetaDataKeys key))
-            {
-                // If the key is successfully parsed, try to get the value from metadataValues
-                if (metadataValues.TryGetValue(key, out var value))
-                {
-                    return value;
-                }
-            }
-            // Return null if the key is not found or cannot be parsed
-            return null;
-        }
-
-
-        public void SetMetadataValue(MetaDataKeys key, object value)
-        {
-            if (metaDataDictionary.ContainsKey(key) && value != null)
-            {
-                var metadataDecl = metaDataDictionary[key];
-
-                if (IsValueTypeCompatible(metadataDecl.DataType, value))
-                {
-                    metadataValues[key] = value;
-                }
-                else
-                {
-                    throw new ArgumentException("Value type is not compatible with the metadata type.");
-                }
-            }
-
-        }
-
-        private bool IsValueTypeCompatible(MetaDataType dataType, object value)
-        {
-            switch (dataType)
-            {
-                case MetaDataType.Music:
-                    return value is string;
-                case MetaDataType.String:
-                    return value is string;
-                case MetaDataType.Bool:
-                    return value is bool;
-                case MetaDataType.Image:
-                    return value is string;
-                case MetaDataType.Document:
-                    return value is string;
-                case MetaDataType.Video:
-                    return value is string;
-                default:
-                    return false;
-            }
         }
     }
 }
