@@ -2,6 +2,11 @@
 
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+
+Version 7.5 is released!  This major improvement with this version is where it incorporates using HTTPClientfactory instead of an HTTPClient singleton.  It's a better approach to multi-threaded scraping.  A few bug fixes and tweaks here and there as well.  Media drag/drop is still a WIP, maybe available next release version.  
+
+
+
 Sneak peak of WIP:
 ![image](https://github.com/user-attachments/assets/3fce76b1-6114-438f-b8bd-b0127de59a87)
 
