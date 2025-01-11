@@ -3,6 +3,9 @@
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 
+January 11th, 2025.  I want better structure in my code so I am now trying to learn how the "Model-View-ViewModel" works.  Some aspects of the UI I really want to improve on as well, but the design needs a lot of thought.  I think good GUI design is maybe the most difficult thing.  I strive for a design that doesn't overwhelm the user and is intuitive to use without reading documentation.  Yet it also has to offer a good deal of granular control if the user wants that too.  Version 7.5 is in a good state so my plan is to look at doing another major update.  I plan to stick with WPF because it works well (except I really hate the menus).  Well, I'll see how it goes. :)   
+
+
 Version 7.5 is released!  This major improvement with this version is where it incorporates using HTTPClientfactory instead of an HTTPClient singleton.  It's a better approach to multi-threaded scraping.  A few bug fixes and tweaks here and there as well.  Media drag/drop is still a WIP, maybe available next release version.  
 
 
