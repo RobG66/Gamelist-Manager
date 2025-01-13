@@ -2,6 +2,8 @@
 
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+January 13th, 2025.  Just remember that using the cache can be extremely beneficial.  From that cache, you can rescrape any meta data you want within just a matter of seconds.  If you are just scraping media, I suggest trying EmuMovies first as it will be a lot faster.  Also, make sure you enable image verification in the settings to avoid downloading single color and corrupt images - there can be a lot!   If you like Mame, try out the Mame tools for identifying unplayable game and games requiring a chd.  The tool will even check if you have the CHD files or if they are missing!   
+
 
 January 11th, 2025.  I want better structure in my code so I am now trying to learn how the "Model-View-ViewModel" works.  Some aspects of the UI I really want to improve on as well, but the design needs a lot of thought.  I think good GUI design is maybe the most difficult thing.  I strive for a design that doesn't overwhelm the user and is intuitive to use without reading documentation.  Yet it also has to offer a good deal of granular control if the user wants that too.  Version 7.5 is in a good state so my plan is to look at doing another major update.  I plan to stick with WPF because it works well (except I really hate the menus).  Well, I'll see how it goes. :)   
 
