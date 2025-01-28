@@ -3,7 +3,7 @@
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 
-January 28th, 2025.  Work has progressed slowly on the next major update, which now focuses on following the MVVM architecture.  It has been a considerable learning curve and I am still learning as I work my way through it.  Of course I am still using WPF and C#.  Here's a little teaser image of the gui progress.  The top menu is now gone because I disliked how WPF menus look.  I'm also trying to achieve a more modern look to things:
+January 28th, 2025.  Work has progressed slowly on the next major update, which now focuses on following MVVM architecture design.  It has been a considerable learning curve and I am still learning as I work my way through it.  Of course I am still using WPF and C#.  Here's a little teaser image of the gui progress.  The top menu is now gone and I am also trying to achieve a more 'modern' look to things, without resorting to third party libraries.  Custom templates work really well for this!  
 
 ![image](https://github.com/user-attachments/assets/8c35c9cd-4dc7-43f3-aec1-e290309fd3d4)
 
