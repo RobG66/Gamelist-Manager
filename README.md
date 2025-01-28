@@ -2,6 +2,13 @@
 
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+
+January 28th, 2025.  Work has progressed slowly on the next major update, which now focuses on following the MVVM architecture.  It has been a considerable learning curve and I am still learning as I work my way through it.  Of course I am still using WPF and C#.  Here's a little teaser image of the gui progress.  The top menu is now gone because I disliked how WPF menus look.  I'm also trying to achieve a more modern look to things:
+
+![image](https://github.com/user-attachments/assets/8c35c9cd-4dc7-43f3-aec1-e290309fd3d4)
+
+
+
 January 13th, 2025.  Just remember that using the cache can be extremely beneficial.  From that cache, you can rescrape any meta data you want within just a matter of seconds.  If you are just scraping media, I suggest trying EmuMovies first as it will be a lot faster.  Also, make sure you enable image verification in the settings to avoid downloading single color and corrupt images - there can be a lot!   If you like Mame, try out the Mame tools for identifying unplayable game and games requiring a chd.  The tool will even check if you have the CHD files or if they are missing!   
 
 
