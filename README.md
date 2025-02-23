@@ -2,6 +2,9 @@
 
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+February 23rd, 2025.  Emumovies scraping is now fixed.  It was a combination of a few things...  A typo, a missing bearer token in post and urlEncoding being needed for some filenames.  I'm fixing a few other minor bugs and implementing a few requests.  I think I might add separate regional settings for media and metadata (ScreenScraper).  Sometime next week I hope to have a new version posted.  Let me know what you think, find me on discord on the Retrobat and Batocera servers under the name RobG66.
+
+
 
 February 21st, 2025.  I am dusting off the 7.5 source code for an update to fix a few things.  Emumovies scraping has an issue which I do want to get working.  A few other reported issues I will address as well.  I realized I just don't have the motivation right now to continue on another re-write with MVVM as I alluded to.  The application has so many GUI triggers, filters, etc that it's just too difficult to adhere to an architecture standard where this should be done through bindings and other means instead of direct gui manipulation.  I spend way too much time trying to get even simple things working.  That isn't fun, it's frustrating.  
 
