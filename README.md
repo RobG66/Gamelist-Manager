@@ -2,6 +2,8 @@
 
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+February 28th, 2025.  Gamelist Manager 7.7 is getting close to release, perhaps this weekend if all my testing goes ok.  Bug fixes, improvements, it will be worth the wait!
+
 February 23rd, 2025.  Emumovies scraping is now fixed.  It was a combination of a few things...  A typo, a missing bearer token in post and urlEncoding being needed for some filenames.  I'm fixing a few other minor bugs and implementing a few requests.  I think I might add separate regional settings for media and metadata (ScreenScraper).  Sometime next week I hope to have a new version posted.  Let me know what you think, find me on discord on the Retrobat and Batocera servers under the name RobG66.
 
 
