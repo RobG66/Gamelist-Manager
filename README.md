@@ -3,7 +3,7 @@
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 March 1st, 2025
- Version 7.7 has been released!  If you have an idea or find an issue, please report it. 
+ Version 7.7 has been released!  If you have an idea or find an issue, please report it. I know, screenshots need to be updated!
 
 
 
