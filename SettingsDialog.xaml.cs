@@ -30,7 +30,14 @@ namespace GamelistManager
                 return;
             }
 
-            Properties.Settings.Default.Hostname = hostName;
+            string gridLineVisibility = comboBox_GridLinesVisibility.Text;
+            if (Enum.TryParse(gridLineVisibility, out DataGridGridLinesVisibility visibility))
+            {
+                dg.GridLinesVisibility = visibility;
+            }
+            Properties.Settings.Default.GridLineVisibility = gridLineVisibility;
+            
+            Properties.Settings.Default.BatoceraHostName = hostName;
             Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;
             Properties.Settings.Default.SaveReminder = (bool)checkBox_EnableSaveReminder.IsChecked!;
             Properties.Settings.Default.VerifyDownloadedImages = (bool)checkBox_VerifyImageDownloads.IsChecked!;
@@ -98,7 +105,7 @@ namespace GamelistManager
                 var tagValue = textBox.Tag;
                 if (tagValue != null)
                 {
-                    string value = mediaPaths[tagValue.ToString()!];
+                    string value = mediaPaths[tagValue.ToString()];
                     textBox.Text = value;
                 }
             }
@@ -127,7 +134,7 @@ namespace GamelistManager
                 comboBox_AlternatingRowColor.SelectedItem = item2;
             }
 
-            string hostName = Properties.Settings.Default.Hostname;
+            string hostName = Properties.Settings.Default.BatoceraHostName;
 
             (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
 
@@ -145,7 +152,7 @@ namespace GamelistManager
 
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             checkBox_EnableSaveReminder.IsChecked = saveReminder;
-
+                  
             bool verifyImages = Properties.Settings.Default.VerifyDownloadedImages;
             checkBox_VerifyImageDownloads.IsChecked = verifyImages;
 
@@ -225,7 +232,7 @@ namespace GamelistManager
             return Regex.IsMatch(text, "^[0-9]+$");
         }
 
-        private void comboBox_AlternatingRowColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (button_Save == null)
             {
@@ -241,7 +248,8 @@ namespace GamelistManager
             SetTextBoxDefaults();
             button_Save.Content = "Save";
             button_Save.IsEnabled = true;
-        }
+        }    
+
     }
 }
 

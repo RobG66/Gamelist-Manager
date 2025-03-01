@@ -8,7 +8,7 @@
     <Setting Name="RecentFiles" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="Hostname" Type="System.String" Scope="User">
+    <Setting Name="BatoceraHostName" Type="System.String" Scope="User">
       <Value Profile="(Default)">batocera</Value>
     </Setting>
     <Setting Name="AlternatingRowColor" Type="System.String" Scope="User">
@@ -27,14 +27,11 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="MediaPaths" Type="System.String" Scope="User">
-      <Value Profile="(Default)">{"image":"images","titleshot":"images","marquee":"images","thumbnail":"images","cartridge":"images","video":"videos","music":"music","map":"images","bezel":"images","manual":"manuals","fanart":"images","boxback":"images","magazine":"images","mix":"images"}
+      <Value Profile="(Default)">{"image":"images","titleshot":"images","marquee":"images","thumbnail":"images","cartridge":"images","video":"videos","music":"music","map":"images","bezel":"images","manual":"manuals","fanart":"images","boxart":"images","boxback":"images","magazine":"images","mix":"images"}
 </Value>
     </Setting>
     <Setting Name="Region" Type="System.String" Scope="User">
       <Value Profile="(Default)">wor</Value>
-    </Setting>
-    <Setting Name="Language" Type="System.String" Scope="User">
-      <Value Profile="(Default)">en</Value>
     </Setting>
     <Setting Name="ArcadeDB_Checkboxes" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -53,6 +50,19 @@
     </Setting>
     <Setting Name="VerifyDownloadedImages" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ScrapeEnglishGenreOnly" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="VisibleGridColumns" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}
+</Value>
+    </Setting>
+    <Setting Name="GridLineVisibility" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Horizontal</Value>
+    </Setting>
+    <Setting Name="Language" Type="System.String" Scope="User">
+      <Value Profile="(Default)">en</Value>
     </Setting>
   </Settings>
 </SettingsFile>

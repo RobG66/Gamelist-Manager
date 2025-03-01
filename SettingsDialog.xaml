@@ -24,7 +24,18 @@
             <TextBlock Margin="5,10,0,0">
                 Alternating Row Color:
             </TextBlock>
-            <ComboBox x:Name="comboBox_AlternatingRowColor" Margin="5,0,5,0" SelectionChanged="comboBox_AlternatingRowColor_SelectionChanged"/>
+            <ComboBox x:Name="comboBox_AlternatingRowColor" Margin="5,0,5,0" SelectionChanged="comboBox_SelectionChanged"/>
+
+            <TextBlock Margin="5,10,0,0">
+    Grid Line Visibility:
+            </TextBlock>
+            <ComboBox x:Name="comboBox_GridLinesVisibility" Margin="5,0,5,0" SelectionChanged="comboBox_SelectionChanged">
+                <ComboBoxItem Content="Horizontal" IsSelected="True"/>
+                <ComboBoxItem Content="Vertical"/>
+                <ComboBoxItem Content="Both"/>
+                <ComboBoxItem Content="None"/>
+            </ComboBox>
+
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
                 <Button x:Name="button_Save" Content="Save" Style="{StaticResource GreenButtonStyle}" Width="40" Height="20" HorizontalAlignment="Center" Margin="0,0,5,0" Click="buttonSave_Click" IsEnabled="False"/>
@@ -56,7 +67,7 @@
                 <CheckBox Grid.Row="1" Grid.Column="0" ToolTip="Substantial gamelist changes will require your confirmation" x:Name="checkBox_ConfirmBulkChanges" VerticalAlignment="Center" Content="Confirm bulk changes" IsChecked="True" Margin="0,0,0,0" Click="CheckBox_Click"/>
                 <CheckBox Grid.Row="1" Grid.Column="1" ToolTip="You will be reminded to save before loading another gamelist" x:Name="checkBox_EnableSaveReminder" VerticalAlignment="Center" Content="Enable save reminder" IsChecked="True" Margin="10,0,0,0" Click="CheckBox_Click"/>
                 <CheckBox Grid.Row="2" Grid.Column="0" ToolTip="Single color and corrupt downloaded images will not be saved" x:Name="checkBox_VerifyImageDownloads" VerticalAlignment="Center" Content="Verify Image Downloads" IsChecked="False" Margin="0,0,0,0"/>
-
+      
             </Grid>
             <Label Content="Folder Paths:" FontSize="14" Foreground="Blue" FontWeight="Bold"/>
             <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1">
@@ -85,7 +96,7 @@
                     <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" Tag="image" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 
                     <!-- Title Shot Path -->
-                    <Label Grid.Row="1" Grid.Column="0" Content="Title Shot:" HorizontalAlignment="Right" Width="Auto"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="Titleshot:" HorizontalAlignment="Right" Width="Auto"/>
                     <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" Tag="titleshot" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 
                     <!-- Marquee Path -->
@@ -124,17 +135,21 @@
                     <Label Grid.Row="1" Margin="5,0,0,0" Grid.Column="2" Content="Fanart:" HorizontalAlignment="Right" Width="Auto"/>
                     <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_fanart" Tag="fanart" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 
+                    <!-- Box Path -->
+                    <Label Grid.Row="2" Margin="5,0,0,0" Grid.Column="2" Content="Boxart:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_boxart" Tag="boxart" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
                     <!-- Box Back Path -->
-                    <Label Grid.Row="2" Margin="5,0,0,0" Grid.Column="2" Content="Box Back:" HorizontalAlignment="Right" Width="Auto"/>
-                    <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_boxback" Tag="boxback" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Grid.Row="3" Margin="5,0,0,0" Grid.Column="2" Content="Boxback:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxback" Tag="boxback" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 
                     <!-- Magazine Path -->
-                    <Label Grid.Row="3" Margin="5,0,0,0" Grid.Column="2" Content="Magazine:" HorizontalAlignment="Right" Width="Auto"/>
-                    <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_magazine" Tag="magazine" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Grid.Row="4" Margin="5,0,0,0" Grid.Column="2" Content="Magazine:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_magazine" Tag="magazine" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 
                     <!-- Mix Path -->
-                    <Label Grid.Row="4" Margin="5,0,0,0" Grid.Column="2" Content="Mix:" HorizontalAlignment="Right" Width="Auto"/>
-                    <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_mix" Tag="mix" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Label Grid.Row="5" Margin="5,0,0,0" Grid.Column="2" Content="Mix:" HorizontalAlignment="Right" Width="Auto"/>
+                    <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_mix" Tag="mix" MaxLines="1" MaxLength="30" Width="100" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 
                     <Button Grid.Row="8" Grid.Column="2"  x:Name="button_Reset" Content="Reset Folder Paths" Style="{StaticResource CoolButtonStyle1}" Width="100" Height="20" Click="button_Reset_Click" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="0,3,0,3"/>
 

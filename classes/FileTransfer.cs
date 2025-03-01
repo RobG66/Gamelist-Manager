@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net;
 using System.Net.Http;
 
 namespace GamelistManager.classes
@@ -12,7 +13,7 @@ namespace GamelistManager.classes
             _httpClientService = httpClientService;
         }
 
-        public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url)
+        public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url,string bearerToken)
         {
 
             string fileExtension = Path.GetExtension(fileDownloadPath).ToLowerInvariant();
@@ -33,21 +34,31 @@ namespace GamelistManager.classes
                 }
 
                 string fileName = Path.GetFileName(fileDownloadPath);
+                           
                 await Logger.Instance.LogAsync($"Downloading file: {fileName}", System.Windows.Media.Brushes.Blue);
-
+                                
                 // Download the file using HttpClient
-                using (HttpResponseMessage response = await _httpClientService.GetAsync(url))
+                using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url))
                 {
-                    response.EnsureSuccessStatusCode(); // Throw if the status code is not success
-
-                    // Read the response content as a stream
-                    using (Stream contentStream = await response.Content.ReadAsStreamAsync())
+                    // Check if the bearer token is not empty or null before adding it to the request headers
+                    if (!string.IsNullOrEmpty(bearerToken))
                     {
-                        // Open the file stream for writing
-                        using (FileStream fileStream = new FileStream(fileDownloadPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+                    }
+                         
+                    using (HttpResponseMessage response = await _httpClientService.SendAsync(request))
+                    {
+                        response.EnsureSuccessStatusCode(); // Throw if the status code is not success
+
+                        // Read the response content as a stream
+                        using (Stream contentStream = await response.Content.ReadAsStreamAsync())
                         {
-                            // Copy the content stream to the file stream
-                            await contentStream.CopyToAsync(fileStream);
+                            // Open the file stream for writing
+                            using (FileStream fileStream = new FileStream(fileDownloadPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                            {
+                                // Copy the content stream to the file stream
+                                await contentStream.CopyToAsync(fileStream);
+                            }
                         }
                     }
                 }
@@ -92,5 +103,6 @@ namespace GamelistManager.classes
 
             return true;
         }
+
     }
 }

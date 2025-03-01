@@ -1,50 +1,5 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
-Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
-
-February 28th, 2025.  Gamelist Manager 7.7 is getting close to release, perhaps this weekend if all my testing goes ok.  Bug fixes, improvements, it will be worth the wait!
-
-February 23rd, 2025.  Emumovies scraping is now fixed.  It was a combination of a few things...  A typo, a missing bearer token in post and urlEncoding being needed for some filenames.  I'm fixing a few other minor bugs and implementing a few requests.  I think I might add separate regional settings for media and metadata (ScreenScraper).  Sometime next week I hope to have a new version posted.  Let me know what you think, find me on discord on the Retrobat and Batocera servers under the name RobG66.
-
-
-
-February 21st, 2025.  I am dusting off the 7.5 source code for an update to fix a few things.  Emumovies scraping has an issue which I do want to get working.  A few other reported issues I will address as well.  I realized I just don't have the motivation right now to continue on another re-write with MVVM as I alluded to.  The application has so many GUI triggers, filters, etc that it's just too difficult to adhere to an architecture standard where this should be done through bindings and other means instead of direct gui manipulation.  I spend way too much time trying to get even simple things working.  That isn't fun, it's frustrating.  
-
-
-January 28th, 2025.  Work has progressed slowly on the next major update, which now focuses on following MVVM architecture design.  It has been a considerable learning curve and I am still learning as I work my way through it.  Of course I am still using WPF and C#.  Here's a little teaser image of the gui progress.  The top menu is now gone and I am also trying to achieve a more 'modern' look to things, without resorting to third party libraries.  Custom templates work really well for this!  
-
-![image](https://github.com/user-attachments/assets/8c35c9cd-4dc7-43f3-aec1-e290309fd3d4)
-
-
-
-January 13th, 2025.  Just remember that using the cache can be extremely beneficial.  From that cache, you can rescrape any meta data you want within just a matter of seconds.  If you are just scraping media, I suggest trying EmuMovies first as it will be a lot faster.  Also, make sure you enable image verification in the settings to avoid downloading single color and corrupt images - there can be a lot!   If you like Mame, try out the Mame tools for identifying unplayable game and games requiring a chd.  The tool will even check if you have the CHD files or if they are missing!   
-
-
-January 11th, 2025.  I want better structure in my code so I am now trying to learn how the "Model-View-ViewModel" works.  Some aspects of the UI I really want to improve on as well, but the design needs a lot of thought.  I think good GUI design is maybe the most difficult thing.  I strive for a design that doesn't overwhelm the user and is intuitive to use without reading documentation.  Yet it also has to offer a good deal of granular control if the user wants that too.  Version 7.5 is in a good state so my plan is to look at doing another major update.  I plan to stick with WPF because it works well (except I really hate the menus).  Well, I'll see how it goes. :)   
-
-
-Version 7.5 is released!  This major improvement with this version is where it incorporates using HTTPClientfactory instead of an HTTPClient singleton.  It's a better approach to multi-threaded scraping.  A few bug fixes and tweaks here and there as well.  Media drag/drop is still a WIP, maybe available next release version.  
-
-
-
-Sneak peak of WIP:
-![image](https://github.com/user-attachments/assets/3fce76b1-6114-438f-b8bd-b0127de59a87)
-
-
-
-
-December 21st, 2024.  I added a donation link at the top of the read me.  It's been about a year since I started this project and there are still things I want to do with it.  I've never asked for anything before - it was never my expectation or intent.  The program will never be paywalled.  But sometimes a person needs help....        
-
-
-December 20th, 2024 - I am working to implement media drag/drop similar to the older Winforms version.  It's not difficult, just time consuming.  
-
-
-December 12th, 2024 - Version 7.4 non beta is released.  I realized that Title Shot was missing for screenscraper scrapes so I added it.  A few fixes here and there.  I'm not going to do anything with scrape dates any more since I don't find them particularily useful and it's too much work for so little value.  I do want to add media drag/drop back at some point....   
-
-
-December 6th, 2024
- Version 7.3b is release.... and it was a lot of work.  The media management tool alone was a frustration over many months.  I don't have everything there I would like, but it can still do a lot to make lives easier for managing this stuff.  I also had to slow down since I've been getting painful tendonitis in my hands from too much keyboard work (getting old!).  
-
 
 December 3rd, 2024
  I've been spending a lot of time working on media management and adding a tool to do various media related tasks (add/cleanup/etc).  I didn't think it would take as long as it did, but it is getting close.  Some more bug fixes coming too, but nothing urgent or I would have released something much sooner.   

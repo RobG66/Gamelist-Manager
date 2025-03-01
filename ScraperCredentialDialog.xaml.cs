@@ -53,7 +53,7 @@ namespace GamelistManager
 
             comboBox_Region.ItemsSource = regions.Keys;
             comboBox_Language.ItemsSource = languages.Keys;
-
+           
             string language = Properties.Settings.Default.Language;
             string region = Properties.Settings.Default.Region;
 
@@ -74,6 +74,10 @@ namespace GamelistManager
             {
                 comboBox_Region.SelectedIndex = 0;
             }
+
+            bool scrapeEnglishGenreOnly =Properties.Settings.Default.ScrapeEnglishGenreOnly == true ? true : false;
+            checkBox_GenreAlwaysEnglish.IsChecked = scrapeEnglishGenreOnly;
+
         }
 
         private void Button_Close_Click(object sender, RoutedEventArgs e)
@@ -96,9 +100,11 @@ namespace GamelistManager
             {
                 string region = comboBox_Region.Text;
                 string language = comboBox_Language.Text;
-
+                bool scrapeEnglishGenreOnly = checkBox_GenreAlwaysEnglish.IsChecked == true ? true : false;
+                         
                 Properties.Settings.Default.Region = region;
                 Properties.Settings.Default.Language = language;
+                Properties.Settings.Default.ScrapeEnglishGenreOnly = scrapeEnglishGenreOnly;
                 Properties.Settings.Default.Save();
             }
 
@@ -108,6 +114,12 @@ namespace GamelistManager
         }
 
         private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
+        }
+
+        private void checkBox_GenreAlwaysEnglish_Checked(object sender, RoutedEventArgs e)
         {
             button_Save.Content = "Save";
             button_Save.IsEnabled = true;

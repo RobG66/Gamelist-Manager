@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,7 +10,7 @@ namespace GamelistManager.classes
 {
     internal class API_EmuMovies
     {
-        private readonly string _apiURL = "http://api3.emumovies.com/api";
+        private readonly string _apiURL = "https://api3.emumovies.com/api";
         private readonly string _bearerToken = "";
         private readonly HttpClient _httpClientService;
         private readonly FileTransfer _fileTransfer;
@@ -30,11 +31,15 @@ namespace GamelistManager.classes
                 switch (element)
                 {
                     case "fanart":
-                        await DownloadFile(rowView, "fanart", "Fan Art", "Background", scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "fanart", "Fanart", "Background", scraperParameters, mediaLists);
                         break;
 
                     case "boxback":
-                        await DownloadFile(rowView, "boxback", "Box Back", "BoxBack", scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "boxback", "Boxback", "BoxBack", scraperParameters, mediaLists);
+                        break;
+
+                    case "boxart":
+                        await DownloadFile(rowView, "boxart", "Boxart", scraperParameters.BoxartSource!, scraperParameters, mediaLists);
                         break;
 
                     case "manual":
@@ -50,15 +55,15 @@ namespace GamelistManager.classes
                         break;
 
                     case "titleshot":
-                        await DownloadFile(rowView, "titleshot", "Title Shot", "Title", scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "titleshot", "Titleshot", "Title", scraperParameters, mediaLists);
                         break;
 
                     case "thumbnail":
-                        await DownloadFile(rowView, "thumbnail", "Thumbnail", scraperParameters.BoxSource!, scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "thumbnail", "Thumbnail", scraperParameters.ThumbnailSource!, scraperParameters, mediaLists);
                         break;
 
                     case "marquee":
-                        await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.LogoSource!, scraperParameters, mediaLists);
+                        await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.MarqueeSource!, scraperParameters, mediaLists);
                         break;
 
                     case "cartridge":
@@ -90,9 +95,7 @@ namespace GamelistManager.classes
         }
 
         private async Task DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
-        {
-            await Task.Delay(5); // There needs to be a delay because the gui cannot keep up!
-
+        {            
             bool overwriteMedia = scraperParameters.OverwriteMedia;
 
             var currentValue = rowView[mediaType];
@@ -134,8 +137,8 @@ namespace GamelistManager.classes
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
 
-            string downloadURL = $"{_apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={remoteFileName}";
-            bool downloadResult = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL);
+            string downloadURL = $"{_apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={UrlEncoder.UrlEncodeFileName(remoteFileName)}";
+            bool downloadResult = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL, _bearerToken);
 
             // Music can be downloaded, but I do not create gamelist entries for it
             if (mediaType == "music")
@@ -148,7 +151,6 @@ namespace GamelistManager.classes
                 rowView[mediaType] = $"./{destinationFolder}/{fileName}";
             }
         }
-
         public async Task<string> AuthenticateEmuMoviesAsync(string username, string password)
         {
             var credentials = new
@@ -167,25 +169,41 @@ namespace GamelistManager.classes
             };
 
             var jsonContent = JsonSerializer.Serialize(credentials, options);
-            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var httpResponse = await _httpClientService.PostAsync(url, content);
-            if (httpResponse.IsSuccessStatusCode)
+            using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+
+            // Add the Authorization header
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            using HttpResponseMessage httpResponse = await _httpClientService.SendAsync(request);
+
+            if (!httpResponse.IsSuccessStatusCode)
             {
-                string responseBody = await httpResponse.Content.ReadAsStringAsync();
-                using (JsonDocument doc = JsonDocument.Parse(responseBody))
-                {
-                    JsonElement root = doc.RootElement;
-                    JsonElement data = root.GetProperty("data");
+                return string.Empty; // Authentication failed
+            }
 
-                    JsonElement accessTokenElement = data.GetProperty("acessToken");
+            string responseBody = await httpResponse.Content.ReadAsStringAsync();
+
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(responseBody);
+                JsonElement root = doc.RootElement;
+
+                // Extract "accessToken" from the "data" object
+                if (root.TryGetProperty("data", out JsonElement data) &&
+                    data.TryGetProperty("acessToken", out JsonElement accessTokenElement))
+                {
                     return accessTokenElement.GetString() ?? string.Empty;
                 }
             }
-            else
+            catch (JsonException)
             {
-                return string.Empty;
+                // Handle cases where the response isn't valid JSON
+                return responseBody;
             }
+
+            return responseBody;
         }
 
 

@@ -123,6 +123,12 @@ namespace GamelistManager.classes
 
             var elementsToScrape = scraperParameters.ElementsToScrape!;
             bool overwriteMetaData = scraperParameters.OverwriteMetadata;
+            bool overwriteName = scraperParameters.OverwriteNames;
+            if (overwriteMetaData)
+            {
+                overwriteName = true;
+            }
+
             string downloadURL = string.Empty;
 
             foreach (var element in elementsToScrape)
@@ -159,7 +165,7 @@ namespace GamelistManager.classes
 
                     case "name":
                         string name = GetJsonElementValue(jsonResponse, "title");
-                        UpdateMetadata(rowView, "Name", name, overwriteMetaData);
+                        UpdateMetadata(rowView, "Name", name, overwriteName);
                         break;
 
                     case "genre":
@@ -178,7 +184,7 @@ namespace GamelistManager.classes
                         break;
 
                     case "thumbnail":
-                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.BoxSource!);
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.ThumbnailSource!);
                         await DownloadFile(downloadURL, rowView, romName, "thumbnail", "Thumbnail", scraperParameters);
                         break;
 
@@ -194,11 +200,11 @@ namespace GamelistManager.classes
 
                     case "titleshot":
                         downloadURL = GetJsonElementValue(jsonResponse, "url_image_title");
-                        await DownloadFile(downloadURL, rowView, romName, "titleshot", "Title Shot", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, romName, "titleshot", "Titleshot", scraperParameters);
                         break;
 
                     case "marquee":
-                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.LogoSource!);
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.MarqueeSource!);
                         await DownloadFile(downloadURL, rowView, romName, "marquee", "Marquee", scraperParameters);
                         break;
 
@@ -268,7 +274,7 @@ namespace GamelistManager.classes
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
 
-            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL);
+            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL,string.Empty);
             // true is a successful download
             if (downloadSuccessful)
             {

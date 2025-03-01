@@ -2,6 +2,7 @@
 using GamelistManager.pages;
 using Microsoft.Win32;
 using Renci.SshNet;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
@@ -17,6 +18,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GamelistManager
 {
@@ -31,10 +33,14 @@ namespace GamelistManager
         private MediaDisplay _mediaDisplay;
         private JukeBoxWindow _jukeBoxWindow = null!;
         private Scraper _scraper;
+        private Dictionary<DataGridColumn, Style?> _originalCellStyles = new(); // Store original DataGrid cell styles
+        private Brush? _originalTextBoxForeground; // Store original TextBox foreground color
+
 
         public MainWindow()
         {
             InitializeComponent();
+          
             // This is for a short delay between datagrid selection changes
             // In case of fast scrolling
             _dataGridSelectionChangedTimer = new DispatcherTimer
@@ -46,8 +52,9 @@ namespace GamelistManager
             SharedData.ProgramDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
             SharedData.InitializeChangeTracker();
             SharedData.ChangeTracker!.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
-            _mediaDisplay = new MediaDisplay();
-            _scraper = new Scraper(this);
+      
+            _mediaDisplay = new MediaDisplay(); // Initialize MediaDisplay Page 
+            _scraper = new Scraper(this); // Initialize Scraper Page
         }
 
         private void ChangeTracker_UndoRedoStateChanged(object sender, EventArgs e)
@@ -102,7 +109,7 @@ namespace GamelistManager
         }
 
         private DataTemplate CreateCheckBoxTemplate(string columnName)
-        {
+        {            
             var xaml = $@"
             <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>
             <CheckBox IsChecked='{{Binding {columnName}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}'
@@ -123,6 +130,7 @@ namespace GamelistManager
             {
                 _scraper.button_Start.IsEnabled = false;
                 _scraper.button_ClearCache.IsEnabled = false;
+                Logger.Instance.ClearLogAsync();
             }
 
             if (!string.IsNullOrEmpty(SharedData.XMLFilename) && SharedData.IsDataChanged)
@@ -409,6 +417,7 @@ namespace GamelistManager
             menuItem_Rating.IsChecked = true;
             menuItem_Players.IsChecked = true;
             menuItem_ReleaseDate.IsChecked = true;
+            menuItem_MediaPaths.IsChecked = false;
 
             // The events needs to be triggered
             CheckChanged(menuItem_Developer, null!);
@@ -554,7 +563,6 @@ namespace GamelistManager
             });
         }
 
-
         private void AddRecentFilesToMenu()
         {
             // Clear existing items first
@@ -612,9 +620,50 @@ namespace GamelistManager
             }
         }
 
+        public void VerifyAndResetSettings()
+        {
+            // Load saved media paths
+            string mediaPathsJsonString = Properties.Settings.Default.MediaPaths;
+            var mediaPaths = string.IsNullOrWhiteSpace(mediaPathsJsonString)
+                ? new Dictionary<string, string>()
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)!;
+
+            // Load default media paths
+            string defaultMediaPathsJsonString = Properties.Settings.Default.Properties["MediaPaths"].DefaultValue?.ToString() ?? "{}";
+            var defaultMediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(defaultMediaPathsJsonString)!;
+
+            bool needsReset = false;
+
+            // Check if all keys exist
+            foreach (var (key, defaultValue) in defaultMediaPaths)
+            {
+                if (!mediaPaths.ContainsKey(key))
+                {
+                    mediaPaths[key] = defaultValue; // Add missing key with default value
+                    needsReset = true;
+                }
+            }
+
+            // Reset to defaults if any path is missing
+            if (needsReset)
+            {
+                Properties.Settings.Default.MediaPaths = Properties.Settings.Default.Properties["MediaPaths"].DefaultValue?.ToString() ?? "{}";
+                Properties.Settings.Default.Save();
+                MessageBox.Show("Media paths have been reset to default","Paths Reset",MessageBoxButton.OK,MessageBoxImage.Information);
+            }
+        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+
+            VerifyAndResetSettings();
+
+            string gridLineVisibility = Properties.Settings.Default.GridLineVisibility;
+            if (Enum.TryParse(gridLineVisibility, out DataGridGridLinesVisibility visibility))
+            {
+                MainDataGrid.GridLinesVisibility = visibility;
+            }
+
             string filePath = Assembly.GetExecutingAssembly().Location;
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
             string fileVersion = fileVersionInfo.FileVersion;
@@ -785,7 +834,6 @@ namespace GamelistManager
                 {
                     grid_DataDisplay.ColumnDefinitions[2].Width = new GridLength(0);
                     gridSplitter_Vertical.Visibility = Visibility.Collapsed;
-
                 }
                 else
                 {
@@ -837,6 +885,7 @@ namespace GamelistManager
             UpdateSearchAndReplaceCombobox();
 
         }
+
 
         private void ApplyFilters(string[] filters)
         {
@@ -947,8 +996,7 @@ namespace GamelistManager
             menuItem_ShowHidden.IsChecked = false;
             menuItem_ShowVisible.IsChecked = false;
             menuItem_ColumnAutoSize.IsChecked = false;
-            menuItem_MediaPaths.IsChecked = false;
-
+          
             // Set autosize to true, which is default
             _autosizeColumns = true;
 
@@ -973,7 +1021,6 @@ namespace GamelistManager
 
         }
 
-
         private void SearchAndReplace_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Search And Replace clicked");
@@ -982,7 +1029,7 @@ namespace GamelistManager
         private void menuItem_MapDrive_Click(object sender, RoutedEventArgs e)
         {
 
-            string hostName = Properties.Settings.Default.Hostname;
+            string hostName = Properties.Settings.Default.BatoceraHostName;
 
             if (string.IsNullOrEmpty(hostName))
             {
@@ -1034,7 +1081,7 @@ namespace GamelistManager
 
         private void menuItem_OpenTerminal_Click(object sender, RoutedEventArgs e)
         {
-            string hostName = Properties.Settings.Default.Hostname;
+            string hostName = Properties.Settings.Default.BatoceraHostName;
 
             if (hostName == null || hostName == string.Empty)
             {
@@ -1225,7 +1272,6 @@ namespace GamelistManager
             {
                 _mediaDisplay.ShowMedia(_pendingSelectedRow);
             }
-
         }
 
 
@@ -1312,7 +1358,7 @@ namespace GamelistManager
 
         static string ExecuteSshCommand(string command)
         {
-            string hostName = Properties.Settings.Default.Hostname;
+            string hostName = Properties.Settings.Default.BatoceraHostName;
 
             if (string.IsNullOrEmpty(hostName))
             {
@@ -1419,7 +1465,7 @@ namespace GamelistManager
             {
                 menuItem_ShowAllGenre.IsChecked = false;
                 menuItem_ShowOneGenre.IsChecked = true;
-                _genreFilter = "Genre = ''";
+                _genreFilter = "Genre IS NULL";
                 button_ClearGenreSelection.Visibility = Visibility.Visible;
             }
 
@@ -1514,10 +1560,23 @@ namespace GamelistManager
 
             menuItem_EditData.Header = (readOnly == true) ? "Edit Data" : "Stop Editing Data";
 
+            bool filtered = false;
+
+            DataView dataView = (DataView)MainDataGrid.ItemsSource;
+
+            if (!string.IsNullOrEmpty(dataView.RowFilter))
+            {
+               filtered = true;
+            }
+
+            // Adjust menuitems for view filtering
+            menuItem_SetAllHidden.Header = (filtered == false) ? "Set All Items Hidden" : "Set All Filtered Items Hidden";
+            menuItem_SetAllVisible.Header = (filtered == false) ? "Set All Items Visible" : "Set All Filtered Items Visible";
+
             // Adjust menu previousText based upon selected item count
             int selectedItemCount = MainDataGrid.SelectedItems.Count;
-            menuItem_SetAllVisible.Header = (selectedItemCount < 2) ? "Set Item Visible" : "Set Selected Items Visible";
-            menuItem_SetAllHidden.Header = (selectedItemCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
+            menuItem_SetSelectedVisible.Header = (selectedItemCount < 2) ? "Set Item Visible" : "Set Selected Items Visible";
+            menuItem_SetSelectedHidden.Header = (selectedItemCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
             menuItem_RemoveItem.Header = (selectedItemCount < 2) ? "Remove Item" : "Remove Selected Items";
             menuItem_ResetName.Header = (selectedItemCount < 2) ? "Reset Name" : "Reset Selected Names";
 
@@ -1547,12 +1606,12 @@ namespace GamelistManager
 
         }
 
-        private void menuItem_SetAllVisible_Click(object sender, RoutedEventArgs e)
+        private void menuItem_SetSelectedVisible_Click(object sender, RoutedEventArgs e)
         {
             SetSelectedVisibility(false);
         }
 
-        private void menuItem_SetAllHidden_Click(object sender, RoutedEventArgs e)
+        private void menuItem_SetSelectedHidden_Click(object sender, RoutedEventArgs e)
         {
             SetSelectedVisibility(true);
         }
@@ -1677,6 +1736,8 @@ namespace GamelistManager
                 }
             }
 
+            int selectedIndex = MainDataGrid.SelectedIndex;
+
             var selectedPaths = MainDataGrid.SelectedItems.Cast<DataRowView>()
                 .Select(rowView => rowView.Row["Rom Path"]?.ToString())
                 .ToList();
@@ -1695,13 +1756,28 @@ namespace GamelistManager
                 row.Delete();
                 _pendingSelectedRow = null!;
             }
+
             SharedData.DataSet.AcceptChanges();
             SharedData.ChangeTracker!.EndBulkOperation();
 
-
+            SetSelectedRowAfterChange(selectedIndex);
 
             UpdateCounters();
             SharedData.IsDataChanged = true;
+        }
+
+        private void SetSelectedRowAfterChange(int previousIndex)
+        {
+            if (MainDataGrid.Items.Count == 0)
+            {
+                return; // No rows left
+            }
+
+            // Try to select the next row
+            int newIndex = previousIndex < MainDataGrid.Items.Count ? previousIndex : MainDataGrid.Items.Count - 1;
+
+            MainDataGrid.SelectedIndex = newIndex;
+            MainDataGrid.ScrollIntoView(MainDataGrid.Items[newIndex]); // Ensure it's visible
         }
 
         private void menuItem_EditData_Click(object sender, RoutedEventArgs e)
@@ -1711,7 +1787,7 @@ namespace GamelistManager
             .FirstOrDefault(c => c.Header.ToString() == "Name")?.IsReadOnly ?? false;
 
             bool editMode = readOnly;
-            SharedData.EditMode = editMode;
+            SharedData.MetaDataEditMode = editMode;
             SetEditMode(editMode);
 
             if (button_Media.Content.ToString() == "Hide Media")
@@ -1733,33 +1809,61 @@ namespace GamelistManager
 
         private void SetEditMode(bool editMode)
         {
-            editMode = !editMode;
-
-            var editible = GamelistMetaData.GetMetaDataDictionary().Values
-            .Where(decl => decl.editible)
-            .Select(decl => decl.Name)
-            .ToList();
-
-            var cellStyle = new Style(typeof(DataGridCell));
-            cellStyle.Setters.Add(new Setter(DataGridCell.ForegroundProperty, editMode ? Brushes.Black : Brushes.Blue));
+          
+            var editableColumns = GamelistMetaData.GetMetaDataDictionary().Values
+                .Where(decl => decl.editible)
+                .Select(decl => decl.Name)
+                .ToList();
 
             foreach (DataGridColumn column in MainDataGrid.Columns)
             {
                 var columnName = column.Header;
-                if (editible.Contains(columnName))
+                if (editableColumns.Contains(columnName))
                 {
-                    column.IsReadOnly = editMode;
-                    column.CellStyle = cellStyle;
+                    column.IsReadOnly = !editMode;
+
+                    if (editMode)
+                    {
+                        // Store original style if not already saved
+                        if (!_originalCellStyles.ContainsKey(column))
+                        {
+                            _originalCellStyles[column] = column.CellStyle;
+                        }
+
+                        // Apply edit mode style (Black text)
+                        var editStyle = new Style(typeof(DataGridCell));
+                        editStyle.Setters.Add(new Setter(DataGridCell.ForegroundProperty, Brushes.Blue));
+                        column.CellStyle = editStyle;
+                    }
+                    else
+                    {
+                        // Restore original style
+                        column.CellStyle = _originalCellStyles.ContainsKey(column) ? _originalCellStyles[column] : null;
+                    }
                 }
             }
 
-            textBox_Description.IsReadOnly = editMode;
-            textBox_Description.Foreground = editMode ? Brushes.Black : Brushes.Blue;
+            // Handle TextBox foreground color
+            if (editMode)
+            {
+                // Store the original foreground color only once
+                if (_originalTextBoxForeground == null)
+                {
+                    _originalTextBoxForeground = textBox_Description.Foreground;
+                }
 
-            EditModeIndicator.Text = editMode ? "Off" : "On";
-            EditModeIndicator.Foreground = editMode ? Brushes.Red : Brushes.Green;
+                textBox_Description.Foreground = Brushes.Black; // Set to Black when editing
+            }
+            else
+            {
+                // Restore original color if it was stored
+                textBox_Description.Foreground = _originalTextBoxForeground ?? Brushes.Black;
+            }
 
+            textBox_Description.IsReadOnly = !editMode;
         }
+
+
 
         private void menuItem_VideoJukebox_Click(object sender, RoutedEventArgs e)
         {
@@ -2111,6 +2215,7 @@ namespace GamelistManager
 
             if (MainContentFrame.Content == _mediaDisplay)
             {
+                _mediaDisplay.ClearAllImages();
                 _mediaDisplay.StopPlaying();
             }
 
@@ -2137,7 +2242,7 @@ namespace GamelistManager
 
             if (show)
             {
-                MainGrid.RowDefinitions[3].Height = new GridLength(235);
+                MainGrid.RowDefinitions[3].Height = new GridLength(260);
                 gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
             }
             else
@@ -2194,6 +2299,7 @@ namespace GamelistManager
                 gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
                 if (_mediaDisplay != null)
                 {
+                    _mediaDisplay.ClearAllImages();
                     _mediaDisplay.StopPlaying();
                 }
             }
@@ -2325,31 +2431,14 @@ namespace GamelistManager
             {
                 return;
             }
-
+    
+            FindMissingItems();
+         }
+         
+        private void FindMissingItems()
+        {
             Mouse.OverrideCursor = Cursors.Wait;
 
-            int missingItems = FindMissingItems();
-
-            Mouse.OverrideCursor = null;
-
-            if (missingItems == 0)
-            {
-                MessageBox.Show("No missing items were detected", "Notice:", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                var statusColumn = MainDataGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "Status");
-                if (statusColumn != null)
-                {
-                    statusColumn.Visibility = Visibility.Visible;
-                }
-                MessageBox.Show($"There are {missingItems} missing items in this gamelist", "Notice:", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-
-        }
-
-        private int FindMissingItems()
-        {
             int missingCount = 0;
 
             // Create a HashSet for fast lookups
@@ -2376,27 +2465,57 @@ namespace GamelistManager
                         }
                     }
                 }
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                MainDataGrid.IsEnabled = true;
+            }
 
-                // Second loop: Update the status of missing items
+            // If no missing items are found, show a message and exit
+            if (missingItems.Count == 0)
+            {
+                MessageBox.Show("No missing items were detected", "Notice:", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Show Status column if it exists
+            var statusColumn = MainDataGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "Status");
+            if (statusColumn != null)
+            {
+                statusColumn.Visibility = Visibility.Visible;
+            }
+
+            // Ask user for confirmation before removal
+            var result = MessageBox.Show($"There are {missingItems.Count} missing items in this gamelist.\n\nDo you want to remove them?",
+                "Notice:", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                SharedData.ChangeTracker!.StartBulkOperation();
                 foreach (var row in missingItems)
                 {
-                    // Update safely on the UI thread
-                    Application.Current.Dispatcher.Invoke(() =>
+                    // Remove from DataGrid source safely
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        (MainDataGrid.ItemsSource as DataView)?.Table.Rows.Remove(row.Row);
+                    });
+                }
+                SharedData.ChangeTracker!.EndBulkOperation();
+            }
+            else
+            {
+                // If not removing, mark them as missing
+                foreach (var row in missingItems)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         row["Status"] = "Missing";
                     });
                 }
             }
-            finally
-            {
-                // Re-enable UI updates
-                MainDataGrid.IsEnabled = true;
-            }
 
-            return missingCount;
         }
-
-
 
 
         private void menuItem_MameIdentifyUnplayable_Click(object sender, RoutedEventArgs e)
@@ -2478,6 +2597,8 @@ namespace GamelistManager
                 object lockObject = new object();
 
                 // Loop through each row in the DataTable using Parallel.ForEach
+                
+                ConcurrentBag<DataRow> processedRows = new ConcurrentBag<DataRow>();
                 Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
                 {
                     string romPath = row["Rom Path"].ToString()!.Substring(2);
@@ -2492,9 +2613,13 @@ namespace GamelistManager
                             // Modify DataRow inside the lock
                             row["Status"] = "Unplayable";
                             Interlocked.Increment(ref unplayableCount);
+                            processedRows.Add(row); // Store the row for later modification
                         }
                     }
                 });
+
+                // Convert to a List if needed for further modifications
+                List<DataRow> processedRowsList = processedRows.ToList();
 
 
                 // Commit changes and update UI
@@ -2514,19 +2639,17 @@ namespace GamelistManager
                 if (setHidden == MessageBoxResult.Yes)
                 {
                     SharedData.ChangeTracker!.StartBulkOperation();
-                    // Mark rows as hidden if they are unplayable
-                    foreach (DataRow row in SharedData.DataSet.Tables[0].Rows)
+
+                    // Mark the previously processed rows as hidden
+                    foreach (DataRow row in processedRowsList)
                     {
-                        if (row["Status"].ToString() == "Unplayable")
-                        {
-                            // Set the "hidden" column to true
-                            row["Hidden"] = true;
-                        }
+                        row["Hidden"] = true;
                     }
 
                     SharedData.DataSet.AcceptChanges();
                     SharedData.ChangeTracker!.EndBulkOperation();
                 }
+
             }
             catch (Exception ex)
             {
@@ -2690,11 +2813,12 @@ namespace GamelistManager
             }
 
             int cloneCount = 0;
-
+            
             SharedData.ChangeTracker!.PauseTracking();
 
             // Lock object for synchronizing access to shared resources (DataSet)
             object lockObject = new object();
+            ConcurrentBag<DataRow> cloneRows = new ConcurrentBag<DataRow>();
 
             // Loop through each row in the DataTable
             Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
@@ -2709,9 +2833,14 @@ namespace GamelistManager
                     lock (lockObject)
                     {
                         row["Status"] = $"Clone of '{clones[romPathWithoutExtension]}'";
+                        cloneRows.Add(row); // Store the row for later modifications
                     }
                 }
             });
+
+            // Convert to a List if needed for further modifications
+            List<DataRow> cloneRowsList = cloneRows.ToList();
+
 
             SharedData.DataSet.AcceptChanges();
 
@@ -2723,23 +2852,20 @@ namespace GamelistManager
             MainDataGrid.Columns[0].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
 
             var setHidden = MessageBox.Show($"There were {cloneCount} clone items found.\nDo you want to set them hidden?", "Notice", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
             if (setHidden == MessageBoxResult.Yes)
             {
                 SharedData.ChangeTracker!.StartBulkOperation();
-                // Mark rows as hidden if they are unplayable
-                foreach (DataRow row in SharedData.DataSet.Tables[0].Rows)
+
+                // Mark previously identified clone rows as hidden
+                foreach (DataRow row in cloneRowsList)
                 {
-                    if (row["Status"].ToString() == "Clone")
-                    {
-                        // Set the "hidden" column to true
-                        row["Hidden"] = true;
-                    }
+                    row["Hidden"] = true;
                 }
 
                 SharedData.DataSet.AcceptChanges();
                 SharedData.ChangeTracker!.EndBulkOperation();
             }
+
         }
 
         private void button_Items_Click(object sender, RoutedEventArgs e)
@@ -3034,8 +3160,92 @@ namespace GamelistManager
 
         private void menuItem_ResetName_Click(object sender, RoutedEventArgs e)
         {
+            bool confirmBulkChanges = Properties.Settings.Default.ConfirmBulkChange;
+            if (confirmBulkChanges)
+            {
+                MessageBoxResult result = MessageBox.Show($"Do you want to reset the names for the selected items?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            foreach (var item in MainDataGrid.SelectedItems)
+            {
+                if (item is DataRowView row && row["Rom Path"] is string path && !string.IsNullOrEmpty(path))
+                {
+                    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path);
+                    row["Name"] = fileNameWithoutExtension;
+                }
+            }
 
         }
+
+        private void menuItem_ResetAllSettings_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show($"Do you want to reset all settings?\n\nSaved passwords will not be affected", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            Properties.Settings.Default.Reset();
+            Properties.Settings.Default.Save();
+
+        }
+
+        private void menuItem_AllVisible_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllHiddenValues(false);
+        }
+
+        private void menuItem_AllHidden_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllHiddenValues(true);
+        }
+
+        private void SetAllHiddenValues(bool hidden)
+        {
+
+            string text = "visible";
+            if (hidden == true)
+            {
+                text = "hidden";
+            }
+
+
+            DataView dataView = (DataView)MainDataGrid.ItemsSource;
+
+            string text2 = "all";
+            if (!string.IsNullOrEmpty(dataView.RowFilter))
+            {
+                text2 = "all filtered";
+            }
+
+            bool confirmBulkChanges = Properties.Settings.Default.ConfirmBulkChange;
+            if (confirmBulkChanges)
+            {
+                MessageBoxResult result = MessageBox.Show($"Do you want to set {text2} items {text}?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+                     
+            SharedData.ChangeTracker!.StartBulkOperation();
+
+            foreach (DataRowView rowView in dataView)
+            {
+                rowView.Row["Hidden"] = hidden;
+            }
+
+
+            SharedData.DataSet.AcceptChanges();
+            SharedData.ChangeTracker.EndBulkOperation();
+
+        }
+
+
     }
 }
 

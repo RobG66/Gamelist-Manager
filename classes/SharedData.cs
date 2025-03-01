@@ -10,7 +10,7 @@ namespace GamelistManager.classes
         private static bool _isDataChanged;
         private static string _currentSystem = string.Empty;
         private static string _programDirectory = string.Empty;
-        private static bool _editMode = false;
+        private static bool _metaDataEditMode = false;
         private static ChangeTracker? _changeTracker;
 
 
@@ -76,10 +76,10 @@ namespace GamelistManager.classes
             set => _currentSystem = value;
         }
 
-        public static bool EditMode
+        public static bool MetaDataEditMode
         {
-            get => _editMode;
-            set => _editMode = value;
+            get => _metaDataEditMode;
+            set => _metaDataEditMode = value;
         }
 
     }

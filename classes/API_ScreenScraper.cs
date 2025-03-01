@@ -224,6 +224,11 @@ namespace GamelistManager.classes
 
             var elementsToScrape = scraperParameters.ElementsToScrape!;
             bool overwriteMetaData = scraperParameters.OverwriteMetadata;
+            bool overwriteName = scraperParameters.OverwriteNames;
+            if (overwriteMetaData)
+            {
+                overwriteName = true;
+            }
             XmlNode? mediasNode = xmlData.SelectSingleNode("/Data/jeu/medias");
 
             foreach (string element in elementsToScrape)
@@ -276,14 +281,19 @@ namespace GamelistManager.classes
 
                     case "name":
                         string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms")!, scraperParameters.Region!);
-                        UpdateMetadata(rowView, "Name", name!, overwriteMetaData);
+                        UpdateMetadata(rowView, "Name", name!, overwriteName);
                         break;
 
                     case "genre":
                         var genresNode = xmlData.SelectSingleNode("/Data/jeu/genres");
                         if (genresNode != null)
-                        {
-                            var (_, genreName) = ParseGenres(genresNode, scraperParameters.Language!);
+                        {                            
+                            string genreLanguage = scraperParameters.Language!;
+                            if (scraperParameters.ScrapeEnglishGenreOnly == true)
+                            {
+                                genreLanguage = "en";
+                            }
+                            var (_, genreName) = ParseGenres(genresNode, genreLanguage);
                             UpdateMetadata(rowView, "Genre", genreName!, overwriteMetaData);
                         }
                         break;
@@ -304,7 +314,7 @@ namespace GamelistManager.classes
                         break;
 
                     case "titleshot":
-                        await DownloadFile(rowView, "titleshot", "Title Shot", "sstitle", scraperParameters, mediasNode!);
+                        await DownloadFile(rowView, "titleshot", "Titleshot", "sstitle", scraperParameters, mediasNode!);
                         break;
 
                     case "bezel":
@@ -312,11 +322,11 @@ namespace GamelistManager.classes
                         break;
 
                     case "fanart":
-                        await DownloadFile(rowView, "fanart", "Fan Art", "fanart", scraperParameters, mediasNode!);
+                        await DownloadFile(rowView, "fanart", "Fanart", "fanart", scraperParameters, mediasNode!);
                         break;
 
                     case "boxback":
-                        await DownloadFile(rowView, "boxback", "Box Back", "box-2D-back", scraperParameters, mediasNode!);
+                        await DownloadFile(rowView, "boxback", "Boxback", "box-2D-back", scraperParameters, mediasNode!);
                         break;
 
                     case "manual":
@@ -328,12 +338,17 @@ namespace GamelistManager.classes
                         break;
 
                     case "thumbnail":
-                        await DownloadFile(rowView, "thumbnail", "Thumbnail", scraperParameters.BoxSource!, scraperParameters, mediasNode!);
+                        await DownloadFile(rowView, "thumbnail", "Thumbnail", scraperParameters.ThumbnailSource!, scraperParameters, mediasNode!);
                         break;
 
+                    case "boxart":
+                        await DownloadFile(rowView, "boxart", "Boxart", scraperParameters.BoxartSource!, scraperParameters, mediasNode!);
+                        break;
+
+
                     case "marquee":
-                        string logosource = scraperParameters.LogoSource!;
-                        bool downloadSuccessful = await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.LogoSource!, scraperParameters, mediasNode!);
+                        string logosource = scraperParameters.MarqueeSource!;
+                        bool downloadSuccessful = await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.MarqueeSource!, scraperParameters, mediasNode!);
                         if (logosource == "wheel-hd" && downloadSuccessful == false)
                         {
                             await DownloadFile(rowView, "marquee", "Marquee", "wheel", scraperParameters, mediasNode!);
@@ -398,7 +413,7 @@ namespace GamelistManager.classes
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
 
-            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL);
+            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL,string.Empty);
             if (downloadSuccessful)
             {
                 rowView[mediaType] = $"./{destinationFolder}/{fileName}";

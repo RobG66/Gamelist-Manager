@@ -12,7 +12,7 @@ namespace GamelistManager.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.12.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -50,12 +50,12 @@ namespace GamelistManager.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("batocera")]
-        public string Hostname {
+        public string BatoceraHostName {
             get {
-                return ((string)(this["Hostname"]));
+                return ((string)(this["BatoceraHostName"]));
             }
             set {
-                this["Hostname"] = value;
+                this["BatoceraHostName"] = value;
             }
         }
         
@@ -121,7 +121,7 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}
+        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}
 ")]
         public string MediaPaths {
             get {
@@ -141,18 +141,6 @@ namespace GamelistManager.Properties {
             }
             set {
                 this["Region"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("en")]
-        public string Language {
-            get {
-                return ((string)(this["Language"]));
-            }
-            set {
-                this["Language"] = value;
             }
         }
         
@@ -225,6 +213,57 @@ namespace GamelistManager.Properties {
             }
             set {
                 this["VerifyDownloadedImages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ScrapeEnglishGenreOnly {
+            get {
+                return ((bool)(this["ScrapeEnglishGenreOnly"]));
+            }
+            set {
+                this["ScrapeEnglishGenreOnly"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
+            "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
+            ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
+            "\": true}\n")]
+        public string VisibleGridColumns {
+            get {
+                return ((string)(this["VisibleGridColumns"]));
+            }
+            set {
+                this["VisibleGridColumns"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Horizontal")]
+        public string GridLineVisibility {
+            get {
+                return ((string)(this["GridLineVisibility"]));
+            }
+            set {
+                this["GridLineVisibility"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("en")]
+        public string Language {
+            get {
+                return ((string)(this["Language"]));
+            }
+            set {
+                this["Language"] = value;
             }
         }
     }

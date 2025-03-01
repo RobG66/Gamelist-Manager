@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" MinHeight="450" Width="830" MinWidth="830" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="MainWindow" Height="450" MinHeight="450" Width="840" MinWidth="840" Loaded="Window_Loaded" Closing="Window_Closing">
    
     <Grid x:Name="MainGrid">
         <!-- Define rows for Menu, Content, GridSplitter, and Additional Content -->
@@ -15,133 +15,131 @@
             <RowDefinition Height="5"/> <!-- GridSplitter -->
             <RowDefinition Height="Auto"/> <!-- Media Display / Scraper -->
         </Grid.RowDefinitions>
+        <Menu x:Name="menu_Main" Grid.Column="0" Background="#FFFDFDFD">
+            <MenuItem x:Name="menuItem_File" Header="File" Template="{DynamicResource MenuItemControlTemplate1}">
+                <MenuItem x:Name="menuItem_Load" Margin="-30,0,-40,0" Header="Load Gamelist" Click="OpenFile_Click"/>
+                <MenuItem x:Name="menuItem_Reload" Margin="-30,0,-40,0" Header="Reload Gamelist" Click="ReloadFile_Click" IsEnabled="False"/>
+                <MenuItem x:Name="menuItem_Save" Margin="-30,0,-40,0" Header="Save Gamelist" Click="SaveFile_Click" IsEnabled="False"/>
+                <MenuItem x:Name="menuItem_Restore" Margin="-30,0,-40,0" Header="Restore A Gamelist" IsEnabled="False" Click="menuItem_Restore_Click"/>
 
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_Export" Margin="-30,0,-40,0" Header="Export To CSV" Click="Export_Click" IsEnabled="False"/>
+                <Separator Margin="-30,0,-40,0"/>
+            </MenuItem>
+
+            <MenuItem x:Name="menuItem_View" Header="View" IsEnabled="False" SubmenuOpened="menuItem_View_SubmenuOpened" >
+                <MenuItem x:Name="menuItem_ShowAll" Header="Show Visible And Hidden Items" Click="ShowAll_Click" IsChecked="True" />
+                <MenuItem x:Name="menuItem_ShowVisible"  Header="Show Visible Items Only" Click="ShowVisible_Click"/>
+                <MenuItem x:Name="menuItem_ShowHidden"  Header="Show Hidden Items Only" Click="ShowHidden_Click"/>
+                <Separator />
+                <MenuItem x:Name="menuItem_ShowAllGenre" Header="Show All Genres" IsChecked="True" Click="ShowAllGenres_Click"/>
+                <MenuItem x:Name="menuItem_ShowOneGenre"  Header="Show Genre Only" Click="ShowGenreOnly_Click"/>
+                <Separator />
+                <MenuItem x:Name="menuItem_AlwaysOnTop" Header="Always On Top" Click="AlwaysOnTop_Click"/>
+                <Separator />
+                <MenuItem x:Name="menuItem_ColumnAutoSize" Header="Autosize Columns" IsChecked="True" Click="menuItem_ColumnAutoSize_Click"/>
+                <Separator />
+                <MenuItem x:Name="menuItem_ResetView" Header="Reset View" Click="ResetView_Click"/>
+                <Separator />
+                <MenuItem x:Name="menuItem_VideoJukebox" Header="Video Jukebox" Click="menuItem_VideoJukebox_Click"/>
+                <MenuItem x:Name="menuItem_MusicJukebox" Header="Music Jukebox" Click="menuItem_MusicJukebox_Click"/>
+
+            </MenuItem>
+            <MenuItem x:Name="menuItem_Edit" Header="Edit" Template="{DynamicResource MenuItemControlTemplate1}" IsEnabled="False" SubmenuOpened="menuItem_Edit_SubmenuOpened">
+
+                <MenuItem x:Name="menuItem_SetAllVisible"  Margin="-30,0,-40,0"  Header="Set All Items Visible" Click="menuItem_AllVisible_Click" />
+                <MenuItem x:Name="menuItem_SetAllHidden" Margin="-30,0,-40,0" Header="Set All Items Hidden" Click="menuItem_AllHidden_Click" />
+
+                <Separator Margin="-30,0,-40,0"/>
+
+                <MenuItem x:Name="menuItem_SetSelectedVisible"  Margin="-30,0,-40,0"  Header="Set Item Visible" Click="menuItem_SetSelectedVisible_Click"/>
+                <MenuItem x:Name="menuItem_SetSelectedHidden" Margin="-30,0,-40,0" Header="Set Item Hidden" Click="menuItem_SetSelectedHidden_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_SetAllGenreVisible" Margin="-30,0,-40,0" Header="Set All Genre Visible" Click="menuItem_SetAllGenreVisible_Click"/>
+                <MenuItem x:Name="menuItem_SetAllGenreHidden" Margin="-30,0,-40,0" Header="Set All Genre Hidden" Click="menuItem_SetAllGenreHidden_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_EditData" Margin="-30,0,-40,0" Header="Edit Data" Click="menuItem_EditData_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_RemoveItem" Margin="-30,0,-40,0" Header="Remove Item" Click="menuItem_RemoveItem_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_ResetName" Margin="-30,0,-40,0" Header="Reset Name" Click="menuItem_ResetName_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_SearchAndReplace" Margin="-30,0,-40,0" Header="Search And Replace" Click="menuItem_SearchAndReplace_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_ClearSelected" Margin="-30,0,-40,0" Header="Clear Selected Item Data" Click="menuItem_ClearSelected_Click"/>
+                <MenuItem x:Name="menuItem_ClearAllData" Margin="-30,0,-40,0" Header="Clear All Data" Click="menuItem_ClearAllData_Click"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Margin="-30,0,-40,0" Header="Clear Selected Item Media Paths" Click="menuItem_ClearMediaPaths_Click" />
+                <MenuItem x:Name="menuItem_ClearAllMediaPaths" Margin="-30,0,-40,0" Header="Clear All Item Media Paths" Click="menuItem_ClearMediaPaths_Click"/>
+            </MenuItem>
+
+            <MenuItem x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
+                <MenuItem x:Name="menuItem_Description" Header="Description" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Developer" Header="Developer" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Genre" Header="Genre" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_ID" Header="Game Id" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Language" Header="Language" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_LastPlayed" Header="Last Played" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Publisher" Header="Publisher" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_PlayCount" Header="Play Count" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Players" Header="Players" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Region" Header="Region" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="CheckChanged" IsCheckable="true"/>
+                <Separator/>
+                <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="CheckChanged" IsCheckable="true"/>
+
+            </MenuItem>
+
+            <MenuItem x:Name="menuItem_Tools" Header="Tools" IsEnabled="False" Template="{DynamicResource MenuItemControlTemplate1}">
+                <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Find/Add/Cleanup Media" IsEnabled="True" Click="menuItem_AddMedia_Click"/>
+                <Separator/>
+                <MenuItem x:Name="menuItem_FindNewItems" Margin="-30,0,-40,0" Header="Find New Items" Click="menuItem_FindNewItems_Click"/>
+                <MenuItem x:Name="menuItem_FindMissing" Margin="-30,0,-40,0" Header="Find Missing Items" Click="menuItem_FindMissingItems_Click"/>
+                <Separator/>
+                <MenuItem x:Name="menuItem_MameIdentifyUnplayable" Margin="-30,0,-40,0" Header="Mame: Identify Unplayable" Click="menuItem_MameIdentifyUnplayable_Click"/>
+                <MenuItem x:Name="menuItem_MameIdentifyCHDRequired" Margin="-30,0,-40,0" Header="Mame: Identify CHD Required" Click="menuItem_MameIdentifyCHDRequired_Click"/>
+                <MenuItem x:Name="menuItem_MameIdentifyClones" Margin="-30,0,-40,0" Header="Mame: Identify Clones" Click="menuItem_MameIdentifyClones_Click"/>
+
+            </MenuItem>
+            <MenuItem x:Name="menuItem_Remote" Header="Remote" Template="{DynamicResource MenuItemControlTemplate1}">
+                <MenuItem Header="Map A Network Drive" Margin="-30,0,-40,0" Click="menuItem_MapDrive_Click" Name="menuItem_MapDrive"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem Header="Open Terminal To Batocera Host" Margin="-30,0,-40,0" Click="menuItem_OpenTerminal_Click" Name="menuItem_OpenTerminal"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem Header="Get Batocera Version" Margin="-30,0,-40,0" Click="menuItem_GetVersion_Click" Name="menuItem_GetVersion"/>
+                <MenuItem Header="Show Available Updates" Margin="-30,0,-40,0" Click="menuItem_ShowUpdates_Click" Name="menuItem_ShowUpdates"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem Header="Stop Running Emulators" Margin="-30,0,-40,0" Click="menuItem_StopEmulators_Click" Name="menuItem_StopEmulators"/>
+                <MenuItem Header="Stop Emulationstation" Margin="-30,0,-40,0" Click="menuItem_StopEmulationstation_Click" Name="menuItem_StopEmulationstation"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem Header="Reboot Batocera Host" Margin="-30,0,-40,0" Click="menuItem_RebootHost_Click" Name="menuItem_RebootHost"/>
+                <MenuItem Header="Shutdown Batocera Host" Margin="-30,0,-40,0" Click="menuItem_ShutdownHost_Click" Name="menuItem_ShutdownHost"/>
+            </MenuItem>
+            <MenuItem Header="Settings" Template="{DynamicResource MenuItemControlTemplate1}">
+                <MenuItem Header="Open Settings Menu" Margin="-30,0,-40,0" Click="SettingsMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="Reset All Settings" Margin="-30,0,-40,0" Click="menuItem_ResetAllSettings_Click"/>
+            </MenuItem>
+            <MenuItem Header="Help" Template="{DynamicResource MenuItemControlTemplate1}">
+                <MenuItem Header="Github Page" Margin="-30,0,-40,0" Click="MenuItem_Click"/>
+                <MenuItem Header="Report An Issue" Margin="-30,0,-40,0" Click="MenuItem_Click_1"/>
+            </MenuItem>
+            </Menu>
         <DockPanel  Grid.Row="0">
             <!--Top Menu-->
-            <Menu x:Name="menu_Main" Grid.Column="0" Background="#FFFDFDFD">
-                <MenuItem x:Name="menuItem_File" Header="File" Template="{DynamicResource MenuItemControlTemplate1}">
-                    <MenuItem x:Name="menuItem_Load" Margin="-30,0,-40,0" Header="Load Gamelist" Click="OpenFile_Click"/>
-                    <MenuItem x:Name="menuItem_Reload" Margin="-30,0,-40,0" Header="Reload Gamelist" Click="ReloadFile_Click" IsEnabled="False"/>
-                    <MenuItem x:Name="menuItem_Save" Margin="-30,0,-40,0" Header="Save Gamelist" Click="SaveFile_Click" IsEnabled="False"/>
-                    <MenuItem x:Name="menuItem_Restore" Margin="-30,0,-40,0" Header="Restore A Gamelist" IsEnabled="False" Click="menuItem_Restore_Click"/>
-
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_Export" Margin="-30,0,-40,0" Header="Export To CSV" Click="Export_Click" IsEnabled="False"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                </MenuItem>
-                <MenuItem x:Name="menuItem_View" Header="View" IsEnabled="False" SubmenuOpened="menuItem_View_SubmenuOpened" >
-                    <MenuItem x:Name="menuItem_ShowAll" Header="Show Visible And Hidden Items" Click="ShowAll_Click" IsChecked="True" />
-                    <MenuItem x:Name="menuItem_ShowVisible"  Header="Show Visible Items Only" Click="ShowVisible_Click"/>
-                    <MenuItem x:Name="menuItem_ShowHidden"  Header="Show Hidden Items Only" Click="ShowHidden_Click"/>
-                    <Separator />
-                    <MenuItem x:Name="menuItem_ShowAllGenre" Header="Show All Genres" IsChecked="True" Click="ShowAllGenres_Click"/>
-                    <MenuItem x:Name="menuItem_ShowOneGenre"  Header="Show Genre Only" Click="ShowGenreOnly_Click"/>
-                    <Separator />
-                    <MenuItem x:Name="menuItem_AlwaysOnTop" Header="Always On Top" Click="AlwaysOnTop_Click"/>
-                    <Separator />
-                    <MenuItem x:Name="menuItem_ColumnAutoSize" Header="Autosize Columns" IsChecked="True" Click="menuItem_ColumnAutoSize_Click"/>
-                    <Separator />
-                    <MenuItem x:Name="menuItem_ResetView" Header="Reset View" Click="ResetView_Click"/>
-                    <Separator />
-                    <MenuItem x:Name="menuItem_VideoJukebox" Header="Video Jukebox" Click="menuItem_VideoJukebox_Click"/>
-                    <MenuItem x:Name="menuItem_MusicJukebox" Header="Music Jukebox" Click="menuItem_MusicJukebox_Click"/>
-
-                </MenuItem>
-                <MenuItem x:Name="menuItem_Edit" Header="Edit" Template="{DynamicResource MenuItemControlTemplate1}" IsEnabled="False" SubmenuOpened="menuItem_Edit_SubmenuOpened">
-                    <MenuItem x:Name="menuItem_SetAllVisible"  Margin="-30,0,-40,0"  Header="Set All Items Visible" Click="menuItem_SetAllVisible_Click"/>
-                    <MenuItem x:Name="menuItem_SetAllHidden" Margin="-30,0,-40,0" Header="Set All Items Hidden" Click="menuItem_SetAllHidden_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_SetAllGenreVisible" Margin="-30,0,-40,0" Header="Set All Genre Visible" Click="menuItem_SetAllGenreVisible_Click"/>
-                    <MenuItem x:Name="menuItem_SetAllGenreHidden" Margin="-30,0,-40,0" Header="Set All Genre Hidden" Click="menuItem_SetAllGenreHidden_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_EditData" Margin="-30,0,-40,0" Header="Edit Data" Click="menuItem_EditData_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_RemoveItem" Margin="-30,0,-40,0" Header="Remove Item" Click="menuItem_RemoveItem_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_ResetName" Margin="-30,0,-40,0" Header="Reset Name" Click="menuItem_ResetName_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_SearchAndReplace" Margin="-30,0,-40,0" Header="Search And Replace" Click="menuItem_SearchAndReplace_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_ClearSelected" Margin="-30,0,-40,0" Header="Clear Selected Item Data" Click="menuItem_ClearSelected_Click"/>
-                    <MenuItem x:Name="menuItem_ClearAllData" Margin="-30,0,-40,0" Header="Clear All Data" Click="menuItem_ClearAllData_Click"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Margin="-30,0,-40,0" Header="Clear Selected Item Media Paths" Click="menuItem_ClearMediaPaths_Click" />
-                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Margin="-30,0,-40,0" Header="Clear All Item Media Paths" Click="menuItem_ClearMediaPaths_Click"/>
-                </MenuItem>
-                <MenuItem x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
-                    <MenuItem x:Name="menuItem_Description" Header="Description" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Developer" Header="Developer" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Genre" Header="Genre" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_ID" Header="Game Id" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Language" Header="Language" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_LastPlayed" Header="Last Played" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Publisher" Header="Publisher" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_PlayCount" Header="Play Count" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Players" Header="Players" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Region" Header="Region" Click="CheckChanged" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="CheckChanged" IsCheckable="true"/>
-                    <Separator/>
-                    <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="CheckChanged" IsCheckable="true"/>
-
-                </MenuItem>
-                <MenuItem x:Name="menuItem_Tools" Header="Tools" IsEnabled="False" Template="{DynamicResource MenuItemControlTemplate1}">
-                    <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Find/Add/Cleanup Media" IsEnabled="True" Click="menuItem_AddMedia_Click"/>
-                    <Separator/>
-                    <MenuItem x:Name="menuItem_FindNewItems" Margin="-30,0,-40,0" Header="Find New Items" Click="menuItem_FindNewItems_Click"/>
-                    <MenuItem x:Name="menuItem_FindMissing" Margin="-30,0,-40,0" Header="Find Missing Items" Click="menuItem_FindMissingItems_Click"/>
-                    <Separator/>
-                    <MenuItem x:Name="menuItem_MameIdentifyUnplayable" Margin="-30,0,-40,0" Header="Mame: Identify Unplayable" Click="menuItem_MameIdentifyUnplayable_Click"/>
-                    <MenuItem x:Name="menuItem_MameIdentifyCHDRequired" Margin="-30,0,-40,0" Header="Mame: Identify CHD Required" Click="menuItem_MameIdentifyCHDRequired_Click"/>
-                    <MenuItem x:Name="menuItem_MameIdentifyClones" Margin="-30,0,-40,0" Header="Mame: Identify Clones" Click="menuItem_MameIdentifyClones_Click"/>
-
-                </MenuItem>
-                <MenuItem x:Name="menuItem_Remote" Header="Remote" Template="{DynamicResource MenuItemControlTemplate1}">
-                    <MenuItem Header="Map A Network Drive" Margin="-30,0,-40,0" Click="menuItem_MapDrive_Click" Name="menuItem_MapDrive"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem Header="Open Terminal To Batocera Host" Margin="-30,0,-40,0" Click="menuItem_OpenTerminal_Click" Name="menuItem_OpenTerminal"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem Header="Get Batocera Version" Margin="-30,0,-40,0" Click="menuItem_GetVersion_Click" Name="menuItem_GetVersion"/>
-                    <MenuItem Header="Show Available Updates" Margin="-30,0,-40,0" Click="menuItem_ShowUpdates_Click" Name="menuItem_ShowUpdates"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem Header="Stop Running Emulators" Margin="-30,0,-40,0" Click="menuItem_StopEmulators_Click" Name="menuItem_StopEmulators"/>
-                    <MenuItem Header="Stop Emulationstation" Margin="-30,0,-40,0" Click="menuItem_StopEmulationstation_Click" Name="menuItem_StopEmulationstation"/>
-                    <Separator Margin="-30,0,-40,0"/>
-                    <MenuItem Header="Reboot Batocera Host" Margin="-30,0,-40,0" Click="menuItem_RebootHost_Click" Name="menuItem_RebootHost"/>
-                    <MenuItem Header="Shutdown Batocera Host" Margin="-30,0,-40,0" Click="menuItem_ShutdownHost_Click" Name="menuItem_ShutdownHost"/>
-                </MenuItem>
-                <MenuItem Header="Settings" Click="SettingsMenuItem_Click"/>
-                <MenuItem Header="Help">
-                    <MenuItem Header="Github Page" Click="MenuItem_Click"/>
-                    <MenuItem Header="Report An Issue" Click="MenuItem_Click_1"/>
-                </MenuItem>
-                <MenuItem>
-                    <MenuItem.Header>
-                        <StackPanel Orientation="Horizontal" Margin="10,0,0,0" >
-
-                            <!-- Border around both TextBlocks -->
-                            <Border BorderBrush="Black" BorderThickness="1" CornerRadius="5" Padding="0">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Edit Mode: " FontWeight="Bold" Margin="5,0,5,0" />
-                                    <TextBlock x:Name="EditModeIndicator" Text="Off" Foreground="Red" Margin="0,0,5,0" FontWeight="Bold" />
-                                </StackPanel>
-                            </Border>
-
-                        </StackPanel>
-                    </MenuItem.Header>
-                </MenuItem>
-            </Menu>
             <!-- Slider and TextBlock on the far right -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
                     <TextBlock Text="Grid Font Size:" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
                     <Slider x:Name="FontSizeSlider" Minimum="8" Maximum="14" Value="12" TickFrequency="1" IsSnapToTickEnabled="True" Width="100" Margin="0" Background="#FFFDFDFD"/>
                     <TextBlock x:Name="FontSizeValue" Text="12" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
                 </StackPanel>
-          </DockPanel>
+        </DockPanel>
 
-         <Grid Grid.Row="1"> <!-- Content under menu -->
+        <Grid Grid.Row="1">
+            <!-- Content under menu -->
             <Grid x:Name="grid_DataDisplay" Grid.Row="0" Margin="0,0,0,60">
                 <!-- Define columns for DataGrid, GridSplitter, and TextBox -->
                 <Grid.ColumnDefinitions>
@@ -168,6 +166,9 @@
                         <DataGrid x:Name="MainDataGrid" BorderThickness="0" SelectionChanged="MainDataGrid_SelectionChanged" AutoGenerateColumns="False" CanUserAddRows="False">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
+                                    <Style.Resources>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{x:Static SystemColors.HighlightColor}"/>
+                                    </Style.Resources>
                                     <Style.Triggers>
                                         <!-- Trigger for New status -->
                                         <DataTrigger Binding="{Binding Path=Status}" Value="New">
@@ -224,8 +225,10 @@
                 </TextBox>
             </Grid>
         </Grid>
+
+
         <!-- Content under datagrid -->
-        <StackPanel Grid.Row="1" Height="60" Orientation="Horizontal" VerticalAlignment="Bottom">
+        <StackPanel Grid.Row="1" x:Name="stackPanel_InfoBar" Height="60" Orientation="Horizontal" VerticalAlignment="Bottom">
             <StackPanel x:Name="stackPanel_UndoRedoButtons" Orientation="Vertical" VerticalAlignment="Center" Background="Transparent" Margin="3,0,0,0" >
                 <Button x:Name="UndoButton" Click="UndoButton_Click" Margin="0,0,0,3" Style="{StaticResource AnimatedTransparentButton}" IsEnabled="False" >
                     <Image Source="pack://application:,,,/Resources/buttons/undo-button.png" Width="25" Height="25" ToolTip="Undo" />

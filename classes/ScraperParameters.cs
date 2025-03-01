@@ -15,17 +15,17 @@ namespace GamelistManager.classes
         public string? Language { get; set; }
         public string? Region { get; set; }
         public string? ImageSource { get; set; }
-        public string? BoxSource { get; set; }
-        public string? Marquee { get; set; }
-        public string? LogoSource { get; set; }
+        public string? ThumbnailSource { get; set; }
+        public string? BoxartSource { get; set; }
+        public string? MarqueeSource { get; set; }
         public string? VideoSource { get; set; }
         public string? CartridgeSource { get; set; }
         public bool OverwriteNames { get; set; }
+        public bool ScrapeEnglishGenreOnly { get; set; }
         public bool OverwriteMedia { get; set; }
         public bool OverwriteMetadata { get; set; }
         public bool Verify { get; set; }
         public DataRowView CurrentRow { get; set; }
-        public bool ConvertToPNG { get; set; }
         public string? UserAccessToken { get; set; }
         public string? ScraperPlatform { get; set; }
         public bool ScrapeByGameID { get; set; }

@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 
 namespace GamelistManager.pages
@@ -423,9 +424,9 @@ namespace GamelistManager.pages
 
             _globalStopwatch.Stop();
             _mainWindow.menu_Main.IsEnabled = true;
-            _mainWindow.stackPanel_Filters.IsEnabled = true;
-            _mainWindow.stackPanel_UndoRedoButtons.IsEnabled = true;
             _mainWindow.MainDataGrid.IsEnabled = true;
+            _mainWindow.stackPanel_InfoBar.IsEnabled = true;
+            _mainWindow.textBox_Description.IsEnabled = true;
 
             if (!string.IsNullOrEmpty(message))
             {
@@ -458,7 +459,6 @@ namespace GamelistManager.pages
             await Logger.Instance.LogAsync(verificationStatus, System.Windows.Media.Brushes.Blue);
 
 
-
             stackPanel_AllScraperCheckboxes.IsEnabled = false;
 
             // ParentFolderPath string
@@ -472,8 +472,8 @@ namespace GamelistManager.pages
 
             // Parent Window disables
             _mainWindow.menu_Main.IsEnabled = false;
-            _mainWindow.stackPanel_Filters.IsEnabled = false;
-            _mainWindow.stackPanel_UndoRedoButtons.IsEnabled = false;
+            _mainWindow.stackPanel_InfoBar.IsEnabled = false;
+            _mainWindow.textBox_Description.IsEnabled = false;
             _mainWindow.MainDataGrid.IsEnabled = false;
 
             // Reset labels and progressbar value
@@ -553,6 +553,7 @@ namespace GamelistManager.pages
             bool overWriteNames = checkBox_OverwriteNames.IsChecked == true ? true : false;
             bool overWriteMetadata = checkBox_OverwriteMetadata.IsChecked == true ? true : false;
             bool overWriteMedia = checkBox_OverwriteMedia.IsChecked == true ? true : false;
+            bool englishGenreOnly = Properties.Settings.Default.ScrapeEnglishGenreOnly; // ScreenScraper Specific
 
             string cacheFolder = $"{SharedData.ProgramDirectory}\\cache\\{_currentScraper}\\{SharedData.CurrentSystem}";
             if (!Directory.Exists(cacheFolder))
@@ -580,7 +581,7 @@ namespace GamelistManager.pages
                     // Get the user access token
                     API_EmuMovies aPI_EmuMovies = new API_EmuMovies(new HttpClient());
                     userAccessToken = await aPI_EmuMovies.AuthenticateEmuMoviesAsync(userName, userPassword);
-                    if (userAccessToken == null)
+                    if (string.IsNullOrEmpty(userAccessToken))
                     {
                         StopScraping("Error retrieving user authentication token from EmuMovies!");
                         return;
@@ -598,6 +599,7 @@ namespace GamelistManager.pages
                     if (!File.Exists($"{cacheFolder}\\cache.json"))
                     {
                         label_CurrentScrape.Content = "Downloading media lists...";
+                        await Logger.Instance.LogAsync("Downloading media lists...", System.Windows.Media.Brushes.Blue);
                         Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
 
                         foreach (string mediaType in emumoviesMediaTypes)
@@ -657,7 +659,7 @@ namespace GamelistManager.pages
                     string pattern = @"\((.*?)\)";
 
                     string regionValue = Properties.Settings.Default.Region;
-                    region = "us"; // Default
+                    
                     if (!string.IsNullOrEmpty(regionValue))
                     {
                         Match match = Regex.Match(regionValue, pattern);
@@ -665,56 +667,79 @@ namespace GamelistManager.pages
                         {
                             region = match.Groups[1].Value;
                         }
+                        else
+                        {
+                            region = "us";
+                        }
                     }
 
                     await Logger.Instance.LogAsync($"Region: {region}", System.Windows.Media.Brushes.Blue);
 
-                    string languageValue = Properties.Settings.Default.Language;
-                    language = "en"; // Default
-                    if (!string.IsNullOrEmpty(languageValue))
+                    language = Properties.Settings.Default.Language;
+
+                    if (!string.IsNullOrEmpty(language))
                     {
-                        Match match = Regex.Match(languageValue, pattern);
+                        Match match = Regex.Match(language, pattern);
                         if (match.Success)
                         {
                             language = match.Groups[1].Value;
                         }
+                        else
+                        {
+                            language = "en";
+                        }
+                    }
+                    else
+                    {
+                        language = "en";
                     }
 
-                    await Logger.Instance.LogAsync($"Language: {language}", System.Windows.Media.Brushes.Blue);
-
+                    await Logger.Instance.LogAsync($"Language : {language}", System.Windows.Media.Brushes.Blue);
                     break;
             };
 
             // Retrieve source values for media
             string imageSource = string.Empty;
-            string boxSource = string.Empty;
-            string logoSource = string.Empty;
+            string boxartSource = string.Empty;
+            string marqueeSource = string.Empty;
             string cartridgeSource = string.Empty;
             string videoSource = string.Empty;
+            string thumbnailSource = string.Empty;
+
             allSections.TryGetValue("ImageSource", out section);
             if (section != null)
             {
-                section?.TryGetValue(comboBox_ImageSource.Text, out imageSource!);
+                section?.TryGetValue(comboBox_imageSource.Text, out imageSource!);
             }
-            allSections.TryGetValue("BoxSource", out section);
+
+            allSections.TryGetValue("ThumbnailSource", out section);
             if (section != null)
             {
-                section?.TryGetValue(comboBox_BoxSource.Text, out boxSource!);
+                section?.TryGetValue(comboBox_thumbnailSource.Text, out thumbnailSource!);
             }
-            allSections.TryGetValue("LogoSource", out section);
+
+            allSections.TryGetValue("BoxartSource", out section);
             if (section != null)
             {
-                section?.TryGetValue(comboBox_LogoSource.Text, out logoSource!);
+                section?.TryGetValue(comboBox_boxartSource.Text, out boxartSource!);
             }
+
+            allSections.TryGetValue("MarqueeSource", out section);
+            if (section != null)
+            {
+                section?.TryGetValue(comboBox_marqueeSource.Text, out marqueeSource!);
+            }
+
             allSections.TryGetValue("CartridgeSource", out section);
             if (section != null)
             {
-                section?.TryGetValue(comboBox_CartridgeSource.Text, out cartridgeSource!);
+                section?.TryGetValue(comboBox_cartridgeSource.Text, out cartridgeSource!);
             }
+
             allSections.TryGetValue("VideoSource", out section);
             if (section != null)
             {
-                section?.TryGetValue(comboBox_VideoSource.Text, out videoSource!);
+                section?.TryGetValue(comboBox_videoSource.Text, out videoSource!);
             }
 
             // Setup counters 
@@ -750,10 +775,12 @@ namespace GamelistManager.pages
             baseScraperParameters.UserPassword = userPassword;
             baseScraperParameters.ParentFolderPath = parentFolderPath;
             baseScraperParameters.Language = language;
+            baseScraperParameters.ScrapeEnglishGenreOnly = englishGenreOnly; 
             baseScraperParameters.Region = region;
             baseScraperParameters.ImageSource = imageSource;
-            baseScraperParameters.BoxSource = boxSource;
-            baseScraperParameters.LogoSource = logoSource;
+            baseScraperParameters.ThumbnailSource = thumbnailSource;
+            baseScraperParameters.BoxartSource = boxartSource;
+            baseScraperParameters.MarqueeSource = marqueeSource;
             baseScraperParameters.CartridgeSource = cartridgeSource;
             baseScraperParameters.VideoSource = videoSource;
             baseScraperParameters.OverwriteMedia = overWriteMedia;
@@ -764,12 +791,10 @@ namespace GamelistManager.pages
             baseScraperParameters.MediaPaths = mediaPaths;
             baseScraperParameters.ElementsToScrape = elementsToScrape!;
             baseScraperParameters.ScrapeByCache = scrapeByCache;
-            baseScraperParameters.SkipNonCached = skipNonCached; ;
+            baseScraperParameters.SkipNonCached = skipNonCached;
             baseScraperParameters.CacheFolder = cacheFolder;
             baseScraperParameters.ScrapeByGameID = false;
             baseScraperParameters.Verify = Properties.Settings.Default.VerifyDownloadedImages;
-
-
 
             // Zero daily scrape counters
             int scrapeLimitMax = 0;
@@ -832,6 +857,8 @@ namespace GamelistManager.pages
                                 bool scrapeResult = false;
                                 await Logger.Instance.LogAsync($"Scraping {romFileNameWithExtension}", System.Windows.Media.Brushes.Green);
                                 scrapeResult = false;
+
+                                Application.Current.Dispatcher.Invoke(() => { }, DispatcherPriority.Background);
 
                                 switch (_currentScraper)
                                 {
