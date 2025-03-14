@@ -52,19 +52,18 @@ Windows Credential Manager is used for saving credentials.  I thought about usin
 
 Most of the essential features I inteded to have are available now, but there's always room for improvement.
 
- ![image](https://github.com/user-attachments/assets/c246b08e-e95f-47d7-949a-a2ea99216d98)
+![image](https://github.com/user-attachments/assets/e9803f5d-6627-4ef0-9d0f-d6c568231a3e)
 
-![image](https://github.com/user-attachments/assets/cdacb479-876f-410a-b5ac-c43e8d66b902)
+![image](https://github.com/user-attachments/assets/7d1f0804-ceba-43e0-acea-fdb5b85b3d6c)
 
-![image](https://github.com/user-attachments/assets/a41c4432-b84b-483f-a0f9-7e3458a3e64e)
+![image](https://github.com/user-attachments/assets/a779eeb6-5f98-4f69-a495-dfc96c8c4155)
 
-![image](https://github.com/user-attachments/assets/f5496cc1-2ec8-402a-8d4b-3304791968f4)
+![image](https://github.com/user-attachments/assets/c50e6337-b713-4e89-b09c-d7011f59da86)
 
-![image](https://github.com/user-attachments/assets/fbf4afad-5de0-4745-be37-49b12e4392a8)
+![image](https://github.com/user-attachments/assets/d530b6f7-ca05-47dc-9fc9-257ef65b7f51)
 
-![image](https://github.com/user-attachments/assets/be99978a-a1b0-4b0b-b4e6-e88ebf98d7da)
 
-![image](https://github.com/user-attachments/assets/bbd0cf82-ffa4-4384-a1e9-b93ba2d5cf87)
+
 
 
 
