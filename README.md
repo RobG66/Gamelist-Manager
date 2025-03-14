@@ -7,18 +7,19 @@ March 1st, 2025
 
 
 
-Gamelist Manager is a comprehensive gamelist management tool for Batocera gamelists.    
+Gamelist Manager is a comprehensive gamelist management tool for Batocera and Retrobat gamelists.    
 
 It offers functionality to quickly and easily:
   
 - Scrape data from ScreenScraper, ArcadeDB and now EmuMovies (media only)
+- Scrape caching!
 - Configurable persistent settings per system and per scraper
 - Configurable filepaths for each media type 
 - Quickly load and view gamelist data in a grid table
 - Single or bulk change visibility of items
 - Identify new and missing gamelist items
 - View and change favorites easily
-- Fast sorting and filtering of views 
+- Fast sorting and filtering of views by different metadata elements 
 - Identify and clean up missing, single color or corrupt images and missing videos
 - View game media with video playback
 - Edit or remove items from the gamelist
@@ -26,6 +27,7 @@ It offers functionality to quickly and easily:
 - Identify non-playable MAME roms
 - Identify MAME clones
 - Identify MAME games requiring CHD and check if the file is present
+- Identify MAME bootleg games
 - Run remote SSH commands on your Batocera host
 - Securely save all your credentials using Windows Credential Manager
 - Quick drive mapping assistance
@@ -43,7 +45,6 @@ The primary method of use requires mapping a network drive to the share  \\batoc
     - Load gamelists from the new network drive.
     - I strongly recommend stopping Emulation Station on your batocera host which can now be done from the remote menu.
     
-
 VLCSharp is used for video playback because it supports the different codecs required for various video file playback.  I am only building for 64bit to reduce source and release size.    
 
 SSH.NET is used for SSH remoting.
@@ -62,6 +63,7 @@ Most of the essential features I inteded to have are available now, but there's 
 
 ![image](https://github.com/user-attachments/assets/d530b6f7-ca05-47dc-9fc9-257ef65b7f51)
 
+![image](https://github.com/user-attachments/assets/217fb614-9a17-4a22-8789-5dd58029ece7)
 
 
 
