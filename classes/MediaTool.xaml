@@ -1,0 +1,144 @@
+﻿<Window x:Class="GamelistManager.MediaTool"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GamelistManager"
+        mc:Ignorable="d"
+        Title="Media Search" Height="480" Width="740" MinHeight="480" MinWidth="740" Closing="Window_Closing" Loaded="Window_Loaded" >
+    <Grid>
+        <TabControl Margin="0,5,0,0">
+            <TabItem Header="Find Media">
+                <Grid Width="Auto" Height="Auto">
+                    <Grid.Background>
+                        <ImageBrush
+    ImageSource="pack://application:,,,/Resources/backgrounds/background4.png"
+    Opacity="1"
+    Stretch="UniformToFill"    
+  />
+                    </Grid.Background>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="100"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Vertical" Margin="10,10,10,0" VerticalAlignment="Top">
+                        <Label Content="Search Options:" FontSize="14" FontWeight="Bold" Foreground="Blue"/>
+                        <RadioButton x:Name="radioButton_ExistingMedia" FontWeight="SemiBold" IsChecked="True" Content="Add existing media back to the current gamelist" VerticalAlignment="Center" Checked="radioButton_ExistingMedia_Checked" />
+                        <RadioButton x:Name="radioButton_NewMedia" Content="Add new media from a specified folder" Margin="0,5,0,0" VerticalAlignment="Center" Checked="radioButton_ExistingMedia_Checked"/>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="checkBox_SkipHiddenItems" IsChecked="True" Width="Auto" Content="Skip hidden items" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="15,5,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="stackPanel_ExistingMediaControls" Visibility="Visible"  Height="100" Grid.Row="1" Orientation="Vertical" Margin="10,0,0,0">
+                        <Label Foreground="Blue" Content="Click the Find button to search for existing media"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+                            <Button x:Name="button_FindExistingMediaStart" ToolTip="Find Existing Media" Style="{StaticResource GreenButtonStyle}" Height="20" Width="40" HorizontalAlignment="Center" Content="Find" Margin="7,0,0,0" Click="button_FindExistingMedia_Click"/>
+                            <Button x:Name="button_FindExistingMediaCancel" ToolTip="Cancel" Margin="5,0,0,0" Style="{StaticResource RedButtonStyle}" Height="20" Width="40" HorizontalAlignment="Center" Content="Cancel" IsEnabled="False" Click="button_Cancel_Click"/>
+                            <Label Content="Status:" VerticalAlignment="Center" Padding="0" FontWeight="SemiBold" Foreground="Blue" Margin="10,0,5,0" HorizontalAlignment="Center"/>
+                            <Label x:Name="label_ScanningMessage" Content="N/A" Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <Button x:Name="button_AddExistingMedia" Margin="7,20,0,0" ToolTip="Adds found media to the gamelist" IsEnabled="False" HorizontalAlignment="Left" Style="{StaticResource GreenButtonStyle}" Height="20" Width="90" Content="Add To Gamelist" Click="button_AddExistingMedia_Click"/>
+                    </StackPanel>
+                    <StackPanel x:Name="stackPanel_NewMediaControls" Height="100" Grid.Row="2" Visibility="Collapsed"  Orientation="Vertical" Margin="10,0,10,0">
+                        <Label Foreground="Blue" Content="Select a folder and media type, then click the Scan button to search for possible matches"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="button_ScanFolder" ToolTip="Select a folder to scan for new media" Style="{StaticResource CoolButtonStyle1}" Height="20" Width="70" Margin="0,0,0,0" Content="Select Folder" Click="button_ScanFolder_Click"/>
+                            <TextBox x:Name="textBox_SourceFolder" MaxLines="1" MaxLength="400" IsReadOnly="True" Width="400" Margin="10,0,0,0" />
+                            <CheckBox x:Name="checkBox_IncludeSubFolders" Content="Include Subfolders" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0" >
+                            <Label Content="Media Type:" FontWeight="SemiBold" Padding="0" VerticalAlignment="Center" Margin="5,0,10,0" />
+                            <ComboBox x:Name="comboBox_MediaTypes" Width="100" IsEnabled="False" VerticalAlignment="Center" PreviewMouseLeftButtonDown="comboBox_MediaTypes_PreviewMouseLeftButtonDown"/>
+                            <Label Margin="20,0,10,0" Content="Destination:" VerticalAlignment="Center" Padding="0" FontWeight="SemiBold" />
+                            <TextBox x:Name="textBox_DestinationFolder"  MaxLines="1" MaxLength="70" IsReadOnly="True" Width="70"  VerticalAlignment="Center"/>
+
+                            <Button x:Name="button_ScanForNewMediaStart" Margin="15,0,5,0" ToolTip="Scan for new media" Style="{StaticResource GreenButtonStyle}" Height="20" Width="40" Content="Scan" IsEnabled="False" Click="button_ScanForNewMedia_Click"/>
+                            <Button x:Name="button_ScanForNewMediaCancel" ToolTip="Cancel media scan" Style="{StaticResource RedButtonStyle}" Height="20" Width="40" Content="Cancel" IsEnabled="False" Click="button_Cancel_Click"/>
+                            <Button x:Name="button_AddNewMedia" ToolTip="Add new media to the gamelist" IsEnabled="False" Style="{StaticResource GreenButtonStyle}" Height="20" Width="40" Content="Add" Margin="5,0,0,0" Click="button_AddNewMedia_Click"/>
+                            <Label Content="Status:" VerticalAlignment="Center" Padding="0" FontWeight="SemiBold" Foreground="Blue" Margin="10,0,5,0" HorizontalAlignment="Center"/>
+                            <Label x:Name="label_ScanningMessage2" Content="N/A" Padding="0" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <CheckBox x:Name="checkBox_ScanOnlyNeededMedia" IsChecked="True" ToolTip="Only items missing media will be matched" Content="Scan only for needed media" Margin="5,0,0,0"/>
+                            <CheckBox x:Name="checkBox_OverwriteExisting" IsChecked="False" ToolTip="Backup existing media and then overwrite"  Content="Backup and then overwrite existing media" Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <ProgressBar Grid.Row="3" x:Name="progressBar_ProgressBar" Width="Auto" Margin="10" VerticalAlignment="Center"/>
+                    <DockPanel Grid.Row="4" Margin="2,0,2,2" LastChildFill="True" DockPanel.Dock="Bottom" Background="LightGray" Height="Auto">
+                        <DataGrid x:Name="dataGrid_Media" Height="Auto" CanUserAddRows="False" AutoGenerateColumns="False">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="contextMenu_DeleteItems" IsEnabled="False" Header="Delete Selected Rows" Click="DeleteSelectedRows_Click" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Rom" Width="1.5*" Binding="{Binding RomPath}" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Media Type" Width="*" Binding="{Binding MediaType}" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Matched File" Width="4*" Binding="{Binding MatchedFile}" IsReadOnly="True" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Cleanup Media">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Vertical" Margin="10,10,10,0" VerticalAlignment="Top">
+                        <Label Content="Media Cleanup Options:" FontSize="14" FontWeight="Bold" Foreground="Blue"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="button_ScanExistingMediaStart" Margin="5,0,0,0" VerticalAlignment="Center" ToolTip="Start Scan" Style="{StaticResource GreenButtonStyle}" Height="20" Width="70" Content="Start Scan" Click="button_ScanExistingMedia_Click"/>
+                            <Button x:Name="button_ScanExistingMediaCancel" Margin="5,0,0,0" VerticalAlignment="Center" ToolTip="Cancel Scan" Style="{StaticResource RedButtonStyle}" IsEnabled="False" Height="20" Width="70" Content="Stop Scan" Click="button_Cancel_Click"/>
+                        </StackPanel>
+                        <Grid Margin="0,5,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26"/>
+                                <RowDefinition Height="26"/>
+                                <RowDefinition Height="26"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Row="0" Grid.Column="0" x:Name="checkBox_MissingMedia" Content="Missing media within the gamelist" IsChecked="True" Margin="10,0,5,0" VerticalAlignment="Center"/>
+                            <Label Grid.Row="0" Grid.Column="1" x:Name="label_Missing" Margin="15,0,15,0" Padding="0" VerticalAlignment="Center" />
+                            <Button Grid.Row="0" Grid.Column="2" x:Name="button_FixMissing" Margin="5,0,0,0" VerticalAlignment="Center" ToolTip="Remove missing media entries in the gamelist" Style="{StaticResource GreenButtonStyle}" IsEnabled="True" Height="20" Width="70" Content="Fix Missing" Visibility="Hidden" Click="button_FixMissing_Click"/>
+
+                            <CheckBox Grid.Row="1" Grid.Column="0" x:Name="checkBox_UnusedMedia" Content="Unused media in the media folders" IsChecked="True" Margin="10,0,5,0" VerticalAlignment="Center"/>
+                            <Label Grid.Row="1" Grid.Column="1" x:Name="label_Unused" Margin="15,0,15,0" Padding="0" VerticalAlignment="Center" />
+                            <Button Grid.Row="1" Grid.Column="2" x:Name="button_FixUnused" Margin="5,0,0,0" VerticalAlignment="Center" ToolTip="Backup and remove unused media" Style="{StaticResource GreenButtonStyle}" IsEnabled="True" Height="20" Width="70" Content="Fix Unused" Visibility="Hidden" Click="button_FixUnused_Click"/>
+
+                            <CheckBox Grid.Row="2" Grid.Column="0" x:Name="checkBox_SingleColor" Content="Single color and corrupt images" IsChecked="True" Margin="10,0,5,0" VerticalAlignment="Center"/>
+                            <Label Grid.Row="2" Grid.Column="1" x:Name="label_SingleColor" Margin="15,0,15,0" Padding="0" VerticalAlignment="Center"/>
+                            <Button Grid.Row="2" Grid.Column="2" x:Name="button_FixBad" Margin="5,0,0,0" VerticalAlignment="Center" ToolTip="Remove bad media files" Style="{StaticResource GreenButtonStyle}" IsEnabled="True" Height="20" Width="70" Content="Fix Bad" Visibility="Hidden" Click="button_FixBad_Click"/>
+                        </Grid>
+                    </StackPanel>
+                    <ProgressBar Grid.Row="1" x:Name="progressBar_ProgressBar2" Width="Auto" Margin="10" VerticalAlignment="Center"/>
+                    <DockPanel Grid.Row="2" Margin="2,0,2,2" LastChildFill="True" DockPanel.Dock="Bottom" Background="LightGray" Height="Auto">
+                        <DataGrid x:Name="dataGrid_BadMedia" Height="Auto" CanUserAddRows="False" AutoGenerateColumns="False">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="contextMenu_DeleteItems2" IsEnabled="False" Header="Delete Selected Rows" Click="DeleteSelectedRows_Click" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Status" Width="1*" Binding="{Binding Status}" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Media Type" Width="1*" Binding="{Binding MediaType}" IsReadOnly="True" />
+                                <DataGridTextColumn Header="File Name" Width="5*" Binding="{Binding FileName}" IsReadOnly="True" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
