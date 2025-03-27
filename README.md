@@ -2,6 +2,11 @@
 
 Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
+March 27th, 2025
+ Version 7.8 released!  Lots of little tweaks and a few important fixes.  The fixes for arcadesystemname will correct issues with automatic Arcade collections.  Media management is still on the radar, but is not ready.
+
+
+
 March 1st, 2025
  Version 7.7 has been released!  If you have an idea or find an issue, please report it.
 
