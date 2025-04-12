@@ -1,16 +1,23 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
-Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
+### Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
+
+ April 12th 2025
+  Work continues on version 7.9, no ETA yet though.  I recently spent a bit of time updating my Reload theme.  It's not quite where I want it to be, but good enough for now.
+  Did you know I have only received 1 donation ever?  And it was a nice feeling to receive that, for all the work I have put into this.  I bought a few cheap GOG games with that.  
+  There's no obligation to anyone of course, never will be.  I just thought I'd share the metric on how that has been.      
+
+-----
 
 March 27th, 2025
  Version 7.8 released!  Lots of little tweaks and a few important fixes.  The fixes for arcadesystemname will correct issues with automatic Arcade collections.  Media management is still on the radar, but is not ready.
 
-
+------
 
 March 1st, 2025
  Version 7.7 has been released!  If you have an idea or find an issue, please report it.
 
-
+------
 
 Gamelist Manager is a comprehensive gamelist management tool for Batocera and Retrobat gamelists.    
 
@@ -36,8 +43,8 @@ It offers functionality to quickly and easily:
 - Run remote SSH commands on your Batocera host
 - Securely save all your credentials using Windows Credential Manager
 - Quick drive mapping assistance
-- Open images in a default editor
-- Create M3U files from selected items
+- Open images in a default editor (coming)
+- Create M3U files from selected items (coming)
 - Export gamelist data to csv
 - Create a terminal session to your Batocera host (openSSH)
 - Save your cleaned up gamelist!
