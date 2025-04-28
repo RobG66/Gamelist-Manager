@@ -1,6 +1,8 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
-### Donations: https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
+### Donations:
+https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
+https://buymeacoffee.com/silverballb
 
  April 12th 2025
   Work continues on version 7.9, no ETA yet though.  I recently spent a bit of time updating my Reload theme.  It's not quite where I want it to be, but good enough for now.
