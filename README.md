@@ -5,6 +5,12 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
 
+----
+ April 28th, 2028
+  I've been a bit under the weather with vertigo/dizzy spells which is currently attributed to BPPV.  Nothing too serious, but it really, really sucks going through this!  I've still managed to get a bit of work done towards 7.9, but release is maybe a few weeks away yet.  I also added a "buy me a coffee" donation link.  We'll see how that goes.  
+  
+
+----
  April 12th 2025
   Work continues on version 7.9, no ETA yet though.  I recently spent a bit of time updating my Reload theme.  It's not quite where I want it to be, but good enough for now.
   Did you know I have only received 1 donation ever?  And it was a nice feeling to receive that, for all the work I have put into this.  I bought a few cheap GOG games with that.  
