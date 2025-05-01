@@ -8,7 +8,7 @@ https://buymeacoffee.com/silverballb
 
 ----
 May1st 2025
- Second update today!  I managed to get UWP applications to launch, such as Photos or Paint3D.  While MS has sunsetted Paint3D, if you search you can still download and install it from microsoft.  It's a simple, decent app for editing PNG images, better than paint.  Here's a screen capture of the context menu.  You will be able to open using default app or select from a list of registered apps.  You can even view the properties of the file or goto the file location.  
+ Second update today!  I managed to get UWP applications to launch, such as Photos or Paint3D.  While MS has sunsetted Paint3D, if you search you can still download and install it from microsoft.  It's a simple, decent app for editing PNG images, better than paint.  Here's a screen capture of the context menu.  You will be able to open using default app or select from a list of registered apps.  You can even view the properties of the file or goto the file location.  Notice the subtle drop shadow on images now. They don't look so 'flat' now.
  ![image](https://github.com/user-attachments/assets/fef15764-c917-4c5b-bc39-b604aaffbb18)
 
 
