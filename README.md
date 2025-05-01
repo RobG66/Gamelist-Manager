@@ -5,6 +5,13 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
 
+
+----
+May1st 2025
+ Second update today!  I managed to get UWP applications to launch, such as Photos or Paint3D.  While MS has sunsetted Paint3D, if you search you can still download and install it from microsoft.  It's a simple, decent app for editing PNG images, better than paint.  Here's a screen capture of the context menu.  You will be able to open using default app or select from a list of registered apps.  You can even view the properties of the file or goto the file location.  
+ ![image](https://github.com/user-attachments/assets/fef15764-c917-4c5b-bc39-b604aaffbb18)
+
+
 ----
 May 1st, 2025
  I was working on adding some context menus for the media, specifically "Open With" and letting the user pick what apps are registered for that file extension.  I think I'll initially only support win32 apps since UWP (Microsoft Store) is a whole other PITA thing to work with.  I'm hoping to release something next week I think.
