@@ -4,9 +4,12 @@
 https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
+----
+May 1st, 2025
+ I was working on adding some context menus for the media, specifically "Open With" and letting the user pick what apps are registered for that file extension.  I think I'll initially only support win32 apps since UWP (Microsoft Store) is a whole other PITA thing to work with.  I'm hoping to release something next week I think.
 
 ----
- April 28th, 2028
+ April 28th, 2025
   I've been a bit under the weather with vertigo/dizzy spells which is currently attributed to BPPV.  Nothing too serious, but it really, really sucks going through this!  I've still managed to get a bit of work done towards 7.9, but release is maybe a few weeks away yet.  I also added a "buy me a coffee" donation link.  We'll see how that goes.  
   
 
