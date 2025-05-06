@@ -25,7 +25,7 @@ public class ChangeTracker
         _table = table;
         _maxUndoCount = maxUndoCount;
 
-        // Stop any previous tracking session and reset stacks
+        // StopPlaying any previous tracking session and reset stacks
         StopTracking();
 
         // Save the initial state of the table to allow "Undo" back to this starting point

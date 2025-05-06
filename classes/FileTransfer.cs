@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Net;
 using System.Net.Http;
 
 namespace GamelistManager.classes
@@ -13,7 +12,7 @@ namespace GamelistManager.classes
             _httpClientService = httpClientService;
         }
 
-        public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url,string bearerToken)
+        public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url, string bearerToken)
         {
 
             string fileExtension = Path.GetExtension(fileDownloadPath).ToLowerInvariant();
@@ -34,9 +33,9 @@ namespace GamelistManager.classes
                 }
 
                 string fileName = Path.GetFileName(fileDownloadPath);
-                           
+
                 await Logger.Instance.LogAsync($"Downloading file: {fileName}", System.Windows.Media.Brushes.Blue);
-                                
+
                 // Download the file using HttpClient
                 using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url))
                 {
@@ -45,7 +44,7 @@ namespace GamelistManager.classes
                     {
                         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
                     }
-                         
+
                     using (HttpResponseMessage response = await _httpClientService.SendAsync(request))
                     {
                         response.EnsureSuccessStatusCode(); // Throw if the status code is not success

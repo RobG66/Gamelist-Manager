@@ -18,29 +18,27 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace GamelistManager
 {
     public partial class MainWindow : Window
     {
-        private string _parentFolderPath = string.Empty;
-        private string _visibilityFilter = string.Empty;
-        private string _genreFilter = string.Empty;
-        bool _autosizeColumns = true;
+        private string? _parentFolderPath;
+        private string? _visibilityFilter;
+        private string? _genreFilter;
+        bool _autosizeColumns;
         private DispatcherTimer _dataGridSelectionChangedTimer;
-        private DataRowView _pendingSelectedRow = null!;
-        private MediaDisplay _mediaDisplay;
-        private JukeBoxWindow _jukeBoxWindow = null!;
+        private DataRowView? _pendingSelectedRow;
+        private MediaPage? _mediaPage;
         private Scraper _scraper;
-        private Dictionary<DataGridColumn, Style?> _originalCellStyles = new(); // Store original DataGrid cell styles
-        private Brush? _originalTextBoxForeground; // Store original TextBox foreground color
+        private Dictionary<DataGridColumn, Style?> _originalCellStyles = new();
+        private Brush? _originalTextBoxForeground;
 
 
         public MainWindow()
         {
             InitializeComponent();
-          
+
             // This is for a short delay between datagrid selection changes
             // In case of fast scrolling
             _dataGridSelectionChangedTimer = new DispatcherTimer
@@ -52,9 +50,10 @@ namespace GamelistManager
             SharedData.ProgramDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
             SharedData.InitializeChangeTracker();
             SharedData.ChangeTracker!.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
-      
-            _mediaDisplay = new MediaDisplay(); // Initialize MediaDisplay Page 
+
+            _mediaPage = new MediaPage(); // Initialize MediaPage Page 
             _scraper = new Scraper(this); // Initialize Scraper Page
+            _autosizeColumns = true;
         }
 
         private void ChangeTracker_UndoRedoStateChanged(object sender, EventArgs e)
@@ -109,15 +108,17 @@ namespace GamelistManager
         }
 
         private DataTemplate CreateCheckBoxTemplate(string columnName)
-        {            
+        {
             var xaml = $@"
             <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>
             <CheckBox IsChecked='{{Binding {columnName}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}'
-              HorizontalAlignment='Center'/>
+             HorizontalAlignment='Center'/>
             </DataTemplate>";
 
             return (DataTemplate)XamlReader.Parse(xaml);
         }
+
+
 
         private bool LoadXMLFile(string fileName)
         {
@@ -130,7 +131,7 @@ namespace GamelistManager
             {
                 _scraper.button_Start.IsEnabled = false;
                 _scraper.button_ClearCache.IsEnabled = false;
-                Logger.Instance.ClearLogAsync();
+                Logger.Instance.ClearLog();
             }
 
             if (!string.IsNullOrEmpty(SharedData.XMLFilename) && SharedData.IsDataChanged)
@@ -249,7 +250,7 @@ namespace GamelistManager
             SharedData.CurrentSystem = Path.GetFileName(Path.GetDirectoryName(SharedData.XMLFilename))!;
 
             // Set default states
-            stackPanel_Filters.IsEnabled = true;
+            tabControl_Filters.IsEnabled = true;
             // blah fix - shit I forgot what I was supposed to fix!
             textBox_CustomFilter.Text = string.Empty;
             menuItem_Reload.IsEnabled = true;
@@ -280,17 +281,22 @@ namespace GamelistManager
 
             SharedData.IsDataChanged = false;
 
-            UpdateSearchAndReplaceCombobox();
+            UpdateComboboxes();
             SetEditMode(false);
 
             _scraper.button_Start.IsEnabled = true;
             _scraper.button_ClearCache.IsEnabled = false;
 
+            DateTime lastModifiedTime = File.GetLastWriteTime(fileName);
+
+            textBlock_Filename.Text = $"File: {fileName}";
+            textBlock_LastModifiedTime.Text = $"Modified Time: {lastModifiedTime}";
+
             return true;
 
         }
 
-        public void UpdateSearchAndReplaceCombobox()
+        public void UpdateComboboxes()
         {
             var visibleColumns = MainDataGrid.Columns
                 .Where(column => column.Visibility == Visibility.Visible)  // Only visible columns
@@ -330,27 +336,40 @@ namespace GamelistManager
                     };
                 });
 
-            string previousText = comboBox_Columns.Text;
+            string previousTextComboboxColumns = comboBox_Columns.Text;
             comboBox_Columns.Items.Clear();
+
+            string previousTextCustomFilter = comboBox_CustomFilter.Text;
+            comboBox_CustomFilter.Items.Clear();
+            comboBox_CustomFilter.Items.Add("Rom Path"); // Added only for this combobox
 
             foreach (var item in visibleColumns)
             {
                 comboBox_Columns.Items.Add(item.ColumnName);
+                comboBox_CustomFilter.Items.Add(item.ColumnName);
             }
             comboBox_Columns.Items.Add("Description");
+            comboBox_CustomFilter.Items.Add("Description");
 
 
-            if (comboBox_Columns.Items.Contains(previousText))
+            if (comboBox_Columns.Items.Contains(previousTextComboboxColumns))
             {
-                comboBox_Columns.Text = previousText;
+                comboBox_Columns.Text = previousTextComboboxColumns;
             }
             else
             {
                 comboBox_Columns.SelectedIndex = 0;
             }
+
+            if (comboBox_CustomFilter.Items.Contains(previousTextCustomFilter))
+            {
+                comboBox_CustomFilter.Text = previousTextCustomFilter;
+            }
+            else
+            {
+                comboBox_CustomFilter.SelectedIndex = 0;
+            }
         }
-
-
 
         public void SetBackground(string system)
         {
@@ -404,6 +423,8 @@ namespace GamelistManager
             .FirstOrDefault(col => col.Header != null && col.Header.ToString() == "Favorite");
             favoriteColumn!.IsReadOnly = false;
 
+            menuItem_ArcadeSystemName.IsChecked = false;
+            menuItem_Family.IsChecked = false;
             menuItem_Description.IsChecked = true;
             menuItem_Developer.IsChecked = false;
             menuItem_Favorite.IsChecked = false;
@@ -523,7 +544,12 @@ namespace GamelistManager
 
         public void UpdateCounters()
         {
-            textBox_TotalCount.Text = SharedData.DataSet.Tables[0].Rows.Count.ToString();
+            if (SharedData.DataSet == null)
+            {
+                return;
+            }
+
+            int totalItems = SharedData.DataSet.Tables[0].Rows.Count;
 
             int hiddenItems = SharedData.DataSet.Tables[0].AsEnumerable()
                 .Count(row => row.Field<bool?>("hidden") == true);
@@ -542,10 +568,10 @@ namespace GamelistManager
             // Make sure labels are updated in gui thread
             Dispatcher.Invoke(() =>
             {
-                textBox_VisibleCount.Text = visibleItems.ToString();
-                textBox_HiddenCount.Text = hiddenItems.ToString();
-                textBox_ShowingCount.Text = visibleRowCount.ToString();
-                textBox_FavoriteCount.Text = favoriteItems.ToString();
+                textBlock_TotalCount.Text = totalItems.ToString();
+                textBlock_HiddenCount.Text = hiddenItems.ToString();
+                textBlock_FavoriteCount.Text = favoriteItems.ToString();
+                textBlock_ShowingCount.Text = visibleRowCount.ToString();
 
                 if (_scraper != null)
                 {
@@ -557,6 +583,31 @@ namespace GamelistManager
                     _scraper.ShowOrHideCounts(showCounts);
 
                 }
+
+                /*
+
+                foreach (CheckBox checkBox in checkBoxes)
+                {
+                    var elementName = checkBox.Tag.ToString()!;
+                    var metaDataKey = Enum.Parse<MetaDataKeys>(elementName, true);
+                    var nameValue = GamelistMetaData.GetMetaDataDictionary()[metaDataKey].Name;
+                    int count = SharedData.DataSet.Tables[0].AsEnumerable()
+                    .Count(row => !row.IsNull(nameValue) && !string.IsNullOrWhiteSpace(row[nameValue].ToString()));
+
+                    string currentContent = checkBox.Content.ToString()!;
+                    string pattern = @"\s*\(.*?\)";
+                    checkBox.Content = Regex.Replace(currentContent, pattern, string.Empty).Trim();
+
+                    if (showCounts && checkBox.Tag.ToString() != "music")
+                    {
+                        currentContent = checkBox.Content.ToString()!;
+                        checkBox.Content = $"{currentContent} ({count})";
+                    }
+                }
+
+            });
+
+                */
 
 
 
@@ -649,7 +700,7 @@ namespace GamelistManager
             {
                 Properties.Settings.Default.MediaPaths = Properties.Settings.Default.Properties["MediaPaths"].DefaultValue?.ToString() ?? "{}";
                 Properties.Settings.Default.Save();
-                MessageBox.Show("Media paths have been reset to default","Paths Reset",MessageBoxButton.OK,MessageBoxImage.Information);
+                MessageBox.Show("Media paths have been reset to default", "Paths Reset", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -657,6 +708,8 @@ namespace GamelistManager
         {
 
             VerifyAndResetSettings();
+
+            statusBar_FileInfo.Visibility = Properties.Settings.Default.ShowFileStatusBar ? Visibility.Visible : Visibility.Collapsed;
 
             string gridLineVisibility = Properties.Settings.Default.GridLineVisibility;
             if (Enum.TryParse(gridLineVisibility, out DataGridGridLinesVisibility visibility))
@@ -679,7 +732,7 @@ namespace GamelistManager
             FontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
 
             // Default states
-            stackPanel_Filters.IsEnabled = false;
+            tabControl_Filters.IsEnabled = false;
 
             // Populate recent files, if any
             AddRecentFilesToMenu();
@@ -867,7 +920,7 @@ namespace GamelistManager
                 menuItem_ColumnAutoSize.IsChecked = !isMenuItemChecked;
                 _autosizeColumns = !isMenuItemChecked;
                 AdjustDataGridColumnWidths(MainDataGrid);
-                UpdateSearchAndReplaceCombobox();
+                UpdateComboboxes();
                 return;
             }
 
@@ -882,24 +935,42 @@ namespace GamelistManager
                 column.Visibility = isMenuItemChecked ? Visibility.Visible : Visibility.Collapsed;
             }
 
-            UpdateSearchAndReplaceCombobox();
+            UpdateComboboxes();
 
         }
 
 
         private void ApplyFilters(string[] filters)
         {
-            string mergedFilter = string.Join(" AND ", filters.Where(f => !string.IsNullOrEmpty(f)));
-
-            DataView dataView = SharedData.DataSet.Tables[0].AsDataView();
-
-            if (!string.IsNullOrEmpty(mergedFilter))
+            if (SharedData.DataSet.Tables.Count == 0)
             {
-                SharedData.DataSet.Tables[0].DefaultView.RowFilter = mergedFilter;
+                return;
             }
-            else
+
+            if (filters == null || filters.Length == 0)
             {
                 SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
+                return;
+            }
+
+            try
+            {
+                string mergedFilter = string.Join(" AND ", filters.Where(f => !string.IsNullOrEmpty(f)));
+
+                DataView dataView = SharedData.DataSet.Tables[0].AsDataView();
+
+                if (!string.IsNullOrEmpty(mergedFilter))
+                {
+                    SharedData.DataSet.Tables[0].DefaultView.RowFilter = mergedFilter;
+                }
+                else
+                {
+                    SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Bad Filter Syntax!", "Error!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
         }
@@ -951,6 +1022,13 @@ namespace GamelistManager
 
         private void ShowGenreOnly_Click(object sender, RoutedEventArgs e)
         {
+            if (MainDataGrid.SelectedItems.Count == 0 && MainDataGrid.Items.Count > 0)
+            {
+                // Default show empty genre because there's no selected datagrid row
+                comboBox_Genre.SelectedIndex = 1;
+                return;
+            }
+
             menuItem_ShowAllGenre.IsChecked = false;
             menuItem_ShowOneGenre.IsChecked = true;
 
@@ -996,7 +1074,7 @@ namespace GamelistManager
             menuItem_ShowHidden.IsChecked = false;
             menuItem_ShowVisible.IsChecked = false;
             menuItem_ColumnAutoSize.IsChecked = false;
-          
+
             // Set autosize to true, which is default
             _autosizeColumns = true;
 
@@ -1015,10 +1093,7 @@ namespace GamelistManager
             // Reset custom filter view
             comboBox_Genre.SelectedIndex = 0;
             comboBox_CustomFilter.SelectedIndex = 0;
-            grid_Filter1.Visibility = Visibility.Visible;
-            grid_Filter2.Visibility = Visibility.Collapsed;
-            button_SwitchFilter.Content = "Custom Filter";
-
+            tabControl_Filters.SelectedIndex = 0;
         }
 
         private void SearchAndReplace_Click(object sender, RoutedEventArgs e)
@@ -1257,7 +1332,6 @@ namespace GamelistManager
 
         private void DataGridSelectionChangedTimer_Tick(object? sender, EventArgs e)
         {
-
             _dataGridSelectionChangedTimer.Stop();
 
             if (_pendingSelectedRow == null)
@@ -1270,7 +1344,7 @@ namespace GamelistManager
 
             if (button_Media.Content.ToString() == "Hide Media" && _pendingSelectedRow != null)
             {
-                _mediaDisplay.ShowMedia(_pendingSelectedRow);
+                _mediaPage.ShowMedia(_pendingSelectedRow);
             }
         }
 
@@ -1398,6 +1472,26 @@ namespace GamelistManager
 
         private void menuItem_View_SubmenuOpened(object sender, RoutedEventArgs e)
         {
+
+            if (MainDataGrid.Items.Count == 0)
+            {
+                menuItem_ShowOneGenre.IsEnabled = false;
+                menuItem_ShowAllGenre.IsEnabled = false;
+                menuItem_ShowAll.IsEnabled = false;
+                menuItem_ShowHidden.IsEnabled = false;
+                menuItem_ShowVisible.IsEnabled = false;
+                return;
+            }
+            else
+            {
+                menuItem_ShowOneGenre.IsEnabled = true;
+                menuItem_ShowAllGenre.IsEnabled = true;
+                menuItem_ShowAll.IsEnabled = true;
+                menuItem_ShowHidden.IsEnabled = true;
+                menuItem_ShowVisible.IsEnabled = true;
+
+            }
+
             string genre = string.Empty;
 
             if (comboBox_Genre.SelectedIndex == 0)
@@ -1411,7 +1505,7 @@ namespace GamelistManager
                 }
                 else
                 {
-                    genre = "All";
+                    genre = "Empty";
                 }
             }
             if (comboBox_Genre.SelectedIndex > 1)
@@ -1431,7 +1525,7 @@ namespace GamelistManager
 
         private void comboBox_Genre_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string selectedText = string.Empty;
+            string selectedText;
 
             ComboBox? comboBox = sender as ComboBox;
 
@@ -1474,28 +1568,6 @@ namespace GamelistManager
 
         }
 
-
-        private void textBox_CustomFilter_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            // Allow Backspace, Delete, Space, and Slash
-            if (e.Key == Key.Back || e.Key == Key.Delete || e.Key == Key.Space || e.Key == Key.Oem2)
-            {
-                // Allow these keys
-                return;
-            }
-
-            // Check if the key is a letter or digit
-            if (e.Key >= Key.A && e.Key <= Key.Z || e.Key >= Key.D0 && e.Key <= Key.D9)
-            {
-                // Allow letters and digits
-                return;
-            }
-
-            // If it's not an allowed key, handle the event
-            e.Handled = true;
-        }
-
-
         private void textBox_CustomFilter_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             string filterText = textBox_CustomFilter.Text;
@@ -1520,16 +1592,15 @@ namespace GamelistManager
             filterText = filterText.Replace("'", "''");
             string thirdFilter = $"{filterItem} LIKE '%{filterText}%'";
             ApplyFilters(new string[] { _visibilityFilter!, _genreFilter!, thirdFilter! });
-
-
+            UpdateCounters();
 
         }
 
-        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        private void menuItem_Settings_Click(object sender, RoutedEventArgs e)
         {
             int originalMaxUndo = Properties.Settings.Default.MaxUndo;
 
-            SettingsDialog settingsDialog = new SettingsDialog(MainDataGrid);
+            SettingsDialogWindow settingsDialog = new SettingsDialogWindow(this);
             settingsDialog.ShowDialog();
 
             int maxUndo = Properties.Settings.Default.MaxUndo;
@@ -1558,7 +1629,7 @@ namespace GamelistManager
             .OfType<DataGridTextColumn>()
             .FirstOrDefault(c => c.Header.ToString() == "Name")?.IsReadOnly ?? false;
 
-            menuItem_EditData.Header = (readOnly == true) ? "Edit Data" : "Stop Editing Data";
+            menuItem_EditData.Header = (readOnly == true) ? "Edit Data" : "StopPlaying Editing Data";
 
             bool filtered = false;
 
@@ -1566,14 +1637,14 @@ namespace GamelistManager
 
             if (!string.IsNullOrEmpty(dataView.RowFilter))
             {
-               filtered = true;
+                filtered = true;
             }
 
             // Adjust menuitems for view filtering
             menuItem_SetAllHidden.Header = (filtered == false) ? "Set All Items Hidden" : "Set All Filtered Items Hidden";
             menuItem_SetAllVisible.Header = (filtered == false) ? "Set All Items Visible" : "Set All Filtered Items Visible";
 
-            // Adjust menu previousText based upon selected item count
+            // Adjust menu previousTextComboboxColumns based upon selected item count
             int selectedItemCount = MainDataGrid.SelectedItems.Count;
             menuItem_SetSelectedVisible.Header = (selectedItemCount < 2) ? "Set Item Visible" : "Set Selected Items Visible";
             menuItem_SetSelectedHidden.Header = (selectedItemCount < 2) ? "Set Item Hidden" : "Set Selected Items Hidden";
@@ -1802,14 +1873,14 @@ namespace GamelistManager
                 .OfType<DataRowView>()
                 .FirstOrDefault();
 
-                _mediaDisplay.ShowMedia(selectedRow!);
+                _mediaPage.ShowMedia(selectedRow!);
             }
 
         }
 
         private void SetEditMode(bool editMode)
         {
-          
+
             var editableColumns = GamelistMetaData.GetMetaDataDictionary().Values
                 .Where(decl => decl.editible)
                 .Select(decl => decl.Name)
@@ -1952,32 +2023,11 @@ namespace GamelistManager
             AdjustDataGridColumnWidths(MainDataGrid);
         }
 
-
-        private void button_SwitchFilter_Click(object sender, RoutedEventArgs e)
-        {
-            if (grid_Filter1.Visibility == Visibility.Visible)
-            {
-                button_SwitchFilter.Content = "Custom Filter";
-                grid_Filter1.Visibility = Visibility.Collapsed;
-                grid_Filter2.Visibility = Visibility.Visible;
-                comboBox_Genre.SelectedIndex = 0;
-            }
-            else
-            {
-                button_SwitchFilter.Content = "Genre Filter";
-                grid_Filter1.Visibility = Visibility.Visible;
-                grid_Filter2.Visibility = Visibility.Collapsed;
-                textBox_CustomFilter.Text = string.Empty;
-                comboBox_CustomFilter.SelectedIndex = 0;
-
-                ApplyFilters([_visibilityFilter, _genreFilter]);
-            }
-        }
-
         private void button_ClearGenreSelection_Click(object sender, RoutedEventArgs e)
         {
             comboBox_Genre.SelectedIndex = 0;
             button_ClearGenreSelection.Visibility = Visibility.Hidden;
+            UpdateCounters();
         }
 
         private void button_ClearCustomFilter_Click(object sender, RoutedEventArgs e)
@@ -1985,6 +2035,7 @@ namespace GamelistManager
             textBox_CustomFilter.Text = string.Empty;
             button_ClearCustomFilter.Visibility = Visibility.Hidden;
             ApplyFilters(new string[] { _visibilityFilter, _genreFilter });
+            UpdateCounters();
         }
 
         private void menuItem_ClearSelected_Click(object sender, RoutedEventArgs e)
@@ -2074,11 +2125,6 @@ namespace GamelistManager
 
         private void PlayJukeBox(string mediaType)
         {
-            if (_jukeBoxWindow != null && _jukeBoxWindow!.IsLoaded == true)
-            {
-                return;
-            }
-
             string jsonString = Properties.Settings.Default.MediaPaths;
             Dictionary<string, string> mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString)!;
 
@@ -2109,10 +2155,8 @@ namespace GamelistManager
                 return;
             }
 
-            bool isVideo = mediaType == "video";
-
-            _jukeBoxWindow = new JukeBoxWindow(files, isVideo);
-            _jukeBoxWindow.Show();
+            MediaPlayerWindow mediaPlayerWindow = new MediaPlayerWindow(files);
+            mediaPlayerWindow.Show();
         }
 
 
@@ -2213,10 +2257,11 @@ namespace GamelistManager
 
             bool show = true;
 
-            if (MainContentFrame.Content == _mediaDisplay)
+            if (MainContentFrame.Content == _mediaPage)
             {
-                _mediaDisplay.ClearAllImages();
-                _mediaDisplay.StopPlaying();
+
+                _mediaPage.StopPlaying();
+
             }
 
             button_Media.Content = "Show Media";
@@ -2238,6 +2283,7 @@ namespace GamelistManager
 
         private void ShowScraperPage(bool show)
         {
+            ShowMediaPage(false);
             MainContentFrame.Navigate(_scraper);
 
             if (show)
@@ -2273,7 +2319,7 @@ namespace GamelistManager
         private void ShowMediaPage(bool show)
         {
 
-            MainContentFrame.Navigate(_mediaDisplay);
+            MainContentFrame.Navigate(_mediaPage);
 
             if (show)
             {
@@ -2290,34 +2336,87 @@ namespace GamelistManager
                 .OfType<DataRowView>()
                 .FirstOrDefault();
 
-                _mediaDisplay.ShowMedia(selectedRow!);
-
+                _mediaPage.ShowMedia(selectedRow!);
             }
             else
             {
                 MainGrid.RowDefinitions[3].Height = new GridLength(0);
                 gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
-                if (_mediaDisplay != null)
+                if (_mediaPage != null)
                 {
-                    _mediaDisplay.ClearAllImages();
-                    _mediaDisplay.StopPlaying();
+                    _mediaPage.ClearAllImages();
+                    _mediaPage.StopPlaying();
                 }
             }
         }
 
         private void menuItem_FindNewItems_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("This will check for additional items and add them to your gamelist.  Search criteria will be based upon file extensions used for any existing items.\n\n" +
-            "Items listed in m3u files will be ignored.\n\nDo you want to continue?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            string optionsFileName = $"ini\\filetypes.ini";
+            string[] fileExtensions;
+            var fileTypes = IniFileReader.GetSection(optionsFileName, "filetypes");
 
-            if (result != MessageBoxResult.Yes)
+            if (fileTypes == null)
             {
+                MessageBox.Show(
+                    $"No file types found! Please check filetypes.ini file configuration.",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return;
+            }
+
+            string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
+
+            if (fileTypes.TryGetValue(SharedData.CurrentSystem, out string? fileTypesForSystem))
+            {
+                fileExtensions = fileTypesForSystem
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(ext => ext.Trim())
+                    .ToArray();
+
+                if (fileExtensions.Length == 0)
+                {
+                    MessageBox.Show(
+                        $"No file extensions found for the system '{SharedData.CurrentSystem}'. Please check your ini file configuration.",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    return;
+                }
+
+                string fileTypesList = string.Join("\n", fileExtensions);
+
+                var result = MessageBox.Show(
+                    "This will check for additional items and add them to your gamelist.\n\n" +
+                    "Search criteria will be based upon these file extensions:\n" +
+                    $"{fileTypesList}\n\n" +
+                    "Items listed in m3u files will be ignored.\n\n" +
+                    $"Search depth setting: {Properties.Settings.Default.SearchDepth}\n\n" +
+                    "Do you want to continue?",
+                    "Confirmation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.No)
+                {
+                    return;  // Exit early
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"No file types found for the system '{SharedData.CurrentSystem}'. Please check your ini file configuration.",
+                    "System Not Found",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
                 return;
             }
 
             Mouse.OverrideCursor = Cursors.Wait;
 
-            int totalNewItems = AddNewItems();
+            int searchDepth = Properties.Settings.Default.SearchDepth;
+            int totalNewItems = FindNewItems(fileExtensions, searchDepth); 
             UpdateCounters();
 
             Mouse.OverrideCursor = null;
@@ -2337,42 +2436,70 @@ namespace GamelistManager
             }
         }
 
-        private int AddNewItems()
+        private int FindNewItems(string[] fileExtensions, int searchDepth)
         {
-            string[] m3uFiles = Directory.GetFiles(_parentFolderPath!, "*.m3u");
-
-            // Use HashSet for fast lookups and avoid duplicates
+            // Initialize the M3U contents HashSet directly
             var m3uContents = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // Read and store contents of each M3U file
+            // Get all .m3u files in the directory
+            string[] m3uFiles = Directory.GetFiles(_parentFolderPath!, "*.m3u");
+
+            // Populate the M3U contents HashSet with normalized paths
             foreach (var m3uFile in m3uFiles)
             {
-                foreach (var line in File.ReadLines(m3uFile))
-                {
-                    m3uContents.Add(line.Trim());
-                }
+                m3uContents.UnionWith(
+                    File.ReadLines(m3uFile)
+                        .Select(line => line.Trim().Replace("\\", "/"))
+                );
             }
 
-            // Get existing file paths from the DataTable
+            // Get existing file paths from the DataTable, normalized
             var fileList = SharedData.DataSet.Tables[0].AsEnumerable()
                 .Select(row => row.Field<string>("Rom Path"))
                 .Where(path => !string.IsNullOrWhiteSpace(path))
-                .Select(path => path!.StartsWith("./") ? path.Substring(2) : path)
+                .Select(path => (path!.StartsWith("./") ? path.Substring(2) : path).Replace("\\", "/"))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            // Extract unique file extensions
-            var uniqueFileExtensions = fileList
-                .Select(path => Path.GetExtension(path).TrimStart('.'))
-                .Where(ext => !string.IsNullOrEmpty(ext))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
+            // Determine the search option based on the search depth
+            var searchOption = searchDepth > 0 ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+
+            // Enumerate through the directory for files matching the extensions
+            var fullPathList = fileExtensions
+                .SelectMany(ext =>
+                    Directory.EnumerateFiles(_parentFolderPath, $"*{ext}", searchOption)
+                        .Select(file =>
+                        {
+                            var dirName = Path.GetDirectoryName(file)!;
+                            var relativePath = Path.GetRelativePath(_parentFolderPath, dirName);
+
+                            int depth = relativePath == "."
+                                ? 0
+                                : relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                              .Count(segment => !string.IsNullOrEmpty(segment)) + 1;
+
+                            bool isIncluded = depth <= searchDepth;
+
+                            var relativeFilePath = Path.GetRelativePath(_parentFolderPath, file)
+                                                       .Replace("\\", "/"); // normalize during scan
+
+                            return (file: relativeFilePath, isIncluded);
+                        })
+                        .Where(result => result.isIncluded)
+                        .Select(result => result.file)
+                )
                 .ToList();
 
-            // Find new files in the directory based on extensions
-            var newFileList = uniqueFileExtensions
-                .SelectMany(ext => Directory.GetFiles(_parentFolderPath!, $"*.{ext}"))
-                .Select(file => Path.GetFileName(file))
-                .Where(file => !fileList.Contains(file) && !m3uContents.Contains(file))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
+            // Create HashSet for faster lookups
+            var fileListSet = new HashSet<string>(fileList, StringComparer.OrdinalIgnoreCase);
+
+            // Filter new files
+            var newFileList = fullPathList
+                .Where(relativeFile =>
+                {
+                    var fileName = Path.GetFileName(relativeFile); // filter by filename only
+                    return !fileListSet.Contains(fileName) && !m3uContents.Contains(fileName);
+                })
+                .Distinct(StringComparer.OrdinalIgnoreCase) // distinct by full relative path
                 .ToList();
 
             int totalNewItems = newFileList.Count;
@@ -2390,7 +2517,7 @@ namespace GamelistManager
                 string newName = Path.GetFileNameWithoutExtension(fileName);
                 var newRow = SharedData.DataSet.Tables[0].NewRow();
                 newRow["Name"] = newName;
-                newRow["Rom Path"] = $"./{fileName}";
+                newRow["Rom Path"] = $"./{fileName}";  // Store path with forward slashes
                 newRow["Hidden"] = false;
                 newRow["Favorite"] = false;
                 newRow["Status"] = "New";
@@ -2405,9 +2532,10 @@ namespace GamelistManager
             return totalNewItems;
         }
 
+
         private void menuItem_AddMedia_Click(object sender, RoutedEventArgs e)
         {
-            MediaTool mediaSearch = new MediaTool();
+            MediaToolWindow mediaSearch = new MediaToolWindow();
 
             SharedData.ChangeTracker!.StopTracking();
 
@@ -2431,10 +2559,10 @@ namespace GamelistManager
             {
                 return;
             }
-    
+
             FindMissingItems();
-         }
-         
+        }
+
         private void FindMissingItems()
         {
             Mouse.OverrideCursor = Cursors.Wait;
@@ -2470,6 +2598,7 @@ namespace GamelistManager
             {
                 Mouse.OverrideCursor = null;
                 MainDataGrid.IsEnabled = true;
+
             }
 
             // If no missing items are found, show a message and exit
@@ -2532,7 +2661,6 @@ namespace GamelistManager
 
         private async void MameIdentifyUnplayable()
         {
-
             string message = "This will identify games that are not playable according to the following rules:\n\n" +
                       "isbios = yes\n" +
                       "isdevice = yes\n" +
@@ -2540,7 +2668,8 @@ namespace GamelistManager
                       "driver status = preliminary\n" +
                       "disk status = nodump\n" +
                       "runnable = no\n\n" +
-                      "You will be prompted for the location of a current mame.exe file.  Select cancel on the file requester to abort.";
+                      "You will be prompted for the location of a current mame.exe file.  " +
+                      "\n\nSelect OK to continue or Cancel to abort";
 
             var result = MessageBox.Show(message, "Notice", MessageBoxButton.OKCancel, MessageBoxImage.Information);
 
@@ -2564,21 +2693,10 @@ namespace GamelistManager
 
             string mameExePath = openFileDialog.FileName;
 
-            List<string> gameNames = new List<string>();
+            Mouse.OverrideCursor = Cursors.Wait;
 
-            try
-            {
-                Mouse.OverrideCursor = Cursors.Wait;
-
-                // Get unplayable game names using MameHelper asynchronously
-                gameNames = await MameHelper.GetMameUnplayable(mameExePath);
-            }
-            catch (Exception ex)
-            {
-                Mouse.OverrideCursor = null;
-                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            // Get unplayable game names using MameHelper asynchronously
+            var gameNames = await MameHelper.GetMameUnplayable(mameExePath);
 
             if (gameNames == null || gameNames.Count == 0)
             {
@@ -2587,80 +2705,76 @@ namespace GamelistManager
                 return;
             }
 
-
-            int unplayableCount = 0;
-
             SharedData.ChangeTracker!.PauseTracking();
 
-            try
+            object lockObject = new object();
+
+            // Loop through each row in the DataTable using Parallel.ForEach
+
+            ConcurrentBag<DataRow> processedRows = new ConcurrentBag<DataRow>();
+            Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
             {
-                object lockObject = new object();
+                string romPath = row["Rom Path"].ToString()!.Substring(2);
+                string romPathWithoutExtension = Path.GetFileNameWithoutExtension(romPath)!;
 
-                // Loop through each row in the DataTable using Parallel.ForEach
-                
-                ConcurrentBag<DataRow> processedRows = new ConcurrentBag<DataRow>();
-                Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
+                // Check if the game path is in the list of unplayable game names
+                if (gameNames.Contains(romPathWithoutExtension))
                 {
-                    string romPath = row["Rom Path"].ToString()!.Substring(2);
-                    string romPathWithoutExtension = Path.GetFileNameWithoutExtension(romPath)!;
-
-                    // Check if the game path is in the list of unplayable game names
-                    if (gameNames.Contains(romPathWithoutExtension))
+                    // Lock to ensure thread safety when updating DataTable
+                    lock (lockObject)
                     {
-                        // Lock to ensure thread safety when updating DataTable
-                        lock (lockObject)
-                        {
-                            // Modify DataRow inside the lock
-                            row["Status"] = "Unplayable";
-                            Interlocked.Increment(ref unplayableCount);
-                            processedRows.Add(row); // Store the row for later modification
-                        }
+                        // Modify DataRow inside the lock
+                        row["Status"] = "Unplayable";
+                        processedRows.Add(row); // Store the row for later modification
                     }
-                });
-
-                // Convert to a List if needed for further modifications
-                List<DataRow> processedRowsList = processedRows.ToList();
-
-
-                // Commit changes and update UI
-                lock (lockObject)
-                {
-                    SharedData.DataSet.AcceptChanges();
                 }
+            });
 
-                SharedData.ChangeTracker!.ResumeTracking();
+            Mouse.OverrideCursor = null;
 
-                MainDataGrid.Columns[0].Visibility = Visibility.Visible;
-                MainDataGrid.Columns[0].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+            List<DataRow> processedRowsList = processedRows.ToList();
 
-                // Show a dialog to optionally hide unplayable games
-                var setHidden = MessageBox.Show($"There were {unplayableCount} unplayable items found.\nDo you want to set them hidden?", "Notice", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            SharedData.DataSet.AcceptChanges();
 
-                if (setHidden == MessageBoxResult.Yes)
-                {
-                    SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker!.ResumeTracking();
 
-                    // Mark the previously processed rows as hidden
-                    foreach (DataRow row in processedRowsList)
-                    {
-                        row["Hidden"] = true;
-                    }
+            int unplayableCount = processedRowsList.Count;
 
-                    SharedData.DataSet.AcceptChanges();
-                    SharedData.ChangeTracker!.EndBulkOperation();
-                }
-
-            }
-            catch (Exception ex)
+            if (unplayableCount == 0)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("No unplayable games found", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
             }
-            finally
+
+            MainDataGrid.Columns[0].Visibility = Visibility.Visible;
+            MainDataGrid.Columns[0].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+
+            // Show a dialog to optionally hide unplayable games
+            var setHidden = MessageBox.Show($"There were {unplayableCount} unplayable items found.\nDo you want to set them hidden?", "Notice", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (setHidden != MessageBoxResult.Yes)
             {
-                UpdateCounters();
-                Mouse.OverrideCursor = null;
+                return;
             }
+
+            // Mark the previously processed rows as hidden
+            Mouse.OverrideCursor = Cursors.Wait;
+            SharedData.ChangeTracker!.StartBulkOperation();
+
+            foreach (DataRow row in processedRowsList)
+            {
+                row["Hidden"] = true;
+            }
+
+            SharedData.DataSet.AcceptChanges();
+            SharedData.ChangeTracker!.EndBulkOperation();
+            Mouse.OverrideCursor = null;
+            UpdateCounters();
         }
+
+
+
+
 
         private void menuItem_MameIdentifyCHDRequired_Click(object sender, RoutedEventArgs e)
         {
@@ -2676,12 +2790,12 @@ namespace GamelistManager
         private async void IdentifyRequiresCHD()
         {
             string message = "This will identify games that require a CHD. " +
-                       "You will be prompted for the location of a current mame.exe file. " +
-                       "Select cancel on the file requester to abort.";
+            "\n\nYou will be prompted for the location of a current mame.exe file. " +
+            "\n\nSelect OK to proceed or Cancel to abort.";
 
             var result = MessageBox.Show(message, "Notice", MessageBoxButton.OKCancel, MessageBoxImage.Information);
 
-            if (result == MessageBoxResult.Cancel)
+            if (result != MessageBoxResult.OK)
             {
                 return;
             }
@@ -2766,17 +2880,23 @@ namespace GamelistManager
                 MessageBox.Show("This is not a mame gamelist!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-
             IdentifyClones();
         }
 
         private async void IdentifyClones()
         {
-            string message = "This will identify games that are clones of a parent set." +
-            " You will be prompted for the location of a current mame.exe file.  Select cancel on the file requester to abort.";
+            string message = "This will identify games that are bootlegs of a parent set." +
+            "\n\nYou will be prompted for the location of a current mame.exe file." +
+            "\n\nSelect OK to proceed or Cancel to abort.";
 
-            MessageBox.Show(message, "Notice", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+            var result = MessageBox.Show(message, "Notice", MessageBoxButton.OKCancel, MessageBoxImage.Information);
 
+            if (result != MessageBoxResult.OK)
+            {
+                return;
+            }
+
+            // Open file dialog to select MAME executable
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Title = "Select a mame.exe program",
@@ -2813,7 +2933,7 @@ namespace GamelistManager
             }
 
             int cloneCount = 0;
-            
+
             SharedData.ChangeTracker!.PauseTracking();
 
             // Lock object for synchronizing access to shared resources (DataSet)
@@ -2838,13 +2958,16 @@ namespace GamelistManager
                 }
             });
 
+            SharedData.ChangeTracker.ResumeTracking();
+
             // Convert to a List if needed for further modifications
             List<DataRow> cloneRowsList = cloneRows.ToList();
 
-
-            SharedData.DataSet.AcceptChanges();
-
-            SharedData.ChangeTracker!.ResumeTracking();
+            if (cloneCount == 0)
+            {
+                MessageBox.Show("No clone items were found.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
             Mouse.OverrideCursor = null;
 
@@ -2854,19 +2977,233 @@ namespace GamelistManager
             var setHidden = MessageBox.Show($"There were {cloneCount} clone items found.\nDo you want to set them hidden?", "Notice", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (setHidden == MessageBoxResult.Yes)
             {
-                SharedData.ChangeTracker!.StartBulkOperation();
+                SharedData.ChangeTracker.StartBulkOperation();
 
                 // Mark previously identified clone rows as hidden
                 foreach (DataRow row in cloneRowsList)
                 {
                     row["Hidden"] = true;
                 }
+                SharedData.DataSet.AcceptChanges();
+                SharedData.ChangeTracker.EndBulkOperation();
+            }
+        }
+
+        private void menuItem_MameIdentifyBootleg_Click(object sender, RoutedEventArgs e)
+        {
+            if (SharedData.CurrentSystem != "mame")
+            {
+                MessageBox.Show("This is not a mame gamelist!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            IdentifyBootleg();
+        }
+
+        private async void IdentifyBootleg()
+        {
+            string message = "This will identify games that are known bootleg." +
+            " \n\nYou will be prompted for the location of a current mame.exe file." +
+             "\n\nSelect OK to proceed or Cancel to abort.";
+
+            var result = MessageBox.Show(message, "Notice", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+
+            if (result != MessageBoxResult.OK)
+            {
+                return;
+            }
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Select a mame.exe program",
+                Filter = "EXE Files (*.exe)|*.exe|All Files (*.*)|*.*",
+                DefaultExt = "exe"
+            };
+
+            // Display the dialog and check if the user clicked OK
+            if (openFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            Mouse.OverrideCursor = Cursors.Wait;
+
+            List<string> bootlegs = new();
+
+            try
+            {
+                string mameExePath = openFileDialog.FileName;
+                bootlegs = await Task.Run(() => MameHelper.GetMameBootleg(mameExePath));
+            }
+            catch (Exception ex)
+            {
+                Mouse.OverrideCursor = null;
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (bootlegs == null || bootlegs.Count == 0)
+            {
+                MessageBox.Show("No data was returned!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            int bootlegCount = 0;
+
+            SharedData.ChangeTracker!.PauseTracking();
+
+            // Lock object for synchronizing access to shared resources (DataSet)
+            object lockObject = new object();
+            ConcurrentBag<DataRow> bootlegRows = new ConcurrentBag<DataRow>();
+
+            // Loop through each row in the DataTable
+            Parallel.ForEach(SharedData.DataSet.Tables[0].Rows.Cast<DataRow>(), (row) =>
+            {
+                string romPath = row["Rom Path"].ToString()!.Substring(2);
+                string romPathWithoutExtension = Path.GetFileNameWithoutExtension(romPath)!;
+
+                // Set the value of the "clone" column to true or false
+                if (bootlegs.Contains(romPathWithoutExtension))
+                {
+                    Interlocked.Increment(ref bootlegCount);
+                    lock (lockObject)
+                    {
+                        row["Status"] = "Bootleg";
+                        bootlegRows.Add(row); // Store the row for later modifications
+                    }
+                }
+            });
+
+            // Convert to a List if needed for further modifications
+            List<DataRow> bootlegRowsList = bootlegRows.ToList();
+
+            Mouse.OverrideCursor = null;
+
+            SharedData.ChangeTracker.ResumeTracking();
+
+            if (bootlegCount == 0)
+            {
+                MessageBox.Show("No bootleg items were found.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            MainDataGrid.Columns[0].Visibility = Visibility.Visible;
+            MainDataGrid.Columns[0].Width = new DataGridLength(1, DataGridLengthUnitType.SizeToCells);
+
+            var setHidden = MessageBox.Show($"There were {bootlegCount} bootleg items found.\nDo you want make sure all are identified as bootleg?\n\nThe Publisher, Developer and Name will contain a bootleg reference.", "Notice", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (setHidden == MessageBoxResult.Yes)
+            {
+                SharedData.ChangeTracker.StartBulkOperation();
+                // Mark previously identified clone rows as hidden
+                foreach (DataRow row in bootlegRowsList)
+                {
+                    row["Developer"] = "bootleg";
+                    row["Publisher"] = "bootleg";
+                    row["Name"] = UpdateNameWithBootleg(row["Name"].ToString()!);
+                }
 
                 SharedData.DataSet.AcceptChanges();
                 SharedData.ChangeTracker!.EndBulkOperation();
             }
+        }
+
+        public static string UpdateNameWithBootleg(string description)
+        {
+            // Check if "bootleg" is already part of the string
+            if (description.IndexOf("bootleg", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                // If "bootleg" is already present, return the string as-is
+                return description;
+            }
+
+            // Check if the string contains brackets with text
+            int openBracketIndex = description.IndexOf('(');
+            int closeBracketIndex = description.IndexOf(')');
+
+            if (openBracketIndex >= 0 && closeBracketIndex > openBracketIndex)
+            {
+                // Insert "bootleg" before the existing text inside the parentheses
+                string beforeBracket = description.Substring(0, openBracketIndex + 1);
+                string insideBracket = description.Substring(openBracketIndex + 1, closeBracketIndex - openBracketIndex - 1);
+                string afterBracket = description.Substring(closeBracketIndex);
+
+                return $"{beforeBracket}bootleg, {insideBracket}{afterBracket}";
+            }
+            else
+            {
+                // Add "(bootleg)" to the end of the string if no brackets are present
+                return $"{description} (bootleg)";
+            }
+        }
+
+        private void menuItem_UseMameDescriptionsForNames_Click(object sender, RoutedEventArgs e)
+        {
+            if (SharedData.CurrentSystem != "mame")
+            {
+                MessageBox.Show("This is not a mame gamelist!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            UseMameDescriptionsForNames();
+        }
+
+        private async void UseMameDescriptionsForNames()
+        {
+            string message = "This will set all name metadata values to what is used by " +
+            "the internal Mame database description.  It is often more descriptive than what scrapers may provide." +
+            "\n\nSelect OK to proceed or Cancel to abort.";
+
+            var result = MessageBox.Show(message, "Notice", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+
+            if (result != MessageBoxResult.OK)
+            {
+                return;
+            }
+
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Title = "Select a mame.exe program",
+                Filter = "EXE Files (*.exe)|*.exe|All Files (*.*)|*.*",
+                DefaultExt = "exe"
+            };
+
+            // Display the dialog and check if the user clicked OK
+            if (openFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            Mouse.OverrideCursor = Cursors.Wait;
+
+            Dictionary<string, string> mameNames = new();
+
+            string mameExePath = openFileDialog.FileName;
+            mameNames = await Task.Run(() => MameHelper.GetMameNames(mameExePath));
+
+            Mouse.OverrideCursor = null;
+
+            if (mameNames == null || mameNames.Count == 0)
+            {
+                MessageBox.Show("No data was returned!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            SharedData.ChangeTracker.StartBulkOperation();
+
+            foreach (DataRow row in SharedData.DataSet.Tables[0].Rows)
+            {
+                string romPath = row["Rom Path"].ToString()!.Substring(2);
+                string romPathWithoutExtension = Path.GetFileNameWithoutExtension(romPath)!;
+
+                if (mameNames.ContainsKey(romPathWithoutExtension))
+                {
+                    row["Name"] = mameNames[romPathWithoutExtension];
+                }
+            }
+
+            SharedData.DataSet.AcceptChanges();
+            SharedData.ChangeTracker.EndBulkOperation();
 
         }
+
 
         private void button_Items_Click(object sender, RoutedEventArgs e)
         {
@@ -2945,15 +3282,16 @@ namespace GamelistManager
                 return;
             }
 
-            string text = textBox.Text.Trim();
-            textBox.Text = text;
-
             string from = textBox_ChangeFrom.Text;
             string to = textBox_ChangeTo.Text;
 
-            if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
+            if (!string.IsNullOrEmpty(from))
             {
                 button_Apply.IsEnabled = true;
+            }
+            else
+            {
+                button_Apply.IsEnabled = false;
             }
         }
 
@@ -2962,9 +3300,8 @@ namespace GamelistManager
             button_Apply.IsEnabled = false;
 
             string from = textBox_ChangeFrom.Text;
-            string to = textBox_ChangeTo.Text;
 
-            if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
+            if (!string.IsNullOrEmpty(from))
             {
                 button_Apply.IsEnabled = true;
             }
@@ -3231,7 +3568,7 @@ namespace GamelistManager
                     return;
                 }
             }
-                     
+
             SharedData.ChangeTracker!.StartBulkOperation();
 
             foreach (DataRowView rowView in dataView)
@@ -3245,7 +3582,74 @@ namespace GamelistManager
 
         }
 
+        private void menuItem_RemoveSshKey_Click(object sender, RoutedEventArgs e)
+        {
+            string hostname = Properties.Settings.Default.BatoceraHostName;
 
+            // Check if the hostname is set
+            if (string.IsNullOrEmpty(hostname))
+            {
+                MessageBox.Show("The Batocera hostname is not set!");
+                return;
+            }
+
+            // Ask the user if they want to reset the key
+            var result = MessageBox.Show($"Do you want to reset the local SSH key for '{hostname}'?",
+                                         "Reset Confirmation",
+                                         MessageBoxButton.YesNo,
+                                         MessageBoxImage.Question);
+
+            // Proceed based on the user's choice
+            if (result == MessageBoxResult.Yes)
+            {
+                string response = SshKeyManager.RemoveBatoceraKey(hostname);
+                MessageBox.Show(response, "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void tabControl_Filters_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+            TabControl? tabControl = sender as TabControl;
+
+            // Must check source to ensure it is a tabcontrol
+            if (tabControl == null || e.Source != tabControl)
+            {
+                return;
+            }
+
+            if (tabControl.SelectedIndex == 1)
+            {
+                comboBox_Genre.SelectedIndex = 0;
+                button_ClearGenreSelection.Visibility = Visibility.Collapsed;
+            }
+
+            if (tabControl.SelectedIndex == 0)
+            {
+                textBox_CustomFilter.Text = string.Empty;
+                comboBox_CustomFilter.SelectedIndex = 0;
+                button_ClearCustomFilter.Visibility = Visibility.Collapsed;
+                comboBox_Genre.SelectedIndex = 0;
+                ApplyFilters([_visibilityFilter]);
+
+            }
+
+        }
+
+        private void menuItem_SetLanguage_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void menuItem_SetRegion_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
 

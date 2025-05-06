@@ -1,0 +1,115 @@
+﻿<UserControl x:Class="GamelistManager.controls.MediaPlayerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:GamelistManager.controls"
+             xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+             mc:Ignorable="d" Unloaded="UserControl_Unloaded" SizeChanged="VideoView_SizeChanged">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+
+        <!-- Video Playback Area -->
+        <Grid Grid.Row="0" Background="Black">
+            <vlc:VideoView x:Name="VideoView"/>
+        </Grid>
+
+        <!-- File Selector -->
+        <ComboBox x:Name="comboBox_CurrentTrack"
+            Width="Auto"
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            Visibility="Collapsed">
+        </ComboBox>
+        <!-- Bottom Control Bar -->
+
+        <Grid Grid.Row="2" Background="Silver">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="button_Playlist"
+            Style="{StaticResource AnimatedTransparentButton}"
+            ToolTip="Show File Picker"
+            Click="button_Playlist_Click"
+            Visibility="Visible"
+            Grid.Column="0"
+            HorizontalAlignment="Left">
+                <Image Source="pack://application:,,,/Resources/buttons/glossybutton.png" />
+            </Button>
+
+            <CheckBox x:Name="checkBox_Randomize"
+              Content="Random"
+              VerticalAlignment="Center"
+              Click="checkBox_Randomize_Click"
+              Margin="5,0,5,0"
+              Grid.Column="1"
+              Visibility="Visible"
+              HorizontalAlignment="Left">
+            </CheckBox>
+
+            <StackPanel Orientation="Horizontal"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Grid.Column="2">
+                <Button x:Name="button_Previous"
+                Style="{StaticResource AnimatedTransparentButton}"
+                Margin="0,2,5,2"
+                IsEnabled="False"
+                Click="Button_Click">
+                    <Image Source="pack://application:,,,/Resources/buttons/previous.png" />
+                </Button>
+                <Button x:Name="button_Pause"
+                Style="{StaticResource AnimatedTransparentButton}"
+                Margin="0,2,5,2"
+                IsEnabled="False"
+                Click="Button_Click">
+                    <Image Source="pack://application:,,,/Resources/buttons/pause.png" ToolTip="Pause" />
+                </Button>
+                <Button x:Name="button_Stop"
+                Style="{StaticResource AnimatedTransparentButton}"
+                Margin="0,2,5,2"
+                IsEnabled="False"
+                Click="Button_Click">
+                    <Image Source="pack://application:,,,/Resources/buttons/stop.png" ToolTip="Stop" />
+                </Button>
+                <Button x:Name="button_Play"
+                Style="{StaticResource AnimatedTransparentButton}"
+                Margin="0,2,5,2"
+                IsEnabled="True"
+                Click="Button_Click">
+                    <Image Source="pack://application:,,,/Resources/buttons/play.png" ToolTip="Play" />
+                </Button>
+                <Button x:Name="button_Next"
+                Style="{StaticResource AnimatedTransparentButton}"
+                Margin="0,2,5,2"
+                IsEnabled="False"
+                Click="Button_Click">
+                    <Image Source="pack://application:,,,/Resources/buttons/next.png" ToolTip="Next" />
+                </Button>
+            </StackPanel>
+
+            <Slider Grid.Column="3"
+            x:Name="sliderVolume"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Right"
+            Minimum="0"
+            Maximum="100"
+            Value="75"
+            Width="100"
+            Margin="10,0,10,0"
+            Style="{StaticResource CustomSlider1}"
+            ValueChanged="Slider_ValueChanged"
+            PreviewMouseDown="sliderVolume_PreviewMouseDown">
+            </Slider>
+        </Grid>
+
+    </Grid>
+</UserControl>

@@ -95,7 +95,7 @@ namespace GamelistManager.classes
         }
 
         private async Task DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
-        {            
+        {
             bool overwriteMedia = scraperParameters.OverwriteMedia;
 
             var currentValue = rowView[mediaType];
@@ -271,7 +271,7 @@ namespace GamelistManager.classes
 
             if (string.IsNullOrEmpty(jsonString))
             {
-                 return null!;
+                return null!;
             }
 
             var mediaList = DeserializeJSON(jsonString);

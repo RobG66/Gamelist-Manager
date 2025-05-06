@@ -5,18 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" MinHeight="450" Width="840" MinWidth="840" Loaded="Window_Loaded" Closing="Window_Closing">
-   
+        Title="MainWindow" Height="480" MinHeight="480" Width="830" MinWidth="830" Loaded="Window_Loaded" Closing="Window_Closing">
+
     <Grid x:Name="MainGrid">
         <!-- Define rows for Menu, Content, GridSplitter, and Additional Content -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Menu -->
-            <RowDefinition Height="*"/> <!-- Datagrid / Textbox -->
-            <RowDefinition Height="5"/> <!-- GridSplitter -->
-            <RowDefinition Height="Auto"/> <!-- Media Display / Scraper -->
+            <RowDefinition Height="Auto"/>
+            <!-- Menu -->
+            <RowDefinition Height="*"/>
+            <!-- Datagrid / Textbox -->
+            <RowDefinition Height="5"/>
+            <!-- GridSplitter -->
+            <RowDefinition Height="Auto"/>
+            <!-- Media Display / Scraper -->
         </Grid.RowDefinitions>
         <Menu x:Name="menu_Main" Grid.Column="0" Background="#FFFDFDFD">
-            <MenuItem x:Name="menuItem_File" Header="File" Template="{DynamicResource MenuItemControlTemplate1}">
+            <MenuItem x:Name="menuItem_File" Header="File" Template="{DynamicResource MenuItemTemplate1}">
                 <MenuItem x:Name="menuItem_Load" Margin="-30,0,-40,0" Header="Load Gamelist" Click="OpenFile_Click"/>
                 <MenuItem x:Name="menuItem_Reload" Margin="-30,0,-40,0" Header="Reload Gamelist" Click="ReloadFile_Click" IsEnabled="False"/>
                 <MenuItem x:Name="menuItem_Save" Margin="-30,0,-40,0" Header="Save Gamelist" Click="SaveFile_Click" IsEnabled="False"/>
@@ -45,7 +49,7 @@
                 <MenuItem x:Name="menuItem_MusicJukebox" Header="Music Jukebox" Click="menuItem_MusicJukebox_Click"/>
 
             </MenuItem>
-            <MenuItem x:Name="menuItem_Edit" Header="Edit" Template="{DynamicResource MenuItemControlTemplate1}" IsEnabled="False" SubmenuOpened="menuItem_Edit_SubmenuOpened">
+            <MenuItem x:Name="menuItem_Edit" Header="Edit" Template="{DynamicResource MenuItemTemplate1}" IsEnabled="False" SubmenuOpened="menuItem_Edit_SubmenuOpened">
 
                 <MenuItem x:Name="menuItem_SetAllVisible"  Margin="-30,0,-40,0"  Header="Set All Items Visible" Click="menuItem_AllVisible_Click" />
                 <MenuItem x:Name="menuItem_SetAllHidden" Margin="-30,0,-40,0" Header="Set All Items Hidden" Click="menuItem_AllHidden_Click" />
@@ -88,23 +92,28 @@
                 <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="CheckChanged" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_Region" Header="Region" Click="CheckChanged" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Click="CheckChanged" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Family" Header="Family" Click="CheckChanged" IsCheckable="true"/>
                 <Separator/>
                 <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="CheckChanged" IsCheckable="true"/>
 
             </MenuItem>
 
-            <MenuItem x:Name="menuItem_Tools" Header="Tools" IsEnabled="False" Template="{DynamicResource MenuItemControlTemplate1}">
+            <MenuItem x:Name="menuItem_Tools" Header="Tools" IsEnabled="False" Template="{DynamicResource MenuItemTemplate1}">
                 <MenuItem x:Name="menuItem_AddMedia" Margin="-30,0,-40,0" Header="Find/Add/Cleanup Media" IsEnabled="True" Click="menuItem_AddMedia_Click"/>
-                <Separator/>
+                <Separator Margin="-30,0,-40,0"/>
                 <MenuItem x:Name="menuItem_FindNewItems" Margin="-30,0,-40,0" Header="Find New Items" Click="menuItem_FindNewItems_Click"/>
                 <MenuItem x:Name="menuItem_FindMissing" Margin="-30,0,-40,0" Header="Find Missing Items" Click="menuItem_FindMissingItems_Click"/>
-                <Separator/>
+                <Separator Margin="-30,0,-40,0"/>
                 <MenuItem x:Name="menuItem_MameIdentifyUnplayable" Margin="-30,0,-40,0" Header="Mame: Identify Unplayable" Click="menuItem_MameIdentifyUnplayable_Click"/>
                 <MenuItem x:Name="menuItem_MameIdentifyCHDRequired" Margin="-30,0,-40,0" Header="Mame: Identify CHD Required" Click="menuItem_MameIdentifyCHDRequired_Click"/>
                 <MenuItem x:Name="menuItem_MameIdentifyClones" Margin="-30,0,-40,0" Header="Mame: Identify Clones" Click="menuItem_MameIdentifyClones_Click"/>
+                <MenuItem x:Name="menuItem_MameIdentifyBootleg" Margin="-30,0,-40,0" Header="Mame: Identify Bootleg" Click="menuItem_MameIdentifyBootleg_Click"/>
+                <MenuItem x:Name="menuItem_UseMameNames" Margin="-30,0,-40,0" Header="Mame: Use Descriptions For Names" Click="menuItem_UseMameDescriptionsForNames_Click"/>
+
 
             </MenuItem>
-            <MenuItem x:Name="menuItem_Remote" Header="Remote" Template="{DynamicResource MenuItemControlTemplate1}">
+            <MenuItem x:Name="menuItem_Remote" Header="Remote" Template="{DynamicResource MenuItemTemplate1}">
                 <MenuItem Header="Map A Network Drive" Margin="-30,0,-40,0" Click="menuItem_MapDrive_Click" Name="menuItem_MapDrive"/>
                 <Separator Margin="-30,0,-40,0"/>
                 <MenuItem Header="Open Terminal To Batocera Host" Margin="-30,0,-40,0" Click="menuItem_OpenTerminal_Click" Name="menuItem_OpenTerminal"/>
@@ -117,25 +126,28 @@
                 <Separator Margin="-30,0,-40,0"/>
                 <MenuItem Header="Reboot Batocera Host" Margin="-30,0,-40,0" Click="menuItem_RebootHost_Click" Name="menuItem_RebootHost"/>
                 <MenuItem Header="Shutdown Batocera Host" Margin="-30,0,-40,0" Click="menuItem_ShutdownHost_Click" Name="menuItem_ShutdownHost"/>
+                <Separator Margin="-30,0,-40,0"/>
+                <MenuItem Header="Remove Batocera SSH Key" Margin="-30,0,-40,0" Click="menuItem_RemoveSshKey_Click" Name="menuItem_RemoveSshKey" />
+
             </MenuItem>
-            <MenuItem Header="Settings" Template="{DynamicResource MenuItemControlTemplate1}">
-                <MenuItem Header="Open Settings Menu" Margin="-30,0,-40,0" Click="SettingsMenuItem_Click"/>
+            <MenuItem Header="Settings" Template="{DynamicResource MenuItemTemplate1}">
+                <MenuItem Header="Open Settings Menu" Margin="-30,0,-40,0" Click="menuItem_Settings_Click"/>
                 <Separator/>
                 <MenuItem Header="Reset All Settings" Margin="-30,0,-40,0" Click="menuItem_ResetAllSettings_Click"/>
             </MenuItem>
-            <MenuItem Header="Help" Template="{DynamicResource MenuItemControlTemplate1}">
+            <MenuItem Header="Help" Template="{DynamicResource MenuItemTemplate1}">
                 <MenuItem Header="Github Page" Margin="-30,0,-40,0" Click="MenuItem_Click"/>
                 <MenuItem Header="Report An Issue" Margin="-30,0,-40,0" Click="MenuItem_Click_1"/>
             </MenuItem>
-            </Menu>
+        </Menu>
         <DockPanel  Grid.Row="0">
             <!--Top Menu-->
             <!-- Slider and TextBlock on the far right -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
-                    <TextBlock Text="Grid Font Size:" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
-                    <Slider x:Name="FontSizeSlider" Minimum="8" Maximum="14" Value="12" TickFrequency="1" IsSnapToTickEnabled="True" Width="100" Margin="0" Background="#FFFDFDFD"/>
-                    <TextBlock x:Name="FontSizeValue" Text="12" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
-                </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
+                <TextBlock Text="Grid Font Size:" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
+                <Slider x:Name="FontSizeSlider" Minimum="8" Maximum="14" Value="12" TickFrequency="1" IsSnapToTickEnabled="True" Width="100" Margin="0" Background="#FFFDFDFD"/>
+                <TextBlock x:Name="FontSizeValue" Text="12" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
+            </StackPanel>
         </DockPanel>
 
         <Grid Grid.Row="1">
@@ -157,13 +169,14 @@
                         <!-- Define two rows -->
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                             <!-- DataGrid will take available space -->
                             <RowDefinition Height="Auto" />
                             <!-- DockPanel will adjust to its content -->
                         </Grid.RowDefinitions>
 
                         <!-- DataGrid -->
-                        <DataGrid x:Name="MainDataGrid" BorderThickness="0" SelectionChanged="MainDataGrid_SelectionChanged" AutoGenerateColumns="False" CanUserAddRows="False">
+                        <DataGrid x:Name="MainDataGrid" BorderThickness="0" SelectionChanged="MainDataGrid_SelectionChanged" AutoGenerateColumns="False" CanUserDeleteRows="False" CanUserAddRows="False">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
                                     <Style.Resources>
@@ -183,17 +196,25 @@
                                 </Style>
                             </DataGrid.RowStyle>
                         </DataGrid>
+                        <StatusBar x:Name="statusBar_FileInfo" Background="AliceBlue" Grid.Row="1" Height="22">
+                            <StatusBarItem>
+                                <TextBlock x:Name="textBlock_Filename" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Foreground="#FF333333" Margin="2,0,0,0"/>
+                            </StatusBarItem>
+                            <StatusBarItem>
+                                <TextBlock x:Name="textBlock_LastModifiedTime" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Foreground="#FF333333" Margin="2,0,0,0"/>
+                            </StatusBarItem>
+                        </StatusBar>
                         <DockPanel LastChildFill="True" x:Name="dockPanel_SearchAndReplace" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
                             <TextBlock Text="Replace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333" Margin="2,0,0,0"/>
-                            <TextBox x:Name="textBox_ChangeFrom" Width="100" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
+                            <TextBox x:Name="textBox_ChangeFrom" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
                             <TextBlock Text="with" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <TextBox x:Name="textBox_ChangeTo" Width="100" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="NoWrap"  Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
+                            <TextBox x:Name="textBox_ChangeTo" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="NoWrap"  Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
                             <TextBlock Text="for" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <Button x:Name="button_Items" IsEnabled="True" Style="{StaticResource CoolButtonStyle1}" HorizontalAlignment="Left" Height="20" Width="70" Margin="5,0,5,0" Content="All Items" VerticalAlignment="Center" Click="button_Items_Click"/>
-                            <TextBlock Text="in" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <ComboBox x:Name="comboBox_Columns" FontSize="12" FontWeight="Bold" Width="100" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns_SelectionChanged"/>
-                            <Button x:Name="button_Apply" IsEnabled="False" Style="{StaticResource GreenButtonStyle}" HorizontalAlignment="Left" Height="20" Width="50" Content="Replace" Margin="5,0,0,0" Click="button_Apply_Click"/>
-                            <Button x:Name="button_CloseSearchAndReplace" Style="{StaticResource TransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseSearchAndReplace_Click">
+                            <Button x:Name="button_Items" IsEnabled="True" Style="{StaticResource GreyRoundedButton}" HorizontalAlignment="Left" Height="20" Width="70" Margin="5,0,5,0" Content="All Items" VerticalAlignment="Center" Click="button_Items_Click"/>
+                            <TextBlock Text="in column" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
+                            <ComboBox x:Name="comboBox_Columns" FontSize="12" FontWeight="Bold" Width="120" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns_SelectionChanged"/>
+                            <Button x:Name="button_Apply" IsEnabled="False" Style="{StaticResource GreenRoundedButton}" HorizontalAlignment="Left" Height="20" Width="50" Content="Replace" Margin="2,0,0,0" Click="button_Apply_Click"/>
+                            <Button x:Name="button_CloseSearchAndReplace" Style="{StaticResource AnimatedTransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseSearchAndReplace_Click">
                                 <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Close Panel" VerticalAlignment="Center"/>
                             </Button>
 
@@ -238,90 +259,112 @@
                 </Button>
             </StackPanel>
             <StackPanel Orientation="Vertical" Margin="10,0,0,0">
-                <Image x:Name="PlatformLogo" Height="32" Width="160" Source="/Resources/gamelistmanager.png"/>
-                <StackPanel Orientation="Horizontal" Margin="4" HorizontalAlignment="Center">
-                    <Button x:Name="button_Scraper" IsEnabled="False" ToolTip="Scraper Display" Style="{StaticResource CoolButtonStyle1}" Height="20" Width="70" Margin="0,0,3,0" Content="Show Scraper" Click="button_Scraper_Click"/>
-                    <Button x:Name="button_Media" IsEnabled="False" ToolTip="Media Display" Style="{StaticResource CoolButtonStyle1}" Height="20" Width="70" Margin="3,0,0,0" HorizontalAlignment="Center" Content="Show Media" Click="button_Media_Click"/>
+                <Image x:Name="PlatformLogo" Height="35" Width="160" Source="/Resources/gamelistmanager.png"/>
+                <StackPanel Orientation="Horizontal" Margin="4,2,4,2" HorizontalAlignment="Center">
+                    <Button x:Name="button_Scraper" IsEnabled="False" ToolTip="Scraper Display" Style="{StaticResource GreyRoundedButton}" Height="20" Width="70" Margin="0,0,3,0" Content="Show Scraper" Click="button_Scraper_Click"/>
+                    <Button x:Name="button_Media" IsEnabled="False" ToolTip="Media Display" Style="{StaticResource GreyRoundedButton}" Height="20" Width="70" Margin="3,0,0,0" HorizontalAlignment="Center" Content="Show Media" Click="button_Media_Click"/>
 
                 </StackPanel>
             </StackPanel>
-            <Border Width="60" Grid.Row="0" Grid.Column="1" BorderBrush="Black" BorderThickness="2" Background="#FFC0C0C0" Margin="4" CornerRadius="10">
-            
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="Total" FontSize="12" FontWeight="Bold" Foreground="#FF333333" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="textBox_TotalCount" Text="0" FontSize="12" FontWeight="Bold" Foreground="#FF0078D7" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
 
-            <Border Width="60" Grid.Row="0" Grid.Column="1" BorderBrush="Black" BorderThickness="2" Background="#FFC0C0C0" Margin="4" CornerRadius="10">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="Visible" FontSize="12" FontWeight="Bold" Foreground="#FF333333" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="textBox_VisibleCount" Text="0" FontSize="12" FontWeight="Bold" Foreground="#FF0078D7" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
 
-            <Border Width="60" BorderBrush="Black" BorderThickness="2" Background="#FFC0C0C0" Margin="4" CornerRadius="10">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="Hidden" FontSize="12" FontWeight="Bold" Foreground="#FF333333" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="textBox_HiddenCount" Text="0" FontSize="12" FontWeight="Bold" Foreground="#FF0078D7" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
 
-            <Border Width="60" BorderBrush="Black" BorderThickness="2" Background="#FFC0C0C0" Margin="4" CornerRadius="10">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="Showing" FontSize="12" FontWeight="Bold" Foreground="#FF333333" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="textBox_ShowingCount" Text="0" FontSize="12" FontWeight="Bold" Foreground="#FF0078D7" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
 
-            <Border Width="60" BorderBrush="Black" BorderThickness="2" Background="#FFC0C0C0" Margin="4" CornerRadius="10">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="Favorite" FontSize="12" FontWeight="Bold" Foreground="#FF333333" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="textBox_FavoriteCount" Text="0" FontSize="12" FontWeight="Bold" Foreground="#FF0078D7" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
-            <Border Width="auto" BorderBrush="Black" BorderThickness="2" Background="#FFC0C0C0" Margin="4" CornerRadius="10">
+            <Grid Background="Transparent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
 
-                <StackPanel x:Name="stackPanel_Filters" Orientation="Vertical" Width="260" Margin="2">
-                    <Button x:Name="button_SwitchFilter" ToolTip="Switch Filter Style" Style="{StaticResource CoolButtonStyle1}" Height="20" Width="70" HorizontalAlignment="Center" Click="button_SwitchFilter_Click" Content="Genre Filter"/>
-                    <Grid x:Name="grid_Filter1" Margin="5,2,0,0" Visibility="Visible">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="Genre is:" FontSize="12" FontWeight="Bold" Foreground="#FF333333" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                <!-- First Row (3 items) -->
+                <Border Grid.Column="0" Grid.Row="0" Width="80"  Margin="2" Padding="4,8,4,8" Background="#FF1976D2" CornerRadius="6">
+                    <StackPanel HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Height="15" Source="/Resources/icons/gamepad.png"/>
+                            <TextBlock Text="Total" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                        </StackPanel>
+                        <TextBlock x:Name="textBlock_TotalCount" Text="0" HorizontalAlignment="Center" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Grid.Row="0" Width="80" Margin="2" Padding="2,8,2,8" Background="Orange"  CornerRadius="6">
+                    <StackPanel HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Height="15" Source="/Resources/icons/invisible.png"/>
+                            <TextBlock Text="Hidden" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                        </StackPanel>
+
+                        <TextBlock x:Name="textBlock_HiddenCount" HorizontalAlignment="Center" Text="0" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Grid.Row="0" Margin="2" Width="80" Padding="2,8,2,8" Background="#66BB6A"  CornerRadius="6">
+                    <StackPanel HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Height="15" Source="/Resources/icons/magnifying-glass.png"/>
+                            <TextBlock Text="Showing" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                        </StackPanel>
+                        <TextBlock x:Name="textBlock_ShowingCount" HorizontalAlignment="Center" Text="0" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+
+
+                <Border Grid.Column="3" Grid.Row="0" Margin="2" Width="80" Padding="2,8,2,8" Background="#FFB39DDB"  CornerRadius="6">
+                    <StackPanel HorizontalAlignment="Center">
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Height="15" Source="/Resources/icons/heart.png"/>
+                            <TextBlock Text="Favorite" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
+                        </StackPanel>
+
+
+
+                        <TextBlock x:Name="textBlock_FavoriteCount" HorizontalAlignment="Center" Text="0" Foreground="White" FontSize="16" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+            <TabControl x:Name="tabControl_Filters" Margin="5,2,0,2" Width="270" SelectionChanged="tabControl_Filters_SelectionChanged">
+                <!-- Set the TabControl height -->
+                
+                <TabItem Header="Genre Filter" FontSize="10" FontWeight="Bold">
+                    <Grid Margin="-2" Background="LightSteelBlue">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="Genre:" FontSize="12" FontWeight="Bold" Foreground="#FF333333" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0"/>
                             <ComboBox x:Name="comboBox_Genre" FontSize="12" FontWeight="Bold" Grid.Row="0" Grid.Column="1" Width="150" Margin="0,0,0,0" VerticalAlignment="Center" SelectionChanged="comboBox_Genre_SelectionChanged">
                                 <!-- Add ComboBox items here -->
                             </ComboBox>
-                            <Button x:Name="button_ClearGenreSelection" Style="{StaticResource TransparentButton}" Margin="5,0,0,0" ToolTip="Clear" Click="button_ClearGenreSelection_Click">
-                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Undo" VerticalAlignment="Center"/>
+                            <Button x:Name="button_ClearGenreSelection" Style="{StaticResource AnimatedTransparentButton}" Margin="5,0,0,0" ToolTip="Clear" Click="button_ClearGenreSelection_Click">
+                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Clear" VerticalAlignment="Center"/>
                             </Button>
-
                         </StackPanel>
                     </Grid>
-                    <Grid x:Name="grid_Filter2" Visibility="Collapsed" Margin="5,2,0,0">
+                </TabItem>
+                <TabItem Header="Custom Filter" FontSize="10" FontWeight="Bold">
+                    <Grid Margin="-2" Background="LightSteelBlue">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-
-                            <ComboBox Grid.Row="1" x:Name="comboBox_CustomFilter" FontSize="12" FontWeight="Bold" Grid.Column="1" Width="90" Margin="0,0,0,0">
-                                <ComboBoxItem Content="Name" />
-                                <ComboBoxItem Content="Rom Path" />
-                                <ComboBoxItem Content="Genre" />
-                                <ComboBoxItem Content="Description" />
-                            </ComboBox>
+                            <ComboBox x:Name="comboBox_CustomFilter" FontSize="12" FontWeight="Bold" Grid.Column="1" Width="100" Margin="0,0,0,0" Height="24"/>
                             <TextBlock Text="is like" FontSize="12" FontWeight="Bold" Foreground="#FF333333" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,5,0"/>
-
-                            <TextBox x:Name="textBox_CustomFilter" BorderBrush="DarkBlue" FontSize="12" FontWeight="Bold" BorderThickness="1" VerticalAlignment="Center" Grid.Column="2" Width="90" Height="22" Margin="0,0,5,0" KeyDown="textBox_CustomFilter_KeyDown" KeyUp="textBox_CustomFilter_KeyUp"/>
-                            <Button x:Name="button_ClearCustomFilter" Style="{StaticResource TransparentButton}" ToolTip="Clear" Click="button_ClearCustomFilter_Click">
-                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="20" Height="20" ToolTip="Undo" VerticalAlignment="Center"/>
+                            <TextBox x:Name="textBox_CustomFilter" BorderBrush="DarkBlue" FontSize="12" FontWeight="Bold" BorderThickness="1" VerticalAlignment="Center" Grid.Column="2" Width="90" Height="22" Margin="0,0,5,0" KeyUp="textBox_CustomFilter_KeyUp"/>
+                            <Button x:Name="button_ClearCustomFilter" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Clear" Click="button_ClearCustomFilter_Click">
+                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="20" Height="20" VerticalAlignment="Center"/>
                             </Button>
-
                         </StackPanel>
                     </Grid>
-                </StackPanel>
-            </Border>
+                </TabItem>
+            </TabControl>
             <!-- Bottom Right -->
-             </StackPanel>
+        </StackPanel>
         <!-- GridSplitter in the middle -->
         <GridSplitter x:Name="gridSplitter_Horizontal" Grid.Row="2" Style="{StaticResource GridSplitterHorizontalGripStyle}"/>
         <!-- Additional Content Area below GridSplitter -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="3" Margin="2,2,2,4">
             <Grid.Background>
                 <VisualBrush Opacity="0.1" TileMode="Tile" Viewport="0,0,200,200" ViewportUnits="Absolute">
                     <VisualBrush.Visual>
@@ -331,9 +374,15 @@
                             </Image.LayoutTransform>
                         </Image>
                     </VisualBrush.Visual>
+                    <VisualBrush.Transform>
+                        <TransformGroup>
+                            <!-- Offset vertically by 50% of Viewport height -->
+                            <TranslateTransform X="0" Y="100" />
+                        </TransformGroup>
+                    </VisualBrush.Transform>
                 </VisualBrush>
             </Grid.Background>
-            <Frame x:Name="MainContentFrame" Margin="2,2,2,4" BorderBrush="#FF0078D7" BorderThickness="2" NavigationUIVisibility="Hidden"/>
+            <Frame x:Name="MainContentFrame" BorderBrush="#FF0078D7" BorderThickness="2" NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
 </Window>

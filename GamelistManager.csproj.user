@@ -10,22 +10,25 @@
     <Compile Update="controls\MediaEditButtons.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="pages\MediaDisplay.xaml.cs">
+    <Compile Update="controls\MediaPlayerControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="pages\Scraper.xaml.cs">
+    <Compile Update="pages\MediaPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="SettingsDialog.xaml.cs">
+    <Compile Update="pages\ScraperPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="ScraperCredentialDialog.xaml.cs">
+    <Compile Update="windows\SettingsDialogWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="VideoJukeBox.xaml.cs">
+    <Compile Update="windows\ScraperCredentialWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="MediaTool.xaml.cs">
+    <Compile Update="windows\MediaPlayerWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="windows\MediaToolWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -36,22 +39,22 @@
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="pages\MediaDisplay.xaml">
+    <Page Update="pages\MediaPage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="pages\Scraper.xaml">
+    <Page Update="pages\ScraperPage.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="SettingsDialog.xaml">
+    <Page Update="windows\SettingsDialogWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="ScraperCredentialDialog.xaml">
+    <Page Update="windows\ScraperCredentialWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="VideoJukeBox.xaml">
+    <Page Update="windows\MediaPlayerWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="MediaTool.xaml">
+    <Page Update="windows\MediaToolWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

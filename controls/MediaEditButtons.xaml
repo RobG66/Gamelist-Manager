@@ -16,13 +16,13 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Button Grid.Row="0" Grid.Column="0" Margin="0,0,3,0" x:Name="button_Undo" Style="{StaticResource TransparentButton}" ToolTip="Clear">
+        <Button Grid.Row="0" Grid.Column="0" Margin="0,0,3,0" x:Name="button_Undo" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Clear">
                 <Image Source="pack://application:,,,/Resources/buttons/undo-button.png" Width="82" Height="82" ToolTip="Undo change" VerticalAlignment="Center"/>
             </Button>
-        <Button Grid.Row="0" Grid.Column="1" Margin="3,0,3,0" x:Name="button_Accept" Style="{StaticResource TransparentButton}" ToolTip="Clear">
+        <Button Grid.Row="0" Grid.Column="1" Margin="3,0,3,0" x:Name="button_Accept" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Clear">
                 <Image Source="pack://application:,,,/Resources/buttons/checkmark.png" Width="82" Height="82" ToolTip="Accept change" VerticalAlignment="Center"/>
             </Button>
-        <Button Grid.Row="0" Grid.Column="2" Margin="3,0,0,0" x:Name="button_Clear" Style="{StaticResource TransparentButton}" ToolTip="Clear">
+        <Button Grid.Row="0" Grid.Column="2" Margin="3,0,0,0" x:Name="button_Clear" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Clear">
                 <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="82" Height="82" ToolTip="Remove item" VerticalAlignment="Center"/>
             </Button>
      </Grid>

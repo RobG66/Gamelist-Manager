@@ -12,54 +12,54 @@
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>7.7</FileVersion>
+    <FileVersion>7.9</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="cache\**" />
-    <Compile Remove="Resources\flags\**" />
+    <Compile Remove="resources\flags\**" />
     <EmbeddedResource Remove="cache\**" />
-    <EmbeddedResource Remove="Resources\flags\**" />
+    <EmbeddedResource Remove="resources\flags\**" />
     <None Remove="cache\**" />
-    <None Remove="Resources\flags\**" />
+    <None Remove="resources\flags\**" />
     <Page Remove="cache\**" />
-    <Page Remove="Resources\flags\**" />
+    <Page Remove="resources\flags\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\3do.png" />
-    <None Remove="Resources\3ds.png" />
-    <None Remove="Resources\abuse.png" />
-    <None Remove="Resources\adam.png" />
-    <None Remove="Resources\advision.png" />
-    <None Remove="Resources\amiga1200.png" />
-    <None Remove="Resources\amiga500.png" />
-    <None Remove="Resources\amigacd32.png" />
-    <None Remove="Resources\amigacdtv.png" />
-    <None Remove="Resources\amstradcpc.png" />
-    <None Remove="Resources\apfm1000.png" />
-    <None Remove="Resources\apple2.png" />
-    <None Remove="Resources\apple2gs.png" />
-    <None Remove="Resources\arcadia.png" />
-    <None Remove="Resources\archimedes.png" />
-    <None Remove="Resources\arduboy.png" />
-    <None Remove="Resources\astrocde.png" />
-    <None Remove="Resources\atari2600.png" />
-    <None Remove="Resources\atari5200.png" />
-    <None Remove="Resources\atari7800.png" />
-    <None Remove="Resources\atari800.png" />
-    <None Remove="Resources\atarist.png" />
-    <None Remove="Resources\atom.png" />
-    <None Remove="Resources\atomiswave.png" />
-    <None Remove="Resources\background11.jpg" />
-    <None Remove="Resources\background2.jpg" />
-    <None Remove="Resources\background20.png" />
-    <None Remove="Resources\background21.png" />
-    <None Remove="Resources\background3.png" />
-    <None Remove="Resources\background4.png" />
-    <None Remove="Resources\background5.png" />
-    <None Remove="Resources\background6.png" />
-    <None Remove="Resources\background9.jpg" />
+    <None Remove="resources\3do.png" />
+    <None Remove="resources\3ds.png" />
+    <None Remove="resources\abuse.png" />
+    <None Remove="resources\adam.png" />
+    <None Remove="resources\advision.png" />
+    <None Remove="resources\amiga1200.png" />
+    <None Remove="resources\amiga500.png" />
+    <None Remove="resources\amigacd32.png" />
+    <None Remove="resources\amigacdtv.png" />
+    <None Remove="resources\amstradcpc.png" />
+    <None Remove="resources\apfm1000.png" />
+    <None Remove="resources\apple2.png" />
+    <None Remove="resources\apple2gs.png" />
+    <None Remove="resources\arcadia.png" />
+    <None Remove="resources\archimedes.png" />
+    <None Remove="resources\arduboy.png" />
+    <None Remove="resources\astrocde.png" />
+    <None Remove="resources\atari2600.png" />
+    <None Remove="resources\atari5200.png" />
+    <None Remove="resources\atari7800.png" />
+    <None Remove="resources\atari800.png" />
+    <None Remove="resources\atarist.png" />
+    <None Remove="resources\atom.png" />
+    <None Remove="resources\atomiswave.png" />
+    <None Remove="resources\background11.jpg" />
+    <None Remove="resources\background2.jpg" />
+    <None Remove="resources\background20.png" />
+    <None Remove="resources\background21.png" />
+    <None Remove="resources\background3.png" />
+    <None Remove="resources\background4.png" />
+    <None Remove="resources\background5.png" />
+    <None Remove="resources\background6.png" />
+    <None Remove="resources\background9.jpg" />
     <None Remove="resources\backgrounds\background1.jpg" />
     <None Remove="resources\backgrounds\background2.jpg" />
     <None Remove="resources\backgrounds\background3.png" />
@@ -72,390 +72,396 @@
     <None Remove="resources\backgrounds\backgroundtech.jpg" />
     <None Remove="resources\backgrounds\backgroundtech1.jpg" />
     <None Remove="resources\backgrounds\backgroundtech2.jpg" />
-    <None Remove="Resources\backgrounds\gears.png" />
-    <None Remove="Resources\backgroundtech.jpg" />
-    <None Remove="Resources\backgroundtech1.jpg" />
-    <None Remove="Resources\backgroundtech2.jpg" />
-    <None Remove="Resources\bbc.png" />
+    <None Remove="resources\backgrounds\gears.png" />
+    <None Remove="resources\backgroundtech.jpg" />
+    <None Remove="resources\backgroundtech1.jpg" />
+    <None Remove="resources\backgroundtech2.jpg" />
+    <None Remove="resources\bbc.png" />
     <None Remove="resources\buttons\glossybutton.png" />
-    <None Remove="Resources\buttons\next.png" />
-    <None Remove="Resources\buttons\pause.png" />
-    <None Remove="Resources\buttons\play.png" />
-    <None Remove="Resources\buttons\previous.png" />
-    <None Remove="Resources\buttons\stop.png" />
+    <None Remove="resources\buttons\next.png" />
+    <None Remove="resources\buttons\pause.png" />
+    <None Remove="resources\buttons\play.png" />
+    <None Remove="resources\buttons\previous.png" />
+    <None Remove="resources\buttons\stop.png" />
     <None Remove="resources\buttons\x-button.png" />
-    <None Remove="Resources\c128.png" />
-    <None Remove="Resources\c20.png" />
-    <None Remove="Resources\c64.png" />
-    <None Remove="Resources\camplynx.png" />
-    <None Remove="Resources\cannonball.png" />
-    <None Remove="Resources\cave3rd.png" />
-    <None Remove="Resources\cavestory.png" />
-    <None Remove="Resources\cdi.png" />
-    <None Remove="Resources\cdogs.png" />
-    <None Remove="Resources\cgenius.png" />
-    <None Remove="Resources\channelf.png" />
-    <None Remove="Resources\checkmark.png" />
-    <None Remove="Resources\close.png" />
-    <None Remove="Resources\coco.png" />
-    <None Remove="Resources\colecovision.png" />
-    <None Remove="Resources\cplus4.png" />
-    <None Remove="Resources\crvision.png" />
-    <None Remove="Resources\daphne.png" />
-    <None Remove="Resources\devilutionx.png" />
-    <None Remove="Resources\dos.png" />
-    <None Remove="Resources\dreamcast.png" />
-    <None Remove="Resources\dropicon.png" />
-    <None Remove="Resources\easyrpg.png" />
-    <None Remove="Resources\ecwolf.png" />
-    <None Remove="Resources\eduke32.png" />
-    <None Remove="Resources\electron.png" />
-    <None Remove="Resources\fbneo.png" />
-    <None Remove="Resources\fds.png" />
-    <None Remove="Resources\flash.png" />
-    <None Remove="Resources\flatpak.png" />
-    <None Remove="Resources\fm7.png" />
-    <None Remove="Resources\fmtowns.png" />
-    <None Remove="Resources\foldericon.png" />
-    <None Remove="Resources\fpinball.png" />
-    <None Remove="Resources\fury.png" />
-    <None Remove="Resources\gamate.png" />
-    <None Remove="Resources\gameandwatch.png" />
-    <None Remove="Resources\gamecom.png" />
-    <None Remove="Resources\gamecube.png" />
-    <None Remove="Resources\gamegear.png" />
-    <None Remove="Resources\gamelistmanager.gif" />
-    <None Remove="Resources\gamelistmanager.png" />
-    <None Remove="Resources\gamepock.png" />
-    <None Remove="Resources\gb.png" />
-    <None Remove="Resources\gb2players.png" />
-    <None Remove="Resources\gba.png" />
-    <None Remove="Resources\gbc.png" />
-    <None Remove="Resources\gbc2players.png" />
-    <None Remove="Resources\gmaster.png" />
-    <None Remove="Resources\gp32.png" />
-    <None Remove="Resources\gx4000.png" />
-    <None Remove="Resources\gzdoom.png" />
-    <None Remove="Resources\hcl.png" />
-    <None Remove="Resources\hurrican.png" />
+    <None Remove="resources\c128.png" />
+    <None Remove="resources\c20.png" />
+    <None Remove="resources\c64.png" />
+    <None Remove="resources\camplynx.png" />
+    <None Remove="resources\cannonball.png" />
+    <None Remove="resources\cave3rd.png" />
+    <None Remove="resources\cavestory.png" />
+    <None Remove="resources\cdi.png" />
+    <None Remove="resources\cdogs.png" />
+    <None Remove="resources\cgenius.png" />
+    <None Remove="resources\channelf.png" />
+    <None Remove="resources\checkmark.png" />
+    <None Remove="resources\close.png" />
+    <None Remove="resources\coco.png" />
+    <None Remove="resources\colecovision.png" />
+    <None Remove="resources\cplus4.png" />
+    <None Remove="resources\crvision.png" />
+    <None Remove="resources\daphne.png" />
+    <None Remove="resources\devilutionx.png" />
+    <None Remove="resources\dos.png" />
+    <None Remove="resources\dreamcast.png" />
+    <None Remove="resources\dropicon.png" />
+    <None Remove="resources\easyrpg.png" />
+    <None Remove="resources\ecwolf.png" />
+    <None Remove="resources\eduke32.png" />
+    <None Remove="resources\electron.png" />
+    <None Remove="resources\fbneo.png" />
+    <None Remove="resources\fds.png" />
+    <None Remove="resources\flash.png" />
+    <None Remove="resources\flatpak.png" />
+    <None Remove="resources\fm7.png" />
+    <None Remove="resources\fmtowns.png" />
+    <None Remove="resources\foldericon.png" />
+    <None Remove="resources\fpinball.png" />
+    <None Remove="resources\fury.png" />
+    <None Remove="resources\gamate.png" />
+    <None Remove="resources\gameandwatch.png" />
+    <None Remove="resources\gamecom.png" />
+    <None Remove="resources\gamecube.png" />
+    <None Remove="resources\gamegear.png" />
+    <None Remove="resources\gamelistmanager.gif" />
+    <None Remove="resources\gamelistmanager.png" />
+    <None Remove="resources\gamepock.png" />
+    <None Remove="resources\gb.png" />
+    <None Remove="resources\gb2players.png" />
+    <None Remove="resources\gba.png" />
+    <None Remove="resources\gbc.png" />
+    <None Remove="resources\gbc2players.png" />
+    <None Remove="resources\gmaster.png" />
+    <None Remove="resources\gp32.png" />
+    <None Remove="resources\gx4000.png" />
+    <None Remove="resources\gzdoom.png" />
+    <None Remove="resources\hcl.png" />
+    <None Remove="resources\hurrican.png" />
     <None Remove="resources\icons\folder.png" />
+    <None Remove="resources\icons\gamepad.png" />
+    <None Remove="resources\icons\heart.png" />
+    <None Remove="resources\icons\invisible.png" />
+    <None Remove="resources\icons\magnifying-glass.png" />
     <None Remove="resources\icons\remote.png" />
     <None Remove="resources\icons\search.png" />
     <None Remove="resources\icons\services.png" />
     <None Remove="resources\icons\settings.png" />
     <None Remove="resources\icons\spreadsheet.png" />
-    <None Remove="Resources\ikemen.png" />
-    <None Remove="Resources\intellivision.png" />
-    <None Remove="Resources\jaguar.png" />
-    <None Remove="Resources\laser310.png" />
-    <None Remove="Resources\lcdgames.png" />
-    <None Remove="Resources\loaderror.png" />
-    <None Remove="Resources\lowresnx.png" />
-    <None Remove="Resources\lutro.png" />
-    <None Remove="Resources\lynx.png" />
-    <None Remove="Resources\macintosh.png" />
-    <None Remove="Resources\mame.png" />
-    <None Remove="Resources\manual.png" />
-    <None Remove="Resources\mastersystem.png" />
-    <None Remove="Resources\megadrive.png" />
-    <None Remove="Resources\megaduck.png" />
-    <None Remove="Resources\missing.png" />
-    <None Remove="Resources\model2.png" />
-    <None Remove="Resources\model3.png" />
-    <None Remove="Resources\mooncake.png" />
-    <None Remove="Resources\moonlight.png" />
-    <None Remove="Resources\mrboom.png" />
-    <None Remove="Resources\msu-md.png" />
-    <None Remove="Resources\msx1.png" />
-    <None Remove="Resources\msx2+.png" />
-    <None Remove="Resources\msx2.png" />
-    <None Remove="Resources\msxturbor.png" />
-    <None Remove="Resources\mugen.png" />
-    <None Remove="Resources\multivision.png" />
-    <None Remove="Resources\n64.png" />
-    <None Remove="Resources\n64dd.png" />
-    <None Remove="Resources\naomi.png" />
-    <None Remove="Resources\naomi2.png" />
-    <None Remove="Resources\nds.png" />
-    <None Remove="Resources\neogeo.png" />
-    <None Remove="Resources\neogeocd.png" />
-    <None Remove="Resources\nes.png" />
-    <None Remove="Resources\ngp.png" />
-    <None Remove="Resources\ngpc.png" />
-    <None Remove="Resources\nomedia.png" />
-    <None Remove="Resources\o2em.png" />
-    <None Remove="Resources\odcommander.png" />
-    <None Remove="Resources\openbor.png" />
-    <None Remove="Resources\pc88.png" />
-    <None Remove="Resources\pc98.png" />
-    <None Remove="Resources\pcengine.png" />
-    <None Remove="Resources\pcenginecd.png" />
-    <None Remove="Resources\pcfx.png" />
-    <None Remove="Resources\pdp1.png" />
-    <None Remove="Resources\pet.png" />
-    <None Remove="Resources\pico.png" />
-    <None Remove="Resources\pico8.png" />
-    <None Remove="Resources\plugnplay.png" />
-    <None Remove="Resources\pokemini.png" />
-    <None Remove="Resources\ports.png" />
-    <None Remove="Resources\prboom.png" />
-    <None Remove="Resources\ps2.png" />
-    <None Remove="Resources\ps3.png" />
-    <None Remove="Resources\psp.png" />
-    <None Remove="Resources\psvita.png" />
-    <None Remove="Resources\psx.png" />
-    <None Remove="Resources\pv1000.png" />
-    <None Remove="Resources\pygame.png" />
-    <None Remove="Resources\pyxel.png" />
-    <None Remove="Resources\raze.png" />
-    <None Remove="Resources\redo-button.png" />
-    <None Remove="Resources\remove.png" />
-    <None Remove="Resources\reset.png" />
-    <None Remove="Resources\reset1.png" />
-    <None Remove="Resources\rightarrow.png" />
-    <None Remove="Resources\samcoupe.png" />
-    <None Remove="Resources\satellaview.png" />
-    <None Remove="Resources\saturn.png" />
-    <None Remove="Resources\scraperlogo.png" />
-    <None Remove="Resources\scummvm.png" />
-    <None Remove="Resources\scv.png" />
-    <None Remove="Resources\sdlpop.png" />
-    <None Remove="Resources\sega32x.png" />
-    <None Remove="Resources\segacd.png" />
-    <None Remove="Resources\sg1000.png" />
-    <None Remove="Resources\sgb.png" />
-    <None Remove="Resources\snes-msu1.png" />
-    <None Remove="Resources\snes.png" />
-    <None Remove="Resources\socrates.png" />
-    <None Remove="Resources\solarus.png" />
-    <None Remove="Resources\sonicretro.png" />
-    <None Remove="Resources\spectravideo.png" />
-    <None Remove="Resources\steam.png" />
-    <None Remove="Resources\sufami.png" />
-    <None Remove="Resources\superbroswar.png" />
-    <None Remove="Resources\supergrafx.png" />
-    <None Remove="Resources\supervision.png" />
-    <None Remove="Resources\supracan.png" />
-    <None Remove="Resources\systems\3do.png" />
-    <None Remove="Resources\systems\3ds.png" />
-    <None Remove="Resources\systems\abuse.png" />
-    <None Remove="Resources\systems\adam.png" />
-    <None Remove="Resources\systems\advision.png" />
-    <None Remove="Resources\systems\amiga1200.png" />
-    <None Remove="Resources\systems\amiga500.png" />
-    <None Remove="Resources\systems\amigacd32.png" />
-    <None Remove="Resources\systems\amigacdtv.png" />
-    <None Remove="Resources\systems\amstradcpc.png" />
-    <None Remove="Resources\systems\apfm1000.png" />
-    <None Remove="Resources\systems\apple2.png" />
-    <None Remove="Resources\systems\apple2gs.png" />
-    <None Remove="Resources\systems\arcadia.png" />
-    <None Remove="Resources\systems\archimedes.png" />
-    <None Remove="Resources\systems\arduboy.png" />
-    <None Remove="Resources\systems\astrocde.png" />
-    <None Remove="Resources\systems\atari2600.png" />
-    <None Remove="Resources\systems\atari5200.png" />
-    <None Remove="Resources\systems\atari7800.png" />
-    <None Remove="Resources\systems\atari800.png" />
-    <None Remove="Resources\systems\atarist.png" />
-    <None Remove="Resources\systems\atom.png" />
-    <None Remove="Resources\systems\atomiswave.png" />
-    <None Remove="Resources\systems\bbc.png" />
-    <None Remove="Resources\systems\c128.png" />
-    <None Remove="Resources\systems\c20.png" />
-    <None Remove="Resources\systems\c64.png" />
-    <None Remove="Resources\systems\camplynx.png" />
-    <None Remove="Resources\systems\cannonball.png" />
-    <None Remove="Resources\systems\cave3rd.png" />
-    <None Remove="Resources\systems\cavestory.png" />
-    <None Remove="Resources\systems\cdi.png" />
-    <None Remove="Resources\systems\cdogs.png" />
-    <None Remove="Resources\systems\cgenius.png" />
-    <None Remove="Resources\systems\channelf.png" />
-    <None Remove="Resources\systems\coco.png" />
-    <None Remove="Resources\systems\colecovision.png" />
-    <None Remove="Resources\systems\cplus4.png" />
-    <None Remove="Resources\systems\crvision.png" />
-    <None Remove="Resources\systems\daphne.png" />
-    <None Remove="Resources\systems\devilutionx.png" />
-    <None Remove="Resources\systems\dos.png" />
-    <None Remove="Resources\systems\dreamcast.png" />
-    <None Remove="Resources\systems\easyrpg.png" />
-    <None Remove="Resources\systems\ecwolf.png" />
-    <None Remove="Resources\systems\eduke32.png" />
-    <None Remove="Resources\systems\electron.png" />
-    <None Remove="Resources\systems\fbneo.png" />
-    <None Remove="Resources\systems\fds.png" />
-    <None Remove="Resources\systems\flash.png" />
-    <None Remove="Resources\systems\flatpak.png" />
-    <None Remove="Resources\systems\fm7.png" />
-    <None Remove="Resources\systems\fmtowns.png" />
-    <None Remove="Resources\systems\fpinball.png" />
-    <None Remove="Resources\systems\fury.png" />
-    <None Remove="Resources\systems\gamate.png" />
-    <None Remove="Resources\systems\gameandwatch.png" />
-    <None Remove="Resources\systems\gamecom.png" />
-    <None Remove="Resources\systems\gamecube.png" />
-    <None Remove="Resources\systems\gamegear.png" />
-    <None Remove="Resources\systems\gamepock.png" />
-    <None Remove="Resources\systems\gb.png" />
-    <None Remove="Resources\systems\gb2players.png" />
-    <None Remove="Resources\systems\gba.png" />
-    <None Remove="Resources\systems\gbc.png" />
-    <None Remove="Resources\systems\gbc2players.png" />
-    <None Remove="Resources\systems\gmaster.png" />
-    <None Remove="Resources\systems\gp32.png" />
-    <None Remove="Resources\systems\gx4000.png" />
-    <None Remove="Resources\systems\gzdoom.png" />
-    <None Remove="Resources\systems\hcl.png" />
-    <None Remove="Resources\systems\hurrican.png" />
-    <None Remove="Resources\systems\ikemen.png" />
-    <None Remove="Resources\systems\intellivision.png" />
-    <None Remove="Resources\systems\jaguar.png" />
-    <None Remove="Resources\systems\laser310.png" />
-    <None Remove="Resources\systems\lcdgames.png" />
-    <None Remove="Resources\systems\lowresnx.png" />
-    <None Remove="Resources\systems\lutro.png" />
-    <None Remove="Resources\systems\lynx.png" />
-    <None Remove="Resources\systems\macintosh.png" />
-    <None Remove="Resources\systems\mame.png" />
-    <None Remove="Resources\systems\mastersystem.png" />
-    <None Remove="Resources\systems\megadrive.png" />
-    <None Remove="Resources\systems\megaduck.png" />
-    <None Remove="Resources\systems\model2.png" />
-    <None Remove="Resources\systems\model3.png" />
-    <None Remove="Resources\systems\moonlight.png" />
-    <None Remove="Resources\systems\mrboom.png" />
-    <None Remove="Resources\systems\msu-md.png" />
-    <None Remove="Resources\systems\msx1.png" />
-    <None Remove="Resources\systems\msx2+.png" />
-    <None Remove="Resources\systems\msx2.png" />
-    <None Remove="Resources\systems\msxturbor.png" />
-    <None Remove="Resources\systems\mugen.png" />
-    <None Remove="Resources\systems\multivision.png" />
-    <None Remove="Resources\systems\n64.png" />
-    <None Remove="Resources\systems\n64dd.png" />
-    <None Remove="Resources\systems\naomi.png" />
-    <None Remove="Resources\systems\naomi2.png" />
-    <None Remove="Resources\systems\nds.png" />
-    <None Remove="Resources\systems\neogeo.png" />
-    <None Remove="Resources\systems\neogeocd.png" />
-    <None Remove="Resources\systems\nes.png" />
-    <None Remove="Resources\systems\ngp.png" />
-    <None Remove="Resources\systems\ngpc.png" />
-    <None Remove="Resources\systems\o2em.png" />
-    <None Remove="Resources\systems\odcommander.png" />
-    <None Remove="Resources\systems\openbor.png" />
-    <None Remove="Resources\systems\pc88.png" />
-    <None Remove="Resources\systems\pc98.png" />
-    <None Remove="Resources\systems\pcengine.png" />
-    <None Remove="Resources\systems\pcenginecd.png" />
-    <None Remove="Resources\systems\pcfx.png" />
-    <None Remove="Resources\systems\pdp1.png" />
-    <None Remove="Resources\systems\pet.png" />
-    <None Remove="Resources\systems\pico.png" />
-    <None Remove="Resources\systems\pico8.png" />
-    <None Remove="Resources\systems\plugnplay.png" />
-    <None Remove="Resources\systems\pokemini.png" />
-    <None Remove="Resources\systems\ports.png" />
-    <None Remove="Resources\systems\prboom.png" />
-    <None Remove="Resources\systems\ps2.png" />
-    <None Remove="Resources\systems\ps3.png" />
-    <None Remove="Resources\systems\psp.png" />
-    <None Remove="Resources\systems\psvita.png" />
-    <None Remove="Resources\systems\psx.png" />
-    <None Remove="Resources\systems\pv1000.png" />
-    <None Remove="Resources\systems\pygame.png" />
-    <None Remove="Resources\systems\pyxel.png" />
-    <None Remove="Resources\systems\raze.png" />
-    <None Remove="Resources\systems\samcoupe.png" />
-    <None Remove="Resources\systems\satellaview.png" />
-    <None Remove="Resources\systems\saturn.png" />
-    <None Remove="Resources\systems\scummvm.png" />
-    <None Remove="Resources\systems\scv.png" />
-    <None Remove="Resources\systems\sdlpop.png" />
-    <None Remove="Resources\systems\sega32x.png" />
-    <None Remove="Resources\systems\segacd.png" />
-    <None Remove="Resources\systems\sg1000.png" />
-    <None Remove="Resources\systems\sgb.png" />
-    <None Remove="Resources\systems\snes-msu1.png" />
-    <None Remove="Resources\systems\snes.png" />
-    <None Remove="Resources\systems\socrates.png" />
-    <None Remove="Resources\systems\solarus.png" />
-    <None Remove="Resources\systems\sonicretro.png" />
-    <None Remove="Resources\systems\spectravideo.png" />
-    <None Remove="Resources\systems\steam.png" />
-    <None Remove="Resources\systems\sufami.png" />
-    <None Remove="Resources\systems\superbroswar.png" />
-    <None Remove="Resources\systems\supergrafx.png" />
-    <None Remove="Resources\systems\supervision.png" />
-    <None Remove="Resources\systems\supracan.png" />
-    <None Remove="Resources\systems\thomson.png" />
-    <None Remove="Resources\systems\ti99.png" />
-    <None Remove="Resources\systems\tic80.png" />
-    <None Remove="Resources\systems\triforce.png" />
-    <None Remove="Resources\systems\tutor.png" />
-    <None Remove="Resources\systems\tyrquake.png" />
-    <None Remove="Resources\systems\uzebox.png" />
-    <None Remove="Resources\systems\vc4000.png" />
-    <None Remove="Resources\systems\vectrex.png" />
-    <None Remove="Resources\systems\vgmplay.png" />
-    <None Remove="Resources\systems\videopacplus.png" />
-    <None Remove="Resources\systems\virtualboy.png" />
-    <None Remove="Resources\systems\vitaquake2.png" />
-    <None Remove="Resources\systems\vpinball.png" />
-    <None Remove="Resources\systems\vsmile.png" />
-    <None Remove="Resources\systems\wasm4.png" />
-    <None Remove="Resources\systems\wii.png" />
-    <None Remove="Resources\systems\wiiu.png" />
-    <None Remove="Resources\systems\windows.png" />
-    <None Remove="Resources\systems\windows_installers.png" />
-    <None Remove="Resources\systems\wswan.png" />
-    <None Remove="Resources\systems\wswanc.png" />
-    <None Remove="Resources\systems\x1.png" />
-    <None Remove="Resources\systems\x68000.png" />
-    <None Remove="Resources\systems\xash3d_fwgs.png" />
-    <None Remove="Resources\systems\xbox.png" />
-    <None Remove="Resources\systems\xbox360.png" />
-    <None Remove="Resources\systems\xegs.png" />
-    <None Remove="Resources\systems\xrick.png" />
-    <None Remove="Resources\systems\zc210.png" />
-    <None Remove="Resources\systems\zx81.png" />
-    <None Remove="Resources\systems\zxspectrum.png" />
-    <None Remove="Resources\thomson.png" />
-    <None Remove="Resources\ti99.png" />
-    <None Remove="Resources\tic80.png" />
-    <None Remove="Resources\triforce.png" />
-    <None Remove="Resources\tutor.png" />
-    <None Remove="Resources\tyrquake.png" />
-    <None Remove="Resources\undo-button.png" />
-    <None Remove="Resources\uzebox.png" />
-    <None Remove="Resources\vc4000.png" />
-    <None Remove="Resources\vectrex.png" />
-    <None Remove="Resources\vgmplay.png" />
-    <None Remove="Resources\videopacplus.png" />
-    <None Remove="Resources\virtualboy.png" />
-    <None Remove="Resources\vitaquake2.png" />
-    <None Remove="Resources\vpinball.png" />
-    <None Remove="Resources\vsmile.png" />
-    <None Remove="Resources\wasm4.png" />
-    <None Remove="Resources\wii.png" />
-    <None Remove="Resources\wiiu.png" />
-    <None Remove="Resources\windows.png" />
-    <None Remove="Resources\windows_installers.png" />
-    <None Remove="Resources\wswan.png" />
-    <None Remove="Resources\wswanc.png" />
-    <None Remove="Resources\x-10366 %282%29.png" />
-    <None Remove="Resources\x1.png" />
-    <None Remove="Resources\x68000.png" />
-    <None Remove="Resources\xash3d_fwgs.png" />
-    <None Remove="Resources\xbox.png" />
-    <None Remove="Resources\xbox360.png" />
-    <None Remove="Resources\xegs.png" />
-    <None Remove="Resources\xrick.png" />
-    <None Remove="Resources\zc210.png" />
-    <None Remove="Resources\zx81.png" />
-    <None Remove="Resources\zxspectrum.png" />
+    <None Remove="resources\icons\visible.png" />
+    <None Remove="resources\ikemen.png" />
+    <None Remove="resources\intellivision.png" />
+    <None Remove="resources\jaguar.png" />
+    <None Remove="resources\laser310.png" />
+    <None Remove="resources\lcdgames.png" />
+    <None Remove="resources\loaderror.png" />
+    <None Remove="resources\lowresnx.png" />
+    <None Remove="resources\lutro.png" />
+    <None Remove="resources\lynx.png" />
+    <None Remove="resources\macintosh.png" />
+    <None Remove="resources\mame.png" />
+    <None Remove="resources\manual.png" />
+    <None Remove="resources\mastersystem.png" />
+    <None Remove="resources\megadrive.png" />
+    <None Remove="resources\megaduck.png" />
+    <None Remove="resources\missing.png" />
+    <None Remove="resources\model2.png" />
+    <None Remove="resources\model3.png" />
+    <None Remove="resources\mooncake.png" />
+    <None Remove="resources\moonlight.png" />
+    <None Remove="resources\mrboom.png" />
+    <None Remove="resources\msu-md.png" />
+    <None Remove="resources\msx1.png" />
+    <None Remove="resources\msx2+.png" />
+    <None Remove="resources\msx2.png" />
+    <None Remove="resources\msxturbor.png" />
+    <None Remove="resources\mugen.png" />
+    <None Remove="resources\multivision.png" />
+    <None Remove="resources\n64.png" />
+    <None Remove="resources\n64dd.png" />
+    <None Remove="resources\naomi.png" />
+    <None Remove="resources\naomi2.png" />
+    <None Remove="resources\nds.png" />
+    <None Remove="resources\neogeo.png" />
+    <None Remove="resources\neogeocd.png" />
+    <None Remove="resources\nes.png" />
+    <None Remove="resources\ngp.png" />
+    <None Remove="resources\ngpc.png" />
+    <None Remove="resources\nomedia.png" />
+    <None Remove="resources\o2em.png" />
+    <None Remove="resources\odcommander.png" />
+    <None Remove="resources\openbor.png" />
+    <None Remove="resources\pc88.png" />
+    <None Remove="resources\pc98.png" />
+    <None Remove="resources\pcengine.png" />
+    <None Remove="resources\pcenginecd.png" />
+    <None Remove="resources\pcfx.png" />
+    <None Remove="resources\pdp1.png" />
+    <None Remove="resources\pet.png" />
+    <None Remove="resources\pico.png" />
+    <None Remove="resources\pico8.png" />
+    <None Remove="resources\plugnplay.png" />
+    <None Remove="resources\pokemini.png" />
+    <None Remove="resources\ports.png" />
+    <None Remove="resources\prboom.png" />
+    <None Remove="resources\ps2.png" />
+    <None Remove="resources\ps3.png" />
+    <None Remove="resources\psp.png" />
+    <None Remove="resources\psvita.png" />
+    <None Remove="resources\psx.png" />
+    <None Remove="resources\pv1000.png" />
+    <None Remove="resources\pygame.png" />
+    <None Remove="resources\pyxel.png" />
+    <None Remove="resources\raze.png" />
+    <None Remove="resources\redo-button.png" />
+    <None Remove="resources\remove.png" />
+    <None Remove="resources\reset.png" />
+    <None Remove="resources\reset1.png" />
+    <None Remove="resources\rightarrow.png" />
+    <None Remove="resources\samcoupe.png" />
+    <None Remove="resources\satellaview.png" />
+    <None Remove="resources\saturn.png" />
+    <None Remove="resources\scraperlogo.png" />
+    <None Remove="resources\scummvm.png" />
+    <None Remove="resources\scv.png" />
+    <None Remove="resources\sdlpop.png" />
+    <None Remove="resources\sega32x.png" />
+    <None Remove="resources\segacd.png" />
+    <None Remove="resources\sg1000.png" />
+    <None Remove="resources\sgb.png" />
+    <None Remove="resources\snes-msu1.png" />
+    <None Remove="resources\snes.png" />
+    <None Remove="resources\socrates.png" />
+    <None Remove="resources\solarus.png" />
+    <None Remove="resources\sonicretro.png" />
+    <None Remove="resources\spectravideo.png" />
+    <None Remove="resources\steam.png" />
+    <None Remove="resources\sufami.png" />
+    <None Remove="resources\superbroswar.png" />
+    <None Remove="resources\supergrafx.png" />
+    <None Remove="resources\supervision.png" />
+    <None Remove="resources\supracan.png" />
+    <None Remove="resources\systems\3do.png" />
+    <None Remove="resources\systems\3ds.png" />
+    <None Remove="resources\systems\abuse.png" />
+    <None Remove="resources\systems\adam.png" />
+    <None Remove="resources\systems\advision.png" />
+    <None Remove="resources\systems\amiga1200.png" />
+    <None Remove="resources\systems\amiga500.png" />
+    <None Remove="resources\systems\amigacd32.png" />
+    <None Remove="resources\systems\amigacdtv.png" />
+    <None Remove="resources\systems\amstradcpc.png" />
+    <None Remove="resources\systems\apfm1000.png" />
+    <None Remove="resources\systems\apple2.png" />
+    <None Remove="resources\systems\apple2gs.png" />
+    <None Remove="resources\systems\arcadia.png" />
+    <None Remove="resources\systems\archimedes.png" />
+    <None Remove="resources\systems\arduboy.png" />
+    <None Remove="resources\systems\astrocde.png" />
+    <None Remove="resources\systems\atari2600.png" />
+    <None Remove="resources\systems\atari5200.png" />
+    <None Remove="resources\systems\atari7800.png" />
+    <None Remove="resources\systems\atari800.png" />
+    <None Remove="resources\systems\atarist.png" />
+    <None Remove="resources\systems\atom.png" />
+    <None Remove="resources\systems\atomiswave.png" />
+    <None Remove="resources\systems\bbc.png" />
+    <None Remove="resources\systems\c128.png" />
+    <None Remove="resources\systems\c20.png" />
+    <None Remove="resources\systems\c64.png" />
+    <None Remove="resources\systems\camplynx.png" />
+    <None Remove="resources\systems\cannonball.png" />
+    <None Remove="resources\systems\cave.png" />
+    <None Remove="resources\systems\cave3rd.png" />
+    <None Remove="resources\systems\cavestory.png" />
+    <None Remove="resources\systems\cdi.png" />
+    <None Remove="resources\systems\cdogs.png" />
+    <None Remove="resources\systems\cgenius.png" />
+    <None Remove="resources\systems\channelf.png" />
+    <None Remove="resources\systems\coco.png" />
+    <None Remove="resources\systems\colecovision.png" />
+    <None Remove="resources\systems\cplus4.png" />
+    <None Remove="resources\systems\crvision.png" />
+    <None Remove="resources\systems\daphne.png" />
+    <None Remove="resources\systems\devilutionx.png" />
+    <None Remove="resources\systems\dos.png" />
+    <None Remove="resources\systems\dreamcast.png" />
+    <None Remove="resources\systems\easyrpg.png" />
+    <None Remove="resources\systems\ecwolf.png" />
+    <None Remove="resources\systems\eduke32.png" />
+    <None Remove="resources\systems\electron.png" />
+    <None Remove="resources\systems\fbneo.png" />
+    <None Remove="resources\systems\fds.png" />
+    <None Remove="resources\systems\flash.png" />
+    <None Remove="resources\systems\flatpak.png" />
+    <None Remove="resources\systems\fm7.png" />
+    <None Remove="resources\systems\fmtowns.png" />
+    <None Remove="resources\systems\fpinball.png" />
+    <None Remove="resources\systems\fury.png" />
+    <None Remove="resources\systems\gamate.png" />
+    <None Remove="resources\systems\gameandwatch.png" />
+    <None Remove="resources\systems\gamecom.png" />
+    <None Remove="resources\systems\gamecube.png" />
+    <None Remove="resources\systems\gamegear.png" />
+    <None Remove="resources\systems\gamepock.png" />
+    <None Remove="resources\systems\gb.png" />
+    <None Remove="resources\systems\gb2players.png" />
+    <None Remove="resources\systems\gba.png" />
+    <None Remove="resources\systems\gbc.png" />
+    <None Remove="resources\systems\gbc2players.png" />
+    <None Remove="resources\systems\gmaster.png" />
+    <None Remove="resources\systems\gp32.png" />
+    <None Remove="resources\systems\gx4000.png" />
+    <None Remove="resources\systems\gzdoom.png" />
+    <None Remove="resources\systems\hcl.png" />
+    <None Remove="resources\systems\hurrican.png" />
+    <None Remove="resources\systems\ikemen.png" />
+    <None Remove="resources\systems\intellivision.png" />
+    <None Remove="resources\systems\jaguar.png" />
+    <None Remove="resources\systems\laser310.png" />
+    <None Remove="resources\systems\lcdgames.png" />
+    <None Remove="resources\systems\lowresnx.png" />
+    <None Remove="resources\systems\lutro.png" />
+    <None Remove="resources\systems\lynx.png" />
+    <None Remove="resources\systems\macintosh.png" />
+    <None Remove="resources\systems\mame.png" />
+    <None Remove="resources\systems\mastersystem.png" />
+    <None Remove="resources\systems\megadrive.png" />
+    <None Remove="resources\systems\megaduck.png" />
+    <None Remove="resources\systems\model2.png" />
+    <None Remove="resources\systems\model3.png" />
+    <None Remove="resources\systems\moonlight.png" />
+    <None Remove="resources\systems\mrboom.png" />
+    <None Remove="resources\systems\msu-md.png" />
+    <None Remove="resources\systems\msx1.png" />
+    <None Remove="resources\systems\msx2+.png" />
+    <None Remove="resources\systems\msx2.png" />
+    <None Remove="resources\systems\msxturbor.png" />
+    <None Remove="resources\systems\mugen.png" />
+    <None Remove="resources\systems\multivision.png" />
+    <None Remove="resources\systems\n64.png" />
+    <None Remove="resources\systems\n64dd.png" />
+    <None Remove="resources\systems\naomi.png" />
+    <None Remove="resources\systems\naomi2.png" />
+    <None Remove="resources\systems\nds.png" />
+    <None Remove="resources\systems\neogeo.png" />
+    <None Remove="resources\systems\neogeocd.png" />
+    <None Remove="resources\systems\nes.png" />
+    <None Remove="resources\systems\ngp.png" />
+    <None Remove="resources\systems\ngpc.png" />
+    <None Remove="resources\systems\o2em.png" />
+    <None Remove="resources\systems\odcommander.png" />
+    <None Remove="resources\systems\openbor.png" />
+    <None Remove="resources\systems\pc88.png" />
+    <None Remove="resources\systems\pc98.png" />
+    <None Remove="resources\systems\pcengine.png" />
+    <None Remove="resources\systems\pcenginecd.png" />
+    <None Remove="resources\systems\pcfx.png" />
+    <None Remove="resources\systems\pdp1.png" />
+    <None Remove="resources\systems\pet.png" />
+    <None Remove="resources\systems\pico.png" />
+    <None Remove="resources\systems\pico8.png" />
+    <None Remove="resources\systems\plugnplay.png" />
+    <None Remove="resources\systems\pokemini.png" />
+    <None Remove="resources\systems\ports.png" />
+    <None Remove="resources\systems\prboom.png" />
+    <None Remove="resources\systems\ps2.png" />
+    <None Remove="resources\systems\ps3.png" />
+    <None Remove="resources\systems\psp.png" />
+    <None Remove="resources\systems\psvita.png" />
+    <None Remove="resources\systems\psx.png" />
+    <None Remove="resources\systems\pv1000.png" />
+    <None Remove="resources\systems\pygame.png" />
+    <None Remove="resources\systems\pyxel.png" />
+    <None Remove="resources\systems\raze.png" />
+    <None Remove="resources\systems\samcoupe.png" />
+    <None Remove="resources\systems\satellaview.png" />
+    <None Remove="resources\systems\saturn.png" />
+    <None Remove="resources\systems\scummvm.png" />
+    <None Remove="resources\systems\scv.png" />
+    <None Remove="resources\systems\sdlpop.png" />
+    <None Remove="resources\systems\sega32x.png" />
+    <None Remove="resources\systems\segacd.png" />
+    <None Remove="resources\systems\sg1000.png" />
+    <None Remove="resources\systems\sgb.png" />
+    <None Remove="resources\systems\snes-msu1.png" />
+    <None Remove="resources\systems\snes.png" />
+    <None Remove="resources\systems\socrates.png" />
+    <None Remove="resources\systems\solarus.png" />
+    <None Remove="resources\systems\sonicretro.png" />
+    <None Remove="resources\systems\spectravideo.png" />
+    <None Remove="resources\systems\steam.png" />
+    <None Remove="resources\systems\sufami.png" />
+    <None Remove="resources\systems\superbroswar.png" />
+    <None Remove="resources\systems\supergrafx.png" />
+    <None Remove="resources\systems\supervision.png" />
+    <None Remove="resources\systems\supracan.png" />
+    <None Remove="resources\systems\thomson.png" />
+    <None Remove="resources\systems\ti99.png" />
+    <None Remove="resources\systems\tic80.png" />
+    <None Remove="resources\systems\triforce.png" />
+    <None Remove="resources\systems\tutor.png" />
+    <None Remove="resources\systems\tyrquake.png" />
+    <None Remove="resources\systems\uzebox.png" />
+    <None Remove="resources\systems\vc4000.png" />
+    <None Remove="resources\systems\vectrex.png" />
+    <None Remove="resources\systems\vgmplay.png" />
+    <None Remove="resources\systems\videopacplus.png" />
+    <None Remove="resources\systems\virtualboy.png" />
+    <None Remove="resources\systems\vitaquake2.png" />
+    <None Remove="resources\systems\vpinball.png" />
+    <None Remove="resources\systems\vsmile.png" />
+    <None Remove="resources\systems\wasm4.png" />
+    <None Remove="resources\systems\wii.png" />
+    <None Remove="resources\systems\wiiu.png" />
+    <None Remove="resources\systems\windows.png" />
+    <None Remove="resources\systems\windows_installers.png" />
+    <None Remove="resources\systems\wswan.png" />
+    <None Remove="resources\systems\wswanc.png" />
+    <None Remove="resources\systems\x1.png" />
+    <None Remove="resources\systems\x68000.png" />
+    <None Remove="resources\systems\xash3d_fwgs.png" />
+    <None Remove="resources\systems\xbox.png" />
+    <None Remove="resources\systems\xbox360.png" />
+    <None Remove="resources\systems\xegs.png" />
+    <None Remove="resources\systems\xrick.png" />
+    <None Remove="resources\systems\zc210.png" />
+    <None Remove="resources\systems\zx81.png" />
+    <None Remove="resources\systems\zxspectrum.png" />
+    <None Remove="resources\thomson.png" />
+    <None Remove="resources\ti99.png" />
+    <None Remove="resources\tic80.png" />
+    <None Remove="resources\triforce.png" />
+    <None Remove="resources\tutor.png" />
+    <None Remove="resources\tyrquake.png" />
+    <None Remove="resources\undo-button.png" />
+    <None Remove="resources\uzebox.png" />
+    <None Remove="resources\vc4000.png" />
+    <None Remove="resources\vectrex.png" />
+    <None Remove="resources\vgmplay.png" />
+    <None Remove="resources\videopacplus.png" />
+    <None Remove="resources\virtualboy.png" />
+    <None Remove="resources\vitaquake2.png" />
+    <None Remove="resources\vpinball.png" />
+    <None Remove="resources\vsmile.png" />
+    <None Remove="resources\wasm4.png" />
+    <None Remove="resources\wii.png" />
+    <None Remove="resources\wiiu.png" />
+    <None Remove="resources\windows.png" />
+    <None Remove="resources\windows_installers.png" />
+    <None Remove="resources\wswan.png" />
+    <None Remove="resources\wswanc.png" />
+    <None Remove="resources\x-10366 %282%29.png" />
+    <None Remove="resources\x1.png" />
+    <None Remove="resources\x68000.png" />
+    <None Remove="resources\xash3d_fwgs.png" />
+    <None Remove="resources\xbox.png" />
+    <None Remove="resources\xbox360.png" />
+    <None Remove="resources\xegs.png" />
+    <None Remove="resources\xrick.png" />
+    <None Remove="resources\zc210.png" />
+    <None Remove="resources\zx81.png" />
+    <None Remove="resources\zxspectrum.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -463,8 +469,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CredentialManagement" Version="1.0.2" />
-    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.1" />
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.2" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.11" />
@@ -508,46 +513,58 @@
     <Resource Include="resources\backgrounds\backgroundtech2.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\backgrounds\gears.png">
+    <Resource Include="resources\backgrounds\gears.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\buttons\glossybutton.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\next.png">
+    <Resource Include="resources\buttons\next.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\pause.png">
+    <Resource Include="resources\buttons\pause.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\play.png">
+    <Resource Include="resources\buttons\play.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\previous.png">
+    <Resource Include="resources\buttons\previous.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\stop.png">
+    <Resource Include="resources\buttons\stop.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\buttons\x-button.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\checkmark.png">
+    <Resource Include="resources\buttons\checkmark.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\close.png">
+    <Resource Include="resources\close.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\dropicon.png">
+    <Resource Include="resources\dropicon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\foldericon.png">
+    <Resource Include="resources\foldericon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\gamelistmanager.png">
+    <Resource Include="resources\gamelistmanager.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\icons\folder.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\icons\gamepad.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\icons\heart.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\icons\invisible.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\icons\magnifying-glass.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\icons\remote.png">
@@ -565,592 +582,601 @@
     <Resource Include="resources\icons\spreadsheet.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\loaderror.png">
+    <Resource Include="resources\icons\visible.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\manual.png">
+    <Resource Include="resources\loaderror.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\missing.png">
+    <Resource Include="resources\manual.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\nomedia.png">
+    <Resource Include="resources\missing.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\redo-button.png">
+    <Resource Include="resources\nomedia.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\remove.png">
+    <Resource Include="resources\buttons\redo-button.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\reset.png">
+    <Resource Include="resources\remove.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\reset1.png">
+    <Resource Include="resources\reset.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\rightarrow.png">
+    <Resource Include="resources\reset1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\scraperlogo.png">
+    <Resource Include="resources\rightarrow.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\3ds.png">
+    <Resource Include="resources\scraperlogo2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\abuse.png">
+    <Resource Include="resources\scraperlogo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\adam.png">
+    <Resource Include="resources\systems\3ds.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\advision.png">
+    <Resource Include="resources\systems\abuse.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\amiga1200.png">
+    <Resource Include="resources\systems\adam.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\amiga500.png">
+    <Resource Include="resources\systems\advision.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\amigacd32.png">
+    <Resource Include="resources\systems\amiga1200.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\amigacdtv.png">
+    <Resource Include="resources\systems\amiga500.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\amstradcpc.png">
+    <Resource Include="resources\systems\amigacd32.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\apfm1000.png">
+    <Resource Include="resources\systems\amigacdtv.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\apple2.png">
+    <Resource Include="resources\systems\amstradcpc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\apple2gs.png">
+    <Resource Include="resources\systems\apfm1000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\arcadia.png">
+    <Resource Include="resources\systems\apple2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\archimedes.png">
+    <Resource Include="resources\systems\apple2gs.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\arduboy.png">
+    <Resource Include="resources\systems\arcadia.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\astrocde.png">
+    <Resource Include="resources\systems\archimedes.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atari2600.png">
+    <Resource Include="resources\systems\arduboy.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atari5200.png">
+    <Resource Include="resources\systems\astrocde.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atari7800.png">
+    <Resource Include="resources\systems\atari2600.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atari800.png">
+    <Resource Include="resources\systems\atari5200.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atarist.png">
+    <Resource Include="resources\systems\atari7800.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atom.png">
+    <Resource Include="resources\systems\atari800.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\atomiswave.png">
+    <Resource Include="resources\systems\atarist.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\bbc.png">
+    <Resource Include="resources\systems\atom.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\c128.png">
+    <Resource Include="resources\systems\atomiswave.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\c20.png">
+    <Resource Include="resources\systems\bbc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\c64.png">
+    <Resource Include="resources\systems\c128.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\camplynx.png">
+    <Resource Include="resources\systems\c20.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cannonball.png">
+    <Resource Include="resources\systems\c64.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cave3rd.png">
+    <Resource Include="resources\systems\camplynx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cavestory.png">
+    <Resource Include="resources\systems\cannonball.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cdi.png">
+    <Resource Include="resources\systems\cave.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cdogs.png">
+    <Resource Include="resources\systems\cave3rd.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cgenius.png">
+    <Resource Include="resources\systems\cavestory.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\channelf.png">
+    <Resource Include="resources\systems\cdi.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\coco.png">
+    <Resource Include="resources\systems\cdogs.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\colecovision.png">
+    <Resource Include="resources\systems\cgenius.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\cplus4.png">
+    <Resource Include="resources\systems\channelf.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\crvision.png">
+    <Resource Include="resources\systems\coco.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\daphne.png">
+    <Resource Include="resources\systems\colecovision.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\devilutionx.png">
+    <Resource Include="resources\systems\cplus4.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\dos.png">
+    <Resource Include="resources\systems\crvision.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\dreamcast.png">
+    <Resource Include="resources\systems\daphne.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\easyrpg.png">
+    <Resource Include="resources\systems\devilutionx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ecwolf.png">
+    <Resource Include="resources\systems\dos.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\eduke32.png">
+    <Resource Include="resources\systems\dreamcast.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\electron.png">
+    <Resource Include="resources\systems\easyrpg.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\fbneo.png">
+    <Resource Include="resources\systems\ecwolf.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\fds.png">
+    <Resource Include="resources\systems\eduke32.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\flash.png">
+    <Resource Include="resources\systems\electron.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\flatpak.png">
+    <Resource Include="resources\systems\fbneo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\fm7.png">
+    <Resource Include="resources\systems\fds.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\fmtowns.png">
+    <Resource Include="resources\systems\flash.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\fpinball.png">
+    <Resource Include="resources\systems\flatpak.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\fury.png">
+    <Resource Include="resources\systems\fm7.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gamate.png">
+    <Resource Include="resources\systems\fmtowns.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gameandwatch.png">
+    <Resource Include="resources\systems\fpinball.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gamecom.png">
+    <Resource Include="resources\systems\fury.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gamecube.png">
+    <Resource Include="resources\systems\gamate.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gamegear.png">
+    <Resource Include="resources\systems\gameandwatch.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gamepock.png">
+    <Resource Include="resources\systems\gamecom.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gb.png">
+    <Resource Include="resources\systems\gamecube.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gb2players.png">
+    <Resource Include="resources\systems\gamegear.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gba.png">
+    <Resource Include="resources\systems\gamepock.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gbc.png">
+    <Resource Include="resources\systems\gb.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gbc2players.png">
+    <Resource Include="resources\systems\gb2players.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gmaster.png">
+    <Resource Include="resources\systems\gba.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gp32.png">
+    <Resource Include="resources\systems\gbc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gx4000.png">
+    <Resource Include="resources\systems\gbc2players.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\gzdoom.png">
+    <Resource Include="resources\systems\gmaster.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\hcl.png">
+    <Resource Include="resources\systems\gp32.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\hurrican.png">
+    <Resource Include="resources\systems\gx4000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ikemen.png">
+    <Resource Include="resources\systems\gzdoom.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\intellivision.png">
+    <Resource Include="resources\systems\hcl.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\jaguar.png">
+    <Resource Include="resources\systems\hurrican.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\laser310.png">
+    <Resource Include="resources\systems\ikemen.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\lcdgames.png">
+    <Resource Include="resources\systems\intellivision.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\lowresnx.png">
+    <Resource Include="resources\systems\jaguar.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\lutro.png">
+    <Resource Include="resources\systems\laser310.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\lynx.png">
+    <Resource Include="resources\systems\lcdgames.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\macintosh.png">
+    <Resource Include="resources\systems\lowresnx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\mame.png">
+    <Resource Include="resources\systems\lutro.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\mastersystem.png">
+    <Resource Include="resources\systems\lynx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\megadrive.png">
+    <Resource Include="resources\systems\macintosh.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\megaduck.png">
+    <Resource Include="resources\systems\mame.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\model2.png">
+    <Resource Include="resources\systems\mastersystem.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\model3.png">
+    <Resource Include="resources\systems\megadrive.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\moonlight.png">
+    <Resource Include="resources\systems\megaduck.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\mrboom.png">
+    <Resource Include="resources\systems\model2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\msu-md.png">
+    <Resource Include="resources\systems\model3.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\msx1.png">
+    <Resource Include="resources\systems\moonlight.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\msx2+.png">
+    <Resource Include="resources\systems\mrboom.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\msx2.png">
+    <Resource Include="resources\systems\msu-md.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\msxturbor.png">
+    <Resource Include="resources\systems\msx1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\mugen.png">
+    <Resource Include="resources\systems\msx2+.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\multivision.png">
+    <Resource Include="resources\systems\msx2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\n64.png">
+    <Resource Include="resources\systems\msxturbor.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\n64dd.png">
+    <Resource Include="resources\systems\mugen.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\naomi.png">
+    <Resource Include="resources\systems\multivision.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\naomi2.png">
+    <Resource Include="resources\systems\n64.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\nds.png">
+    <Resource Include="resources\systems\n64dd.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\neogeo.png">
+    <Resource Include="resources\systems\naomi.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\neogeocd.png">
+    <Resource Include="resources\systems\naomi2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\nes.png">
+    <Resource Include="resources\systems\nds.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ngp.png">
+    <Resource Include="resources\systems\neogeo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ngpc.png">
+    <Resource Include="resources\systems\neogeocd.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\o2em.png">
+    <Resource Include="resources\systems\nes.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\odcommander.png">
+    <Resource Include="resources\systems\ngp.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\openbor.png">
+    <Resource Include="resources\systems\ngpc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pc88.png">
+    <Resource Include="resources\systems\o2em.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pc98.png">
+    <Resource Include="resources\systems\odcommander.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pcengine.png">
+    <Resource Include="resources\systems\openbor.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pcenginecd.png">
+    <Resource Include="resources\systems\pc88.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pcfx.png">
+    <Resource Include="resources\systems\pc98.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pdp1.png">
+    <Resource Include="resources\systems\pcengine.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pet.png">
+    <Resource Include="resources\systems\pcenginecd.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pico.png">
+    <Resource Include="resources\systems\pcfx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pico8.png">
+    <Resource Include="resources\systems\pdp1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\plugnplay.png">
+    <Resource Include="resources\systems\pet.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pokemini.png">
+    <Resource Include="resources\systems\pico.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ports.png">
+    <Resource Include="resources\systems\pico8.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\prboom.png">
+    <Resource Include="resources\systems\plugnplay.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ps2.png">
+    <Resource Include="resources\systems\pokemini.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ps3.png">
+    <Resource Include="resources\systems\ports.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\psp.png">
+    <Resource Include="resources\systems\prboom.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\psvita.png">
+    <Resource Include="resources\systems\ps2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\psx.png">
+    <Resource Include="resources\systems\ps3.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pv1000.png">
+    <Resource Include="resources\systems\psp.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pygame.png">
+    <Resource Include="resources\systems\psvita.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\pyxel.png">
+    <Resource Include="resources\systems\psx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\raze.png">
+    <Resource Include="resources\systems\pv1000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\samcoupe.png">
+    <Resource Include="resources\systems\pygame.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\satellaview.png">
+    <Resource Include="resources\systems\pyxel.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\saturn.png">
+    <Resource Include="resources\systems\raze.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\scummvm.png">
+    <Resource Include="resources\systems\samcoupe.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\scv.png">
+    <Resource Include="resources\systems\satellaview.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\sdlpop.png">
+    <Resource Include="resources\systems\saturn.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\sega32x.png">
+    <Resource Include="resources\systems\scummvm.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\segacd.png">
+    <Resource Include="resources\systems\scv.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\sg1000.png">
+    <Resource Include="resources\systems\sdlpop.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\sgb.png">
+    <Resource Include="resources\systems\sega32x.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\snes-msu1.png">
+    <Resource Include="resources\systems\segacd.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\snes.png">
+    <Resource Include="resources\systems\sg1000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\socrates.png">
+    <Resource Include="resources\systems\sgb.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\solarus.png">
+    <Resource Include="resources\systems\snes-msu1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\sonicretro.png">
+    <Resource Include="resources\systems\snes.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\spectravideo.png">
+    <Resource Include="resources\systems\socrates.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\steam.png">
+    <Resource Include="resources\systems\solarus.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\sufami.png">
+    <Resource Include="resources\systems\sonicretro.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\superbroswar.png">
+    <Resource Include="resources\systems\spectravideo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\supergrafx.png">
+    <Resource Include="resources\systems\steam.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\supervision.png">
+    <Resource Include="resources\systems\sufami.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\supracan.png">
+    <Resource Include="resources\systems\superbroswar.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\thomson.png">
+    <Resource Include="resources\systems\supergrafx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\ti99.png">
+    <Resource Include="resources\systems\supervision.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\tic80.png">
+    <Resource Include="resources\systems\supracan.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\triforce.png">
+    <Resource Include="resources\systems\thomson.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\tutor.png">
+    <Resource Include="resources\systems\ti99.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\tyrquake.png">
+    <Resource Include="resources\systems\tic80.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\uzebox.png">
+    <Resource Include="resources\systems\triforce.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\vc4000.png">
+    <Resource Include="resources\systems\tutor.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\vectrex.png">
+    <Resource Include="resources\systems\tyrquake.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\vgmplay.png">
+    <Resource Include="resources\systems\uzebox.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\videopacplus.png">
+    <Resource Include="resources\systems\vc4000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\virtualboy.png">
+    <Resource Include="resources\systems\vectrex.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\vitaquake2.png">
+    <Resource Include="resources\systems\vgmplay.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\vpinball.png">
+    <Resource Include="resources\systems\videopacplus.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\vsmile.png">
+    <Resource Include="resources\systems\virtualboy.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\wasm4.png">
+    <Resource Include="resources\systems\vitaquake2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\wii.png">
+    <Resource Include="resources\systems\vpinball.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\wiiu.png">
+    <Resource Include="resources\systems\vsmile.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\windows.png">
+    <Resource Include="resources\systems\wasm4.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\windows_installers.png">
+    <Resource Include="resources\systems\wii.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\wswan.png">
+    <Resource Include="resources\systems\wiiu.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\wswanc.png">
+    <Resource Include="resources\systems\windows.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\x1.png">
+    <Resource Include="resources\systems\windows_installers.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\x68000.png">
+    <Resource Include="resources\systems\wswan.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\xash3d_fwgs.png">
+    <Resource Include="resources\systems\wswanc.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\xbox.png">
+    <Resource Include="resources\systems\x1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\xbox360.png">
+    <Resource Include="resources\systems\x68000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\xegs.png">
+    <Resource Include="resources\systems\xash3d_fwgs.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\xrick.png">
+    <Resource Include="resources\systems\xbox.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\zc210.png">
+    <Resource Include="resources\systems\xbox360.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\zx81.png">
+    <Resource Include="resources\systems\xegs.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\systems\zxspectrum.png">
+    <Resource Include="resources\systems\xrick.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\buttons\undo-button.png">
+    <Resource Include="resources\systems\zc210.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\zx81.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\zxspectrum.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\undo-button.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
@@ -1440,7 +1466,13 @@
     <None Update="ini\arcadedb_options.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="ini\arcadesystems.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="ini\emumovies_options.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ini\filetypes.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ini\screenscraper_options.ini">

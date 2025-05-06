@@ -110,7 +110,7 @@
                 new MetaDataDecl { Key = MetaDataKeys.manual, Type = "manual", Name = "Manual", DataType = MetaDataType.Document, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies", "ArcadeDB" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.magazine, Type = "magazine", Name = "Magazine", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
                 new MetaDataDecl { Key = MetaDataKeys.mix, Type = "mix", Name = "Mix", DataType = MetaDataType.Image, Scrapers = new List<string>{ "ScreenScraper", "EmuMovies" }, Viewable = true, editible = false },
-                new MetaDataDecl { Key = MetaDataKeys.family, Type = "family", Name = "Family", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = false },
+                new MetaDataDecl { Key = MetaDataKeys.family, Type = "family", Name = "Family", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = true },
                 new MetaDataDecl { Key = MetaDataKeys.arcadesystemname, Type = "arcadesystemname", Name = "Arcade System Name", DataType = MetaDataType.String, Scrapers = new List<string>{ "ArcadeDB", "ScreenScraper" }, Viewable = true, editible = true },
                 //new MetaDataDecl { Key = MetaDataKeys.genreIds, Type = "genreIds", Name = "Genre Ids", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = true },
                 //new MetaDataDecl { Key = MetaDataKeys.kidgame, Type = "kidgame", Name = "Kid Game", DataType = MetaDataType.Bool, Viewable = false, editible = false },

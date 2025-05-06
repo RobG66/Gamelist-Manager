@@ -163,6 +163,16 @@ namespace GamelistManager.classes
                         UpdateMetadata(rowView, "Description", description, overwriteMetaData);
                         break;
 
+                    case "region":
+                        string region = RegionLanguageHelper.GetRegion(scraperParameters.RomFileNameWithExtension!);
+                        UpdateMetadata(rowView, "Region", region!, overwriteMetaData);
+                        break;
+
+                    case "lang":
+                        string languages = RegionLanguageHelper.GetLanguages(scraperParameters.RomFileNameWithExtension!);
+                        UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
+                        break;
+
                     case "name":
                         string name = GetJsonElementValue(jsonResponse, "title");
                         UpdateMetadata(rowView, "Name", name, overwriteName);
@@ -274,7 +284,7 @@ namespace GamelistManager.classes
             string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
             string fileToDownload = $"{downloadPath}\\{fileName}";
 
-            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL,string.Empty);
+            bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL, string.Empty);
             // true is a successful download
             if (downloadSuccessful)
             {

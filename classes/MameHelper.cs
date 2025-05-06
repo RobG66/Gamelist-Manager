@@ -20,79 +20,82 @@ namespace GamelistManager.classes
             List<ChdInfo> chdInfoList = new List<ChdInfo>();
             string command = "-listxml";
 
-            await Task.Run(() =>
+            try
             {
-                var process = new Process
+                await Task.Run(() =>
                 {
-                    StartInfo = new ProcessStartInfo
+                    var process = new Process
                     {
-                        FileName = mameExePath,
-                        Arguments = command,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-
-                var settings = new XmlReaderSettings
-                {
-                    DtdProcessing = DtdProcessing.Parse
-                };
-                using (var reader = XmlReader.Create(process.StandardOutput, settings))
-                {
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
-                    bool hasDisk = false;
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
-                    while (reader.Read())
-                    {
-                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
+                        StartInfo = new ProcessStartInfo
                         {
-                            string gameName = reader.GetAttribute("name")!;
-                            hasDisk = false;
+                            FileName = mameExePath,
+                            Arguments = command,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
 
-                            while (reader.Read())
+                    process.Start();
+
+                    var settings = new XmlReaderSettings
+                    {
+                        DtdProcessing = DtdProcessing.Parse
+                    };
+                    using (var reader = XmlReader.Create(process.StandardOutput, settings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
                             {
-                                if (reader.NodeType == XmlNodeType.Element && reader.Name == "disk")
+                                string gameName = reader.GetAttribute("name")!;
+
+                                while (reader.Read())
                                 {
-                                    string diskName = reader.GetAttribute("name")!;
-                                    string status = reader.GetAttribute("status")!;
-                                    string optional = reader.GetAttribute("optional")!;
-
-                                    bool required = string.IsNullOrEmpty(optional) || optional.ToLower() != "yes";
-                                    bool present = false;
-
-                                    string fileName = diskName + ".chd";
-                                    string chdPath = Path.Combine(mameRomPath, gameName, fileName);
-
-                                    if (File.Exists(chdPath))
+                                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "disk")
                                     {
-                                        present = true;
+                                        string diskName = reader.GetAttribute("name")!;
+                                        string status = reader.GetAttribute("status")!;
+                                        string optional = reader.GetAttribute("optional")!;
+
+                                        bool required = string.IsNullOrEmpty(optional) || optional.ToLower() != "yes";
+                                        bool present = false;
+
+                                        string fileName = diskName + ".chd";
+                                        string chdPath = Path.Combine(mameRomPath, gameName, fileName);
+
+                                        if (File.Exists(chdPath))
+                                        {
+                                            present = true;
+                                        }
+
+                                        chdInfoList.Add(new ChdInfo
+                                        {
+                                            GameName = gameName,
+                                            DiskName = diskName,
+                                            Required = required,
+                                            Present = present,
+                                            Status = status
+                                        });
+
                                     }
-
-                                    chdInfoList.Add(new ChdInfo
+                                    else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "machine")
                                     {
-                                        GameName = gameName,
-                                        DiskName = diskName,
-                                        Required = required,
-                                        Present = present,
-                                        Status = status
-                                    });
-
-                                    hasDisk = true;
-                                }
-                                else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "machine")
-                                {
-                                    break; // Exit the loop when machine element ends
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                process.WaitForExit();
-            });
+                    process.WaitForExit();
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error as needed
+                Console.Error.WriteLine($"Error occurred in GetMameRequiresCHD: {ex.Message}");
+            }
 
             return chdInfoList;
         }
@@ -100,47 +103,191 @@ namespace GamelistManager.classes
         public static async Task<Dictionary<string, string>> GetMameClones(string mameExePath)
         {
             string command = "-listxml";
-
             Dictionary<string, string> cloneNames = new Dictionary<string, string>();
 
-            await Task.Run(() =>
+            try
             {
-                var process = new Process
+                await Task.Run(() =>
                 {
-                    StartInfo = new ProcessStartInfo
+                    var process = new Process
                     {
-                        FileName = mameExePath,
-                        Arguments = command,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-
-                var settings = new XmlReaderSettings
-                {
-                    DtdProcessing = DtdProcessing.Parse
-                };
-
-                using (var reader = XmlReader.Create(process.StandardOutput, settings))
-                {
-                    while (reader.Read())
-                    {
-                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine" && reader.GetAttribute("cloneof") != null)
+                        StartInfo = new ProcessStartInfo
                         {
-                            string cloneName = reader.GetAttribute("name")!;
-                            string cloneOf = reader.GetAttribute("cloneof")!;
-                            cloneNames.Add(cloneName, cloneOf);
+                            FileName = mameExePath,
+                            Arguments = command,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+
+                    var settings = new XmlReaderSettings
+                    {
+                        DtdProcessing = DtdProcessing.Parse
+                    };
+
+                    using (var reader = XmlReader.Create(process.StandardOutput, settings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine" && reader.GetAttribute("cloneof") != null)
+                            {
+                                string cloneName = reader.GetAttribute("name")!;
+                                string cloneOf = reader.GetAttribute("cloneof")!;
+                                cloneNames.Add(cloneName, cloneOf);
+                            }
                         }
                     }
-                }
 
-                process.WaitForExit();
-            });
+                    process.WaitForExit();
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error as needed
+                Console.Error.WriteLine($"Error occurred in GetMameClones: {ex.Message}");
+            }
 
             return cloneNames;
+        }
+
+        public static async Task<Dictionary<string, string>> GetMameNames(string mameExePath)
+        {
+            string command = "-listxml";
+            Dictionary<string, string> mameNames = new Dictionary<string, string>();
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = mameExePath,
+                            Arguments = command,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+
+                    var settings = new XmlReaderSettings
+                    {
+                        DtdProcessing = DtdProcessing.Parse
+                    };
+
+                    using (var reader = XmlReader.Create(process.StandardOutput, settings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
+                            {
+                                string name = reader.GetAttribute("name")!;
+                                string description = string.Empty;
+
+                                while (reader.Read())
+                                {
+                                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "description")
+                                    {
+                                        description = reader.ReadElementContentAsString();
+                                        break;
+                                    }
+                                    if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "machine")
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                mameNames.Add(name, description);
+                            }
+                        }
+                    }
+
+                    process.WaitForExit();
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error as needed
+                Console.Error.WriteLine($"Error occurred in GetMameNames: {ex.Message}");
+            }
+
+            return mameNames;
+        }
+
+        public static async Task<List<string>> GetMameBootleg(string mameExePath)
+        {
+            string command = "-listxml";
+            List<string> bootlegNames = new List<string>();
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = mameExePath,
+                            Arguments = command,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+
+                    var settings = new XmlReaderSettings
+                    {
+                        DtdProcessing = DtdProcessing.Parse
+                    };
+
+                    using (var reader = XmlReader.Create(process.StandardOutput, settings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
+                            {
+                                string? machineName = reader.GetAttribute("name");
+
+                                while (reader.Read())
+                                {
+                                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "manufacturer")
+                                    {
+                                        string manufacturer = reader.ReadElementContentAsString();
+
+                                        if (manufacturer.Contains("bootleg", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            bootlegNames.Add(machineName!);
+                                        }
+
+                                        break;
+                                    }
+                                    if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "machine")
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    process.WaitForExit();
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error as needed
+                Console.Error.WriteLine($"Error occurred in GetMameBootleg: {ex.Message}");
+            }
+
+            return bootlegNames;
         }
 
         public static async Task<List<string>> GetMameUnplayable(string mameExePath)
@@ -148,47 +295,55 @@ namespace GamelistManager.classes
             string command = "-listxml";
             var gameNames = new List<string>();
 
-            await Task.Run(() =>
+            try
             {
-                var process = new Process
+                await Task.Run(() =>
                 {
-                    StartInfo = new ProcessStartInfo
+                    var process = new Process
                     {
-                        FileName = mameExePath,
-                        Arguments = command,
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-
-                var settings = new XmlReaderSettings
-                {
-                    DtdProcessing = DtdProcessing.Parse
-                };
-
-                using (var reader = XmlReader.Create(process.StandardOutput, settings))
-                {
-                    while (reader.Read())
-                    {
-                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
+                        StartInfo = new ProcessStartInfo
                         {
-                            string gameName = reader.GetAttribute("name")!;
-                            if (!string.IsNullOrEmpty(gameName))
+                            FileName = mameExePath,
+                            Arguments = command,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+
+                    process.Start();
+
+                    var settings = new XmlReaderSettings
+                    {
+                        DtdProcessing = DtdProcessing.Parse
+                    };
+
+                    using (var reader = XmlReader.Create(process.StandardOutput, settings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element && reader.Name == "machine")
                             {
-                                if (ShouldIncludeMachine(reader))
+                                string gameName = reader.GetAttribute("name")!;
+                                if (!string.IsNullOrEmpty(gameName))
                                 {
-                                    gameNames.Add(gameName);
+                                    if (ShouldIncludeMachine(reader))
+                                    {
+                                        gameNames.Add(gameName);
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                process.WaitForExit();
-            });
+                    process.WaitForExit();
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the error as needed
+                Console.Error.WriteLine($"Error occurred in GetMameUnplayable: {ex.Message}");
+            }
 
             return gameNames;
         }
@@ -202,31 +357,30 @@ namespace GamelistManager.classes
             bool hasPreliminaryDriver = false;
             bool hasNodumpDisk = false;
 
-            // Check if any disk has a status of "nodump"
-            while (reader.Read())
+            try
             {
-                if (reader.NodeType == XmlNodeType.Element && reader.Name == "disk" && reader.GetAttribute("status") == "nodump")
+                while (reader.Read())
                 {
-                    hasNodumpDisk = true;
-                }
-                else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "machine")
-                {
-                    break;
-                }
-                else if (reader.NodeType == XmlNodeType.Element && reader.Name == "driver" && reader.GetAttribute("status") == "preliminary")
-                {
-                    hasPreliminaryDriver = true;
+                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "disk" && reader.GetAttribute("status") == "nodump")
+                    {
+                        hasNodumpDisk = true;
+                    }
+                    else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "machine")
+                    {
+                        break;
+                    }
+                    else if (reader.NodeType == XmlNodeType.Element && reader.Name == "driver" && reader.GetAttribute("status") == "preliminary")
+                    {
+                        hasPreliminaryDriver = true;
+                    }
                 }
             }
-
-            // Determine if the machine should be included based on criteria
-            if (isBios || isDevice || isMechanical || isRunnable || hasPreliminaryDriver || hasNodumpDisk)
+            catch (Exception ex)
             {
-                return true;
+                Console.Error.WriteLine($"Error checking machine attributes: {ex.Message}");
             }
 
-            return false;
+            return isBios || isDevice || isMechanical || isRunnable || hasPreliminaryDriver || hasNodumpDisk;
         }
     }
-
 }

@@ -1,17 +1,11 @@
 ﻿using System.IO;
 
-public class IniFileReader
+public static class IniFileReader
 {
-    private readonly Dictionary<string, Dictionary<string, string>> sections;
-
-    public IniFileReader(string filePath)
+    public static Dictionary<string, Dictionary<string, string>> ReadIniFile(string filePath)
     {
-        sections = new Dictionary<string, Dictionary<string, string>>();
-        ReadIniFile(filePath);
-    }
+        var sections = new Dictionary<string, Dictionary<string, string>>();
 
-    private void ReadIniFile(string filePath)
-    {
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"INI file not found: {filePath}");
@@ -26,7 +20,7 @@ public class IniFileReader
 
             if (string.IsNullOrWhiteSpace(trimmedLine) || trimmedLine.StartsWith(";"))
             {
-                continue; // Skip empty lines and comments
+                continue;
             }
 
             if (trimmedLine.StartsWith("[") && trimmedLine.EndsWith("]"))
@@ -39,35 +33,25 @@ public class IniFileReader
                 int indexOfEquals = trimmedLine.IndexOf('=');
                 if (indexOfEquals != -1)
                 {
-                    // If there is an = then key and value are set
                     string key = trimmedLine.Substring(0, indexOfEquals).Trim();
                     string value = trimmedLine.Substring(indexOfEquals + 1).Trim();
                     sections[currentSection][key] = value;
                 }
                 else
                 {
-                    // If there is no = then key and value are set the same
-                    // For added flexibility of adding just straight values
                     sections[currentSection][trimmedLine] = trimmedLine;
                 }
             }
         }
-    }
 
-    public Dictionary<string, string> GetSection(string sectionName)
-    {
-        if (sections.ContainsKey(sectionName))
-        {
-            return sections[sectionName];
-        }
-        else
-        {
-            return null!;
-        }
-    }
-
-    public Dictionary<string, Dictionary<string, string>> GetAllSections()
-    {
         return sections;
+    }
+
+    public static Dictionary<string, string>? GetSection(string filePath, string sectionName)
+    {
+
+
+        var sections = ReadIniFile(filePath);
+        return sections.TryGetValue(sectionName, out var section) ? section : null;
     }
 }

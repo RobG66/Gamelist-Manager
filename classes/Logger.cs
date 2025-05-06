@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -60,26 +58,22 @@ namespace GamelistManager.classes
             });
         }
 
-        // Clear all logs asynchronously
-        public async Task ClearLogAsync()
+        // Clear log
+        public void ClearLog()
         {
             EnsureInitialized();
 
-            // Use Task.Run to offload the work to another thread
-            await Task.Run(() =>
+            if (_logListBox.Dispatcher.CheckAccess())
             {
-                if (_logListBox.Dispatcher.CheckAccess())
+                _logMessages.Clear();
+            }
+            else
+            {
+                _logListBox.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     _logMessages.Clear();
-                }
-                else
-                {
-                    _logListBox.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        _logMessages.Clear();
-                    }));
-                }
-            });
+                }));
+            }
         }
 
         // Private method to append a message to the log

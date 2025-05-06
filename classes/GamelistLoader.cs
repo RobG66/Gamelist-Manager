@@ -134,9 +134,8 @@ namespace GamelistManager.classes
             // Show a warning if duplicates were removed
             if (duplicateRomPaths.Count > 0)
             {
-                StringBuilder warningMessage = new StringBuilder("The following duplicates were removed:\n");
+                StringBuilder warningMessage = new StringBuilder("The following duplicates were found and ignored:\n");
                 warningMessage.Append(string.Join(", ", duplicateRomPaths));
-
                 MessageBox.Show(warningMessage.ToString(), "Duplicate Detected", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
