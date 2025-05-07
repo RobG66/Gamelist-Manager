@@ -6,6 +6,11 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+May 6th, 2025
+
+ Version 7.9 is now released (it was a lot of work!).  There are a few minor things I just noticed that will be quick fixes, so expect 7.91 in a day or two.   
+ 
+----
 May 2nd, 2025
 
 I was looking at language and regional code in the ES source today.  It's a bit convoluted and involves parsing filenames to extrapolate language and region information from the tags enclosed in brackets within the filename.  I am going to port over some (most) of this logic into a helper class for 7.9.  The goal is to always try to replicate how ES does things to retain maximum compatibility.  I am also incorporating a new INI file for valid file extensions of the various systems.  Once these 2 things are done, I am releasing 7.9...  Next week maybe! 
