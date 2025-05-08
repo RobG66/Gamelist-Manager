@@ -6,7 +6,7 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
-May7th, 2025
+May 7th, 2025
 
  Version 7.91 released which has 2 minor fixes.  I was tempted to dive into refactoring code for custom folder names, but thought it's a rabbit hole I don't want to go down right now.  I think the majority of users will just be using the default paths anyhow.  More features for managing media on a per-rom basis, like drag and drop is still something I want to do, maybe I will focus on that next.  Unless something else distracts me - like it always does :)
 
