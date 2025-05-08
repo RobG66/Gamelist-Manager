@@ -1,5 +1,6 @@
-﻿using GamelistManager.classes;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+
+namespace GamelistManager.classes;
 
 public class RegionLanguageHelper
 {
@@ -63,45 +64,59 @@ public class RegionLanguageHelper
 
     public static string GetRegion(string fileName)
     {
+        bool returnFirstOnly = true; // Should there only be 1???
+
         string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
         string lowerFileName = fileName.ToLowerInvariant();
 
+        var matchedRegions = new HashSet<string>();
+
         if (JapanDefaults.Contains(currentSystem))
         {
-            return "jp";
+            matchedRegions.Add("jp");
         }
-
-        if (ArcadeSystems.Contains(currentSystem))
+        else if (ArcadeSystems.Contains(currentSystem))
         {
-            return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
+            matchedRegions.Add(lowerFileName.EndsWith("j.zip") ? "jp" : "us");
         }
-
-        if (currentSystem == "thomson")
+        else if (currentSystem == "thomson")
         {
-            return "eu";
+            matchedRegions.Add("eu");
         }
-
-        // Fallback: parse file name
-        var matches = Regex.Matches(fileName, @"\((.*?)\)");
-        foreach (Match match in matches)
+        else
         {
-            string content = match.Groups[1].Value;
-            var parts = content.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var part in parts)
+            // Fallback: parse file name
+            var matches = Regex.Matches(fileName, @"\((.*?)\)");
+            foreach (Match match in matches)
             {
-                string trimmedPart = part.ToLowerInvariant().Trim();
-                if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.region))
+                string content = match.Groups[1].Value;
+                var parts = content.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var part in parts)
                 {
-                    return langData.region;
+                    string trimmedPart = part.ToLowerInvariant().Trim();
+                    if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.region))
+                    {
+                        matchedRegions.Add(langData.region);
+                        if (returnFirstOnly)
+                        {
+                            return langData.region;
+                        }
+                    }
                 }
             }
+        }
+
+        if (matchedRegions.Count > 0)
+        {
+            return returnFirstOnly ? matchedRegions.First() : string.Join(",", matchedRegions);
         }
 
         return "us";
     }
 
-    public static string GetLanguages(string fileName)
+
+    public static string GetLanguage(string fileName)
     {
         string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
         string lowerFileName = fileName.ToLowerInvariant();
@@ -156,7 +171,7 @@ public class RegionLanguageHelper
         return new RegionLanguageInfo
         {
             Region = GetRegion(fileName),
-            Languages = GetLanguages(fileName)
+            Languages = GetLanguage(fileName)
         };
     }
 }

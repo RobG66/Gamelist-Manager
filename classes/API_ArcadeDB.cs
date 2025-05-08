@@ -169,7 +169,7 @@ namespace GamelistManager.classes
                         break;
 
                     case "lang":
-                        string languages = RegionLanguageHelper.GetLanguages(scraperParameters.RomFileNameWithExtension!);
+                        string languages = RegionLanguageHelper.GetLanguage(scraperParameters.RomFileNameWithExtension!);
                         UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
                         break;
 

@@ -1,9 +1,9 @@
-﻿using GamelistManager.classes;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using YourNamespace;
+
+namespace GamelistManager.classes;
 
 public static class ContextMenuHelper
 {
@@ -11,7 +11,7 @@ public static class ContextMenuHelper
     public static ContextMenu CreateContextMenu()
     {
         ContextMenu contextMenu = new ContextMenu();
-       
+      
         // Add the Open menu item
         MenuItem openItem = new MenuItem { Header = "Open" };
         openItem.Click += MenuItem_Click;
@@ -25,17 +25,6 @@ public static class ContextMenuHelper
         MenuItem openLocationItem = new MenuItem { Header = "Open File Location" };
         openLocationItem.Click += MenuItem_Click;
         contextMenu.Items.Add(openLocationItem);
-
-        contextMenu.Items.Add(new Separator());
-
-        /*
-        // Add the Properties menu item
-        MenuItem removeItem = new MenuItem { Header = "Remove" };
-        removeItem.Click += MenuItem_Click;
-        contextMenu.Items.Add(removeItem);
-
-        contextMenu.Items.Add(new Separator());
-        */
 
         // Add the Properties menu item
         MenuItem propertiesItem = new MenuItem { Header = "Properties" };
@@ -59,12 +48,6 @@ public static class ContextMenuHelper
         Image parentImage = contextMenu?.PlacementTarget as Image;
         string filePath = parentImage?.Tag as string;
 
-        if (parentImage == null || menuItem == null || contextMenu == null || parentImage.Source == null)
-        {
-            MessageBox.Show("Invalid menu click!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
-
         if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
         {
             switch (menuItem.Header.ToString())
@@ -78,9 +61,6 @@ public static class ContextMenuHelper
                 case "Properties":
                     ShowFileProperties.Show(filePath);
                     break;
-                case "Remove":
-                    RemoveItem(parentImage);
-                        break;
 
             }
         }
@@ -90,24 +70,7 @@ public static class ContextMenuHelper
         }
     }
 
-    private static void RemoveItem(Image image)
-    {
 
-        var result = MessageBox.Show(
-            "Are you sure you want to remove the item?",
-            "Confirm Removal",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning
-        );
-
-        if (result != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-
-       
-    }
 
 
     private static void PopulateOpenWithSubmenu(MenuItem openWithMenu, ContextMenu contextMenu)

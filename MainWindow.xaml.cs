@@ -1332,6 +1332,7 @@ namespace GamelistManager
 
         private void DataGridSelectionChangedTimer_Tick(object? sender, EventArgs e)
         {
+
             _dataGridSelectionChangedTimer.Stop();
 
             if (_pendingSelectedRow == null)
@@ -2337,6 +2338,7 @@ namespace GamelistManager
                 .FirstOrDefault();
 
                 _mediaPage.ShowMedia(selectedRow!);
+
             }
             else
             {
@@ -2570,7 +2572,9 @@ namespace GamelistManager
             int missingCount = 0;
 
             // Create a HashSet for fast lookups
-            var filesSet = new HashSet<string>(Directory.GetFiles(_parentFolderPath!));
+            var filesSet = new HashSet<string>(Directory.GetFiles(_parentFolderPath!, "*", SearchOption.AllDirectories).Select(f =>
+                Path.GetRelativePath(_parentFolderPath!, f).Replace("\\", "/"))); // Use relative paths with '/' separator
+
             var missingItems = new List<DataRowView>(); // To store rows with missing files
 
             // Temporarily disable DataGrid updates
@@ -2584,9 +2588,9 @@ namespace GamelistManager
                     if (row["Rom Path"] is string romPath)
                     {
                         string trimmedRomPath = romPath.StartsWith("./") ? romPath.Substring(2) : romPath;
-                        string filePath = Path.Combine(_parentFolderPath!, trimmedRomPath);
+                        string relativeRomPath = trimmedRomPath.Replace("\\", "/"); // Ensure using '/' separator
 
-                        if (!filesSet.Contains(filePath))
+                        if (!filesSet.Contains(relativeRomPath))
                         {
                             missingItems.Add(row); // Add to missing items
                             missingCount++;
@@ -2598,7 +2602,6 @@ namespace GamelistManager
             {
                 Mouse.OverrideCursor = null;
                 MainDataGrid.IsEnabled = true;
-
             }
 
             // If no missing items are found, show a message and exit
@@ -2643,8 +2646,8 @@ namespace GamelistManager
                     });
                 }
             }
-
         }
+
 
 
         private void menuItem_MameIdentifyUnplayable_Click(object sender, RoutedEventArgs e)

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using System.IO;
 
+namespace GamelistManager.classes;
+
 public class AssociatedApp
 {
     public string Name { get; set; }

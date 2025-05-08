@@ -261,7 +261,7 @@ namespace GamelistManager.classes
 
                     case "lang":
                         //string? language = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText; 
-                        string languages = RegionLanguageHelper.GetLanguages(scraperParameters.RomFileNameWithExtension!);
+                        string languages = RegionLanguageHelper.GetLanguage(scraperParameters.RomFileNameWithExtension!);
                         UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
                         break;
 
