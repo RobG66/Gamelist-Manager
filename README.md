@@ -8,7 +8,7 @@ https://buymeacoffee.com/silverballb
 ----
 May 12th, 2025
 
- I updated the button resources for a subtle, stylized look.  I've also added a setting for saving the mame.exe path so you can set it and forget it.  There's now an export of mame names for improving region and language scraping of arcade games that use mame rom names.  I'm bunding that as a new ini file, but it can also easily be created from the Tools menu.  I want to add additional settings for persistent column selection and filtering the media view if you want.  This is just some of the things I am working on for the next version.  If you have an idea, let me know!         
+ I updated the button resources for a subtle, stylized look.  I've also added a setting for saving the mame.exe path so you can set it and forget it.  There's now an export of mame names for improving region and language scraping of arcade games that use mame rom names.  I'm bundling that as a new ini file, but it can also easily be created from the Tools menu.  I want to add additional settings for persistent column selection and filtering the media view if you want.  This is just some of the things I am working on for the next version.  If you have an idea, let me know!         
 
  ![image](https://github.com/user-attachments/assets/061b8bec-9ddb-456a-b031-6f23c334b83b)
 
