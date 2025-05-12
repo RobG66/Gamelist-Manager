@@ -6,6 +6,16 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+May 12th, 2025
+
+ I updated the button resources for a subtle, stylized look.  I've also added a setting for saving the mame.exe path so you can set it and forget it.  There's now an export of mame names for improving region and language scraping of arcade games that use mame rom names.  I'm bunding that as a new ini file, but it can also easily be created from the Tools menu.  I want to add additional settings for persistent column selection and filtering the media view if you want.  This is just some of the things I am working on for the next version.  If you have an idea, let me know!         
+
+ ![image](https://github.com/user-attachments/assets/061b8bec-9ddb-456a-b031-6f23c334b83b)
+
+![image](https://github.com/user-attachments/assets/0447ad60-3a2a-47a7-a20c-b76e30929069)
+
+
+----
 May 7th, 2025
 
  Version 7.91 released which has 2 minor fixes.  I was tempted to dive into refactoring code for custom folder names, but thought it's a rabbit hole I don't want to go down right now.  I think the majority of users will just be using the default paths anyhow.  More features for managing media on a per-rom basis, like drag and drop is still something I want to do, maybe I will focus on that next.  Unless something else distracts me - like it always does :)
