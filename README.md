@@ -6,6 +6,12 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+May 19th, 2025
+
+ I have been hit hard with anxiety the past 3 days.  Living with that for 35+ years has not been easy, but I've had it under control for quite a long time now.. That is until a few days ago and then it was like a freight train hit me.  I think working on this program helps me though, it's a distraction for my mind and I'm still having fun working on it.  Version 8 will be the next release, probably in a few days.   
+
+
+----
 May 12th, 2025
 
  I updated the button resources for a subtle, stylized look.  I've also added a setting for saving the mame.exe path so you can set it and forget it.  There's now an export of mame names for improving region and language scraping of arcade games that use mame rom names.  I'm bundling that as a new ini file, but it can also easily be created from the Tools menu.  I want to add additional settings for persistent column selection and filtering the media view if you want.  This is just some of the things I am working on for the next version.  If you have an idea, let me know!         
