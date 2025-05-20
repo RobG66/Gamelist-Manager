@@ -197,8 +197,8 @@ namespace GamelistManager
                         string filteredRomPath = Path.GetFileNameWithoutExtension(romPath)?.Replace("./", "") ?? string.Empty;
 
                         // Perform fuzzy matching
-                        string? matchedFile = TextSearch.FindTextMatch(filteredRomPath, mediaFileKeys)
-                            ?? TextSearch.FindTextMatch(romName, mediaFileKeys);
+                        string? matchedFile = TextSearchHelper.FindTextMatch(filteredRomPath, mediaFileKeys)
+                            ?? TextSearchHelper.FindTextMatch(romName, mediaFileKeys);
 
                         if (!string.IsNullOrEmpty(matchedFile))
                         {
@@ -1240,7 +1240,7 @@ namespace GamelistManager
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            TextSearch.ClearCache();
+            TextSearchHelper.ClearCache();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

@@ -3,57 +3,40 @@ using LibVLCSharp.WPF;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Threading;
+
 
 namespace GamelistManager.controls
 {
     public partial class MediaPlayerControl : UserControl
     {
-        private LibVLC? _libVLC;
-        private LibVLCSharp.Shared.MediaPlayer? _mediaPlayer;
+        private LibVLC _libVLC;
+        private MediaPlayer _mediaPlayer;
         private readonly Random _random;
         private int _currentIndex;
         private int _volume;
         private bool _isPaused;
         private bool _randomPlayback;
-        private string[]? _mediaFiles;
+        private string[] _mediaFiles;
         private bool _visualizationsEnabled;
-        private DispatcherTimer? _resizeTimer;
-        private EventHandler? _timerTickHandler;
-
+   
         public MediaPlayerControl()
         {
             InitializeComponent();
+            _libVLC = new LibVLC();
+            _mediaPlayer = new MediaPlayer(_libVLC);
+            VideoView.MediaPlayer = _mediaPlayer;
             _currentIndex = 0;
             _randomPlayback = false;
             _random = new Random();
+            _mediaFiles = Array.Empty<string>();
             _visualizationsEnabled = false;
             comboBox_CurrentTrack.Visibility = Visibility.Collapsed;
             button_Playlist.Visibility = Visibility.Collapsed;
             checkBox_Randomize.Visibility = Visibility.Collapsed;
             button_Next.IsEnabled = false;
             button_Previous.IsEnabled = false;
-
-            ApplyVideoViewBackgroundFix();
-
-        }
-
-        private void ApplyVideoViewBackgroundFix()
-        {
-            _resizeTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(200)
-            };
-
-            _timerTickHandler = (s, e) =>
-            {
-                _resizeTimer.Stop(); // Stop the timer
-                BackgroundFix();
-            };
-
-            _resizeTimer.Tick += _timerTickHandler;
-
+            _mediaPlayer.EndReached += MediaPlayer_EndReached!;
         }
 
         public void PlayMedia(string fileName, bool autoPlay)
@@ -117,10 +100,7 @@ namespace GamelistManager.controls
         }
 
         private void Play(string fileName)
-        {
-
-            BackgroundFix();
-
+        {            
             if (_mediaPlayer != null)
             {
                 if (_mediaPlayer.IsPlaying || _isPaused == true)
@@ -163,12 +143,14 @@ namespace GamelistManager.controls
 
             sliderVolume.Value = _volume;
 
-            _mediaPlayer.Play(media);
-
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _mediaPlayer.Play(media);
+            }), DispatcherPriority.Loaded);
         }
 
 
-        private void MediaPlayer_EndReached(object sender, EventArgs e)
+        private void MediaPlayer_EndReached(object? sender, EventArgs e)
         {
             Application.Current.Dispatcher.BeginInvoke(() =>
             {
@@ -200,7 +182,7 @@ namespace GamelistManager.controls
             }
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
             Button? button = sender as Button;
             if (button == null)
@@ -330,35 +312,51 @@ namespace GamelistManager.controls
 
         private void MediaPlayerControlDispose()
         {
-            _resizeTimer.Stop();
-            _resizeTimer.Tick -= _timerTickHandler;
-            _resizeTimer = null;
-            this.SizeChanged -= VideoView_SizeChanged;
             this.Unloaded -= UserControl_Unloaded;
             comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
 
-            _timerTickHandler = null;
             _mediaFiles = null;
             comboBox_CurrentTrack.ItemsSource = null;
 
             if (_mediaPlayer != null)
             {
-                if (_mediaPlayer.IsPlaying || _isPaused)
+                try
                 {
-                    _mediaPlayer.Stop();
-                }
+                    if (_mediaPlayer.IsPlaying || _isPaused)
+                    {
+                        _mediaPlayer.Stop();
+                    }
 
-                _mediaPlayer.EndReached -= MediaPlayer_EndReached;
-                _mediaPlayer.Dispose();
-                _mediaPlayer = null;
+                    _mediaPlayer.EndReached -= MediaPlayer_EndReached;
+                    _mediaPlayer.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle cleanup errors if needed
+                }
+                finally
+                {
+                    _mediaPlayer = null;
+                }
             }
 
             if (_libVLC != null)
             {
-                _libVLC.Dispose();
-                _libVLC = null;
+                try
+                {
+                    _libVLC.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle cleanup errors
+                }
+                finally
+                {
+                    _libVLC = null;
+                }
             }
         }
+
 
         public void InitializeVLC(bool enableVisualizations)
         {
@@ -384,7 +382,6 @@ namespace GamelistManager.controls
                 _libVLC = new LibVLC(options);
                 _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
                 VideoView.MediaPlayer = _mediaPlayer;
-                VideoView.Background = new SolidColorBrush(Colors.Black);
                 sliderVolume.Value = _volume;
                 _mediaPlayer.EndReached += MediaPlayer_EndReached!;
             }
@@ -435,20 +432,6 @@ namespace GamelistManager.controls
                 slider.Value = newValue;
             }
         }
-
-
-        private void BackgroundFix()
-        {
-            VideoView.Visibility = Visibility.Collapsed;
-            VideoView.Visibility = Visibility.Visible;
-        }
-
-        private void VideoView_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            _resizeTimer.Stop(); // Restart the timer
-            _resizeTimer.Start();
-        }
-
     }
 }
 

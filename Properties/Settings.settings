@@ -76,5 +76,21 @@
     <Setting Name="SearchDepth" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">3</Value>
     </Setting>
+    <Setting Name="MamePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RememberColumns" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="DefaultColumns" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}
+</Value>
+    </Setting>
+    <Setting Name="RememberAutoSize" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="AutoSizeColumns" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -1,37 +1,38 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace GamelistManager.classes;
-
-public class RegionLanguageHelper
+namespace GamelistManager.classes
 {
-    public HashSet<string> Languages { get; set; } = new();
 
-    private static readonly string[] JapanDefaults =
+    public class RegionLanguageHelper
     {
+        public HashSet<string> Languages { get; set; } = new();
+
+        private static readonly string[] JapanDefaults =
+        {
         "pc88", "pc98", "pcenginecd", "pcfx", "satellaview",
         "sg1000", "sufami", "wswan", "wswanc", "x68000"
     };
 
-    private static readonly string[] ArcadeSystems =
-    {
+        private static readonly string[] ArcadeSystems =
+        {
         "mame", "naomi", "naomi2", "atomiswave","chihiro","daphne","namco2x6",
         "neogeo", "model2", "model3", "hikaru", "fbneo","cave","cave3rd","neogeo64","teknoparrot"
     };
 
-    public class LangData
-    {
-        public List<string> value { get; set; } = new();
-        public string lang { get; set; } = string.Empty;
-        public string region { get; set; } = string.Empty;
-    }
+        public class LangData
+        {
+            public List<string> value { get; set; } = new();
+            public string lang { get; set; } = string.Empty;
+            public string region { get; set; } = string.Empty;
+        }
 
-    public class RegionLanguageInfo
-    {
-        public string Region { get; set; } = string.Empty;
-        public string Languages { get; set; } = string.Empty;
-    }
+        public class RegionLanguageInfo
+        {
+            public string Region { get; set; } = string.Empty;
+            public string Languages { get; set; } = string.Empty;
+        }
 
-    private static readonly List<LangData> langDatas = new()
+        private static readonly List<LangData> langDatas = new()
     {
         new LangData { value = new() { "usa", "us", "u" }, lang = "en", region = "us" },
         new LangData { value = new() { "europe", "eu", "e", "ue", "euro" }, lang = "", region = "eu" },
@@ -57,36 +58,92 @@ public class RegionLanguageHelper
         new LangData { value = new() { "in", "ìndia" }, lang = "in", region = "in" }
     };
 
-    // Optional: for quicker lookups
-    private static readonly Dictionary<string, LangData> LangLookup = langDatas
-        .SelectMany(ld => ld.value.Select(v => (v, ld)))
-        .ToDictionary(x => x.v, x => x.ld);
+        // Optional: for quicker lookups
+        private static readonly Dictionary<string, LangData> LangLookup = langDatas
+            .SelectMany(ld => ld.value.Select(v => (v, ld)))
+            .ToDictionary(x => x.v, x => x.ld);
 
-    public static string GetRegion(string fileName)
-    {
-        bool returnFirstOnly = true; // Should there only be 1???
-
-        string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
-        string lowerFileName = fileName.ToLowerInvariant();
-
-        var matchedRegions = new HashSet<string>();
-
-        if (JapanDefaults.Contains(currentSystem))
+        public static string GetRegion(string fileName)
         {
-            matchedRegions.Add("jp");
+            bool returnFirstOnly = true; // Should there only be 1???
+
+            string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
+            string lowerFileName = fileName.ToLowerInvariant();
+
+            var matchedRegions = new HashSet<string>();
+
+            if (JapanDefaults.Contains(currentSystem))
+            {
+                matchedRegions.Add("jp");
+            }
+            else if (currentSystem == "thomson")
+            {
+                matchedRegions.Add("eu");
+            }
+            else
+            {
+                // Fallback: parse file name
+                var matches = Regex.Matches(fileName, @"\((.*?)\)");
+                foreach (Match match in matches)
+                {
+                    string content = match.Groups[1].Value;
+                    var parts = content.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var part in parts)
+                    {
+                        string trimmedPart = part.ToLowerInvariant().Trim();
+                        if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.region))
+                        {
+                            matchedRegions.Add(langData.region);
+                            if (returnFirstOnly)
+                            {
+                                return langData.region;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Personally I find the matching to be very kludgy, but what can you do?
+            if (ArcadeSystems.Contains(currentSystem) && matchedRegions.Count == 0)
+            {
+                matchedRegions.Add(lowerFileName.EndsWith("j.zip") ? "jp" : "us");
+            }
+
+            if (matchedRegions.Count > 0)
+            {
+                return returnFirstOnly ? matchedRegions.First() : string.Join(",", matchedRegions);
+            }
+
+            return "us";
         }
-        else if (ArcadeSystems.Contains(currentSystem))
+
+
+        public static string GetLanguage(string fileName)
         {
-            matchedRegions.Add(lowerFileName.EndsWith("j.zip") ? "jp" : "us");
-        }
-        else if (currentSystem == "thomson")
-        {
-            matchedRegions.Add("eu");
-        }
-        else
-        {
+            string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
+            string lowerFileName = fileName.ToLowerInvariant();
+
+            // Special case: if the file name contains (T), it's a translation (English)
+            if (Regex.IsMatch(fileName, @"\(T(-Eng)?", RegexOptions.IgnoreCase))
+            {
+                return "en";
+            }
+
+            if (JapanDefaults.Contains(currentSystem))
+            {
+                return "jp";
+            }
+
+            if (currentSystem == "thomson")
+            {
+                return "fr";
+            }
+
             // Fallback: parse file name
+            var matchedLanguages = new HashSet<string>();
             var matches = Regex.Matches(fileName, @"\((.*?)\)");
+
             foreach (Match match in matches)
             {
                 string content = match.Groups[1].Value;
@@ -95,83 +152,30 @@ public class RegionLanguageHelper
                 foreach (var part in parts)
                 {
                     string trimmedPart = part.ToLowerInvariant().Trim();
-                    if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.region))
+                    if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.lang))
                     {
-                        matchedRegions.Add(langData.region);
-                        if (returnFirstOnly)
-                        {
-                            return langData.region;
-                        }
+                        matchedLanguages.Add(langData.lang);
                     }
                 }
             }
-        }
 
-        if (matchedRegions.Count > 0)
-        {
-            return returnFirstOnly ? matchedRegions.First() : string.Join(",", matchedRegions);
-        }
-
-        return "us";
-    }
-
-
-    public static string GetLanguage(string fileName)
-    {
-        string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
-        string lowerFileName = fileName.ToLowerInvariant();
-
-        // Special case: if the file name contains (T), it's a translation (English)
-        if (Regex.IsMatch(fileName, @"\((T)\)", RegexOptions.IgnoreCase))
-        {
-            return "en";
-        }
-
-        if (JapanDefaults.Contains(currentSystem))
-        {
-            return "jp";
-        }
-
-        if (currentSystem == "thomson")
-        {
-            return "fr";
-        }
-
-        if (ArcadeSystems.Contains(currentSystem))
-        {
-            return lowerFileName.EndsWith("j.zip") ? "jp" : "en";
-        }
-
-        // Fallback: parse file name
-        var matchedLanguages = new HashSet<string>();
-        var matches = Regex.Matches(fileName, @"\((.*?)\)");
-
-        foreach (Match match in matches)
-        {
-            string content = match.Groups[1].Value;
-            var parts = content.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var part in parts)
+            if (ArcadeSystems.Contains(currentSystem) && matchedLanguages.Count == 0)
             {
-                string trimmedPart = part.ToLowerInvariant().Trim();
-                if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.lang))
-                {
-                    matchedLanguages.Add(langData.lang);
-                }
+                return lowerFileName.EndsWith("j.zip") ? "jp" : "en";
             }
+
+            return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";
         }
 
-        return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";
-    }
 
 
-
-    public static RegionLanguageInfo ExtractRegionAndLanguages(string fileName)
-    {
-        return new RegionLanguageInfo
+        public static RegionLanguageInfo ExtractRegionAndLanguages(string fileName)
         {
-            Region = GetRegion(fileName),
-            Languages = GetLanguage(fileName)
-        };
+            return new RegionLanguageInfo
+            {
+                Region = GetRegion(fileName),
+                Languages = GetLanguage(fileName)
+            };
+        }
     }
 }

@@ -314,5 +314,68 @@ namespace GamelistManager.Properties {
                 this["SearchDepth"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string MamePath {
+            get {
+                return ((string)(this["MamePath"]));
+            }
+            set {
+                this["MamePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RememberColumns {
+            get {
+                return ((bool)(this["RememberColumns"]));
+            }
+            set {
+                this["RememberColumns"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
+            "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
+            ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
+            "\": true}\n")]
+        public string DefaultColumns {
+            get {
+                return ((string)(this["DefaultColumns"]));
+            }
+            set {
+                this["DefaultColumns"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool RememberAutoSize {
+            get {
+                return ((bool)(this["RememberAutoSize"]));
+            }
+            set {
+                this["RememberAutoSize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AutoSizeColumns {
+            get {
+                return ((bool)(this["AutoSizeColumns"]));
+            }
+            set {
+                this["AutoSizeColumns"] = value;
+            }
+        }
     }
 }

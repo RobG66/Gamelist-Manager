@@ -84,7 +84,7 @@ namespace GamelistManager.classes
 
             foreach (string item in searchText)
             {
-                result = TextSearch.FindTextMatch(item, mediaList);
+                result = TextSearchHelper.FindTextMatch(item, mediaList);
                 if (!string.IsNullOrEmpty(result))
                 {
                     break;

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using LibVLCSharp.Shared;
+using System.Windows;
 
 namespace GamelistManager
 {

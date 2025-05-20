@@ -88,45 +88,54 @@ namespace GamelistManager.classes
         public async Task<bool> ScrapeArcadeDBAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
 
-            string romPath = rowView["Rom Path"].ToString()!;
-            string romName = Path.GetFileNameWithoutExtension(romPath);
 
-            string cacheFolder = scraperParameters.CacheFolder!;
-            bool scrapeByCache = scraperParameters.ScrapeByCache;
-            bool skipNonCached = scraperParameters.SkipNonCached;
-            string jsonResponse = string.Empty;
-
-            // Scrape by cache if selected
-            if (scrapeByCache)
-            {
-                jsonResponse = ReadJsonFromCache(romName, cacheFolder);
-                if (string.IsNullOrEmpty(jsonResponse) && skipNonCached)
-                {
-                    return false;
-                }
-            }
-
-            // Scrape from website or if there was no cache file
-            if (string.IsNullOrEmpty(jsonResponse))
-            {
-                string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
-                jsonResponse = await ScrapeGame(url);
-
-                if (string.IsNullOrEmpty(jsonResponse))
-                {
-                    return false; // Scrape failed
-                }
-
-                // Save json response to cache
-                SaveJsonStringToCacheFile(jsonResponse, cacheFolder, romName);
-            }
-
-            var elementsToScrape = scraperParameters.ElementsToScrape!;
             bool overwriteMetaData = scraperParameters.OverwriteMetadata;
             bool overwriteName = scraperParameters.OverwriteNames;
             if (overwriteMetaData)
             {
                 overwriteName = true;
+            }
+
+            string romPath = rowView["Rom Path"].ToString()!;
+            string romName = Path.GetFileNameWithoutExtension(romPath);
+            string cacheFolder = scraperParameters.CacheFolder!;
+            bool scrapeByCache = scraperParameters.ScrapeByCache;
+            bool skipNonCached = scraperParameters.SkipNonCached;
+            string? arcadeName = scraperParameters.ArcadeName;
+            string jsonResponse = string.Empty;
+            var elementsToScrape = scraperParameters.ElementsToScrape!;
+
+
+            bool scrapeRequired = elementsToScrape.Any(item => item != "region" && item != "lang");
+
+            if (scrapeRequired)
+            {
+
+                // Scrape by cache if selected
+                if (scrapeByCache)
+                {
+                    jsonResponse = ReadJsonFromCache(romName, cacheFolder);
+                    if (string.IsNullOrEmpty(jsonResponse) && skipNonCached)
+                    {
+                        return false;
+                    }
+                }
+
+                // Scrape from website or if there was no cache file
+                if (string.IsNullOrEmpty(jsonResponse))
+                {
+                    string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
+                    jsonResponse = await ScrapeGame(url);
+
+                    if (string.IsNullOrEmpty(jsonResponse))
+                    {
+                        return false; // Scrape failed
+                    }
+
+                    // Save json response to cache
+                    SaveJsonStringToCacheFile(jsonResponse, cacheFolder, romName);
+                }
+
             }
 
             string downloadURL = string.Empty;
@@ -163,16 +172,6 @@ namespace GamelistManager.classes
                         UpdateMetadata(rowView, "Description", description, overwriteMetaData);
                         break;
 
-                    case "region":
-                        string region = RegionLanguageHelper.GetRegion(scraperParameters.RomFileNameWithExtension!);
-                        UpdateMetadata(rowView, "Region", region!, overwriteMetaData);
-                        break;
-
-                    case "lang":
-                        string languages = RegionLanguageHelper.GetLanguage(scraperParameters.RomFileNameWithExtension!);
-                        UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
-                        break;
-
                     case "name":
                         string name = GetJsonElementValue(jsonResponse, "title");
                         UpdateMetadata(rowView, "Name", name, overwriteName);
@@ -182,6 +181,19 @@ namespace GamelistManager.classes
                         string genre = GetJsonElementValue(jsonResponse, "genre");
                         UpdateMetadata(rowView, "Genre", genre, overwriteMetaData);
                         break;
+
+                    case "region":
+                        string name1 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romName;
+                        string region = RegionLanguageHelper.GetRegion(name1);
+                        UpdateMetadata(rowView, "Region", region!, overwriteMetaData);
+                        break;
+
+                    case "lang":
+                        string name2 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romName;
+                        string languages = RegionLanguageHelper.GetLanguage(name2);
+                        UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
+                        break;
+
 
                     case "releasedate":
                         string releasedate = GetJsonElementValue(jsonResponse, "year");

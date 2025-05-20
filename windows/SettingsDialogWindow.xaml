@@ -2,198 +2,193 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Settings"
-        Width="550" Height="430"
+        Width="650" Height="490"
         ResizeMode="NoResize"
         Loaded="Window_Loaded">
-    <Grid>
+    <Grid Margin="0">
         <Grid.Background>
             <ImageBrush ImageSource="pack://application:,,,/Resources/backgrounds/gears.png"
-                        Opacity="0.1"
+                        Opacity="0.08"
                         Stretch="UniformToFill" />
         </Grid.Background>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="160" />
+            <ColumnDefinition Width="180" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Left Panel -->
-        <StackPanel Grid.Column="0" Margin="10">
-            <TextBlock Text="Batocera Hostname:" Margin="10,10,0,3" />
-            <TextBox x:Name="textBox_HostName" Width="auto" MaxLength="50" Margin="10,0,10,10" TextChanged="textBox_TextChanged"/>
+        <!-- Left Settings Panel -->
+        <StackPanel Grid.Column="0" Margin="5,0,10,0">
+            <GroupBox Header="Connection" Margin="0,0,0,10" Foreground="Blue" >
+                <StackPanel Margin="5">
+                    <Label Content="Hostname:" />
+                    <TextBox x:Name="textBox_HostName" MaxLength="50" TextChanged="textBox_TextChanged" />
 
-            <TextBlock Text="Batocera UserID:" Margin="10,0,0,3" />
-            <TextBox x:Name="textBox_UserID" Width="auto" MaxLength="50" Margin="10,0,10,10" TextChanged="textBox_TextChanged"/>
+                    <Label Content="User ID:" Margin="0,5,0,0"/>
+                    <TextBox x:Name="textBox_UserID" MaxLength="50" TextChanged="textBox_TextChanged" />
 
-            <TextBlock Text="Batocera Password:" Margin="10,0,10,3" />
-            <TextBox x:Name="textBox_Password" Width="auto" MaxLength="50" Margin="10,0,10,10" TextChanged="textBox_TextChanged"/>
+                    <Label Content="Password:" Margin="0,5,0,0"/>
+                    <TextBox x:Name="textBox_Password" MaxLength="50" TextChanged="textBox_TextChanged" />
+                </StackPanel>
+            </GroupBox>
 
-            <TextBlock Text="Alternating Row Color:" Margin="10,10,5,3" />
-            <ComboBox x:Name="comboBox_AlternatingRowColor" Width="auto" Margin="10,0,10,0" SelectionChanged="comboBox_SelectionChanged"/>
+            <GroupBox Header="Grid Appearance" Margin="0,0,0,10" Foreground="Blue">
+                <StackPanel Margin="5">
+                    <Label Content="Alternating Row Color:" />
+                    <ComboBox x:Name="comboBox_AlternatingRowColor" SelectionChanged="comboBox_SelectionChanged" />
 
-            <TextBlock Text="Grid Line Visibility:" Margin="10,10,10,3" />
-            <ComboBox x:Name="comboBox_GridLinesVisibility" Width="auto" Margin="10,0,10,0" SelectionChanged="comboBox_SelectionChanged">
-                <ComboBoxItem Content="Horizontal" IsSelected="True" />
-                <ComboBoxItem Content="Vertical" />
-                <ComboBoxItem Content="Both" />
-                <ComboBoxItem Content="None" />
-            </ComboBox>
+                    <Label Content="Line Visibility:" Margin="0,5,0,0" />
+                    <ComboBox x:Name="comboBox_GridLinesVisibility" SelectionChanged="comboBox_SelectionChanged">
+                        <ComboBoxItem Content="Horizontal" IsSelected="True" />
+                        <ComboBoxItem Content="Vertical" />
+                        <ComboBoxItem Content="Both" />
+                        <ComboBoxItem Content="None" />
+                    </ComboBox>
+                </StackPanel>
+            </GroupBox>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                <Button x:Name="button_Save" Content="Save" Style="{StaticResource GreenRoundedButton}" Width="60" Height="25" Margin="0,0,5,0" Click="buttonSave_Click" IsEnabled="False"/>
-                <Button x:Name="button_Close" Content="Close" Style="{StaticResource GreyRoundedButton}" Width="60" Height="25" Click="buttonClose_Click"/>
+            <GroupBox Header="MAME Path" Foreground="Blue" Margin="0,0,0,5">
+                <Grid Margin="5,0,5,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="textBox_MamePath" Grid.Column="0"
+                             VerticalAlignment="Center"
+                             MaxLength="150"
+                             TextChanged="textBox_TextChanged"/>
+                    <Button x:Name="button_FindMame"
+                            Grid.Column="1"
+                            Width="26" Height="26"
+                            Click="button_FindMame_Click"
+                            Style="{StaticResource AnimatedTransparentButton}"
+                            ToolTip="Browse for MAME">
+                        <Image Source="/resources/icons/folder.png" Width="18" Height="18"/>
+                    </Button>
+                </Grid>
+            </GroupBox>
+
+            <!-- Save / Close -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="button_Save" Content="Save" Style="{StaticResource GreenRoundedButton}"
+                        Width="70" Margin="0,0,5,0" Height="20" Click="buttonSave_Click" IsEnabled="False"/>
+                <Button x:Name="button_Close" Content="Close" Style="{StaticResource GreyRoundedButton}"
+                        Width="70" Margin="5,0,0,0" Height="20" Click="buttonClose_Click"/>
             </StackPanel>
         </StackPanel>
 
-        <!-- Right Panel -->
-        <StackPanel Grid.Column="1" Margin="0">
-            <Grid Margin="5,10,5,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+        <!-- Right Settings Panel -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="0,0,5,0">
+            <StackPanel>
 
-                <!-- Row 0 -->
-                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="checkBox_TrackChanges" Content="Change Tracking Max:"
-                              ToolTip="Provides undo/redo functionality"
-                              Click="CheckBox_Click"
-                              VerticalAlignment="Center"
-                              Margin="0,0,0,5"
-                              />
-                    <TextBox x:Name="textBox_ChangeCount" Text="15" Width="30"
-                             MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
-                             DataObject.Pasting="NumericTextBox_Pasting"
-                             VerticalAlignment="Center"
-                             Margin="5,0,0,5"/>
-                </StackPanel>
-                
-                <CheckBox Grid.Row="0" Grid.Column="1" x:Name="checkBox_VideoAutoplay" Content="Autoplay Videos"
-                          ToolTip="Enable or disable video autoplay"
-                          VerticalAlignment="Center"
-                          Click="CheckBox_Click" Margin="10,0,0,5" />
+                <GroupBox Header="Behavior Options" Foreground="Blue" Margin="0,0,0,10">
+                    <UniformGrid Columns="2" Rows="4" Margin="5">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <CheckBox x:Name="checkBox_TrackChanges" Content="Track Changes" ToolTip="Keep track of changes for undo and redo purposes" VerticalAlignment="Center" Click="CheckBox_Click"/>
+                            <TextBlock Foreground="Black" Text=" - Max:" VerticalAlignment="Center" />
+                            <TextBox x:Name="textBox_ChangeCount" Text="15" VerticalAlignment="Center" Width="20" Margin="5,0,0,0"
+                                     MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     DataObject.Pasting="NumericTextBox_Pasting"/>
+                        </StackPanel>
+                        <CheckBox x:Name="checkBox_VideoAutoplay" Content="Autoplay Videos" ToolTip="Videos in the media display will automatically play or not" VerticalAlignment="Center" Click="CheckBox_Click" />
+                        <CheckBox x:Name="checkBox_ConfirmBulkChanges" Content="Confirm Bulk Changes" ToolTip="Major changes will requiring confirmation" VerticalAlignment="Center" Click="CheckBox_Click" />
+                        <CheckBox x:Name="checkBox_EnableSaveReminder" Content="Enable Save Reminder" ToolTip="If changes are about to be lost, ask to save first" VerticalAlignment="Center" Click="CheckBox_Click" />
+                        <CheckBox x:Name="checkBox_VerifyImageDownloads" VerticalAlignment="Center" ToolTip="Scraped images are verified to be non-corrupt and not single color as they are downloaded" Content="Verify Image Downloads" />
+                        <CheckBox x:Name="checkBox_ShowFileStatusBar" VerticalAlignment="Center" ToolTip="Displays the gamelist filename and modification time at the bottom of the datagrid" Content="Show File Statusbar" />
+                        <CheckBox x:Name="checkBox_RememberColumns" VerticalAlignment="Center" ToolTip="Changes to column visibility will be retained until changed again" Content="Remember Displayed Columns" />
+                        <CheckBox x:Name="checkBox_RememberAutosize" VerticalAlignment="Center" ToolTip="Remember column autosize settings" Content="Remember Column Autosize" />
+                    </UniformGrid>
+                </GroupBox>
 
-                <!-- Row 1 -->
-                <CheckBox Grid.Row="1" Grid.Column="0" x:Name="checkBox_ConfirmBulkChanges" Content="Confirm bulk changes"
-                          ToolTip="Substantial gamelist changes require confirmation"
-                          VerticalAlignment="Center"
-                          Click="CheckBox_Click"
-                          Margin="0,0,0,5"/>
-                
-                <CheckBox Grid.Row="1" Grid.Column="1" x:Name="checkBox_EnableSaveReminder" Content="Enable save reminder"
-                          ToolTip="Reminds you to save before loading another gamelist"
-                          VerticalAlignment="Center"
-                          Click="CheckBox_Click"
-                          Margin="10,0,0,5" />
+                <GroupBox Header="Other Settings" Foreground="Blue" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <TextBlock Foreground="Black" Text="File Search Depth (0–9):" VerticalAlignment="Center"/>
+                        <TextBox x:Name="textBox_SearchDepth" Text="3" Width="30" Margin="10,0,0,0"
+                                 MaxLength="1" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                 DataObject.Pasting="NumericTextBox_Pasting"/>
+                        <TextBlock Foreground="Black" Text="  |  " Margin="10,0,10,0" VerticalAlignment="Top"/>
+                        <TextBlock Foreground="Black" Text="Default Volume:" VerticalAlignment="Center"/>
+                        <Slider x:Name="sliderVolumeSetting" Minimum="0" Maximum="100" Width="100" Margin="5,0,0,0"
+                                PreviewMouseDown="sliderVolumeSetting_PreviewMouseDown"
+                                Style="{StaticResource CustomSlider1}"/>
+                    </StackPanel>
+                </GroupBox>
 
-                <!-- Row 2 -->
-                <CheckBox Grid.Row="2" Grid.Column="0" x:Name="checkBox_VerifyImageDownloads" Content="Verify Image Downloads"
-                          ToolTip="Downloaded images will be verified"
-                          VerticalAlignment="Center"
-                          Margin="0,0,0,5"/>
-                
-                <CheckBox Grid.Row="2" Grid.Column="1" x:Name="checkBox_ShowFileStatusBar" Content="Show File Statusbar"
-                          ToolTip="Sets the visibility of the file statusbar"
-                          VerticalAlignment="Center"
-                          Margin="10,0,0,5"
-                          />
+                <GroupBox Header="Folder Paths" Foreground="Blue">
+                    <Grid Margin="5" x:Name="Paths">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                <!-- Row 3 -->
-                <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,0">
-                    <TextBlock Text="File Search Depth (0-9)" VerticalAlignment="Center" />
-                    <TextBox x:Name="textBox_SearchDepth" Text="3" Width="30" Margin="10,0,0,0"
-                             MaxLength="1" PreviewTextInput="NumericTextBox_PreviewTextInput"
-                             DataObject.Pasting="NumericTextBox_Pasting" />
-                </StackPanel>
-                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="7,0,0,0">
-                    <Label Content="Default Volume" VerticalAlignment="Center" />
-                    <Slider x:Name="sliderVolumeSetting" Minimum="0" Maximum="100" Width="80" Margin="5,0,0,0"
-                            PreviewMouseDown="sliderVolumeSetting_PreviewMouseDown"
-                            Style="{StaticResource CustomSlider1}" />
-                </StackPanel>
-            </Grid>
+                        <!-- Column 1 -->
+                        <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Content="Image:" />
+                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" VerticalAlignment="Center" Tag="image"/>
 
-            <Label Content="Folder Paths:" FontSize="14" Foreground="Blue" FontWeight="Bold" Margin="0,5,0,0" />
+                        <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Content="Titleshot:" />
+                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" VerticalAlignment="Center" Tag="titleshot" />
 
-            <!-- Folder Paths Grid -->
-            <Border BorderBrush="Black" BorderThickness="1" Margin="5">
-                <Grid Margin="5" x:Name="Paths">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <!-- Define enough rows -->
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                        <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Content="Marquee:" />
+                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" VerticalAlignment="Center" Tag="marquee" />
 
-                    <!-- Left column labels and textboxes -->
-                    <Label Grid.Row="0" Grid.Column="0" Content="Image:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" Tag="image" VerticalAlignment="Center" />
+                        <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Thumbnail:" />
+                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_thumbnail" VerticalAlignment="Center" Tag="thumbnail" />
 
-                    <Label Grid.Row="1" Grid.Column="0" Content="Titleshot:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" Tag="titleshot" VerticalAlignment="Center" />
+                        <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Cartridge:" />
+                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_cartridge" VerticalAlignment="Center" Tag="cartridge" />
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="Marquee:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" Tag="marquee" VerticalAlignment="Center"/>
+                        <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Content="Video:" />
+                        <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_video" VerticalAlignment="Center" Tag="video" />
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="Thumbnail:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_thumbnail" Tag="thumbnail"  VerticalAlignment="Center"/>
+                        <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Content="Music:" />
+                        <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_music" VerticalAlignment="Center" Tag="music" />
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="Cartridge:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_cartridge" Tag="cartridge" VerticalAlignment="Center"/>
+                        <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Map:" />
+                        <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_map" VerticalAlignment="Center" Tag="map" />
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="Video:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_video" Tag="video" VerticalAlignment="Center"/>
+                        <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Bezel:" />
+                        <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_bezel" VerticalAlignment="Center" Tag="bezel" />
 
-                    <Label Grid.Row="6" Grid.Column="0" Content="Music:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_music" Tag="music" VerticalAlignment="Center"/>
+                        <!-- Column 2 -->
+                        <Label Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="Manual:" />
+                        <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_manual" VerticalAlignment="Center" Tag="manual" />
 
-                    <Label Grid.Row="7" Grid.Column="0" Content="Map:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_map" Tag="map" VerticalAlignment="Center"/>
+                        <Label Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="Fanart:" />
+                        <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_fanart" VerticalAlignment="Center" Tag="fanart" />
 
-                    <Label Grid.Row="8" Grid.Column="0" Content="Bezel:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_bezel" Tag="bezel" VerticalAlignment="Center"/>
+                        <Label Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Content="Boxart:" />
+                        <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_boxart" VerticalAlignment="Center" Tag="boxart" />
 
-                    <!-- Right column labels and textboxes -->
-                    <Label Grid.Row="0" Grid.Column="2" Content="Manual:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_manual" Tag="manual" VerticalAlignment="Center"/>
+                        <Label Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Content="Boxback:" />
+                        <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxback" VerticalAlignment="Center" Tag="boxback" />
 
-                    <Label Grid.Row="1" Grid.Column="2" Content="Fanart:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_fanart" Tag="fanart" VerticalAlignment="Center"/>
+                        <Label Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Content="Magazine:" />
+                        <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_magazine" VerticalAlignment="Center" Tag="magazine" />
 
-                    <Label Grid.Row="2" Grid.Column="2" Content="Boxart:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_boxart" Tag="boxart" VerticalAlignment="Center"/>
+                        <Label Grid.Row="5" Grid.Column="2" VerticalAlignment="Center" Content="Mix:" />
+                        <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_mix" VerticalAlignment="Center" Tag="mix" />
 
-                    <Label Grid.Row="3" Grid.Column="2" Content="Boxback:" HorizontalAlignment="Right"/>
-                    <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxback" Tag="boxback" VerticalAlignment="Center"/>
+                        <Button Grid.Row="8" Grid.Column="3" VerticalAlignment="Center" Grid.ColumnSpan="2"
+                                Content="Reset Folder Paths"
+                                Style="{StaticResource GreyRoundedButton}"
+                                Width="100" Height="20" Click="button_Reset_Click"
+                                HorizontalAlignment="Center" Margin="0,0,0,0"/>
+                    </Grid>
+                </GroupBox>
 
-                    <Label Grid.Row="4" Grid.Column="2" Content="Magazine:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_magazine" Tag="magazine" VerticalAlignment="Center"/>
-
-                    <Label Grid.Row="5" Grid.Column="2" Content="Mix:" HorizontalAlignment="Right" />
-                    <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_mix" Tag="mix" VerticalAlignment="Center"/>
-
-                    <Button Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="2" Content="Reset Folder Paths"
-                            Style="{StaticResource GreyRoundedButton}" Width="120" Height="25"
-                            HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_Reset_Click" Margin="0,0,10,0" />
-                </Grid>
-            </Border>
-        </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

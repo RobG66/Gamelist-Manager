@@ -106,7 +106,7 @@ namespace GamelistManager.classes
 
                                 if (elementExists && !string.IsNullOrEmpty(columnValue))
                                 {
-                                    if (elementName == "releasedate")
+                                    if (elementName == "releasedate" || elementName == "lastplayed")
                                     {
                                         columnValue = ISO8601Converter.ConvertToISO8601(columnValue);
                                     }
@@ -264,11 +264,5 @@ namespace GamelistManager.classes
             File.Copy(SharedData.XMLFilename, backupFilePath);
         }
 
-
-        // Load the original XML document
-        private static XDocument LoadXmlDocument(string xmlFilename)
-        {
-            return XDocument.Load(xmlFilename);
-        }
     }
 }

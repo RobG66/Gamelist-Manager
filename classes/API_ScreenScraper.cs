@@ -148,6 +148,7 @@ namespace GamelistManager.classes
             string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={romFileNameWithoutExtension}";
             string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
             string responseString = string.Empty;
+            string? arcadeName = scraperParameters.ArcadeName;
 
             XmlDocument xmlData = new XmlDocument();
             XmlNode? mediasNode = null;
@@ -157,7 +158,7 @@ namespace GamelistManager.classes
             int scrapeTotal = 0;
             int scrapeMax = 0;
 
-            bool scrapeRequired =  elementsToScrape.Any(item => item != "region" && item != "lang");
+            bool scrapeRequired = elementsToScrape.Any(item => item != "region" && item != "lang");
 
             if (scrapeRequired)
             {
@@ -261,7 +262,8 @@ namespace GamelistManager.classes
 
                     case "lang":
                         //string? language = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText; 
-                        string languages = RegionLanguageHelper.GetLanguage(scraperParameters.RomFileNameWithExtension!);
+                        string name2 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romFileNameWithoutExtension;
+                        string languages = RegionLanguageHelper.GetLanguage(name2);
                         UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
                         break;
 
@@ -329,7 +331,8 @@ namespace GamelistManager.classes
 
                     case "region":
                         // string? region = xmlData.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText; ;
-                        string region = RegionLanguageHelper.GetRegion(scraperParameters.RomFileNameWithExtension!);
+                        string name3 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romFileNameWithoutExtension;
+                        string region = RegionLanguageHelper.GetRegion(name3);
                         UpdateMetadata(rowView, "Region", region!, overwriteMetaData);
                         break;
 

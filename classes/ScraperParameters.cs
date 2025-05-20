@@ -28,6 +28,7 @@ namespace GamelistManager.classes
         public DataRowView CurrentRow { get; set; }
         public string? UserAccessToken { get; set; }
         public string? ScraperPlatform { get; set; }
+        public string? ArcadeName { get; set; }
         public bool ScrapeByGameID { get; set; }
         public string? CacheFolder { get; set; }
         public bool ScrapeByCache { get; set; }

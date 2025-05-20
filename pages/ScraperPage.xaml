@@ -29,6 +29,7 @@
                         <ComboBoxItem Content="EmuMovies"/>
                         <ComboBoxItem Content="ScreenScraper"/>
                     </ComboBox>
+
                     <Button x:Name="button_AllOrSelected" Width="75" Height="20" Margin="15,0,0,0"
                     Content="Selected Items" Style="{StaticResource GreyRoundedButton}" 
                     VerticalAlignment="Center" Click="Button_Click"/>

@@ -11,9 +11,11 @@
                 <ResourceDictionary Source="/Resources/Resource Dictionaries/YellowRoundedButton.xaml"/>
                 <ResourceDictionary Source="/Resources/Resource Dictionaries/RedRoundedButton.xaml"/>
                 <ResourceDictionary Source="/Resources/Resource Dictionaries/CustomSlider1.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/MenuItemTemplate1.xaml"/>
                 <ResourceDictionary Source="/Resources/Resource Dictionaries/AnimatedTransparentButton.xaml"/>
                 <ResourceDictionary Source="/Resources/Resource Dictionaries/CustomSplitter1.xaml"/>
+                <ResourceDictionary Source="/Resources/Resource Dictionaries/CustomRadioButton1.xaml"/>
+                <ResourceDictionary Source="/Resources/Resource Dictionaries/SmallToggleButton.xaml"/>
+                <ResourceDictionary Source="/Resources/Resource Dictionaries/MinimalMenuItem.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

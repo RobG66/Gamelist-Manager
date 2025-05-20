@@ -3,43 +3,14 @@
 
     <!-- Red Button Style -->
     <Style x:Key="RedRoundedButton" TargetType="Button" BasedOn="{StaticResource GreyRoundedButton}">
-        <Setter Property="Background" Value="#FFFFA07A"/>
-        <!-- Light red background -->
-        <Setter Property="Template">
+        <Setter Property="Background">
             <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid>
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="10">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#FFFFB090"/>
-                            <!-- Brighter red when hovered -->
-                            <Setter TargetName="border" Property="Effect">
-                                <Setter.Value>
-                                    <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="2" Opacity="0.4"/>
-                                </Setter.Value>
-                            </Setter>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#FFCD5C5C"/>
-                            <!-- Darker red when pressed -->
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="border" Property="Background" Value="#FFA9A9A9"/>
-                            <Setter Property="Foreground" Value="#FF808080"/>
-                            <Setter Property="BorderBrush" Value="#FF808080"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#FFFFA07A" Offset="0"/>
+                    <GradientStop Color="#FFCD5C5C" Offset="1"/>
+                </LinearGradientBrush>
             </Setter.Value>
         </Setter>
+        <Setter Property="BorderBrush" Value="#FF4682B4"/>
     </Style>
-
 </ResourceDictionary>

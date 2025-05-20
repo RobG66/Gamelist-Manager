@@ -12,26 +12,22 @@ namespace GamelistManager.pages
     public partial class MediaPage : Page
     {
         MediaPlayerControl _mediaPlayerControl;
-        List<string> _mediaColumns;
+        List<string> _mediaNames;
 
         public MediaPage()
         {
             InitializeComponent();
-            _mediaPlayerControl = new MediaPlayerControl
-            {
-                Width = 400,
-                Height = 300
-            };
+            _mediaPlayerControl = new MediaPlayerControl();
+           
             _mediaPlayerControl.SetVolume((int)Properties.Settings.Default.Volume);
 
             var metaDataDictionary = GamelistMetaData.GetMetaDataDictionary();
-            _mediaColumns = metaDataDictionary
+            _mediaNames = metaDataDictionary
                 .Where(entry => entry.Value.DataType == MetaDataType.Image)
                 .Select(entry => entry.Value.Name)
                 .ToList();
-            _mediaColumns.Add("Manual");
-            _mediaColumns.Add("Video");
-
+            _mediaNames.Add("Manual");
+            _mediaNames.Add("Video");
         }
 
 
@@ -142,7 +138,7 @@ namespace GamelistManager.pages
             //        imageSource.EndInit();
 
 
-            int index = _mediaColumns.FindIndex(item => item.Contains(columnName));
+            int index = _mediaNames.FindIndex(item => item.Contains(columnName));
 
             var image = MediaContentGrid.Children
                 .OfType<System.Windows.Controls.Image>()
@@ -175,7 +171,7 @@ namespace GamelistManager.pages
         {
             int columnIndex = 0;
 
-            foreach (var item in _mediaColumns)
+            foreach (var item in _mediaNames)
             {
                 string columnName = item;
                 var newColumn = new ColumnDefinition
@@ -256,11 +252,6 @@ namespace GamelistManager.pages
             }
         }
 
-
-
-
-
-
         public void PausePlaying()
         {
             if (_mediaPlayerControl != null)
@@ -268,7 +259,6 @@ namespace GamelistManager.pages
                 _mediaPlayerControl.PausePlaying();
             }
         }
-
     }
 }
 

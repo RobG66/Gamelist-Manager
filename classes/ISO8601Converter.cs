@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace GamelistManager
+namespace GamelistManager.classes
 {
     /// <summary>
     /// Provides methods to convert date strings to and from ISO 8601 format.

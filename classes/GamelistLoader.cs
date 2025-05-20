@@ -93,7 +93,7 @@ namespace GamelistManager.classes
                                 continue;
                             }
 
-                            if (destinationColumnName == "Release Date")
+                            if (destinationColumnName == "Release Date" || destinationColumnName == "Last Played")
                             {
                                 string formattedDate = ISO8601Converter.ConvertFromISO8601(sourceValue.ToString()!);
                                 if (!string.IsNullOrEmpty(formattedDate))

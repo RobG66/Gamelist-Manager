@@ -409,7 +409,7 @@ namespace GamelistManager.pages
         private async void StopScraping(string message)
         {
             button_Stop.IsEnabled = false;
-            TextSearch.ClearCache();
+            TextSearchHelper.ClearCache();
 
             _globalStopwatch.Stop();
             _mainWindow.menu_Main.IsEnabled = true;
@@ -643,7 +643,7 @@ namespace GamelistManager.pages
                         await Logger.Instance.LogAsync($"Logon failed, please check the credentials!", System.Windows.Media.Brushes.Red);
                         return;
                     }
-                                        
+
                     maxConcurrency = await aPI_ScreenScraper.GetMaxThreadsAsync(userName, userPassword);
 
                     await Logger.Instance.LogAsync($"Max Threads: {maxConcurrency}", System.Windows.Media.Brushes.Blue);
@@ -799,12 +799,20 @@ namespace GamelistManager.pages
             // StopPlaying button is now enabled since scraping will begin
             button_Stop.IsEnabled = true;
 
+            // Arcade Names for Region Scraping
+            string filePath = "./ini/arcadenames.ini";
+            var mameNames = IniFileReader.GetSection(filePath, "ArcadeNames");
+
+            //
             // Actual scraping starts here
+            //
 
             var serviceCollection = new ServiceCollection();
             var startup = new Startup(new ConfigurationBuilder().Build());
             startup.ConfigureServices(serviceCollection);
             var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            label_CurrentScrape.Content = "Ready!";
 
             await Logger.Instance.LogAsync("Starting in 5 seconds!", System.Windows.Media.Brushes.Blue);
 
@@ -846,6 +854,8 @@ namespace GamelistManager.pages
                                 scraperParameters.RomFileNameWithExtension = romFileNameWithExtension;
                                 scraperParameters.GameID = gameID;
                                 scraperParameters.Name = gameName;
+
+                                scraperParameters.ArcadeName = mameNames.TryGetValue(romFileNameNoExtension, out string? arcadeName) ? arcadeName : null;
 
                                 bool scrapeResult = false;
                                 await Logger.Instance.LogAsync($"Scraping {romFileNameWithExtension}", System.Windows.Media.Brushes.Green);
@@ -1025,7 +1035,7 @@ namespace GamelistManager.pages
 
         private void button_Log_Click(object sender, RoutedEventArgs e)
         {
-
+            // Not implemented - yet!
         }
 
         private void button_ClearCache_Click(object sender, RoutedEventArgs e)
@@ -1141,7 +1151,5 @@ namespace GamelistManager.pages
         {
             checkBox_OnlyScrapeFromCache.IsEnabled = false;
         }
-
-
     }
 }

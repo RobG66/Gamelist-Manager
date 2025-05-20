@@ -1,26 +1,29 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-public static class VisualTreeHelperExtensions
+namespace GamelistManager.classes
 {
-    // Gets all visual children of a given parent filtered by type
-    public static IEnumerable<T> GetAllVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+    public static class VisualTreeHelperExtensions
     {
-        if (parent == null)
-            yield break;
-
-        var childrenCount = VisualTreeHelper.GetChildrenCount(parent);
-        for (int i = 0; i < childrenCount; i++)
+        // Gets all visual children of a given parent filtered by type
+        public static IEnumerable<T> GetAllVisualChildren<T>(DependencyObject parent) where T : DependencyObject
         {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T typedChild)
-            {
-                yield return typedChild;
-            }
+            if (parent == null)
+                yield break;
 
-            foreach (var grandChild in GetAllVisualChildren<T>(child))
+            var childrenCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < childrenCount; i++)
             {
-                yield return grandChild;
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild)
+                {
+                    yield return typedChild;
+                }
+
+                foreach (var grandChild in GetAllVisualChildren<T>(child))
+                {
+                    yield return grandChild;
+                }
             }
         }
     }

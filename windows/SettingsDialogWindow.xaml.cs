@@ -1,4 +1,6 @@
 ﻿using GamelistManager.classes;
+using Microsoft.Win32;
+using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -28,7 +30,7 @@ namespace GamelistManager
             string password = textBox_Password.Text;
             string searchDepth = textBox_SearchDepth.Text;
 
-            if (string.IsNullOrEmpty(hostName) || string.IsNullOrEmpty(searchDepth) ||  string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(hostName) || string.IsNullOrEmpty(searchDepth) || string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(password))
             {
                 MessageBox.Show("One or more fields are empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -43,12 +45,14 @@ namespace GamelistManager
 
             Properties.Settings.Default.BatoceraHostName = hostName;
             Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;
+            Properties.Settings.Default.RememberColumns = (bool)checkBox_RememberColumns.IsChecked!;
             Properties.Settings.Default.SaveReminder = (bool)checkBox_EnableSaveReminder.IsChecked!;
             Properties.Settings.Default.ShowFileStatusBar = (bool)checkBox_ShowFileStatusBar.IsChecked!;
             Properties.Settings.Default.VerifyDownloadedImages = (bool)checkBox_VerifyImageDownloads.IsChecked!;
             Properties.Settings.Default.VideoAutoplay = (bool)checkBox_VideoAutoplay.IsChecked!;
+            Properties.Settings.Default.RememberAutoSize = (bool)checkBox_RememberAutosize.IsChecked!;
             Properties.Settings.Default.Volume = (int)sliderVolumeSetting.Value;
-                      
+
             string searchDepthString = textBox_SearchDepth.Text;
             int searchDepthInt = !int.TryParse(searchDepthString, out searchDepthInt) ? 0 : searchDepthInt;
             Properties.Settings.Default.SearchDepth = searchDepthInt;
@@ -56,6 +60,9 @@ namespace GamelistManager
             string changeTrackerValue = textBox_ChangeCount.Text;
             int maxUndo = string.IsNullOrEmpty(changeTrackerValue) || !int.TryParse(changeTrackerValue, out maxUndo) ? 0 : maxUndo;
             Properties.Settings.Default.MaxUndo = maxUndo;
+
+            string MamePath = textBox_MamePath.Text;
+            Properties.Settings.Default.MamePath = MamePath;
 
             bool result = CredentialManager.SaveCredentials(hostName, userID, password);
 
@@ -147,6 +154,12 @@ namespace GamelistManager
                 comboBox_AlternatingRowColor.SelectedItem = item2;
             }
 
+            string? mamePath = Properties.Settings.Default.MamePath;
+            if (!string.IsNullOrEmpty(mamePath))
+            {
+                textBox_MamePath.Text = mamePath;
+            }
+
             string hostName = Properties.Settings.Default.BatoceraHostName;
 
             (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
@@ -163,8 +176,14 @@ namespace GamelistManager
             bool confirmBulkChanges = Properties.Settings.Default.ConfirmBulkChange;
             checkBox_ConfirmBulkChanges.IsChecked = confirmBulkChanges;
 
+            bool rememberAutoSize = Properties.Settings.Default.RememberAutoSize;
+            checkBox_RememberAutosize.IsChecked = rememberAutoSize;
+
             bool showFileStatusBar = Properties.Settings.Default.ShowFileStatusBar;
             checkBox_ShowFileStatusBar.IsChecked = showFileStatusBar;
+
+            bool rememberColumns = Properties.Settings.Default.RememberColumns;
+            checkBox_RememberColumns.IsChecked = rememberColumns;
 
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             checkBox_EnableSaveReminder.IsChecked = saveReminder;
@@ -298,6 +317,23 @@ namespace GamelistManager
 
                 // Set the slider value
                 slider.Value = newValue;
+            }
+        }
+
+        private void button_FindMame_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Locate mame.exe",
+                Filter = "MAME Executable (mame.exe)|mame.exe",
+                CheckFileExists = true,
+                FileName = "mame.exe"
+            };
+
+            bool? result = openFileDialog.ShowDialog();
+            if (result == true && File.Exists(openFileDialog.FileName))
+            {
+                textBox_MamePath.Text = openFileDialog.FileName;
             }
         }
     }

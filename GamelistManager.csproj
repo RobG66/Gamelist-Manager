@@ -12,7 +12,7 @@
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>7.9</FileVersion>
+    <FileVersion>8.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -77,6 +77,7 @@
     <None Remove="resources\backgroundtech1.jpg" />
     <None Remove="resources\backgroundtech2.jpg" />
     <None Remove="resources\bbc.png" />
+    <None Remove="resources\buttons\filter1.png" />
     <None Remove="resources\buttons\glossybutton.png" />
     <None Remove="resources\buttons\next.png" />
     <None Remove="resources\buttons\pause.png" />
@@ -104,6 +105,7 @@
     <None Remove="resources\daphne.png" />
     <None Remove="resources\devilutionx.png" />
     <None Remove="resources\dos.png" />
+    <None Remove="resources\downarrow.png" />
     <None Remove="resources\dreamcast.png" />
     <None Remove="resources\dropicon.png" />
     <None Remove="resources\easyrpg.png" />
@@ -164,6 +166,7 @@
     <None Remove="resources\mastersystem.png" />
     <None Remove="resources\megadrive.png" />
     <None Remove="resources\megaduck.png" />
+    <None Remove="resources\menu\file.svg" />
     <None Remove="resources\missing.png" />
     <None Remove="resources\model2.png" />
     <None Remove="resources\model3.png" />
@@ -435,6 +438,7 @@
     <None Remove="resources\tutor.png" />
     <None Remove="resources\tyrquake.png" />
     <None Remove="resources\undo-button.png" />
+    <None Remove="resources\uparrow.png" />
     <None Remove="resources\uzebox.png" />
     <None Remove="resources\vc4000.png" />
     <None Remove="resources\vectrex.png" />
@@ -469,9 +473,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.2" />
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.3" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    <PackageReference Include="SSH.NET" Version="2024.2.0" />
+    <PackageReference Include="SSH.NET" Version="2025.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.11" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
@@ -516,6 +520,9 @@
     <Resource Include="resources\backgrounds\gears.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\buttons\filter1.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\buttons\glossybutton.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -541,6 +548,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\close.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\downarrow.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\dropicon.png">
@@ -589,6 +599,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\manual.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\menu\file.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\missing.png">
@@ -1179,6 +1192,9 @@
     <Resource Include="resources\buttons\undo-button.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\uparrow.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
@@ -1464,6 +1480,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ini\arcadedb_options.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ini\arcadenames.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ini\arcadesystems.ini">

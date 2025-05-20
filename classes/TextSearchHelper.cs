@@ -3,9 +3,9 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace GamelistManager
+namespace GamelistManager.classes
 {
-    public static class TextSearch
+    public static class TextSearchHelper
     {
         // Cache multiple normalized name dictionaries identified by hash keys
         private static readonly Dictionary<int, Dictionary<string, string>> CachedNormalizedLists = new();
