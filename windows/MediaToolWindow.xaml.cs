@@ -899,7 +899,7 @@ namespace GamelistManager
                                 return;
                             }
 
-                            string result = ImageUtility.CheckImage(fullPath);
+                            string result = ImageHelper.CheckImage(fullPath);
 
                             if (result is ("Corrupt" or "Single Color"))
                             {

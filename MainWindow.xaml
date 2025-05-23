@@ -200,15 +200,15 @@
                             </StatusBarItem>
                         </StatusBar>
                         <DockPanel LastChildFill="True" x:Name="dockPanel_SearchAndReplace" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
-                            <TextBlock Text="Replace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333" Margin="2,0,0,0"/>
+                            <TextBlock Text="Replace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold"  Foreground="#FF333333" Margin="5,0,0,0"/>
                             <TextBox x:Name="textBox_ChangeFrom" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
                             <TextBlock Text="with" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
                             <TextBox x:Name="textBox_ChangeTo" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="NoWrap"  Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
                             <TextBlock Text="for" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <Button x:Name="button_Items" IsEnabled="True" Style="{StaticResource GreyRoundedButton}" HorizontalAlignment="Left" Height="20" Width="70" Margin="5,0,5,0" Content="All Items" VerticalAlignment="Center" Click="button_Items_Click"/>
+                            <Button x:Name="button_Items" IsEnabled="True" Style="{StaticResource GreyRoundedButton}" HorizontalAlignment="Left" Height="18" Width="75" Margin="5,0,5,0" Content="All Items" VerticalAlignment="Center" Click="button_Items_Click"/>
                             <TextBlock Text="in column" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <ComboBox x:Name="comboBox_Columns" FontSize="12" FontWeight="Bold" Width="120" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns_SelectionChanged"/>
-                            <Button x:Name="button_Apply" IsEnabled="False" Style="{StaticResource GreenRoundedButton}" HorizontalAlignment="Left" Height="20" Width="50" Content="Replace" Margin="2,0,0,0" Click="button_Apply_Click"/>
+                            <ComboBox x:Name="comboBox_Columns" FontSize="12" FontWeight="Bold" Height="18" Padding="3,0,0,0" Width="120" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns_SelectionChanged"/>
+                            <Button x:Name="button_Apply" IsEnabled="False" Style="{StaticResource GreenRoundedButton}" HorizontalAlignment="Left" Height="18" Width="50" Content="Replace" Margin="2,0,0,0" Click="button_Apply_Click"/>
                             <Button x:Name="button_CloseSearchAndReplace" Style="{StaticResource AnimatedTransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseSearchAndReplace_Click">
                                 <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Close Panel" VerticalAlignment="Center"/>
                             </Button>

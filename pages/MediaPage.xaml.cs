@@ -108,10 +108,11 @@ namespace GamelistManager.pages
         }
 
 
-        public void DisplayItem(string? filePath, string columnName)
+        public void DisplayItem(string filePath, string columnName)
         {
-            BitmapImage imageSource;
+            ImageSource? imageSource = null;
 
+            // Determine which image to load
             if (columnName == "Manual")
             {
                 string resourcePdfIcon = "pack://application:,,,/Resources/manual.png";
@@ -119,25 +120,27 @@ namespace GamelistManager.pages
             }
             else
             {
-                if (!File.Exists(filePath))
+                if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
                 {
                     string resourceMissingIcon = "pack://application:,,,/Resources/missing.png";
                     imageSource = new BitmapImage(new Uri(resourceMissingIcon, UriKind.Absolute));
-                    filePath = null;
+                    filePath = null!;
                 }
                 else
                 {
-                    imageSource = new BitmapImage(new Uri(filePath, UriKind.Absolute));
+                    imageSource = ImageHelper.LoadImageWithoutLock(filePath);
+
+                    // Fallback to "missing" image if loading failed (e.g., corrupt)
+                    if (imageSource == null)
+                    {
+                        string resourceMissingIcon = "pack://application:,,,/Resources/missing.png";
+                        imageSource = new BitmapImage(new Uri(resourceMissingIcon, UriKind.Absolute));
+                        filePath = null!;
+                    }
                 }
             }
 
-            //        imageSource = new BitmapImage();
-            //        imageSource.BeginInit();
-            //        imageSource.UriSource = new Uri(filePath, UriKind.Absolute);
-            //        imageSource.CacheOption = BitmapCacheOption.OnLoad; // Ensure the file is fully loaded and unlocked
-            //        imageSource.EndInit();
-
-
+            // Get the image control at the target column
             int index = _mediaNames.FindIndex(item => item.Contains(columnName));
 
             var image = MediaContentGrid.Children
@@ -149,8 +152,8 @@ namespace GamelistManager.pages
                 image.Source = imageSource;
                 image.Tag = filePath;
             }
-
         }
+
 
         public void ClearAllImages()
         {

@@ -77,7 +77,7 @@ namespace GamelistManager.classes
 
             if (verify && imageExtensions.Contains(fileExtension))
             {
-                string verifyResult = ImageUtility.CheckImage(fileDownloadPath);
+                string verifyResult = ImageHelper.CheckImage(fileDownloadPath);
                 if (verifyResult != "OK")
                 {
                     File.Delete(fileDownloadPath); // Delete invalid image file

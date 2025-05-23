@@ -1,6 +1,5 @@
 ﻿using GamelistManager.classes;
 using GamelistManager.pages;
-using LibVLCSharp.Shared;
 using Microsoft.Win32;
 using Renci.SshNet;
 using System.Collections.Concurrent;
@@ -62,6 +61,8 @@ namespace GamelistManager
             _customFilter = string.Empty;
             _pendingSelectedRow = null!;
             _originalTextBoxForeground = SystemColors.ControlTextBrush;
+
+    
         }
 
         private void ChangeTracker_UndoRedoStateChanged(object sender, EventArgs e)
@@ -2087,7 +2088,7 @@ namespace GamelistManager
             bool editMode = readOnly;
             SharedData.MetaDataEditMode = editMode;
             SetEditMode(editMode);
-
+         
             if (button_Media.Content.ToString() == "Hide Media")
             {
                 if (MainDataGrid.SelectedItems.Count == 0 && MainDataGrid.Items.Count > 0)

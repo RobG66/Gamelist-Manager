@@ -377,5 +377,17 @@ namespace GamelistManager.Properties {
                 this["AutoSizeColumns"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SuspendSortingInEditMode {
+            get {
+                return ((bool)(this["SuspendSortingInEditMode"]));
+            }
+            set {
+                this["SuspendSortingInEditMode"] = value;
+            }
+        }
     }
 }
