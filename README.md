@@ -6,6 +6,11 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+May 28th, 2025
+
+ Hmmm!  Somehow I accidentely lost the readme, so here it is back in its full glory! :)   I am glad to say I have been feeling better lately - one day at a time..!   And I'm still thinking about getting back to working on the media drag/drop updating.  I'd like to get it in there sometime, sooner as opposed to later.  Feedback and support continues to be very sparse, but thank you to those few who have contributed.  It does mean a lot!  
+
+----
 May 19th, 2025
 
  I have been hit hard with anxiety the past 3 days.  Living with that for 35+ years has not been easy, but I've had it under control for quite a long time now.. That is until a few days ago and then it was like a freight train hit me.  I think working on this program helps me though, it's a distraction for my mind and I'm still having fun working on it.  Version 8 will be the next release, probably in a few days.   
