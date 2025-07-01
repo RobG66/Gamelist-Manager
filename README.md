@@ -6,6 +6,14 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ July 1st, 2025
+
+  Happy Canada Day!  June flew by fast for sure and I want to get back to work on getting another update out sometime this month.  I have created some
+  additional ini files for region and language mapping purposes, as opposed to hard coding that in the program.  I find it gets a bit convoluted 
+  because regional information can be determined by either rom name or system type.  And then there's mame arcade games which have their own method by using
+  the mame xml metadata name!
+
+----
 June 8th, 2025
 
  Nothing really new to report, no new release this month (probably).  I've just been busy doing other 'things' lately.   
