@@ -6,6 +6,10 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ July 20th, 2025
+ Work continues, albeit slower than anticipated.  Sometimes I start on one thing and it just mushrooms into more work than I thought.  Or I find something I want to improve or that needs to be fixed because of changes being made.  I'm not sure I will get anything out before end of month, will see how it goes.
+
+----
  July 1st, 2025
 
   Happy Canada Day!  June flew by fast for sure and I want to get back to work on getting another update out sometime this month.  I have created some
