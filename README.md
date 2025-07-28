@@ -6,6 +6,11 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ July 28th, 2025
+
+  I have 'gone down the rabbit hole' with refactoring some scraping code, so I've created quite a bit of work for myself.  I suppose it is for the better, but it's just delaying another release which I didn't anticipate happening.  Anyhow, I'm still working on things, if anyone cares....
+
+----
  July 20th, 2025
  
  Work continues, albeit slower than anticipated.  Sometimes I start on one thing and it just mushrooms into more work than I thought.  Or I find something I want to improve or that needs to be fixed because of changes being made.  I'm not sure I will get anything out before end of month, will see how it goes.
