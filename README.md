@@ -6,6 +6,9 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ I got sidetracked on another little project.  My friend and I still play doom and I wished there some at lease some kind of front end launcher for batocera, but there isn't.  So I made one consisting of a bash script.  It's quite flexible I think and does what it needs to do.  Check it out:  https://github.com/RobG66/BatoDoom-Launcher
+
+----
  July 28th, 2025
 
   I have 'gone down the rabbit hole' with refactoring some scraping code, so I've created quite a bit of work for myself.  I suppose it is for the better, but it's just delaying another release which I didn't anticipate happening.  Anyhow, I'm still working on things, if anyone cares....
