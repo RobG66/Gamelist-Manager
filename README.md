@@ -6,7 +6,8 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
- I got sidetracked on another little project.  My friend and I still play doom and I wished there some at lease some kind of front end launcher for batocera, but there isn't.  So I made one consisting of a bash script.  It's quite flexible I think and does what it needs to do.  Check it out:  https://github.com/RobG66/BatoDoom-Launcher
+ I got sidetracked on another little project.  My friend and I still play doom and I wished there was at least some kind of front end launcher for batocera, but there isn't.  So I made one consisting of a bash script.  It's quite flexible I think and does what it needs to do.  Check it out:  https://github.com/RobG66/BatoDoom-Launcher
+Now there's things I want to fix in my reload theme too....  I suppose I will do that too now.
 
 ----
  July 28th, 2025
