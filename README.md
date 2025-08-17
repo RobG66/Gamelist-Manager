@@ -6,6 +6,12 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ August 16th
+ I updated my RELOAD theme and I think it turned out well.  Now after that and working on the doom launcher, I really need to focus on Gamelist Manager...  I'm a bit concerned that I made too many changes under the hood, so I REALLY need to test things out before pushing out a new release. Sometimes one change leads to another which keeps mushrooming...!  And when the period of time increases between releases, it's easy to lose track or motivation.  I feel like this has dragged on too long, but at least there's no outstanding issues in the current release where I need to rush out a fix.  
+
+ Have a great one!
+
+----
  I got sidetracked on another little project.  My friend and I still play doom and I wished there was at least some kind of front end launcher for batocera, but there isn't.  So I made one consisting of a bash script.  It's quite flexible I think and does what it needs to do.  Check it out:  https://github.com/RobG66/BatoDoom-Launcher
 Now there's things I want to fix in my reload theme too....  I suppose I will do that too now.
 
