@@ -6,6 +6,11 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ August 31st, 2025
+
+  I've decided that the current release of Gamelist Manager 8.01 version will be the final one on this branch.  The complexities, and complications of what I wanted to do have just kept increasing as I have added more to the project.  And I need a refocus......  So it's time to just tear down and rebuild for version 9 which will also start using .net9.  Of course I'm not rewriting everything from scratch - I will lean heavily on what I already have.  But, I want to clean up a lot of things and do a few things differently too.  Now is a good time for feature requests - so use the discussions!      
+
+----
  August 16th
  
  I updated my RELOAD theme and I think it turned out well.  Now after that and working on the doom launcher, I really need to focus on Gamelist Manager...  I'm a bit concerned that I made too many changes under the hood, so I REALLY need to test things out before pushing out a new release. Sometimes one change leads to another which keeps mushrooming...!  And when the period of time increases between releases, it's easy to lose track or motivation.  I feel like this has dragged on too long, but at least there's no outstanding issues in the current release where I need to rush out a fix.  
