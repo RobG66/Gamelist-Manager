@@ -6,6 +6,22 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ September 15th, 2025
+
+  Well, never say never!  I will have a new v8 release coming soon which will add 'wheel' metadata scraping.  The reason is that my updated Reload theme will have separate wheel logos for the gamelist wheel and use marquee for the cabinet marquee.  The metadata is there, but EmulationStation and its scraping doesn't really support it - yet!  
+
+ There's a few minor bugs I want to fix as well.  ArcadeDB scraping was missing the correct url for wheel scraping (decal as they call it).  How did that get missed for so long???  Or did it change recently?
+
+  Let me know about any other BUGS NOW, so I can fix them.  Anything else has to wait I think. 
+  
+  <img width="3839" height="2012" alt="image" src="https://github.com/user-attachments/assets/936901e1-15c8-4fb0-9fc7-8f4b48032177" />
+
+<img width="3839" height="2005" alt="image" src="https://github.com/user-attachments/assets/c5aa9b86-8717-46e0-8530-21c81f41bcf1" />
+
+<img width="3839" height="2159" alt="image" src="https://github.com/user-attachments/assets/02ba5f3b-b996-4f18-9cbe-9aabcedebac7" />
+
+
+----
  August 31st, 2025
 
   I've decided that the current release of Gamelist Manager 8.01 version will be the final one on this branch.  The complexities, and complications of what I wanted to do have just kept increasing as I have added more to the project.  And I need a refocus......  So it's time to just tear down and rebuild for version 9 which will also start using .net9.  Of course I'm not rewriting everything from scratch - I will lean heavily on what I already have.  But, I want to clean up a lot of things and do a few things differently too.  Now is a good time for feature requests - so use the discussions!      
