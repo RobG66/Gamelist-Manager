@@ -5,6 +5,12 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
 
+
+----
+ September 16th, 2025
+
+  Wheel scraping added, but I haven't tested it yet.  I added two new custom view filters consisting of "IS EMPTY" and "IS NOT EMPTY", of which "IS EMPTY" is quite handy to have when trying to sort/view by missing data.  I'm also adding a "Find" function which is similar to the search and replace, except it will just find what you are looking for.  I found myself wanting/needing that, so I added it.  Nothing to release yet, but soon.  Then another break perhaps.  I have so much on my mind lately, just trying to figure out some financial stuff which frankly just isn't good.       
+
 ----
  September 15th, 2025
 
