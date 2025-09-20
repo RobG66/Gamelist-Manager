@@ -5,6 +5,15 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
 
+----
+ September 20th, 2025
+
+  One of the things that was asked about by a few people was the ability to define your own regional fallback for ScreenScraper scraping.  Sometimes media may exist for one region, but not another so there needs to be some fallback mechanism.  But, what also happens is that some media is *different* based upon the region.  I think Sega Dreamcast media is a good example of this.  There's no "1 solution fits all" I suppose, so I have added the ability for the user to create their own fallback list based upon the available ScreenScraper regions.
+
+  <img width="1332" height="1107" alt="image" src="https://github.com/user-attachments/assets/4ea6547e-8dc0-43cf-a26b-14f579695000" />
+
+ Something else that was requested long ago was custom folder paths.  This was implemented in settings long ago, but only for sub folders 1 level deep.  I'll revisit that code, but not for the upcoming release.    
+
 
 ----
  September 16th, 2025
