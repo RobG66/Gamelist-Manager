@@ -6,6 +6,16 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ September 23rd, 2025
+
+  Soon!  Anyhow, I have improved scraping performance with calculations based upon what you are scraping, if there are present values and if overwrite options are selected or not.  What this means is that if you are not overwriting and there's existing values for all the metadata items you are scraping, the current item will then be skipped.
+  
+  <img width="1218" height="736" alt="image" src="https://github.com/user-attachments/assets/67173184-6f05-44eb-ac12-a2190eba0df2" />
+
+ Obviously there is no point scraping an item if there's nothing needed, so this can be a big timesaver.  I wanted to get this implemented before next release and now that it is done, I just need to do some more testing in the next few days.  The only thing I am still not quite happy with is the logging window, but I may leave that for next update.
+
+
+----
  September 20th, 2025
 
   One of the things that was asked about by a few people was the ability to define your own regional fallback for ScreenScraper scraping.  Sometimes media may exist for one region, but not another so there needs to be some fallback mechanism.  But, what also happens is that some media is *different* based upon the region.  I think Sega Dreamcast media is a good example of this.  There's no "1 solution fits all" I suppose, so I have added the ability for the user to create their own fallback list based upon the available ScreenScraper regions.
