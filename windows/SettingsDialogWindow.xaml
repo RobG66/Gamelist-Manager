@@ -109,7 +109,7 @@
                         <TextBlock Foreground="Black" Text="Default Volume:" VerticalAlignment="Center"/>
                         <Slider x:Name="sliderVolumeSetting" Minimum="0" Maximum="100" Width="100" Margin="5,0,0,0"
                                 PreviewMouseDown="sliderVolumeSetting_PreviewMouseDown"
-                                Style="{StaticResource CustomSlider1}"/>
+                                Style="{StaticResource CustomSlider}"/>
                     </StackPanel>
                 </GroupBox>
 
@@ -143,44 +143,47 @@
                         <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Content="Marquee:" />
                         <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" VerticalAlignment="Center" Tag="marquee" />
 
-                        <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Thumbnail:" />
-                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_thumbnail" VerticalAlignment="Center" Tag="thumbnail" />
+                        <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Wheel:" />
+                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_wheel" VerticalAlignment="Center" Tag="wheel" />
 
-                        <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Cartridge:" />
-                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_cartridge" VerticalAlignment="Center" Tag="cartridge" />
+                        <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Thumbnail:" />
+                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_thumbnail" VerticalAlignment="Center" Tag="thumbnail" />
 
-                        <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Content="Video:" />
-                        <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_video" VerticalAlignment="Center" Tag="video" />
+                        <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Content="Cartridge:" />
+                        <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_cartridge" VerticalAlignment="Center" Tag="cartridge" />
 
-                        <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Content="Music:" />
-                        <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_music" VerticalAlignment="Center" Tag="music" />
+                        <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Content="Video:" />
+                        <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_video" VerticalAlignment="Center" Tag="video" />
 
-                        <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Map:" />
-                        <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_map" VerticalAlignment="Center" Tag="map" />
+                        <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Music:" />
+                        <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_music" VerticalAlignment="Center" Tag="music" />
 
-                        <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Bezel:" />
-                        <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_bezel" VerticalAlignment="Center" Tag="bezel" />
-
+                        <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Map:" />
+                        <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_map" VerticalAlignment="Center" Tag="map" />
+                      
                         <!-- Column 2 -->
-                        <Label Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="Manual:" />
-                        <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_manual" VerticalAlignment="Center" Tag="manual" />
+                        <Label Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="Bezel:" />
+                        <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_bezel" VerticalAlignment="Center" Tag="bezel" />
 
-                        <Label Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="Fanart:" />
-                        <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_fanart" VerticalAlignment="Center" Tag="fanart" />
+                        <Label Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="Manual:" />
+                        <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_manual" VerticalAlignment="Center" Tag="manual" />
 
-                        <Label Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Content="Boxart:" />
-                        <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_boxart" VerticalAlignment="Center" Tag="boxart" />
+                        <Label Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Content="Fanart:" />
+                        <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_fanart" VerticalAlignment="Center" Tag="fanart" />
 
-                        <Label Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Content="Boxback:" />
-                        <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxback" VerticalAlignment="Center" Tag="boxback" />
+                        <Label Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Content="Boxart:" />
+                        <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxart" VerticalAlignment="Center" Tag="boxart" />
 
-                        <Label Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Content="Magazine:" />
-                        <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_magazine" VerticalAlignment="Center" Tag="magazine" />
+                        <Label Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Content="Boxback:" />
+                        <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_boxback" VerticalAlignment="Center" Tag="boxback" />
 
-                        <Label Grid.Row="5" Grid.Column="2" VerticalAlignment="Center" Content="Mix:" />
-                        <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_mix" VerticalAlignment="Center" Tag="mix" />
+                        <Label Grid.Row="5" Grid.Column="2" VerticalAlignment="Center" Content="Magazine:" />
+                        <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_magazine" VerticalAlignment="Center" Tag="magazine" />
 
-                        <Button Grid.Row="8" Grid.Column="3" VerticalAlignment="Center" Grid.ColumnSpan="2"
+                        <Label Grid.Row="6" Grid.Column="2" VerticalAlignment="Center" Content="Mix:" />
+                        <TextBox Grid.Row="6" Grid.Column="3" x:Name="textBox_mix" VerticalAlignment="Center" Tag="mix" />
+
+                        <Button Grid.Row="7" Grid.Column="3" VerticalAlignment="Center" Grid.ColumnSpan="2"
                                 Content="Reset Folder Paths"
                                 Style="{StaticResource GreyRoundedButton}"
                                 Width="100" Height="20" Click="button_Reset_Click"

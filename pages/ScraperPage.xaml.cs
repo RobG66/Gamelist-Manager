@@ -433,9 +433,11 @@ namespace GamelistManager.pages
             SharedData.DataSet.AcceptChanges();
             SharedData.ChangeTracker!.EndBulkOperation();
 
-            stackPanel_ScraperSelector.IsEnabled = true;
-            stackPanel_OverwriteOptions.IsEnabled = true;
-            stackPanel_ScraperSettings.IsEnabled = true;
+            groupBox_Scraper.IsEnabled = true;
+            groupBox_ScraperSettings.IsEnabled = true;
+            groupBox_OverwriteOptions.IsEnabled = true;
+            groupBox_ScrapeMode.IsEnabled = true;
+
             stackPanel_AllScraperCheckboxes.IsEnabled = true;
             UpdateCacheCount(_currentScraper, SharedData.CurrentSystem);
 
@@ -458,9 +460,11 @@ namespace GamelistManager.pages
             // Local Disables
             button_Start.IsEnabled = false;
             button_Stop.IsEnabled = false; // only enabled when the jobs start
-            stackPanel_ScraperSelector.IsEnabled = false;
-            stackPanel_OverwriteOptions.IsEnabled = false;
-            stackPanel_ScraperSettings.IsEnabled = false;
+
+            groupBox_Scraper.IsEnabled = false;
+            groupBox_ScraperSettings.IsEnabled = false;
+            groupBox_OverwriteOptions.IsEnabled = false;
+            groupBox_ScrapeMode.IsEnabled = false;
             stackPanel_ScraperButtons.IsEnabled = false;
             stackPanel_AllScraperCheckboxes.IsEnabled = false;
 
@@ -495,7 +499,7 @@ namespace GamelistManager.pages
             }
 
             // Create bool values based on gui element state
-            bool scrapeAll = button_AllOrSelected.Content.ToString() == "All Items";
+            bool scrapeAll = radioButton_ScrapeAll.IsChecked == true;
             bool scrapeHidden = checkBox_ScrapeHidden.IsChecked == true;
 
             // All or selected based on scrapeAll bool
@@ -536,8 +540,8 @@ namespace GamelistManager.pages
             }
 
             int maxConcurrency = 1;
-            string region = string.Empty;
-            string language = string.Empty;
+            List<string> ssRegions = new();
+            string ssLanguage = string.Empty;
             string userName = string.Empty;
             string userPassword = string.Empty;
             string userAccessToken = string.Empty;
@@ -547,6 +551,7 @@ namespace GamelistManager.pages
             bool overWriteMetadata = checkBox_OverwriteMetadata.IsChecked == true ? true : false;
             bool overWriteMedia = checkBox_OverwriteMedia.IsChecked == true ? true : false;
             bool englishGenreOnly = Properties.Settings.Default.ScrapeEnglishGenreOnly; // ScreenScraper Specific
+            bool scrapeAnyMedia = Properties.Settings.Default.ScrapeAnyMedia; // ScreenScraper Specific
 
             string cacheFolder = $"{SharedData.ProgramDirectory}\\cache\\{_currentScraper}\\{SharedData.CurrentSystem}";
             if (!Directory.Exists(cacheFolder))
@@ -650,43 +655,61 @@ namespace GamelistManager.pages
 
                     string pattern = @"\((.*?)\)";
 
-                    string regionValue = Properties.Settings.Default.Region;
+                    string primaryRegion = Properties.Settings.Default.Region;
+                    string primaryRegionCode = "us";
 
-                    if (!string.IsNullOrEmpty(regionValue))
+                    if (!string.IsNullOrEmpty(primaryRegion))
                     {
-                        Match match = Regex.Match(regionValue, pattern);
+                        // This regex captures whatever is inside (...)
+                        var match = Regex.Match(primaryRegion, @"\((.*?)\)");
                         if (match.Success)
                         {
-                            region = match.Groups[1].Value;
+                            primaryRegionCode = match.Groups[1].Value;
                         }
-                        else
+                    }
+                                        
+                    string jsonFallbackRegions = Properties.Settings.Default.Region_Fallback;
+                    var fallbackRegions = JsonSerializer.Deserialize<List<string>>(jsonFallbackRegions) ?? new List<string>();
+
+                    // Extract the values inside parentheses
+                    foreach (var item in fallbackRegions)
+                    {
+                        var match = Regex.Match(item, @"\((.*?)\)");
+                        if (match.Success)
                         {
-                            region = "us";
+                            ssRegions.Add(match.Groups[1].Value);
                         }
                     }
 
-                    await Logger.Instance.LogAsync($"Region: {region}", System.Windows.Media.Brushes.Blue);
+                    await Logger.Instance.LogAsync($"Region: {primaryRegionCode}", System.Windows.Media.Brushes.Blue);
+                    await Logger.Instance.LogAsync(
+                        $"Region Fallback: {string.Join(", ", ssRegions)}",
+                        System.Windows.Media.Brushes.Blue
+                        );
 
-                    language = Properties.Settings.Default.Language;
+                    // Always add primary region as first item
+                    ssRegions.Insert(0,primaryRegionCode);
+
+                    string language = Properties.Settings.Default.Language;
 
                     if (!string.IsNullOrEmpty(language))
                     {
                         Match match = Regex.Match(language, pattern);
                         if (match.Success)
                         {
-                            language = match.Groups[1].Value;
+                            ssLanguage = match.Groups[1].Value;
                         }
                         else
                         {
-                            language = "en";
+                            ssLanguage = "en";
                         }
                     }
                     else
                     {
-                        language = "en";
+                        ssLanguage = "en";
                     }
 
-                    await Logger.Instance.LogAsync($"Language : {language}", System.Windows.Media.Brushes.Blue);
+                    await Logger.Instance.LogAsync($"Language : {ssLanguage}", System.Windows.Media.Brushes.Blue);
                     break;
             }
             ;
@@ -698,11 +721,18 @@ namespace GamelistManager.pages
             string cartridgeSource = string.Empty;
             string videoSource = string.Empty;
             string thumbnailSource = string.Empty;
+            string wheelSource = string.Empty;
 
             allSections.TryGetValue("ImageSource", out section);
             if (section != null)
             {
                 section?.TryGetValue(comboBox_imageSource.Text, out imageSource!);
+            }
+
+            allSections.TryGetValue("WheelSource", out section);
+            if (section != null)
+            {
+                section?.TryGetValue(comboBox_wheelSource.Text, out wheelSource!);
             }
 
             allSections.TryGetValue("ThumbnailSource", out section);
@@ -767,11 +797,13 @@ namespace GamelistManager.pages
             baseScraperParameters.UserID = userName;
             baseScraperParameters.UserPassword = userPassword;
             baseScraperParameters.ParentFolderPath = parentFolderPath;
-            baseScraperParameters.Language = language;
+            baseScraperParameters.SSLanguage = ssLanguage;
             baseScraperParameters.ScrapeEnglishGenreOnly = englishGenreOnly;
-            baseScraperParameters.Region = region;
+            baseScraperParameters.ScrapeAnyMedia = scrapeAnyMedia;
+            baseScraperParameters.SSRegions = ssRegions;
             baseScraperParameters.ImageSource = imageSource;
             baseScraperParameters.ThumbnailSource = thumbnailSource;
+            baseScraperParameters.WheelSource = wheelSource;
             baseScraperParameters.BoxartSource = boxartSource;
             baseScraperParameters.MarqueeSource = marqueeSource;
             baseScraperParameters.CartridgeSource = cartridgeSource;
@@ -855,7 +887,69 @@ namespace GamelistManager.pages
                                 scraperParameters.GameID = gameID;
                                 scraperParameters.Name = gameName;
 
-                                scraperParameters.ArcadeName = mameNames.TryGetValue(romFileNameNoExtension, out string? arcadeName) ? arcadeName : null;
+                                // Determine MAME arcade name for region/language scraping
+                                string? mameArcadeName = mameNames.TryGetValue(romFileNameNoExtension, out string? arcadeName) ? arcadeName : string.Empty;
+                                if (scraperParameters.ElementsToScrape!.Contains("region"))
+                                {
+                                    string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
+                                    string romRegion = RegionLanguageHelper.GetRegion(nameValue);
+                                    rowView.Row["Region"] = romRegion;
+                                }
+                                if (scraperParameters.ElementsToScrape.Contains("lang"))
+                                {
+                                    string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
+                                    string romLanguage = RegionLanguageHelper.GetLanguage(nameValue);
+                                    rowView.Row["Language"] = romLanguage;
+                                }
+
+
+                                var itemsToScrape = new List<string>(baseScraperParameters.ElementsToScrape);
+                                var itemsToRemove = new List<string>();
+
+                                // Always remove region and lang from the list, these are handled internally below
+                                itemsToScrape.Remove("region");
+                                itemsToScrape.Remove("lang");
+
+                                // Check if we need to skip items based on current value and overwrite settings
+                                foreach (var item in itemsToScrape!)
+                                {
+                                    string columnName = GamelistMetaData.GetMetadataNameByType(item);
+                                    var itemValue = rowView.Row[columnName];
+                                    if (itemValue == null || itemValue == DBNull.Value || string.IsNullOrEmpty(itemValue.ToString()))
+                                    {
+                                        continue;
+                                    }
+
+                                    string metaDataType = GamelistMetaData.GetMetadataDataTypeByType(item);
+                                   
+                                    // Skip text metadata if overwrite is disabled
+                                    if (!overWriteMetadata && metaDataType == "String")
+                                    {
+                                        itemsToRemove.Add(item);
+                                        continue;
+                                    }
+
+                                    // Skip media (image or document) if overwrite is disabled
+                                    if (!overWriteMedia && (metaDataType == "Image" || metaDataType == "Document" || metaDataType == "Video"))
+                                    {
+                                        itemsToRemove.Add(item);
+                                        continue;
+                                    }
+                                }
+
+                                // remove after iterating
+                                foreach (var item in itemsToRemove)
+                                {
+                                    itemsToScrape.Remove(item);
+                                }
+
+                                if (itemsToScrape.Count == 0)
+                                {
+                                    await Logger.Instance.LogAsync($"Skipping '{romFileNameWithExtension}', nothing to scrape", System.Windows.Media.Brushes.Orange);
+                                    return;
+                                }
+
+                                scraperParameters.ElementsToScrape = itemsToScrape;
 
                                 bool scrapeResult = false;
                                 await Logger.Instance.LogAsync($"Scraping {romFileNameWithExtension}", System.Windows.Media.Brushes.Green);
@@ -1119,14 +1213,7 @@ namespace GamelistManager.pages
 
             });
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            button_AllOrSelected.Content = button_AllOrSelected.Content.ToString() == "Selected Items"
-            ? "All Items"
-            : "Selected Items";
-        }
-
+               
         private void button_ResetSources_Click(object sender, RoutedEventArgs e)
         {
             var allComboBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<ComboBox>(stackPanel_AllScraperCheckboxes).ToList();

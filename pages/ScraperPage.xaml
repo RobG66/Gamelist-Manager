@@ -16,37 +16,53 @@
         </Grid.ColumnDefinitions>
 
 
-        <StackPanel Grid.Column="0" x:Name="LeftMainGrid" Width="260" HorizontalAlignment="Left">
+        <StackPanel Grid.Column="0" x:Name="LeftMainGrid" Width="285" HorizontalAlignment="Left">
             <!-- Logo -->
             <Image x:Name="MainLogo" Height="37" Width="Auto" Source="/Resources/scraperlogo2.png"/>
 
-            <!-- Scraper Selection -->
-            <GroupBox Header="Scraper Selection" Margin="5,0,5,0">
-                <StackPanel x:Name="stackPanel_ScraperSelector" Orientation="Horizontal" Margin="2">
-                    <ComboBox x:Name="comboBox_SelectedScraper" Width="125" Height="22" Margin="10,0,0,0"
+            <!-- Scraper + Scrape Mode -->
+            <Grid Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Scraper fixed -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Scrape Mode stretches -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Scraper Selection -->
+                <GroupBox x:Name="groupBox_Scraper" Header="Scraper" Margin="5,0" Width="135" Grid.Column="0">
+                    <ComboBox x:Name="comboBox_SelectedScraper" Width="110" Height="22" Margin="5"
                       VerticalAlignment="Center" SelectionChanged="comboBox_SelectedScraper_SelectionChanged">
                         <ComboBoxItem Content="ArcadeDB"/>
                         <ComboBoxItem Content="EmuMovies"/>
                         <ComboBoxItem Content="ScreenScraper"/>
                     </ComboBox>
+                </GroupBox>
 
-                    <Button x:Name="button_AllOrSelected" Width="75" Height="20" Margin="15,0,0,0"
-                    Content="Selected Items" Style="{StaticResource GreyRoundedButton}" 
-                    VerticalAlignment="Center" Click="Button_Click"/>
-                </StackPanel>
-            </GroupBox>
+                <!-- Filter Selection -->
+                <GroupBox x:Name="groupBox_ScrapeMode" Header="Scrape Mode" Margin="5,0,5,0" Grid.Column="1">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <RadioButton x:Name="radioButton_ScrapeAll" IsChecked="True"
+                             Style="{StaticResource CustomRadioButton}" 
+                             FontWeight="Normal" Content="All" Margin="5,0"/>
+                        <RadioButton x:Name="radioButton_ScrapeSelected" 
+                             Style="{StaticResource CustomRadioButton}" 
+                             FontWeight="Normal" Content="Selected" Margin="5,0"/>
+                    </StackPanel>
+                </GroupBox>
+            </Grid>
 
             <!-- Overwrite Options -->
-            <GroupBox Header="Overwrite Options" Margin="5,0,5,0">
+            <GroupBox x:Name="groupBox_OverwriteOptions" Header="Overwrite Options" Margin="5,0,5,0">
                 <StackPanel x:Name="stackPanel_OverwriteOptions" Orientation="Horizontal" Margin="5">
                     <CheckBox Content="Name" x:Name="checkBox_OverwriteNames" Margin="5,0,0,0" IsChecked="True"/>
-                    <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" Margin="5,0,0,0"/>
-                    <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" Margin="5,0,0,0"/>
+                    <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" Margin="30,0,0,0"/>
+                    <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" Margin="30,0,0,0"/>
                 </StackPanel>
             </GroupBox>
 
             <!-- Scraper Settings -->
-            <GroupBox Header="Scraper Settings" Margin="5,0,5,0">
+            <GroupBox x:Name="groupBox_ScraperSettings" Header="Scraper Settings" Margin="5,0,5,0">
                 <StackPanel x:Name="stackPanel_ScraperSettings" Margin="5">
                     <CheckBox x:Name="checkBox_ScrapeFromCache" Content="Scrape from cache first (if available)" 
                       Checked="checkBox_ScrapeFromCache_Checked" Unchecked="checkBox_ScrapeFromCache_Unchecked"/>
@@ -56,21 +72,14 @@
             </GroupBox>
 
             <!-- Control Buttons -->
-            <StackPanel Orientation="Horizontal" Margin="0,5,0,0" HorizontalAlignment="Center">
-                <Button x:Name="button_Start" Width="40" Height="20" Content="Start" 
-                Style="{StaticResource GreenRoundedButton}" Click="button_Start_Click"/>
-                <Button x:Name="button_Stop" Width="40" Height="20" Margin="10,0,10,0" Content="Stop" 
-                Style="{StaticResource RedRoundedButton}" IsEnabled="False" Click="button_Stop_Click"/>
+            <StackPanel Orientation="Horizontal" Margin="0,3,0,0" HorizontalAlignment="Center">
+                <Button x:Name="button_Start" Width="40" Height="20" Content="Start" Style="{StaticResource GreenRoundedButton}" Click="button_Start_Click"/>
+                <Button x:Name="button_Stop" Width="40" Height="20" Margin="10,0,10,0" Content="Stop" Style="{StaticResource RedRoundedButton}" IsEnabled="False" Click="button_Stop_Click"/>
                 <StackPanel x:Name="stackPanel_ScraperButtons" Orientation="Horizontal">
-                    <Button x:Name="button_Setup" Width="40" Height="20" Content="Setup" 
-                    Style="{StaticResource YellowRoundedButton}" IsEnabled="False" Click="button_Setup_Click"/>
-                    <Button x:Name="button_ClearCache" Width="70" Height="20" Margin="10,0,0,0" 
-                    Content="Clear Cache" Style="{StaticResource GreyRoundedButton}" 
-                    IsEnabled="False" Click="button_ClearCache_Click"/>
+                    <Button x:Name="button_Setup" Width="40" Height="20" Content="Setup" Style="{StaticResource YellowRoundedButton}" IsEnabled="False" Click="button_Setup_Click"/>
+                    <Button x:Name="button_ClearCache" Width="70" Height="20" Margin="10,0,0,0" Content="Clear Cache" Style="{StaticResource GreyRoundedButton}" IsEnabled="False" Click="button_ClearCache_Click"/>
                 </StackPanel>
             </StackPanel>
-
-            <!-- Cache Info -->
         </StackPanel>
 
         <!-- Left Main Grid -->
@@ -105,7 +114,7 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="10,2,0,0">
                                     <CheckBox x:Name="checkBox_lang" Tag="lang" Content="Language" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_releasedate" Tag="releasedate" Content="Released" Margin="3,3,3,4"/>
+                                    <CheckBox x:Name="checkBox_releasedate" Tag="releasedate" Content="Release Date" Margin="3,3,3,4"/>
                                     <CheckBox x:Name="checkBox_developer" Tag="developer" Content="Developer" Margin="3,3,3,4"/>
                                     <CheckBox x:Name="checkBox_publisher" Tag="publisher" Content="Publisher" Margin="3,3,3,4"/>
                                     <CheckBox x:Name="checkBox_arcadesystemname" Tag="arcadesystemname"  Content="Arcade Name" Margin="3,3,3,4"/>
@@ -140,6 +149,8 @@
                                         <CheckBox x:Name="checkBox_Bezel" Tag="bezel" Content="Bezel" Margin="3,3,3,4"/>
                                         <CheckBox x:Name="checkBox_Fanart" Tag="fanart" Content="Fanart" Margin="3,3,3,4"/>
                                         <CheckBox x:Name="checkBox_Boxback" Tag="boxback" Content="Boxback" Margin="3,3,3,4"/>
+                                        <CheckBox x:Name="checkBox_music" Tag="music" Content="Music" Margin="3,3,3,4"/>
+
                                     </StackPanel>
                                     <Grid Grid.Column="1" Margin="10,0,0,0">
                                         <Grid.RowDefinitions>
@@ -162,19 +173,21 @@
                                         <CheckBox Grid.Row="3" Grid.Column="0" x:Name="checkBox_cartridge" Tag="cartridge" Content="Cartridge" Margin="3,0,0,3" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Row="4" Grid.Column="0" x:Name="checkBox_video" Tag="video" Content="Video" Margin="3,0,0,3" VerticalAlignment="Center"/>
                                         <CheckBox Grid.Row="5" Grid.Column="0" x:Name="checkBox_boxart" Tag="boxart" Content="Boxart" Margin="3,0,0,3" VerticalAlignment="Center" />
-                                        <CheckBox Grid.Row="6" Grid.Column="0" x:Name="checkBox_music" Tag="music" Content="Music" Margin="3,0,0,3" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Row="6" Grid.Column="0" x:Name="checkBox_wheel" Tag="wheel" Content="Wheel" Margin="3,0,0,3" VerticalAlignment="Center" />
                                         <Image Grid.Row="0" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
                                         <Image Grid.Row="1" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
                                         <Image Grid.Row="2" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
                                         <Image Grid.Row="3" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
                                         <Image Grid.Row="4" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
                                         <Image Grid.Row="5" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
+                                        <Image Grid.Row="6" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
                                         <ComboBox Grid.Row="0" Grid.Column="2" x:Name="comboBox_imageSource" Tag="ImageSource" VerticalAlignment="Center" Width="110" HorizontalAlignment="Left" Height="22" Margin="0,0,5,0"/>
                                         <ComboBox Grid.Row="1" Grid.Column="2" x:Name="comboBox_marqueeSource" Tag="MarqueeSource" VerticalAlignment="Center" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
                                         <ComboBox Grid.Row="2" Grid.Column="2" x:Name="comboBox_thumbnailSource" Tag="ThumbnailSource" VerticalAlignment="Center" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
                                         <ComboBox Grid.Row="3" Grid.Column="2" x:Name="comboBox_cartridgeSource" Tag="CartridgeSource" VerticalAlignment="Center" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
                                         <ComboBox Grid.Row="4" Grid.Column="2" x:Name="comboBox_videoSource" Tag="VideoSource" VerticalAlignment="Top" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
                                         <ComboBox Grid.Row="5" Grid.Column="2" x:Name="comboBox_boxartSource" Tag="BoxartSource" VerticalAlignment="Center" HorizontalAlignment="Center" Width="110" Height="22" Margin="0,0,5,0"/>
+                                        <ComboBox Grid.Row="6" Grid.Column="2" x:Name="comboBox_wheelSource" Tag="WheelSource" VerticalAlignment="Center" HorizontalAlignment="Center" Width="110" Height="22" Margin="0,0,5,0"/>
                                     </Grid>
                                 </Grid>
                             </StackPanel>
@@ -213,7 +226,7 @@
                 </Grid>
             </Grid>
         </Grid>
-        <Border Grid.Column="3" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,0">
+        <Border Grid.Column="2" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,0">
             <Grid Width="Auto" Height="Auto">
 
 

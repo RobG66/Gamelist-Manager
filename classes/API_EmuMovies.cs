@@ -42,6 +42,10 @@ namespace GamelistManager.classes
                         await DownloadFile(rowView, "boxart", "Boxart", scraperParameters.BoxartSource!, scraperParameters, mediaLists);
                         break;
 
+                    case "wheel":
+                        await DownloadFile(rowView, "wheel", "Wheel", scraperParameters.WheelSource!, scraperParameters, mediaLists);
+                        break;
+
                     case "manual":
                         await DownloadFile(rowView, "manual", "Manual", "Manual", scraperParameters, mediaLists);
                         break;

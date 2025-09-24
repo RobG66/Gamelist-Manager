@@ -1,17 +1,141 @@
 ﻿using GamelistManager.classes;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace GamelistManager
 {
-
     public partial class ScraperCredentialWindow : Window
     {
-        string currentScraper;
+        private string currentScraper;
+
+        private ObservableCollection<string> AvailableRegions;
+        private ObservableCollection<string> SelectedRegions;
+
+        private string iniPath = $"{SharedData.ProgramDirectory}\\ini\\screenscraper_options.ini";
+
+        private Dictionary<string, string> regions = new Dictionary<string, string>();
+        private Dictionary<string, string> languages = new Dictionary<string, string>();
+
+        // Default JSON fallback string
+        private static readonly string DefaultJsonFallback =
+            "[\"USA (us)\",\"ScreenScraper (ss)\",\"Europe (eu)\",\"United Kingdom (uk)\",\"World (wor)\"]";
+
+
         public ScraperCredentialWindow(string scraper)
         {
             InitializeComponent();
             currentScraper = scraper;
+
+            if (currentScraper == "ScreenScraper")
+            {
+                // Only load regions/languages and initialize collections for ScreenScraper
+                regions = IniFileReader.GetSection(iniPath, "Regions");
+                languages = IniFileReader.GetSection(iniPath, "Languages");
+
+                AvailableRegions = new ObservableCollection<string>();
+                SelectedRegions = new ObservableCollection<string>();
+
+                listBoxAvailableRegions.ItemsSource = AvailableRegions;
+                listBoxSelectedRegions.ItemsSource = SelectedRegions;
+
+                var view = CollectionViewSource.GetDefaultView(AvailableRegions);
+                view.SortDescriptions.Add(new SortDescription("", ListSortDirection.Ascending));
+
+                SetupForScreenScraper();
+                stackPanel_ScreenScraperOptions.Visibility = Visibility.Visible;
+
+            }
+            else
+            {
+                stackPanel_ScreenScraperOptions.Visibility = Visibility.Collapsed;
+            }
+
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            string userName, userPassword;
+            (userName, userPassword) = CredentialManager.GetCredentials(currentScraper);
+
+            textBox_UserID.Text = userName;
+            textBox_Password.Text = userPassword;
+            button_Save.IsEnabled = false;
+            this.Title = $"{currentScraper} Credential Setup";
+
+        }
+
+        private void SetupForScreenScraper()
+        {
+            comboBox_Region.ItemsSource = regions.Keys;
+            comboBox_Language.ItemsSource = languages.Keys;
+
+            string language = Properties.Settings.Default.Language;
+            string region = Properties.Settings.Default.Region;
+
+            comboBox_Language.Text = (!string.IsNullOrEmpty(language) && languages.ContainsKey(language))
+                ? language
+                : (languages.Count > 0 ? languages.Keys.First() : "");
+
+            comboBox_Region.Text = (!string.IsNullOrEmpty(region) && regions.ContainsKey(region))
+                ? region
+                : (regions.Count > 0 ? regions.Keys.First() : "");
+
+            checkBox_GenreAlwaysEnglish.IsChecked = Properties.Settings.Default.ScrapeEnglishGenreOnly;
+
+            checkBox_ScrapeAnyMedia.IsChecked = Properties.Settings.Default.ScrapeAnyMedia;
+
+
+            LoadListboxes();
+
+            // Remove primary region from fallback list if present
+            var fallbackList = SelectedRegions.ToList();
+            if (fallbackList.Contains(region) && !string.IsNullOrEmpty(region))
+            {
+                fallbackList.Remove(region);
+            }
+        }
+
+        private void LoadListboxes()
+        {
+            AvailableRegions.Clear();
+            SelectedRegions.Clear();
+
+            foreach (var regionCode in regions.Keys)
+                AvailableRegions.Add(regionCode);
+
+            List<string> fallbackList;
+
+            string jsonString = Properties.Settings.Default.Region_Fallback;
+
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                // Use default JSON string if nothing in settings
+                jsonString = DefaultJsonFallback;
+            }
+
+            try
+            {
+                fallbackList = JsonSerializer.Deserialize<List<string>>(jsonString) ?? new List<string>();
+            }
+            catch
+            {
+                // Fallback in case JSON is invalid
+                fallbackList = JsonSerializer.Deserialize<List<string>>(DefaultJsonFallback) ?? new List<string>();
+            }
+
+            // Move fallback regions to SelectedRegions in order
+            foreach (var regionCode in fallbackList)
+            {
+                if (AvailableRegions.Contains(regionCode))
+                {
+                    AvailableRegions.Remove(regionCode);
+                    SelectedRegions.Add(regionCode);
+                }
+            }
         }
 
         private void textBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -20,67 +144,83 @@ namespace GamelistManager
             button_Save.IsEnabled = true;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string userName = string.Empty;
-            string userPassword = string.Empty;
-            (userName, userPassword) = CredentialManager.GetCredentials(currentScraper);
-
-
-            textBox_UserID.Text = userName;
-            textBox_Password.Text = userPassword;
-            button_Save.IsEnabled = false;
-            this.Title = $"{currentScraper} Credential Setup";
-
-            if (currentScraper == "ScreenScraper")
-            {
-                SetupForScreenScraper();
-                stackPanel_ScreenScraperOptions.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                stackPanel_ScreenScraperOptions.Visibility = Visibility.Collapsed; ;
-            }
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
         }
 
-        private void SetupForScreenScraper()
+        private void checkBox_Checked(object sender, RoutedEventArgs e)
         {
-            var regions = IniFileReader.GetSection($"{SharedData.ProgramDirectory}\\ini\\screenscraper_options.ini", "Regions");
-            var languages = IniFileReader.GetSection($"{SharedData.ProgramDirectory}\\ini\\screenscraper_options.ini", "Languages");
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
+        }
 
-            comboBox_Region.ItemsSource = regions.Keys;
-            comboBox_Language.ItemsSource = languages.Keys;
-
-            string language = Properties.Settings.Default.Language;
-            string region = Properties.Settings.Default.Region;
-
-            if (!string.IsNullOrEmpty(language) && languages.ContainsKey(language))
+        private void Button_Add_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = listBoxAvailableRegions.SelectedItems.Cast<string>().ToList();
+            foreach (var region in selected)
             {
-                comboBox_Language.Text = language;
-            }
-            else
-            {
-                comboBox_Language.SelectedIndex = 0;
+                AvailableRegions.Remove(region);
+                SelectedRegions.Add(region);
             }
 
-            if (!string.IsNullOrEmpty(region) && regions.ContainsKey(region))
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
+        }
+
+        private void Button_Remove_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = listBoxSelectedRegions.SelectedItems.Cast<string>().ToList();
+            foreach (var region in selected)
             {
-                comboBox_Region.Text = region;
+                SelectedRegions.Remove(region);
+                AvailableRegions.Add(region);
             }
-            else
+            
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
+        }
+
+        private void Button_Up_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = listBoxSelectedRegions.SelectedItems.Cast<string>().ToList();
+            foreach (var region in selected)
             {
-                comboBox_Region.SelectedIndex = 0;
+                int index = SelectedRegions.IndexOf(region);
+                if (index > 0)
+                    SelectedRegions.Move(index, index - 1);
             }
 
-            bool scrapeEnglishGenreOnly = Properties.Settings.Default.ScrapeEnglishGenreOnly == true ? true : false;
-            checkBox_GenreAlwaysEnglish.IsChecked = scrapeEnglishGenreOnly;
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
 
         }
 
-        private void Button_Close_Click(object sender, RoutedEventArgs e)
+        private void Button_Down_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            var selected = listBoxSelectedRegions.SelectedItems.Cast<string>().Reverse().ToList();
+            foreach (var region in selected)
+            {
+                int index = SelectedRegions.IndexOf(region);
+                if (index < SelectedRegions.Count - 1)
+                    SelectedRegions.Move(index, index + 1);
+            }
+
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
         }
+
+        private void Button_Reset_Click(object sender, RoutedEventArgs e)
+        {
+            // Reset to default fallback
+            Properties.Settings.Default.Region_Fallback = DefaultJsonFallback;
+            LoadListboxes();
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
+        }
+
+        private void Button_Close_Click(object sender, RoutedEventArgs e) => Close();
 
         private void Button_Save_Click(object sender, RoutedEventArgs e)
         {
@@ -95,32 +235,32 @@ namespace GamelistManager
 
             if (currentScraper == "ScreenScraper")
             {
-                string region = comboBox_Region.Text;
+                string primaryRegion = comboBox_Region.Text;
                 string language = comboBox_Language.Text;
-                bool scrapeEnglishGenreOnly = checkBox_GenreAlwaysEnglish.IsChecked == true ? true : false;
+                bool scrapeEnglishGenreOnly = checkBox_GenreAlwaysEnglish.IsChecked == true;
+                bool scrapeAnyMedia = checkBox_ScrapeAnyMedia.IsChecked == true;
 
-                Properties.Settings.Default.Region = region;
+                Properties.Settings.Default.Region = primaryRegion;
                 Properties.Settings.Default.Language = language;
                 Properties.Settings.Default.ScrapeEnglishGenreOnly = scrapeEnglishGenreOnly;
-                Properties.Settings.Default.Save();
+                Properties.Settings.Default.ScrapeAnyMedia = scrapeAnyMedia;
+
+                // Build JSON fallback: primary first
+                var fallbackList = SelectedRegions.ToList();
+                if (fallbackList.Contains(primaryRegion) && !string.IsNullOrEmpty(primaryRegion))
+                {
+                    fallbackList.Remove(primaryRegion);
+                }
+
+                string jsonFallback = JsonSerializer.Serialize(fallbackList);
+                Properties.Settings.Default.Region_Fallback = jsonFallback;
             }
 
-            bool result = CredentialManager.SaveCredentials(currentScraper, userID, password);
+            CredentialManager.SaveCredentials(currentScraper, userID, password);
+            Properties.Settings.Default.Save();
+
             button_Save.Content = "Saved";
             button_Save.IsEnabled = false;
         }
-
-        private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            button_Save.Content = "Save";
-            button_Save.IsEnabled = true;
-        }
-
-        private void checkBox_GenreAlwaysEnglish_Checked(object sender, RoutedEventArgs e)
-        {
-            button_Save.Content = "Save";
-            button_Save.IsEnabled = true;
-        }
     }
 }
-

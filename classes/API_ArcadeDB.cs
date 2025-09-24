@@ -88,7 +88,6 @@ namespace GamelistManager.classes
         public async Task<bool> ScrapeArcadeDBAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
 
-
             bool overwriteMetaData = scraperParameters.OverwriteMetadata;
             bool overwriteName = scraperParameters.OverwriteNames;
             if (overwriteMetaData)
@@ -101,42 +100,36 @@ namespace GamelistManager.classes
             string cacheFolder = scraperParameters.CacheFolder!;
             bool scrapeByCache = scraperParameters.ScrapeByCache;
             bool skipNonCached = scraperParameters.SkipNonCached;
-            string? arcadeName = scraperParameters.ArcadeName;
+            // string? arcadeName = scraperParameters.MameArcadeName;
             string jsonResponse = string.Empty;
             var elementsToScrape = scraperParameters.ElementsToScrape!;
 
-
-            bool scrapeRequired = elementsToScrape.Any(item => item != "region" && item != "lang");
-
-            if (scrapeRequired)
+            
+            // Scrape by cache if selected
+            if (scrapeByCache)
             {
-
-                // Scrape by cache if selected
-                if (scrapeByCache)
+                jsonResponse = ReadJsonFromCache(romName, cacheFolder);
+                if (string.IsNullOrEmpty(jsonResponse) && skipNonCached)
                 {
-                    jsonResponse = ReadJsonFromCache(romName, cacheFolder);
-                    if (string.IsNullOrEmpty(jsonResponse) && skipNonCached)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
+            }
 
-                // Scrape from website or if there was no cache file
+            // Scrape from website or if there was no cache file
+            if (string.IsNullOrEmpty(jsonResponse))
+            {
+                string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
+                jsonResponse = await ScrapeGame(url);
+
                 if (string.IsNullOrEmpty(jsonResponse))
                 {
-                    string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
-                    jsonResponse = await ScrapeGame(url);
-
-                    if (string.IsNullOrEmpty(jsonResponse))
-                    {
-                        return false; // Scrape failed
-                    }
-
-                    // Save json response to cache
-                    SaveJsonStringToCacheFile(jsonResponse, cacheFolder, romName);
+                    return false; // Scrape failed
                 }
 
+                // Save json response to cache
+                SaveJsonStringToCacheFile(jsonResponse, cacheFolder, romName);
             }
+                        
 
             string downloadURL = string.Empty;
 
@@ -182,6 +175,7 @@ namespace GamelistManager.classes
                         UpdateMetadata(rowView, "Genre", genre, overwriteMetaData);
                         break;
 
+                    /* This code has been moved inline to the scraper page
                     case "region":
                         string name1 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romName;
                         string region = RegionLanguageHelper.GetRegion(name1);
@@ -193,7 +187,7 @@ namespace GamelistManager.classes
                         string languages = RegionLanguageHelper.GetLanguage(name2);
                         UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
                         break;
-
+                    */
 
                     case "releasedate":
                         string releasedate = GetJsonElementValue(jsonResponse, "year");

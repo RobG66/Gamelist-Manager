@@ -6,13 +6,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <UseWindowsForms>False</UseWindowsForms>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>resources\icon.ico</ApplicationIcon>
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>8.01</FileVersion>
+    <FileVersion>8.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -77,14 +78,24 @@
     <None Remove="resources\backgroundtech1.jpg" />
     <None Remove="resources\backgroundtech2.jpg" />
     <None Remove="resources\bbc.png" />
+    <None Remove="resources\buttons\bluedown.png" />
+    <None Remove="resources\buttons\blueleft.png" />
+    <None Remove="resources\buttons\blueright.png" />
+    <None Remove="resources\buttons\blueup.png" />
+    <None Remove="resources\buttons\down.png" />
     <None Remove="resources\buttons\filter1.png" />
     <None Remove="resources\buttons\glossybutton.png" />
+    <None Remove="resources\buttons\left.png" />
     <None Remove="resources\buttons\next.png" />
     <None Remove="resources\buttons\pause.png" />
     <None Remove="resources\buttons\play.png" />
     <None Remove="resources\buttons\previous.png" />
+    <None Remove="resources\buttons\redreset.png" />
+    <None Remove="resources\buttons\right.png" />
     <None Remove="resources\buttons\stop.png" />
+    <None Remove="resources\buttons\up.png" />
     <None Remove="resources\buttons\x-button.png" />
+    <None Remove="resources\buttons\yellowroundreset.png" />
     <None Remove="resources\c128.png" />
     <None Remove="resources\c20.png" />
     <None Remove="resources\c64.png" />
@@ -247,6 +258,7 @@
     <None Remove="resources\systems\3do.png" />
     <None Remove="resources\systems\3ds.png" />
     <None Remove="resources\systems\abuse.png" />
+    <None Remove="resources\systems\actinonmax.png" />
     <None Remove="resources\systems\adam.png" />
     <None Remove="resources\systems\advision.png" />
     <None Remove="resources\systems\amiga1200.png" />
@@ -287,6 +299,7 @@
     <None Remove="resources\systems\crvision.png" />
     <None Remove="resources\systems\daphne.png" />
     <None Remove="resources\systems\devilutionx.png" />
+    <None Remove="resources\systems\doom3.png" />
     <None Remove="resources\systems\dos.png" />
     <None Remove="resources\systems\dreamcast.png" />
     <None Remove="resources\systems\easyrpg.png" />
@@ -301,6 +314,7 @@
     <None Remove="resources\systems\fmtowns.png" />
     <None Remove="resources\systems\fpinball.png" />
     <None Remove="resources\systems\fury.png" />
+    <None Remove="resources\systems\gaelco.png" />
     <None Remove="resources\systems\gamate.png" />
     <None Remove="resources\systems\gameandwatch.png" />
     <None Remove="resources\systems\gamecom.png" />
@@ -321,14 +335,17 @@
     <None Remove="resources\systems\ikemen.png" />
     <None Remove="resources\systems\intellivision.png" />
     <None Remove="resources\systems\jaguar.png" />
+    <None Remove="resources\systems\jaguarcd.png" />
     <None Remove="resources\systems\laser310.png" />
     <None Remove="resources\systems\lcdgames.png" />
+    <None Remove="resources\systems\lindbergh.png" />
     <None Remove="resources\systems\lowresnx.png" />
     <None Remove="resources\systems\lutro.png" />
     <None Remove="resources\systems\lynx.png" />
     <None Remove="resources\systems\macintosh.png" />
     <None Remove="resources\systems\mame.png" />
     <None Remove="resources\systems\mastersystem.png" />
+    <None Remove="resources\systems\megacd.png" />
     <None Remove="resources\systems\megadrive.png" />
     <None Remove="resources\systems\megaduck.png" />
     <None Remove="resources\systems\model2.png" />
@@ -376,6 +393,8 @@
     <None Remove="resources\systems\pv1000.png" />
     <None Remove="resources\systems\pygame.png" />
     <None Remove="resources\systems\pyxel.png" />
+    <None Remove="resources\systems\quake.png" />
+    <None Remove="resources\systems\quake2.png" />
     <None Remove="resources\systems\raze.png" />
     <None Remove="resources\systems\samcoupe.png" />
     <None Remove="resources\systems\satellaview.png" />
@@ -399,6 +418,7 @@
     <None Remove="resources\systems\supergrafx.png" />
     <None Remove="resources\systems\supervision.png" />
     <None Remove="resources\systems\supracan.png" />
+    <None Remove="resources\systems\teknoparrot.png" />
     <None Remove="resources\systems\thomson.png" />
     <None Remove="resources\systems\ti99.png" />
     <None Remove="resources\systems\tic80.png" />
@@ -409,6 +429,7 @@
     <None Remove="resources\systems\vc4000.png" />
     <None Remove="resources\systems\vectrex.png" />
     <None Remove="resources\systems\vgmplay.png" />
+    <None Remove="resources\systems\vic20.png" />
     <None Remove="resources\systems\videopacplus.png" />
     <None Remove="resources\systems\virtualboy.png" />
     <None Remove="resources\systems\vitaquake2.png" />
@@ -473,7 +494,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.3" />
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.4" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="SSH.NET" Version="2025.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.11" />
@@ -520,10 +541,28 @@
     <Resource Include="resources\backgrounds\gears.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\buttons\bluedown.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\blueleft.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\blueright.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\blueup.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\down.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\buttons\filter1.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\buttons\glossybutton.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\left.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\buttons\next.png">
@@ -538,7 +577,16 @@
     <Resource Include="resources\buttons\previous.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\buttons\redreset.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\right.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\buttons\stop.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\buttons\up.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\buttons\x-button.png">
@@ -635,6 +683,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\abuse.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\actinonmax.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\adam.png">
@@ -757,6 +808,9 @@
     <Resource Include="resources\systems\devilutionx.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\systems\doom3.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\systems\dos.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -797,6 +851,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\fury.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\gaelco.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\gamate.png">
@@ -859,10 +916,16 @@
     <Resource Include="resources\systems\jaguar.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\systems\jaguarcd.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\systems\laser310.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\lcdgames.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\lindbergh.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\lowresnx.png">
@@ -881,6 +944,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\mastersystem.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\megacd.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\megadrive.png">
@@ -1024,6 +1090,12 @@
     <Resource Include="resources\systems\pyxel.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\systems\quake.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\quake2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\systems\raze.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -1093,6 +1165,9 @@
     <Resource Include="resources\systems\supracan.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="resources\systems\teknoparrot.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="resources\systems\thomson.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -1121,6 +1196,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\vgmplay.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="resources\systems\vic20.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="resources\systems\videopacplus.png">
@@ -1492,6 +1570,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ini\filetypes.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ini\japan_systems.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ini\langdata.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="ini\screenscraper_options.ini">
@@ -1880,6 +1964,22 @@
     <Page Update="MainWindow.xaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
+    <Page Update="themes\BlueTheme.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+    <Page Update="themes\DarkTheme.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+    <Page Update="themes\LightTheme.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+    <Page Update="themes\RetroTheme.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,11 @@ namespace GamelistManager.classes
 {
     public static class GamelistLoader
     {
-        public static DataSet LoadGamelist(string xmlFilePath)
+        /// <summary>
+        /// Load an existing gamelist XML file into a DataSet.
+        /// Returns null if the file cannot be read or has no valid "game" table.
+        /// </summary>
+        public static DataSet? LoadGamelist(string xmlFilePath)
         {
             DataSet destinationDataSet = new DataSet();
             DataSet sourceDataSet = new DataSet();
@@ -18,46 +22,17 @@ namespace GamelistManager.classes
             }
             catch
             {
-                return null!;
+                return null;
             }
 
             if (sourceDataSet.Tables.Count == 0 || sourceDataSet.Tables["game"] == null)
             {
-                return null!;
+                return null;
             }
 
-            var viewableMetaData = GamelistMetaData.GetMetaDataDictionary().Values
-                .Where(decl => decl.Viewable)
-                .ToList();
-
-            // Create a new DataTable
-            DataTable newTable = new DataTable("game");
-
-            DataColumn statusColumn = new DataColumn
-            {
-                ColumnName = "Status",
-                DataType = typeof(string),
-            };
-            newTable.Columns.Add(statusColumn);
-            newTable.Columns[0].SetOrdinal(0);
-
-            int ordinal = 1;
-            foreach (var metaDataDecl in viewableMetaData)
-            {
-                Type dataType = metaDataDecl.DataType == MetaDataType.Bool ? typeof(bool) : typeof(string);
-
-                DataColumn column = new DataColumn
-                {
-                    ColumnName = metaDataDecl.Name,
-                    DataType = dataType,
-                };
-                newTable.Columns.Add(column);
-                newTable.Columns[ordinal].SetOrdinal(ordinal);
-                ordinal++;
-            }
-
+            // Build schema
+            DataTable newTable = CreateGameTable();
             destinationDataSet.Tables.Add(newTable);
-            destinationDataSet.AcceptChanges();
 
             // Track "Rom Path" to ensure no duplicates
             var uniqueRomPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -66,7 +41,7 @@ namespace GamelistManager.classes
             {
                 DataRow destinationRow = destinationDataSet.Tables[0].NewRow();
 
-                foreach (var metaDataDecl in viewableMetaData)
+                foreach (var metaDataDecl in GamelistMetaData.GetMetaDataDictionary().Values.Where(d => d.Viewable))
                 {
                     string sourceColumnName = metaDataDecl.Type;
                     string destinationColumnName = metaDataDecl.Name;
@@ -74,7 +49,6 @@ namespace GamelistManager.classes
                     if (sourceDataSet.Tables["game"].Columns.Contains(sourceColumnName))
                     {
                         var sourceValue = sourceRow[sourceColumnName];
-
                         Type columnType = destinationDataSet.Tables[0].Columns[destinationColumnName]!.DataType;
 
                         if (columnType == typeof(bool))
@@ -82,36 +56,40 @@ namespace GamelistManager.classes
                             bool destinationValue = false;
                             if (sourceValue != DBNull.Value && sourceValue != null)
                             {
-                                destinationValue = Convert.ToBoolean(sourceValue);
+                                try
+                                {
+                                    destinationValue = Convert.ToBoolean(sourceValue);
+                                }
+                                catch
+                                {
+                                    destinationValue = false;
+                                }
                             }
                             destinationRow[destinationColumnName] = destinationValue;
                         }
                         else
                         {
                             if (sourceValue == DBNull.Value || string.IsNullOrEmpty(sourceValue.ToString()))
-                            {
                                 continue;
-                            }
 
                             if (destinationColumnName == "Release Date" || destinationColumnName == "Last Played")
                             {
                                 string formattedDate = ISO8601Converter.ConvertFromISO8601(sourceValue.ToString()!);
                                 if (!string.IsNullOrEmpty(formattedDate))
-                                {
                                     destinationRow[destinationColumnName] = formattedDate;
-                                }
+                                else
+                                    destinationRow[destinationColumnName] = sourceValue.ToString();
                                 continue;
                             }
 
-                            destinationRow[destinationColumnName] = sourceValue == DBNull.Value ? string.Empty : sourceValue.ToString();
+                            destinationRow[destinationColumnName] = sourceValue.ToString();
                         }
                     }
                     else
                     {
+                        // If column is missing in source but exists in schema, set default
                         if (destinationDataSet.Tables[0].Columns[destinationColumnName]?.DataType == typeof(bool))
-                        {
                             destinationRow[destinationColumnName] = false;
-                        }
                     }
                 }
 
@@ -121,7 +99,6 @@ namespace GamelistManager.classes
                 {
                     if (uniqueRomPaths.Contains(romPath))
                     {
-                        // Track duplicates for later warning
                         duplicateRomPaths.Add(romPath);
                         continue; // Skip duplicate
                     }
@@ -134,12 +111,57 @@ namespace GamelistManager.classes
             // Show a warning if duplicates were removed
             if (duplicateRomPaths.Count > 0)
             {
-                StringBuilder warningMessage = new StringBuilder("The following duplicates were found and ignored:\n");
-                warningMessage.Append(string.Join(", ", duplicateRomPaths));
-                MessageBox.Show(warningMessage.ToString(), "Duplicate Detected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                var preview = string.Join(", ", duplicateRomPaths.Take(10));
+                string warningMessage = $"The following duplicates were found and ignored:\n{preview}";
+                if (duplicateRomPaths.Count > 10)
+                    warningMessage += $"\n... and {duplicateRomPaths.Count - 10} more.";
+                MessageBox.Show(warningMessage, "Duplicate Detected", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             return destinationDataSet;
+        }
+
+        /// <summary>
+        /// Create a new, empty gamelist DataSet with the correct schema.
+        /// </summary>
+        public static DataSet CreateEmptyGamelist()
+        {
+            DataSet dataSet = new DataSet();
+            dataSet.Tables.Add(CreateGameTable());
+            return dataSet;
+        }
+
+        /// <summary>
+        /// Internal helper to build the "game" DataTable schema.
+        /// </summary>
+        private static DataTable CreateGameTable()
+        {
+            var viewableMetaData = GamelistMetaData.GetMetaDataDictionary().Values
+                .Where(decl => decl.Viewable)
+                .ToList();
+
+            DataTable table = new DataTable("game");
+
+            // Status column first
+            DataColumn statusColumn = new DataColumn
+            {
+                ColumnName = "Status",
+                DataType = typeof(string),
+            };
+            table.Columns.Add(statusColumn);
+
+            foreach (var metaDataDecl in viewableMetaData)
+            {
+                Type dataType = metaDataDecl.DataType == MetaDataType.Bool ? typeof(bool) : typeof(string);
+
+                DataColumn column = new DataColumn
+                {
+                    ColumnName = metaDataDecl.Name,
+                    DataType = dataType,
+                };
+                table.Columns.Add(column);
+            }
+            return table;
         }
     }
 }

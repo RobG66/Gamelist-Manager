@@ -27,7 +27,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="MediaPaths" Type="System.String" Scope="User">
-      <Value Profile="(Default)">{"image":"images","titleshot":"images","marquee":"images","thumbnail":"images","cartridge":"images","video":"videos","music":"music","map":"images","bezel":"images","manual":"manuals","fanart":"images","boxart":"images","boxback":"images","magazine":"images","mix":"images"}
+      <Value Profile="(Default)">{"image":"images","titleshot":"images","marquee":"images","wheel":"images","thumbnail":"images","cartridge":"images","video":"videos","music":"music","map":"images","bezel":"images","manual":"manuals","fanart":"images","boxart":"images","boxback":"images","magazine":"images","mix":"images"}
 </Value>
     </Setting>
     <Setting Name="Region" Type="System.String" Scope="User">
@@ -94,6 +94,13 @@
     </Setting>
     <Setting Name="SuspendSortingInEditMode" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Region_Fallback" Type="System.String" Scope="User">
+      <Value Profile="(Default)">["USA (us)","ScreenScraper (ss)","Europe (eu)","United Kingdom (uk)","World (wor)"]
+</Value>
+    </Setting>
+    <Setting Name="ScrapeAnyMedia" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

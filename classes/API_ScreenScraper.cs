@@ -1,8 +1,12 @@
 ﻿using System.Data;
+using System.Data.SqlTypes;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Windows.Controls;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace GamelistManager.classes
 {
@@ -106,13 +110,19 @@ namespace GamelistManager.classes
         }
 
 
-        public void SaveXmlToCacheFile(string xmlString, string cacheFolder, string romName)
+        public void SaveXmlToCacheFile(ScraperParameters scraperParameters, string xmlString, string cacheFolder, string romName)
         {
             if (!Directory.Exists(cacheFolder))
             {
                 Directory.CreateDirectory(cacheFolder);
             }
             string cacheFilePath = Path.Combine(cacheFolder, $"{romName}.xml");
+            
+            xmlString = xmlString.Replace(devPassword, "<devPassword>");
+            xmlString = xmlString.Replace(devId, "<devId>");
+            xmlString = xmlString.Replace(scraperParameters.UserPassword!, "<userPassword>");
+            xmlString = xmlString.Replace(scraperParameters.UserID!, "<userID>");
+
             File.WriteAllText(cacheFilePath, xmlString);
         }
 
@@ -131,6 +141,7 @@ namespace GamelistManager.classes
             }
 
             string fileContent = File.ReadAllText(cacheFilePath);
+     
             return fileContent;
         }
 
@@ -148,7 +159,10 @@ namespace GamelistManager.classes
             string scrapInfo = (!string.IsNullOrEmpty(scraperParameters.GameID)) ? $"&gameid={scraperParameters.GameID}" : $"&romtype=rom&romnom={romFileNameWithoutExtension}";
             string url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
             string responseString = string.Empty;
-            string? arcadeName = scraperParameters.ArcadeName;
+            // string mameArcadeName = scraperParameters.MameArcadeName!;
+
+            List<string> ssRegions = scraperParameters.SSRegions!;
+            string ssLanguage = scraperParameters.SSLanguage!;
 
             XmlDocument xmlData = new XmlDocument();
             XmlNode? mediasNode = null;
@@ -158,88 +172,118 @@ namespace GamelistManager.classes
             int scrapeTotal = 0;
             int scrapeMax = 0;
 
-            bool scrapeRequired = elementsToScrape.Any(item => item != "region" && item != "lang");
-
-            if (scrapeRequired)
+            
+            // Scrape by cache if selected
+            if (scrapeByCache)
             {
-                // Scrape by cache if selected
-                if (scrapeByCache)
+                responseString = ReadXmlFromCache(romFileNameWithoutExtension, cacheFolder);
+                if (string.IsNullOrEmpty(responseString) && skipNonCached)
                 {
-                    responseString = ReadXmlFromCache(romFileNameWithoutExtension, cacheFolder);
-                    if (string.IsNullOrEmpty(responseString) && skipNonCached)
-                    {
-                        return null!;
-                    }
-                    cachedInfo = true;
+                    return null!;
+                }
+                else
+                {
+                    responseString = responseString.Replace("<devPassword>", devPassword);
+                    responseString = responseString.Replace("<devId>", devId);
+                    responseString = responseString.Replace("<userID>", scraperParameters.UserID);
+                    responseString = responseString.Replace("<userPassword>", scraperParameters.UserPassword);
+                }
+                cachedInfo = true;
+            }
+
+            if (string.IsNullOrEmpty(responseString))
+            {
+                cachedInfo = false;
+
+                try
+                {
+                    HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                    responseString = await ConvertHttpResponseMessageToString(httpResponse);
+                }
+                catch
+                {
+                    responseString = string.Empty;
                 }
 
                 if (string.IsNullOrEmpty(responseString))
                 {
-                    cachedInfo = false;
+                    // Try one more time with the name of the rom file
+                    string romName = scraperParameters.Name!;
+                    scrapInfo = $"&romtype=rom&romnom={romName}";
+                    url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
 
                     try
                     {
-                        HttpResponseMessage httpResponse = await _httpClientService.GetAsync(url).ConfigureAwait(false);
-                        responseString = await ConvertHttpResponseMessageToString(httpResponse);
+                        HttpResponseMessage httpResponse2 = await _httpClientService.GetAsync(url).ConfigureAwait(false);
+                        responseString = await ConvertHttpResponseMessageToString(httpResponse2);
                     }
                     catch
                     {
                         responseString = string.Empty;
                     }
-
-                    if (string.IsNullOrEmpty(responseString))
-                    {
-                        // Try one more time with the name of the rom file
-                        string romName = scraperParameters.Name!;
-                        scrapInfo = $"&romtype=rom&romnom={romName}";
-                        url = $"{apiURL}/jeuInfos.php?devid={devId}&devpassword={devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
-
-                        try
-                        {
-                            HttpResponseMessage httpResponse2 = await _httpClientService.GetAsync(url).ConfigureAwait(false);
-                            responseString = await ConvertHttpResponseMessageToString(httpResponse2);
-                        }
-                        catch
-                        {
-                            responseString = string.Empty;
-                        }
-                    }
-
-                    // If it's still null, failed.
-                    if (string.IsNullOrEmpty(responseString))
-                    {
-                        return (null!);
-                    }
-
-                    SaveXmlToCacheFile(responseString, cacheFolder, romFileNameWithoutExtension);
                 }
 
-                xmlData.LoadXml(responseString);
-
-                if (!cachedInfo)
+                // If it's still null, failed.
+                if (string.IsNullOrEmpty(responseString))
                 {
-                    // Retrieve total requests for today
-                    var totalRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/requeststoday");
-                    if (totalRequestsNode != null && int.TryParse(totalRequestsNode.InnerText, out int total))
-                    {
-                        scrapeTotal = total;
-                    }
-
-                    // Retrieve maximum allowed requests per day
-                    var allowedRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/maxrequestsperday");
-                    if (allowedRequestsNode != null && int.TryParse(allowedRequestsNode.InnerText, out int max))
-                    {
-                        scrapeMax = max;
-                    }
+                    return (null!);
                 }
 
-                mediasNode = xmlData.SelectSingleNode("/Data/jeu/medias");
+                SaveXmlToCacheFile(scraperParameters, responseString, cacheFolder, romFileNameWithoutExtension);
             }
+
+            xmlData.LoadXml(responseString);
+
+            if (!cachedInfo)
+            {
+                // Retrieve total requests for today
+                var totalRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/requeststoday");
+                if (totalRequestsNode != null && int.TryParse(totalRequestsNode.InnerText, out int total))
+                {
+                    scrapeTotal = total;
+                }
+
+                // Retrieve maximum allowed requests per day
+                var allowedRequestsNode = xmlData.SelectSingleNode("/Data/ssuser/maxrequestsperday");
+                if (allowedRequestsNode != null && int.TryParse(allowedRequestsNode.InnerText, out int max))
+                {
+                    scrapeMax = max;
+                }
+            }
+
+            mediasNode = xmlData.SelectSingleNode("/Data/jeu/medias");
+
 
             if (overwriteMetaData)
             {
                 overwriteName = true;
             }
+
+            if (scraperParameters.ScrapeAnyMedia)
+            {
+                XmlNode? nomsNode = xmlData.SelectSingleNode("/Data/jeu/noms");
+
+                if (nomsNode != null)
+                {
+                    var allNames = nomsNode.ChildNodes
+                        .OfType<XmlElement>()
+                        .Where(e => e.Name == "nom")
+                        .Select(e => e.GetAttribute("region"))
+                        .Where(r => !string.IsNullOrEmpty(r));
+
+                    foreach (string regionValue in allNames)
+                    {
+                        if (!ssRegions.Contains(regionValue))
+                        {
+                            ssRegions.Add(regionValue);
+                        }
+                    }
+                }
+            }
+
+            // Always add empty region as fallback for videos
+            // Which tend to not have a region set
+            ssRegions.Add(string.Empty);
 
             foreach (string element in elementsToScrape)
             {
@@ -260,13 +304,7 @@ namespace GamelistManager.classes
                         UpdateMetadata(rowView, "Players", players!, overwriteMetaData);
                         break;
 
-                    case "lang":
-                        //string? language = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText; 
-                        string name2 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romFileNameWithoutExtension;
-                        string languages = RegionLanguageHelper.GetLanguage(name2);
-                        UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
-                        break;
-
+                    
                     case "id":
                         string? id = (xmlData.SelectSingleNode("/Data/jeu") as XmlElement)?.GetAttribute("id");
                         UpdateMetadata(rowView, "Game Id", id!, overwriteMetaData);
@@ -292,14 +330,14 @@ namespace GamelistManager.classes
 
                     case "desc":
                         string? description = xmlData
-                        .SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{scraperParameters.Language}']")
+                        .SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='{ssLanguage}']")
                         ?.InnerText
                         ?? xmlData.SelectSingleNode($"/Data/jeu/synopsis/synopsis[@langue='en']")?.InnerText;
                         UpdateMetadata(rowView, "Description", description!, overwriteMetaData);
                         break;
 
                     case "name":
-                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms")!, scraperParameters.Region!);
+                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms")!, ssRegions);
                         UpdateMetadata(rowView, "Name", name!, overwriteName);
                         break;
 
@@ -307,7 +345,7 @@ namespace GamelistManager.classes
                         var genresNode = xmlData.SelectSingleNode("/Data/jeu/genres");
                         if (genresNode != null)
                         {
-                            string genreLanguage = scraperParameters.Language!;
+                            string genreLanguage = ssLanguage;
                             if (scraperParameters.ScrapeEnglishGenreOnly == true)
                             {
                                 genreLanguage = "en";
@@ -321,7 +359,7 @@ namespace GamelistManager.classes
                         var familyNode = xmlData.SelectSingleNode("/Data/jeu/familles");
                         if (familyNode != null)
                         {
-                            string family = ParseFamily(familyNode, scraperParameters.Language!);
+                            string family = ParseFamily(familyNode, ssLanguage);
                             if (!string.IsNullOrEmpty(family))
                             {
                                 UpdateMetadata(rowView, "Family", family!, overwriteMetaData);
@@ -329,15 +367,23 @@ namespace GamelistManager.classes
                         }
                         break;
 
+                    /* This code has been moved to scraper window
                     case "region":
-                        // string? region = xmlData.SelectSingleNode("/Data/jeu/rom/romregions")?.InnerText; ;
-                        string name3 = !string.IsNullOrEmpty(arcadeName) ? arcadeName : romFileNameWithoutExtension;
-                        string region = RegionLanguageHelper.GetRegion(name3);
-                        UpdateMetadata(rowView, "Region", region!, overwriteMetaData);
+                        string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameWithoutExtension;
+                        string romRegion = RegionLanguageHelper.GetRegion(nameValue);
+                        UpdateMetadata(rowView, "Region", romRegion, overwriteMetaData);
                         break;
 
+                    case "lang": 
+                        //string? language = xmlData.SelectSingleNode("/Data/jeu/rom/romlangues")?.InnerText; 
+                        string name2 = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameWithoutExtension;
+                        string languages = RegionLanguageHelper.GetLanguage(name2);
+                        UpdateMetadata(rowView, "Language", languages, overwriteMetaData);
+                        break;
+                    */
+
                     case "releasedate":
-                        string? releaseDate = ParseReleaseDate(xmlData.SelectSingleNode("/Data/jeu/dates")!, scraperParameters.Region!);
+                        string? releaseDate = ParseReleaseDate(xmlData.SelectSingleNode("/Data/jeu/dates")!, scraperParameters.SSRegions!);
                         UpdateMetadata(rowView, "Release Date", releaseDate!, overwriteMetaData);
                         break;
 
@@ -375,11 +421,20 @@ namespace GamelistManager.classes
 
 
                     case "marquee":
-                        string logosource = scraperParameters.MarqueeSource!;
+                        string marqueeSource = scraperParameters.MarqueeSource!;
                         bool downloadSuccessful = await DownloadFile(rowView, "marquee", "Marquee", scraperParameters.MarqueeSource!, scraperParameters, mediasNode!);
-                        if (logosource == "wheel-hd" && downloadSuccessful == false)
+                        if (marqueeSource == "wheel-hd" && downloadSuccessful == false)
                         {
                             await DownloadFile(rowView, "marquee", "Marquee", "wheel", scraperParameters, mediasNode!);
+                        }
+                        break;
+
+                    case "wheel":
+                        string wheelSource = scraperParameters.WheelSource!;
+                        bool downloadSuccessful2 = await DownloadFile(rowView, "wheel", "Wheel", scraperParameters.WheelSource!, scraperParameters, mediasNode!);
+                        if (wheelSource == "wheel-hd" && downloadSuccessful2 == false)
+                        {
+                            await DownloadFile(rowView, "wheel", "Wheel", "wheel", scraperParameters, mediasNode!);
                         }
                         break;
 
@@ -394,7 +449,7 @@ namespace GamelistManager.classes
         }
 
         private void UpdateMetadata(DataRowView rowView, string column, string newValue, bool overwrite)
-        {
+        {         
             if (string.IsNullOrEmpty(newValue))
             {
                 return;
@@ -411,7 +466,7 @@ namespace GamelistManager.classes
 
         public string ParseFamily(XmlNode familyNode, string language)
         {
-            string? family = string.Empty;
+            string family = string.Empty;
 
             if (familyNode != null)
             {
@@ -456,11 +511,9 @@ namespace GamelistManager.classes
             return family!;
         }
 
-
-
         private async Task<bool> DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, XmlNode mediasNode)
         {
-            (string downloadURL, string fileFormat) = ParseMedia(remoteMediaType, mediasNode, scraperParameters.Region!);
+            (string downloadURL, string fileFormat) = ParseMedia(remoteMediaType, mediasNode, scraperParameters.SSRegions! );
 
             if (string.IsNullOrEmpty(downloadURL) || string.IsNullOrEmpty(fileFormat))
             {
@@ -499,19 +552,16 @@ namespace GamelistManager.classes
             return false;
         }
 
-        private (string Url, string Format) ParseMedia(string mediaType, XmlNode xmlMedias, string region)
+        private (string, string) ParseMedia(string mediaType, XmlNode xmlMedias, List<string> regionsList)
         {
             if (xmlMedias == null)
             {
                 return (string.Empty, string.Empty);
             }
-
-            // User selected region (first) followed by fallback regions
-            string[] regions = { region, "us", "ss", "eu", "uk", "wor", "" };
-
+                        
             XmlNode? media = null;
 
-            foreach (string currentRegion in regions)
+            foreach (string currentRegion in regionsList)
             {
                 // Find first matching region
                 if (!string.IsNullOrEmpty(currentRegion))
@@ -527,7 +577,7 @@ namespace GamelistManager.classes
 
                 if (media != null)
                 {
-                    break; // StopPlaying once the first matching media is found
+                    break; 
                 }
             }
 
@@ -545,16 +595,14 @@ namespace GamelistManager.classes
         }
 
 
-        private string ParseReleaseDate(XmlNode xmlNode, string currentRegion)
+        private string ParseReleaseDate(XmlNode xmlNode, List<string>regionsList )
         {
             if (xmlNode == null)
             {
                 return string.Empty;
             }
 
-            string[] regions = { currentRegion, "wor", "us", "ss", "eu", "jp" };
-
-            foreach (string region in regions)
+            foreach (string region in regionsList)
             {
                 XmlNode? xmlNode2 = xmlNode.SelectSingleNode($"date[@region='{region}']");
                 if (xmlNode2 != null)
@@ -572,19 +620,16 @@ namespace GamelistManager.classes
             return string.Empty;
         }
 
-        private string ParseNames(XmlNode namesElement, string region)
+        private string ParseNames(XmlNode namesElement, List<string> regionsList)
         {
             if (namesElement == null)
             {
                 return string.Empty;
             }
-
-            // User-selected region and backups
-            string[] regions = { region, "wor", "us", "ss", "eu", "jp" };
-
-            foreach (string currentRegion in regions)
+                       
+            foreach (string region in regionsList)
             {
-                XmlNode? xmlNode = namesElement.SelectSingleNode($"nom[@region='{currentRegion}']");
+                XmlNode? xmlNode = namesElement.SelectSingleNode($"nom[@region='{region}']");
                 if (xmlNode != null)
                 {
                     string name = xmlNode.InnerText ?? string.Empty;

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="480" MinHeight="480" Width="860" MinWidth="860" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="MainWindow" Height="490" MinHeight="490" Width="860" MinWidth="860" Loaded="Window_Loaded" Closing="Window_Closing">
 
     <Grid x:Name="MainGrid">
         <!-- Define rows for Menu, Content, GridSplitter, and Additional Content -->
@@ -21,6 +21,7 @@
         </Grid.RowDefinitions>
         <Menu x:Name="menu_Main" Grid.Column="0" Background="#FFFDFDFD">
             <MenuItem x:Name="menuItem_File" Header="File" Style="{StaticResource MinimalMenuItem}">
+                <MenuItem x:Name="menuItem_New" Header="New Gamelist" Style="{StaticResource MinimalMenuItem}" Click="NewFile_Click"/>
                 <MenuItem x:Name="menuItem_Load" Header="Load Gamelist" Style="{StaticResource MinimalMenuItem}" Click="OpenFile_Click"/>
                 <MenuItem x:Name="menuItem_Reload" Header="Reload Gamelist" Style="{StaticResource MinimalMenuItem}" Click="ReloadFile_Click" IsEnabled="False"/>
                 <MenuItem x:Name="menuItem_Save" Header="Save Gamelist" Style="{StaticResource MinimalMenuItem}" Click="SaveFile_Click" IsEnabled="False"/>
@@ -66,6 +67,8 @@
                 <Separator Style="{StaticResource MinimalSeparator}"/>
                 <MenuItem x:Name="menuItem_SearchAndReplace" Header="Search And Replace" Style="{StaticResource MinimalMenuItem}" Click="menuItem_SearchAndReplace_Click"/>
                 <Separator Style="{StaticResource MinimalSeparator}"/>
+                <MenuItem x:Name="menuItem_Find" Header="Find" Style="{StaticResource MinimalMenuItem}" Click="menuItem_Find_Click"/>
+                <Separator Style="{StaticResource MinimalSeparator}"/>
                 <MenuItem x:Name="menuItem_ClearSelected" Header="Clear Selected Item Data" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ClearSelected_Click"/>
                 <MenuItem x:Name="menuItem_ClearAllData" Header="Clear All Data" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ClearAllData_Click"/>
                 <Separator Style="{StaticResource MinimalSeparator}"/>
@@ -74,8 +77,10 @@
             </MenuItem>
 
             <MenuItem x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
+                <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_Description" Header="Description" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_Developer" Header="Developer" Click="menuItem_Clicked" IsCheckable="true"/>
+                <MenuItem x:Name="menuItem_Family" Header="Family" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_Genre" Header="Genre" Click="menuItem_Clicked" IsCheckable="true"/>
@@ -88,8 +93,6 @@
                 <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_Region" Header="Region" Click="menuItem_Clicked" IsCheckable="true"/>
                 <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Family" Header="Family" Click="menuItem_Clicked" IsCheckable="true"/>
                 <Separator/>
                 <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="menuItem_Clicked" IsCheckable="true"/>
             </MenuItem>
@@ -199,6 +202,16 @@
                                 <TextBlock x:Name="textBlock_LastModifiedTime" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Foreground="#FF333333" Margin="2,0,0,0"/>
                             </StatusBarItem>
                         </StatusBar>
+                        <DockPanel LastChildFill="True" x:Name="dockPanel_Find" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
+                            <TextBlock Text="Find" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold"  Foreground="#FF333333" Margin="5,0,0,0"/>
+                            <TextBox x:Name="textBox_Find" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="textBox_Find_TextChanged" KeyDown="textBox_Find_KeyDown" />
+                            <TextBlock Text="in column" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
+                            <ComboBox x:Name="comboBox_Columns1" FontSize="12" FontWeight="Bold" Height="18" Padding="3,0,0,0" Width="120" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns1_SelectionChanged"/>
+                            <Button x:Name="button_Find" IsEnabled="False" Style="{StaticResource GreenRoundedButton}" HorizontalAlignment="Left" Height="18" Width="50" Content="Find" Margin="2,0,0,0" Click="button_Find_Click"/>
+                            <Button x:Name="button_CloseFind" Style="{StaticResource AnimatedTransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseFind_Click">
+                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Close Panel" VerticalAlignment="Center"/>
+                            </Button>
+                        </DockPanel>
                         <DockPanel LastChildFill="True" x:Name="dockPanel_SearchAndReplace" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
                             <TextBlock Text="Replace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold"  Foreground="#FF333333" Margin="5,0,0,0"/>
                             <TextBox x:Name="textBox_ChangeFrom" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
@@ -219,7 +232,7 @@
 
                 <!-- GridSplitter between DataGrid and TextBox -->
                 <!-- <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="Silver" /> -->
-                <GridSplitter x:Name="gridSplitter_Vertical" Grid.Column="1" Style="{StaticResource VerticalGridSplitter}" />
+                <GridSplitter x:Name="gridSplitter_Vertical" Grid.Column="1" Style="{StaticResource CusomVerticalGridSplitter}" />
                 <TextBox Grid.Column="2" x:Name="textBox_Description"
                          
          Width="Auto"
@@ -329,11 +342,15 @@
             <Border Margin="2" Width="320" Padding="0" Background="LightGray" BorderBrush="Black" BorderThickness="1" CornerRadius="6">
                 <StackPanel x:Name="stackpanel_Filters" IsEnabled="False" Margin="5,2,6,2">
                     <!-- Row 1: Visibility -->
-                    <StackPanel Orientation="Horizontal" Margin="5,5,5,2" VerticalAlignment="Center">
-                        <TextBlock Text="Visibility:" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Margin="5,0,0,0" Width="70"/>
-                        <RadioButton x:Name="radioButton_AllItems" IsChecked="True" Style="{StaticResource CustomRadioButton1}" FontSize="12" FontWeight="SemiBold" Content="All" Margin="0,0,20,0" VerticalAlignment="Center" Checked="radioButton_AllItems_Checked" />
-                        <RadioButton x:Name="radioButton_VisibleItems" Style="{StaticResource CustomRadioButton1}" FontSize="12" FontWeight="SemiBold" Content="Visible" Margin="0,0,20,0" VerticalAlignment="Center" Checked="radioButton_VisibleItems_Checked"/>
-                        <RadioButton x:Name="radioButton_HiddenItems" Style="{StaticResource CustomRadioButton1}" FontSize="12" FontWeight="SemiBold" Content="Hidden" VerticalAlignment="Center" Checked="radioButton_HiddenItems_Checked"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,2" VerticalAlignment="Center">
+                        <TextBlock Text="View Filter:" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Margin="2,0,0,0" Width="70"/>
+                        <RadioButton x:Name="radioButton_AllItems" IsChecked="True" Style="{StaticResource CustomRadioButton}" FontSize="12" FontWeight="SemiBold" Content="All" Margin="0,0,12,0" VerticalAlignment="Center" Checked="radioButton_AllItems_Checked" />
+                        <RadioButton x:Name="radioButton_VisibleItems" Style="{StaticResource CustomRadioButton}" FontSize="12" FontWeight="SemiBold" Content="Visible" Margin="0,0,12,0" VerticalAlignment="Center" Checked="radioButton_VisibleItems_Checked"/>
+                        <RadioButton x:Name="radioButton_HiddenItems" Style="{StaticResource CustomRadioButton}" FontSize="12" FontWeight="SemiBold" Content="Hidden" VerticalAlignment="Center" Checked="radioButton_HiddenItems_Checked"/>
+                        <Button x:Name="button_ResetView" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Reset View" Click="button_ResetView_Click"  Margin="18,0,0,0">
+                            <Image Source="pack://application:,,,/Resources/buttons/redreset.png" Width="32" Height="16"/>
+                        </Button>
+
                     </StackPanel>
 
                     <!-- Row 2: Filter Toggle + Filter Controls -->
@@ -359,15 +376,17 @@
 
                         <!-- Custom Filter -->
                         <StackPanel x:Name="stackpanel_Custom" Orientation="Horizontal" Visibility="Collapsed" VerticalAlignment="Center" MinWidth="280">
-                            <ComboBox x:Name="comboBox_CustomFilter" Padding="3,0,0,0" Height="18" Width="90" FontSize="12" FontWeight="SemiBold"/>
-                            <ComboBox x:Name="FilterModeComboBox" SelectedIndex="0" Padding="3,0,0,0" Height="18" Width="100" Margin="5,0" FontSize="12" FontWeight="SemiBold">
+                            <ComboBox x:Name="comboBox_CustomFilter" Padding="3,0,0,0" Height="18" Width="90" FontSize="12" FontWeight="SemiBold" SelectionChanged="FilterModeComboBox_SelectionChanged"/>
+                            <ComboBox x:Name="comboBox_FilterMode" SelectedIndex="0" Padding="3,0,0,0" Height="18" Width="100" Margin="5,0" FontSize="12" FontWeight="SemiBold" SelectionChanged="FilterModeComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Is Like"/>
                                 <ComboBoxItem Content="Starts With"/>
                                 <ComboBoxItem Content="Ends With"/>
                                 <ComboBoxItem Content="Is"/>
+                                <ComboBoxItem Content="Is Empty"/>
+                                <ComboBoxItem Content="Is Not Empty"/>
                             </ComboBox>
                             <TextBox x:Name="textBox_CustomFilter" Width="60" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" KeyUp="textBox_CustomFilter_KeyUp"/>
-                            <Button x:Name="button_ClearCustomFilter" Style="{StaticResource AnimatedTransparentButton}" Margin="3,0,0,0" ToolTip="Clear" Click="button_ClearCustomFilter_Click">
+                            <Button x:Name="button_ClearCustomFilter" Style="{StaticResource AnimatedTransparentButton}" Margin="3,0,0,0" ToolTip="Clear Filter" Click="button_ClearCustomFilter_Click">
                                 <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="18" Height="18"/>
                             </Button>
                         </StackPanel>
@@ -381,7 +400,7 @@
 
         </StackPanel>
         <!-- GridSplitter in the middle -->
-        <GridSplitter x:Name="gridSplitter_Horizontal" Grid.Row="2" Style="{StaticResource GridSplitterHorizontalGripStyle}"/>
+        <GridSplitter x:Name="gridSplitter_Horizontal" Grid.Row="2" Style="{StaticResource CustomGridSplitterHorizontalGripStyle}"/>
         <!-- Additional Content Area below GridSplitter -->
         <Grid Grid.Row="3" Margin="2,2,2,4">
             <Grid.Background>

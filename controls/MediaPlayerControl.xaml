@@ -104,7 +104,7 @@
             Value="75"
             Width="100"
             Margin="10,0,10,0"
-            Style="{StaticResource CustomSlider1}"
+            Style="{StaticResource CustomSlider}"
             ValueChanged="Slider_ValueChanged"
             PreviewMouseDown="sliderVolume_PreviewMouseDown">
             </Slider>

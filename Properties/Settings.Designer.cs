@@ -12,7 +12,7 @@ namespace GamelistManager.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.14.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -121,7 +121,7 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}
+        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""wheel"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}
 ")]
         public string MediaPaths {
             get {
@@ -233,7 +233,7 @@ namespace GamelistManager.Properties {
         [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
             "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
             ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
-            "\": true}\n")]
+            "\": true}\r\n")]
         public string VisibleGridColumns {
             get {
                 return ((string)(this["VisibleGridColumns"]));
@@ -344,7 +344,7 @@ namespace GamelistManager.Properties {
         [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
             "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
             ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
-            "\": true}\n")]
+            "\": true}\r\n")]
         public string DefaultColumns {
             get {
                 return ((string)(this["DefaultColumns"]));
@@ -387,6 +387,31 @@ namespace GamelistManager.Properties {
             }
             set {
                 this["SuspendSortingInEditMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[\"USA (us)\",\"ScreenScraper (ss)\",\"Europe (eu)\",\"United Kingdom (uk)\",\"World (wor)" +
+            "\"]\n")]
+        public string Region_Fallback {
+            get {
+                return ((string)(this["Region_Fallback"]));
+            }
+            set {
+                this["Region_Fallback"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ScrapeAnyMedia {
+            get {
+                return ((bool)(this["ScrapeAnyMedia"]));
+            }
+            set {
+                this["ScrapeAnyMedia"] = value;
             }
         }
     }

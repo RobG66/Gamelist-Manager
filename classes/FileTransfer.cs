@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 
 namespace GamelistManager.classes
 {
@@ -33,8 +34,16 @@ namespace GamelistManager.classes
                 }
 
                 string fileName = Path.GetFileName(fileDownloadPath);
+                string region = string.Empty;
 
-                await Logger.Instance.LogAsync($"Downloading file: {fileName}", System.Windows.Media.Brushes.Blue);
+                string input = url;
+                Match match = Regex.Match(input, @"\(([^)]*)\)$");  
+                if (match.Success)
+                {
+                    region = $" ({match.Groups[1].Value})";
+                }
+
+                await Logger.Instance.LogAsync($"Downloading file{region}: {fileName}", System.Windows.Media.Brushes.Blue);
 
                 // Download the file using HttpClient
                 using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url))

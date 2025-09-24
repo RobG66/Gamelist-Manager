@@ -1,23 +1,73 @@
 ﻿using System.Text.RegularExpressions;
+using System.IO;
+using System.Windows;
 
 namespace GamelistManager.classes
 {
-
-    public class RegionLanguageHelper
+    public static class RegionLanguageHelper
     {
-        public HashSet<string> Languages { get; set; } = new();
+        private static readonly HashSet<string> ArcadeSystems;
+        private static readonly HashSet<string> JapanDefaults;
+        private static readonly List<LangData> langDatas;
+        private static readonly Dictionary<string, LangData> LangLookup;
 
-        private static readonly string[] JapanDefaults =
+        static RegionLanguageHelper()
         {
-        "pc88", "pc98", "pcenginecd", "pcfx", "satellaview",
-        "sg1000", "sufami", "wswan", "wswanc", "x68000"
-    };
+            // Load ArcadeSystems
+            ArcadeSystems = new HashSet<string>();
+            string arcadeIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "arcadesystems.ini");
+            if (File.Exists(arcadeIniPath))
+            {
+                foreach (var line in File.ReadAllLines(arcadeIniPath))
+                {
+                    var trimmed = line.Trim();
+                    if (trimmed.StartsWith("[") || string.IsNullOrWhiteSpace(trimmed)) continue;
+                    var parts = trimmed.Split('=');
+                    if (parts.Length == 2)
+                    {
+                        ArcadeSystems.Add(parts[1].Trim().ToLowerInvariant());
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("arcadesystems.ini could not be loaded. Arcade system detection will be disabled.", "Configuration Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
-        private static readonly string[] ArcadeSystems =
-        {
-        "mame", "naomi", "naomi2", "atomiswave","chihiro","daphne","namco2x6",
-        "neogeo", "model2", "model3", "hikaru", "fbneo","cave","cave3rd","neogeo64","teknoparrot"
-    };
+            // Load JapanDefaults
+            JapanDefaults = new HashSet<string>();
+            string japanIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "japan_systems.ini");
+            if (File.Exists(japanIniPath))
+            {
+                foreach (var line in File.ReadAllLines(japanIniPath))
+                {
+                    var trimmed = line.Trim();
+                    if (trimmed.StartsWith("[") || string.IsNullOrWhiteSpace(trimmed)) continue;
+                    JapanDefaults.Add(trimmed.ToLowerInvariant());
+                }
+            }
+            else
+            {
+                MessageBox.Show("japan_systems.ini could not be loaded. Japanese system detection will be disabled.", "Configuration Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            // Load LangData from INI file
+            langDatas = new List<LangData>();
+            string langDataIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "langdata.ini");
+            if (File.Exists(langDataIniPath))
+            {
+                langDatas.AddRange(ParseLangDataIni(langDataIniPath));
+            }
+            else
+            {
+                MessageBox.Show("langdata.ini could not be loaded. Language/region detection will be disabled.", "Configuration Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            // Build LangLookup as before
+            LangLookup = langDatas
+                .SelectMany(ld => ld.value.Select(v => (v, ld)))
+                .ToDictionary(x => x.v, x => x.ld);
+        }
 
         public class LangData
         {
@@ -32,100 +82,98 @@ namespace GamelistManager.classes
             public string Languages { get; set; } = string.Empty;
         }
 
-        private static readonly List<LangData> langDatas = new()
-    {
-        new LangData { value = new() { "usa", "us", "u" }, lang = "en", region = "us" },
-        new LangData { value = new() { "europe", "eu", "e", "ue", "euro" }, lang = "", region = "eu" },
-        new LangData { value = new() { "w", "wor", "world" }, lang = "en", region = "wr" },
-        new LangData { value = new() { "uk", "gb" }, lang = "en", region = "eu" },
-        new LangData { value = new() { "es", "spain", "s" }, lang = "es", region = "eu" },
-        new LangData { value = new() { "fr", "france", "fre", "french", "f" }, lang = "fr", region = "eu" },
-        new LangData { value = new() { "de", "germany", "d" }, lang = "de", region = "eu" },
-        new LangData { value = new() { "it", "italy", "i" }, lang = "it", region = "eu" },
-        new LangData { value = new() { "nl", "netherlands" }, lang = "nl", region = "eu" },
-        new LangData { value = new() { "gr", "greece" }, lang = "gr", region = "eu" },
-        new LangData { value = new() { "no" }, lang = "no", region = "eu" },
-        new LangData { value = new() { "sw", "sweden", "se" }, lang = "sw", region = "eu" },
-        new LangData { value = new() { "pt", "portugal" }, lang = "pt", region = "eu" },
-        new LangData { value = new() { "pl", "poland" }, lang = "pl", region = "eu" },
-        new LangData { value = new() { "en" }, lang = "en", region = "" },
-        new LangData { value = new() { "jp", "japan", "ja", "j" }, lang = "jp", region = "jp" },
-        new LangData { value = new() { "br", "brazil" }, lang = "br", region = "br" },
-        new LangData { value = new() { "ru", "r" }, lang = "ru", region = "ru" },
-        new LangData { value = new() { "kr", "korea", "k" }, lang = "kr", region = "kr" },
-        new LangData { value = new() { "cn", "china", "hong", "kong", "ch", "hk", "as", "tw" }, lang = "cn", region = "cn" },
-        new LangData { value = new() { "canada", "ca", "c", "fc" }, lang = "fr", region = "wr" },
-        new LangData { value = new() { "in", "ìndia" }, lang = "in", region = "in" }
-    };
-
-        // Optional: for quicker lookups
-        private static readonly Dictionary<string, LangData> LangLookup = langDatas
-            .SelectMany(ld => ld.value.Select(v => (v, ld)))
-            .ToDictionary(x => x.v, x => x.ld);
-
-        public static string GetRegion(string fileName)
+        // INI parser for langdata.ini
+        private static IEnumerable<LangData> ParseLangDataIni(string path)
         {
-            bool returnFirstOnly = true; // Should there only be 1???
+            var result = new List<LangData>();
+            LangData current = null;
 
-            string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
-            string lowerFileName = fileName.ToLowerInvariant();
+            foreach (var line in File.ReadLines(path))
+            {
+                var trimmed = line.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
-            var matchedRegions = new HashSet<string>();
-
-            if (JapanDefaults.Contains(currentSystem))
-            {
-                matchedRegions.Add("jp");
-            }
-            else if (currentSystem == "thomson")
-            {
-                matchedRegions.Add("eu");
-            }
-            else
-            {
-                // Fallback: parse file name
-                var matches = Regex.Matches(fileName, @"\((.*?)\)");
-                foreach (Match match in matches)
+                if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
                 {
-                    string content = match.Groups[1].Value;
-                    var parts = content.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-                    foreach (var part in parts)
+                    if (current != null)
+                        result.Add(current);
+                    current = new LangData();
+                }
+                else if (current != null)
+                {
+                    var idx = trimmed.IndexOf('=');
+                    if (idx > 0)
                     {
-                        string trimmedPart = part.ToLowerInvariant().Trim();
-                        if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.region))
+                        var key = trimmed.Substring(0, idx).Trim().ToLowerInvariant();
+                        var val = trimmed.Substring(idx + 1).Trim();
+                        switch (key)
                         {
-                            matchedRegions.Add(langData.region);
-                            if (returnFirstOnly)
-                            {
-                                return langData.region;
-                            }
+                            case "value":
+                                current.value = new List<string>(val.Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries));
+                                break;
+                            case "lang":
+                                current.lang = val;
+                                break;
+                            case "region":
+                                current.region = val;
+                                break;
                         }
                     }
                 }
             }
+            if (current != null)
+                result.Add(current);
+            return result;
+        }
 
-            // Personally I find the matching to be very kludgy, but what can you do?
-            if (ArcadeSystems.Contains(currentSystem) && matchedRegions.Count == 0)
+        public static string GetRegion(string romName)
+        {
+            string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
+            string lowerFileName = romName.ToLowerInvariant();
+
+            if (JapanDefaults.Contains(currentSystem))
             {
-                matchedRegions.Add(lowerFileName.EndsWith("j.zip") ? "jp" : "us");
+                return "jp";
             }
 
-            if (matchedRegions.Count > 0)
+            if (currentSystem == "thomson")
             {
-                return returnFirstOnly ? matchedRegions.First() : string.Join(",", matchedRegions);
+                return "eu";
+            }
+
+            // Parse the file name
+            var matches = Regex.Matches(romName, @"\((.*?)\)");
+            foreach (Match match in matches)
+            {
+                string content = match.Groups[1].Value;
+                var parts = content.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var part in parts)
+                {
+                    string trimmedPart = part.ToLowerInvariant().Trim();
+                    if (LangLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.region))
+                    {
+                        return langData.region; // Return first valid region found
+                    }
+                }
+            }
+
+            // Arcade system fallback
+            if (ArcadeSystems.Contains(currentSystem))
+            {
+                return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
             }
 
             return "us";
         }
-
 
         public static string GetLanguage(string fileName)
         {
             string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
             string lowerFileName = fileName.ToLowerInvariant();
 
-            // Special case: if the file name contains (T), it's a translation (English)
-            if (Regex.IsMatch(fileName, @"\(T(-Eng)?", RegexOptions.IgnoreCase))
+            // Special case: if the file name contains (T) or (T-Eng), or [T-En] or [T-Eng], it's a translation (English)
+            if (Regex.IsMatch(fileName, @"(\(T(-Eng)?\)|\[T-?En(g)?\])", RegexOptions.IgnoreCase))
             {
                 return "en";
             }
@@ -147,7 +195,7 @@ namespace GamelistManager.classes
             foreach (Match match in matches)
             {
                 string content = match.Groups[1].Value;
-                var parts = content.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                var parts = content.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var part in parts)
                 {
@@ -165,17 +213,6 @@ namespace GamelistManager.classes
             }
 
             return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";
-        }
-
-
-
-        public static RegionLanguageInfo ExtractRegionAndLanguages(string fileName)
-        {
-            return new RegionLanguageInfo
-            {
-                Region = GetRegion(fileName),
-                Languages = GetLanguage(fileName)
-            };
         }
     }
 }

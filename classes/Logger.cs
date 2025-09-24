@@ -41,6 +41,9 @@ namespace GamelistManager.classes
                 Color = color ?? Brushes.Black
             };
 
+            // Small delay so UI doesn’t get overwhelmed
+            await Task.Delay(1);
+
             // Use Task.Run to offload the work to another thread
             await Task.Run(() =>
             {
@@ -85,7 +88,7 @@ namespace GamelistManager.classes
             _logListBox.ScrollIntoView(_logMessages[^1]);
 
             // Limit the log size to prevent performance degradation
-            const int MaxLogEntries = 500;
+            const int MaxLogEntries = 200;
             if (_logMessages.Count > MaxLogEntries)
             {
                 _logMessages.RemoveAt(0);

@@ -94,6 +94,7 @@ namespace GamelistManager
 
             statusBar.Visibility = Properties.Settings.Default.ShowFileStatusBar ? Visibility.Visible : Visibility.Collapsed;
 
+
             button_Save.Content = "Saved";
             button_Save.IsEnabled = false;
 
