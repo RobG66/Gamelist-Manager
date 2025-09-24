@@ -6,6 +6,11 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ September 24th 2025
+
+ A lot of effort went into 8.1, so let me know how it works for you.
+
+----
  September 23rd, 2025
 
   Soon!  Anyhow, I have improved scraping performance with calculations based upon what you are scraping, if there are present values and if overwrite options are selected or not.  What this means is that if you are not overwriting and there's existing values for all the metadata items you are scraping, the current item will then be skipped.
