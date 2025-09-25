@@ -8,6 +8,8 @@ https://buymeacoffee.com/silverballb
 ----
 September 25th, 2025
 
+ *8.11 will be released soon.  New Gamelist and rest view fixes*
+
  I might push out a minor bugfix version this weekend.  I did notice the Reset button isn't resetting all the view filters, minor issue.  I would also welcome if someone could write up a usage document, with some tips and tricks using filters, mame tools etc.
 
   I might look into fixing custom paths using more than 1 level.  It might not need that much effort, but I won't know until I look more into the code.  I also wanted to add themes like Light, Dark, Blue, Retro, etc.  I just need to remove/replace some color hardcodings into a 'default' theme for the current appearance.  
