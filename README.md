@@ -8,7 +8,7 @@ https://buymeacoffee.com/silverballb
 ----
 September 25th, 2025
 
- *8.11 will be released soon.  New Gamelist exception error and reset view fixes*
+ *8.11 out now!  New Gamelist exception error and reset view fixes*
 
  I might push out a minor bugfix version this weekend.  I did notice the Reset button isn't resetting all the view filters, minor issue.  I would also welcome if someone could write up a usage document, with some tips and tricks using filters, mame tools etc.
 
