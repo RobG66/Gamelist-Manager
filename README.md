@@ -6,6 +6,12 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+September 27th, 2025
+
+ I'm adding more to the "Tools" menu.  Specifically, methods for using dat files to check for missing items, setting names from database description and other stuff as needed.  
+ It's very similar to what the mame tools do, but now will be availavble for derivatives like fbneo for example.  There won't be anything released for a while, unless a bug needs fixing in the last release.  
+
+----
 September 25th, 2025
 
  *8.11 out now!  New Gamelist exception error and reset view fixes*
