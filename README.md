@@ -6,6 +6,17 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+October 1st, 2025
+
+ Wow, the year has been flying by fast, already October!  
+
+ I've started working on a DAT Tools 'page' so items for different systems like fbneo, mame and whatever else uses a DAT can be managed.  I'm going to migrate all the Mame menu tools into this, because they will also work with fbneo now as well.  Mame can generate it's own dat file, or the output can be directly read from mame.exe -listxml stream.  FBNeo you need to download the dats from their github page.  I will probably put links in there so it's easy for everyone to find.
+
+ Rough In:
+ <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/ccbeba0c-64c1-4f2f-88fc-eded77209170" />
+
+
+----
 September 27th, 2025
 
  I'm adding more to the "Tools" menu.  Specifically, methods for using dat files to check for missing items, setting names from database description and other stuff as needed.  
