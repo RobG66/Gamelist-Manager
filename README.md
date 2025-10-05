@@ -6,6 +6,18 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ October 4th, 2025
+
+  I did a bit of work on the DAT Tool page tonight.  Getting rid of all the buttons and having a combobox so you can choose what report you want.  There will also be a summary of course.  As always, it's a work in progress.  
+
+  Pro Tip: When you select "All" for scraping, it scrapes all the items in the current datagrid view.  And if you have the view filtered, the scraping then applies to those items you see in the filtered view. Of course to scrape *ALL* gamelist items, just don't have any view filter applied.  Hidden items are excluded by default, but that's just a simple checkbox setting if you want to change that too.
+  
+
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/de587f7a-e41d-4d80-ba43-3d528f1bb366" />
+
+
+
+----
 October 1st, 2025
 
  Wow, the year has been flying by fast, already October!  
