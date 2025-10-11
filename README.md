@@ -6,6 +6,14 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ October 11th, 2025
+
+  DAT Tools is coming along ok.     
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/df985ac0-6743-4b15-87a7-ab7fbcd74cf7" />
+
+ By the way if you like Gamelist Manager and haven't donated, then please consider the huge amount of time and effort I have put into this program.  I don't ask for much, but a little bit of support IS nice to have.  If there is something you think would be a good addition, please let me know!  If you want to do a youtube video review, that would be great as well (send me a message!).      
+
+----
  October 4th, 2025
 
   I did a bit of work on the DAT Tool page tonight.  Getting rid of all the buttons and having a combobox so you can choose what report you want.  There will also be a summary of course.  As always, it's a work in progress.  
