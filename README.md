@@ -1,6 +1,7 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
- ***Do you find this program useful?  Show your appreciation by making a donation:**  
+ **Do you find this program useful?  Show your appreciation by making a donation:**  
+ 
 https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
