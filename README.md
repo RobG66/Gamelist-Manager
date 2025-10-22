@@ -7,6 +7,17 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ October 22nd, 2025
+
+ Stop by and say hello in the discussions! :)
+
+  DAT Tools continues to imrpove and evolve:
+
+  <img width="3839" height="2011" alt="image" src="https://github.com/user-attachments/assets/2fa86f1b-1a7d-4d65-b5ce-425ca5d817b3" />
+
+
+
+----
  October 11th, 2025
 
   DAT Tools is coming along ok.     
