@@ -9,7 +9,7 @@ https://buymeacoffee.com/silverballb
 ----
  October 26th, 2025
 
-  Dat tools is nearly done so I took a brief detour into updating the gui presentation.  I'm making the scraper presentation more streamlines with 'modern' looking style.  New combobox and checkbox resource dictionaries for a nicer look as well.
+  Dat tools is nearly done so I took a brief detour into updating the gui presentation.  I'm making the scraper presentation more streamlined with 'modern' looking style.  New combobox and checkbox resource dictionaries for a nicer look as well.
 
   <img width="3839" height="2006" alt="image" src="https://github.com/user-attachments/assets/4eb995ca-f16e-45e1-8b4c-04a6d06c9df7" />
 
