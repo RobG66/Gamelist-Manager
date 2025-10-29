@@ -7,6 +7,17 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
+ Octover 29th, 2025
+
+  The scraper page refactor is almost done.  The core functionality is roughly the same, but the aesthetics are greatly improved.  The middle checkbox area can be collapsed or expanded to increase viewing space for the logging while scraping.  A setting will determine if it auto collapses during scrape:
+
+<img width="3839" height="2014" alt="image" src="https://github.com/user-attachments/assets/52e977c3-7ba4-4323-b33b-99dcba660e19" />
+
+  
+  <img width="3839" height="2016" alt="image" src="https://github.com/user-attachments/assets/6b73fb3c-ef07-4a79-a729-cb407a8a8479" />
+
+
+----
  October 26th, 2025
 
   Dat tools is nearly done so I took a brief detour into updating the gui presentation.  I'm making the scraper presentation more streamlined with 'modern' looking style.  New combobox and checkbox resource dictionaries for a nicer look as well.
