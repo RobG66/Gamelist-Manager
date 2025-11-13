@@ -7,7 +7,21 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 https://buymeacoffee.com/silverballb
 
 ----
- Octover 29th, 2025
+ November 13th, 2025
+
+ I've added a theme engine to my WIP build.
+
+ In addition to the Default theme which is how the program currently looks, there are 2 additional themes. I might add 2 more, but this is where I'm at right now.
+
+ Dark Theme:
+ <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/8c3c5720-204f-4d1b-80bf-ef0e4b6fdc02" />
+
+Blue Theme:
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/55ea3387-ffad-4605-a1a3-0312a3e6e1e3" />
+
+
+----
+ October 29th, 2025
 
   The scraper page refactor is almost done.  The core functionality is roughly the same, but the aesthetics are greatly improved.  The middle checkbox area can be collapsed or expanded to increase viewing space for the logging while scraping.  A setting will determine if it auto collapses during scrape:
 
