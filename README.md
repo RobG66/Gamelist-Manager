@@ -9,7 +9,7 @@ https://buymeacoffee.com/silverballb
 ----
  November 13th, 2025
 
- I've added a theme engine to my WIP build.
+ I've added a theme engine to my WIP build!  Changing the theme is as easy as picking what you want from a combobox in the settings menu.  Dat tools is nearly there as well.  There's been a lot of visualization tweaks to controls to give everything a more 'modern' appearance, as opposed to being all blocky and square.
 
  In addition to the Default theme which is how the program currently looks, there are 2 additional themes. I might add 2 more, but this is where I'm at right now.
 
