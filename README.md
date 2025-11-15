@@ -6,6 +6,15 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
 
+---
+ November 14th, 2025
+
+  I have finished DAT Tools and added two more thems (Cool and Warm).  The 'warm' one was a bit more challening, it may get tweaked later.  That makes 5 total themes for the next release.  I have refactored gamelist saving so it's much faster than before, especially on large gamelists like Mame.  There's been a few bug fixes, tweaks and many other improvements.  There's still a few items on the to-do list so I'm not sure if I will get a release out this weekend or not... But soon! :)  And then I'm going to finally get around to adding media drag/drop to the media view and improving custom folder paths for media.
+
+  Cool Theme:
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/81699116-3d53-4f90-97e3-ad5915c2c607" />
+
+
 ----
  November 13th, 2025
 
