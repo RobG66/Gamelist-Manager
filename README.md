@@ -6,6 +6,12 @@ https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US
 
 https://buymeacoffee.com/silverballb
 
+--- 
+ November 18th, 2025
+
+  Version 8.2 has been posted.  A lot of things were cleaned up / tweaked, so let me know if you see anything out of the ordinary.  
+
+
 ---
  November 14th, 2025
 
