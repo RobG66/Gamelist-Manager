@@ -18,7 +18,13 @@
     <Compile Update="pages\MediaPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="pages\DatToolPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="pages\ScraperPage.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="windows\AboutWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="windows\SettingsDialogWindow.xaml.cs">

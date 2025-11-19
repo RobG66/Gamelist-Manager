@@ -121,19 +121,6 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""wheel"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}
-")]
-        public string MediaPaths {
-            get {
-                return ((string)(this["MediaPaths"]));
-            }
-            set {
-                this["MediaPaths"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("wor")]
         public string Region {
             get {
@@ -230,21 +217,6 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
-            "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
-            ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
-            "\": true}\r\n")]
-        public string VisibleGridColumns {
-            get {
-                return ((string)(this["VisibleGridColumns"]));
-            }
-            set {
-                this["VisibleGridColumns"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Horizontal")]
         public string GridLineVisibility {
             get {
@@ -305,7 +277,7 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
         public int SearchDepth {
             get {
                 return ((int)(this["SearchDepth"]));
@@ -336,21 +308,6 @@ namespace GamelistManager.Properties {
             }
             set {
                 this["RememberColumns"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
-            "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
-            ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
-            "\": true}\r\n")]
-        public string DefaultColumns {
-            get {
-                return ((string)(this["DefaultColumns"]));
-            }
-            set {
-                this["DefaultColumns"] = value;
             }
         }
         
@@ -392,8 +349,86 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ScrapeAnyMedia {
+            get {
+                return ((bool)(this["ScrapeAnyMedia"]));
+            }
+            set {
+                this["ScrapeAnyMedia"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoExpandLogger {
+            get {
+                return ((bool)(this["AutoExpandLogger"]));
+            }
+            set {
+                this["AutoExpandLogger"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Default")]
+        public string Theme {
+            get {
+                return ((string)(this["Theme"]));
+            }
+            set {
+                this["Theme"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""wheel"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}")]
+        public string MediaPaths {
+            get {
+                return ((string)(this["MediaPaths"]));
+            }
+            set {
+                this["MediaPaths"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
+            "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
+            ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
+            "\": true}")]
+        public string VisibleGridColumns {
+            get {
+                return ((string)(this["VisibleGridColumns"]));
+            }
+            set {
+                this["VisibleGridColumns"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Description\": true, \"Developer\": false, \"Favorite\": false, \"Game Time\": false, " +
+            "\"Language\": false, \"Last Played\": false, \"Play Count\": false, \"Publisher\": false" +
+            ", \"Region\": false, \"Genre\": true, \"Rating\": true, \"Players\": true, \"Release Date" +
+            "\": true}")]
+        public string DefaultColumns {
+            get {
+                return ((string)(this["DefaultColumns"]));
+            }
+            set {
+                this["DefaultColumns"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("[\"USA (us)\",\"ScreenScraper (ss)\",\"Europe (eu)\",\"United Kingdom (uk)\",\"World (wor)" +
-            "\"]\n")]
+            "\"]")]
         public string Region_Fallback {
             get {
                 return ((string)(this["Region_Fallback"]));
@@ -405,13 +440,13 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ScrapeAnyMedia {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Version {
             get {
-                return ((bool)(this["ScrapeAnyMedia"]));
+                return ((string)(this["Version"]));
             }
             set {
-                this["ScrapeAnyMedia"] = value;
+                this["Version"] = value;
             }
         }
     }

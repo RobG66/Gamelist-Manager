@@ -5,406 +5,810 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager"
         mc:Ignorable="d"
-        Title="MainWindow" Height="490" MinHeight="490" Width="860" MinWidth="860" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="MainWindow" 
+        Height="490" MinHeight="490" 
+        Width="870" MinWidth="870" 
+        Loaded="Window_Loaded" 
+        Closing="Window_Closing"
+        Background="{DynamicResource WindowBackgroundBrush}">
 
-    <Grid x:Name="MainGrid">
-        <!-- Define rows for Menu, Content, GridSplitter, and Additional Content -->
+    <!-- Main grid that contains everything -->
+    <Grid x:Name="MainGrid" 
+          Margin="5,0,5,5"
+          Background="{DynamicResource MainGridBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Menu -->
             <RowDefinition Height="*"/>
             <!-- Datagrid / Textbox -->
-            <RowDefinition Height="5"/>
+            <RowDefinition Height="Auto"/>
             <!-- GridSplitter -->
             <RowDefinition Height="Auto"/>
             <!-- Media Display / Scraper -->
         </Grid.RowDefinitions>
-        <Menu x:Name="menu_Main" Grid.Column="0" Background="#FFFDFDFD">
-            <MenuItem x:Name="menuItem_File" Header="File" Style="{StaticResource MinimalMenuItem}">
-                <MenuItem x:Name="menuItem_New" Header="New Gamelist" Style="{StaticResource MinimalMenuItem}" Click="NewFile_Click"/>
-                <MenuItem x:Name="menuItem_Load" Header="Load Gamelist" Style="{StaticResource MinimalMenuItem}" Click="OpenFile_Click"/>
-                <MenuItem x:Name="menuItem_Reload" Header="Reload Gamelist" Style="{StaticResource MinimalMenuItem}" Click="ReloadFile_Click" IsEnabled="False"/>
-                <MenuItem x:Name="menuItem_Save" Header="Save Gamelist" Style="{StaticResource MinimalMenuItem}" Click="SaveFile_Click" IsEnabled="False"/>
-                <MenuItem x:Name="menuItem_Restore" Header="Restore A Gamelist" Style="{StaticResource MinimalMenuItem}" IsEnabled="False" Click="menuItem_Restore_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_Export" Header="Export To CSV" Style="{StaticResource MinimalMenuItem}" Click="Export_Click" IsEnabled="False"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-            </MenuItem>
 
-            <MenuItem x:Name="menuItem_View" Header="View" IsEnabled="False" SubmenuOpened="menuItem_View_SubmenuOpened" >
-                <MenuItem x:Name="menuItem_ShowAll" Header="Show Visible And Hidden Items" Click="ShowAll_Click" IsChecked="True" />
-                <MenuItem x:Name="menuItem_ShowVisible" Header="Show Visible Items Only" Click="ShowVisible_Click"/>
-                <MenuItem x:Name="menuItem_ShowHidden" Header="Show Hidden Items Only" Click="ShowHidden_Click"/>
-                <Separator/>
-                <MenuItem x:Name="menuItem_ShowAllGenre" Header="Show All Genres" IsChecked="True" Click="ShowAllGenres_Click"/>
-                <MenuItem x:Name="menuItem_ShowOneGenre" Header="Show Genre Only" Click="ShowGenreOnly_Click"/>
-                <Separator/>
-                <MenuItem x:Name="menuItem_AlwaysOnTop" Header="Always On Top" Click="AlwaysOnTop_Click"/>
-                <Separator/>
-                <MenuItem x:Name="menuItem_ColumnAutoSize" Header="Autosize Columns" IsChecked="True" Click="menuItem_ColumnAutoSize_Click"/>
-                <Separator/>
-                <MenuItem x:Name="menuItem_ResetView" Header="Reset View" Click="ResetView_Click"/>
-                <Separator/>
-                <MenuItem x:Name="menuItem_VideoJukebox" Header="Video Jukebox" Click="menuItem_VideoJukebox_Click"/>
-                <MenuItem x:Name="menuItem_MusicJukebox" Header="Music Jukebox" Click="menuItem_MusicJukebox_Click"/>
+        <!-- ======= Unified Top Menu + Font Size Controls ======= -->
+        <DockPanel Grid.Row="0" 
+                   LastChildFill="True" 
+                   Background="{DynamicResource MenuBackgroundBrush}" 
+                   Margin="-5,0,-5,0">
 
-            </MenuItem>
-            <MenuItem x:Name="menuItem_Edit" Header="Edit"  IsEnabled="False" Style="{StaticResource MinimalMenuItem}" SubmenuOpened="menuItem_Edit_SubmenuOpened">
-                <MenuItem x:Name="menuItem_SetAllVisible"  Header="Set All Items Visible" Style="{StaticResource MinimalMenuItem}" Click="menuItem_AllVisible_Click" />
-                <MenuItem x:Name="menuItem_SetAllHidden" Header="Set All Items Hidden" Style="{StaticResource MinimalMenuItem}" Click="menuItem_AllHidden_Click" />
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_SetSelectedVisible"  Header="Set Item Visible" Style="{StaticResource MinimalMenuItem}" Click="menuItem_SetSelectedVisible_Click"/>
-                <MenuItem x:Name="menuItem_SetSelectedHidden" Header="Set Item Hidden" Style="{StaticResource MinimalMenuItem}" Click="menuItem_SetSelectedHidden_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_SetAllGenreVisible" Header="Set All Genre Visible" Style="{StaticResource MinimalMenuItem}" Click="menuItem_SetAllGenreVisible_Click"/>
-                <MenuItem x:Name="menuItem_SetAllGenreHidden" Header="Set All Genre Hidden" Style="{StaticResource MinimalMenuItem}" Click="menuItem_SetAllGenreHidden_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_EditData" Header="Edit Data" Style="{StaticResource MinimalMenuItem}" Click="menuItem_EditData_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_RemoveItem" Header="Remove Item" Style="{StaticResource MinimalMenuItem}" Click="menuItem_RemoveItem_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_ResetName" Header="Reset Name" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ResetName_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_SearchAndReplace" Header="Search And Replace" Style="{StaticResource MinimalMenuItem}" Click="menuItem_SearchAndReplace_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_Find" Header="Find" Style="{StaticResource MinimalMenuItem}" Click="menuItem_Find_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_ClearSelected" Header="Clear Selected Item Data" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ClearSelected_Click"/>
-                <MenuItem x:Name="menuItem_ClearAllData" Header="Clear All Data" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ClearAllData_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Item Media Paths" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ClearMediaPaths_Click" />
-                <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Item Media Paths" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ClearMediaPaths_Click"/>
-            </MenuItem>
-
-            <MenuItem x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
-                <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Description" Header="Description" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Developer" Header="Developer" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Family" Header="Family" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Genre" Header="Genre" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_GameId" Header="Game Id" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Language" Header="Language" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_LastPlayed" Header="Last Played" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Publisher" Header="Publisher" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_PlayCount" Header="Play Count" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Players" Header="Players" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_Region" Header="Region" Click="menuItem_Clicked" IsCheckable="true"/>
-                <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="menuItem_Clicked" IsCheckable="true"/>
-                <Separator/>
-                <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="menuItem_Clicked" IsCheckable="true"/>
-            </MenuItem>
-
-            <MenuItem x:Name="menuItem_Tools" Header="Tools" Style="{StaticResource MinimalMenuItem}" IsEnabled="False">
-                <MenuItem x:Name="menuItem_AddMedia" Header="Find/Add/Cleanup Media" IsEnabled="True" Style="{StaticResource MinimalMenuItem}" Click="menuItem_AddMedia_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_FindNewItems" Header="Find New Items" Style="{StaticResource MinimalMenuItem}" Click="menuItem_FindNewItems_Click"/>
-                <MenuItem x:Name="menuItem_FindMissing" Header="Find Missing Items" Style="{StaticResource MinimalMenuItem}" Click="menuItem_FindMissingItems_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem x:Name="menuItem_MameIdentifyUnplayable" Header="Mame: Identify Unplayable" Style="{StaticResource MinimalMenuItem}" Click="menuItem_MameIdentifyUnplayable_Click"/>
-                <MenuItem x:Name="menuItem_MameIdentifyCHDRequired" Header="Mame: Identify CHD Required" Style="{StaticResource MinimalMenuItem}" Click="menuItem_MameIdentifyCHDRequired_Click"/>
-                <MenuItem x:Name="menuItem_MameIdentifyClones" Header="Mame: Identify Clones" Style="{StaticResource MinimalMenuItem}" Click="menuItem_MameIdentifyClones_Click"/>
-                <MenuItem x:Name="menuItem_MameIdentifyBootleg" Header="Mame: Identify Bootleg" Style="{StaticResource MinimalMenuItem}" Click="menuItem_MameIdentifyBootleg_Click"/>
-                <MenuItem x:Name="menuItem_UseMameNames" Header="Mame: Use Descriptions For Names" Style="{StaticResource MinimalMenuItem}" Click="menuItem_UseMameDescriptionsForNames_Click"/>
-                <MenuItem x:Name="menuItem_CreateArcadeGamesINI" Header="Mame: Create New 'arcadegames.ini' File" Style="{StaticResource MinimalMenuItem}" Click="menuItem_CreateArcadeGamesINI_Click"/>
-
-            </MenuItem>
-            <MenuItem x:Name="menuItem_Remote" Style="{StaticResource MinimalMenuItem}" Header="Remote">
-                <MenuItem Header="Map A Network Drive"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_MapDrive_Click" Name="menuItem_MapDrive"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem Header="Open Terminal To Batocera Host"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_OpenTerminal_Click" Name="menuItem_OpenTerminal"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem Header="Get Batocera Version"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_GetVersion_Click" Name="menuItem_GetVersion"/>
-                <MenuItem Header="Show Available Updates"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_ShowUpdates_Click" Name="menuItem_ShowUpdates"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem Header="Stop Running Emulators"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_StopEmulators_Click" Name="menuItem_StopEmulators"/>
-                <MenuItem Header="Stop Emulationstation"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_StopEmulationstation_Click" Name="menuItem_StopEmulationstation"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem Header="Reboot Batocera Host"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_RebootHost_Click" Name="menuItem_RebootHost"/>
-                <MenuItem Header="Shutdown Batocera Host"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_ShutdownHost_Click" Name="menuItem_ShutdownHost"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem Header="Remove Batocera SSH Key"  Style="{StaticResource MinimalMenuItem}" Click="menuItem_RemoveSshKey_Click" Name="menuItem_RemoveSshKey" />
-
-            </MenuItem>
-            <MenuItem Header="Settings" Style="{StaticResource MinimalMenuItem}">
-                <MenuItem Header="Open Settings Menu" Style="{StaticResource MinimalMenuItem}" Click="menuItem_Settings_Click"/>
-                <Separator Style="{StaticResource MinimalSeparator}"/>
-                <MenuItem Header="Reset All Settings" Style="{StaticResource MinimalMenuItem}" Click="menuItem_ResetAllSettings_Click"/>
-            </MenuItem>
-            <MenuItem Header="Help" Style="{StaticResource MinimalMenuItem}">
-                <MenuItem Header="Github Page" Style="{StaticResource MinimalMenuItem}" Click="MenuItem_Click"/>
-                <MenuItem Header="Report An Issue" Style="{StaticResource MinimalMenuItem}" Click="MenuItem_Click_1"/>
-            </MenuItem>
-        </Menu>
-        <DockPanel  Grid.Row="0">
-            <!--Top Menu-->
-            <!-- Slider and TextBlock on the far right -->
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
-                <TextBlock Text="Grid Font Size:" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
-                <Slider x:Name="FontSizeSlider" Minimum="8" Maximum="14" Value="12" TickFrequency="1" IsSnapToTickEnabled="True" Width="100" Margin="0" Background="#FFFDFDFD"/>
-                <TextBlock x:Name="FontSizeValue" Text="12" FontSize="12" VerticalAlignment="Center" Margin="0" Background="#FFFDFDFD"/>
+            <!-- Right side: Font size slider -->
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="0,0,5,0"
+                        Background="{DynamicResource MenuBackgroundBrush}">
+                <TextBlock Text="Grid Font Size:"
+                           FontSize="12"
+                           Foreground="{DynamicResource MenuForegroundBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,3,0"/>
+                <Slider x:Name="FontSizeSlider"
+                        Minimum="8"
+                        Maximum="14"
+                        Value="12"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True"
+                        Width="100"
+                        Margin="0,0,3,0"/>
+                <TextBlock x:Name="FontSizeValue"
+                           Text="12"
+                           FontSize="12"
+                           Foreground="{DynamicResource MenuForegroundBrush}"
+                           VerticalAlignment="Center"/>
             </StackPanel>
+
+            <!-- Left side: Full menu -->
+            <Menu x:Name="menu_Main"
+                  Background="{DynamicResource MenuBackgroundBrush}">
+                <MenuItem x:Name="menuItem_File" Header="File" Style="{DynamicResource MinimalMenuItem}">
+                    <MenuItem x:Name="menuItem_New" Header="New Gamelist" Style="{DynamicResource MinimalMenuItem}" Click="NewFile_Click"/>
+                    <MenuItem x:Name="menuItem_Load" Header="Load Gamelist" Style="{DynamicResource MinimalMenuItem}" Click="OpenFile_Click"/>
+                    <MenuItem x:Name="menuItem_Reload" Header="Reload Gamelist" Style="{DynamicResource MinimalMenuItem}" Click="ReloadFile_Click" IsEnabled="False"/>
+                    <MenuItem x:Name="menuItem_Save" Header="Save Gamelist" Style="{DynamicResource MinimalMenuItem}" Click="SaveFile_Click" IsEnabled="False"/>
+                    <MenuItem x:Name="menuItem_Restore" Header="Restore A Gamelist" Style="{DynamicResource MinimalMenuItem}" IsEnabled="False" Click="MenuItem_Restore_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_Export" Header="Export To CSV" Style="{DynamicResource MinimalMenuItem}" Click="Export_Click" IsEnabled="False"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                </MenuItem>
+
+                <MenuItem Style="{DynamicResource BaseMenuItem}" x:Name="menuItem_View" Header="View" IsEnabled="False" SubmenuOpened="MenuItem_View_SubmenuOpened">
+                    <MenuItem x:Name="menuItem_ShowAll" Header="Show Visible And Hidden Items" Click="ShowAll_Click" IsChecked="True"/>
+                    <MenuItem x:Name="menuItem_ShowVisible" Header="Show Visible Items Only" Click="ShowVisible_Click"/>
+                    <MenuItem x:Name="menuItem_ShowHidden" Header="Show Hidden Items Only" Click="ShowHidden_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItem_ShowAllGenre" Header="Show All Genres" IsChecked="True" Click="ShowAllGenres_Click"/>
+                    <MenuItem x:Name="menuItem_ShowOneGenre" Header="Show Genre Only" Click="ShowGenreOnly_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItem_AlwaysOnTop" Header="Always On Top" Click="AlwaysOnTop_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItem_ColumnAutoSize" Header="Autosize Columns" IsChecked="True" Click="MenuItem_ColumnAutoSize_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItem_ResetView" Header="Reset View" Click="ResetView_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItem_VideoJukebox" Header="Video Jukebox" Click="MenuItem_VideoJukebox_Click"/>
+                    <MenuItem x:Name="menuItem_MusicJukebox" Header="Music Jukebox" Click="MenuItem_MusicJukebox_Click"/>
+                </MenuItem>
+
+                <MenuItem x:Name="menuItem_Edit" Header="Edit" IsEnabled="False" Style="{DynamicResource MinimalMenuItem}" SubmenuOpened="MenuItem_Edit_SubmenuOpened">
+                    <MenuItem x:Name="menuItem_SetAllVisible" Header="Set All Items Visible" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_AllVisible_Click"/>
+                    <MenuItem x:Name="menuItem_SetAllHidden" Header="Set All Items Hidden" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_AllHidden_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_SetSelectedVisible" Header="Set Item Visible" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_SetSelectedVisible_Click"/>
+                    <MenuItem x:Name="menuItem_SetSelectedHidden" Header="Set Item Hidden" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_SetSelectedHidden_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_SetAllGenreVisible" Header="Set All Genre Visible" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_SetAllGenreVisible_Click"/>
+                    <MenuItem x:Name="menuItem_SetAllGenreHidden" Header="Set All Genre Hidden" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_SetAllGenreHidden_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_EditData" Header="Edit Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_EditData_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_RemoveItem" Header="Remove Item" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_RemoveItem_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_ResetName" Header="Reset Name" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ResetName_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_Find" Header="Find" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_Find_Click"/>
+                    <MenuItem x:Name="menuItem_SearchAndReplace" Header="Search And Replace" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_SearchAndReplace_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_ClearSelected" Header="Clear Selected Item Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelected_Click"/>
+                    <MenuItem x:Name="menuItem_ClearAllData" Header="Clear All Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllData_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Item Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearMediaPaths_Click"/>
+                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Item Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearMediaPaths_Click"/>
+                </MenuItem>
+
+                <MenuItem Style="{DynamicResource BaseMenuItem}" x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
+                    <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Description" Header="Description" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Developer" Header="Developer" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Family" Header="Family" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Genre" Header="Genre" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_GameId" Header="Game Id" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Language" Header="Language" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_LastPlayed" Header="Last Played" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Publisher" Header="Publisher" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_PlayCount" Header="Play Count" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Players" Header="Players" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Region" Header="Region" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="MenuItem_Clicked" IsCheckable="true"/>
+                </MenuItem>
+
+                <MenuItem x:Name="menuItem_Tools" Header="Tools" Style="{DynamicResource MinimalMenuItem}" IsEnabled="False">
+                    <MenuItem x:Name="menuItem_AddMedia" Header="Find/Add/Cleanup Media" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_AddMedia_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_FindNewItems" Header="Find New Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindNewItems_Click"/>
+                    <MenuItem x:Name="menuItem_FindMissing" Header="Identify Missing Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindMissingItems_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_DatTools" Header="DAT Tools" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_DatTools_Click"/>
+                </MenuItem>
+
+                <MenuItem x:Name="menuItem_Remote" Header="Remote" Style="{DynamicResource MinimalMenuItem}">
+                    <MenuItem Header="Map A Network Drive" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_MapDrive_Click" Name="menuItem_MapDrive"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Header="Open Terminal To Batocera Host" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_OpenTerminal_Click" Name="menuItem_OpenTerminal"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Header="Get Batocera Version" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_GetVersion_Click" Name="menuItem_GetVersion"/>
+                    <MenuItem Header="Show Available Updates" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ShowUpdates_Click" Name="menuItem_ShowUpdates"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Header="Stop Running Emulators" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_StopEmulators_Click" Name="menuItem_StopEmulators"/>
+                    <MenuItem Header="Stop Emulationstation" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_StopEmulationstation_Click" Name="menuItem_StopEmulationstation"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Header="Reboot Batocera Host" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_RebootHost_Click" Name="menuItem_RebootHost"/>
+                    <MenuItem Header="Shutdown Batocera Host" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ShutdownHost_Click" Name="menuItem_ShutdownHost"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Header="Remove Batocera SSH Key" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_RemoveSshKey_Click" Name="menuItem_RemoveSshKey"/>
+                </MenuItem>
+
+                <MenuItem Header="Settings" Style="{DynamicResource MinimalMenuItem}">
+                    <MenuItem Header="Open Settings Menu" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_Settings_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Header="Reset All Settings" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ResetAllSettings_Click"/>
+                </MenuItem>
+
+                <MenuItem Header="Help" Style="{DynamicResource MinimalMenuItem}">
+                    <MenuItem Header="About" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_AboutClick"/>
+                    <MenuItem Header="Report An Issue" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_Click_1"/>
+                </MenuItem>
+            </Menu>
         </DockPanel>
 
-        <Grid Grid.Row="1">
-            <!-- Content under menu -->
-            <Grid x:Name="grid_DataDisplay" Grid.Row="0" Margin="0,0,0,60">
-                <!-- Define columns for DataGrid, GridSplitter, and TextBox -->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="7*" />
+        <Grid x:Name="grid_gridrow1" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="7*" />
+                <!-- DataGrid -->
+                <ColumnDefinition Width="Auto" />
+                <!-- Vertical GridSplitter -->
+                <ColumnDefinition Width="2*" />
+                <!-- TextBox -->
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" 
+        BorderBrush="{DynamicResource TextBoxBorderBrush}"  
+        BorderThickness="1"
+        CornerRadius="4"
+        Padding="1"
+        ClipToBounds="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
                     <!-- DataGrid -->
-                    <ColumnDefinition Width="3" />
-                    <!-- Vertical GridSplitter -->
-                    <ColumnDefinition Width="2*" />
-                    <!-- TextBox -->
-                </Grid.ColumnDefinitions>
+                    <DataGrid x:Name="MainDataGrid" 
+                  Grid.Row="0" 
+                  BorderThickness="0" 
+                  Background="{DynamicResource DataGridBackgroundBrush}"
+                  Foreground="{DynamicResource DataGridForegroundBrush}"
+                  SelectionChanged="MainDataGrid_SelectionChanged" 
+                  AutoGenerateColumns="False" 
+                  CanUserDeleteRows="False" 
+                  CanUserAddRows="False">
+                 <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{x:Static SystemColors.HighlightColor}"/>
+                                </Style.Resources>
+                                <Style.Triggers>
+                                    <!-- Trigger for New status -->
+                                    <DataTrigger Binding="{Binding Path=Status}" Value="New">
+                                        <Setter Property="Foreground" Value="{DynamicResource DataGridNewItemBrush}"/>
+                                    </DataTrigger>
+                                    <!-- Trigger for Missing status -->
+                                    <DataTrigger Binding="{Binding Path=Status}" Value="Missing">
+                                        <Setter Property="Foreground" Value="{DynamicResource DataGridMissingItemBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                    </DataGrid>
 
-                <Border Grid.Column="0" Margin="2" BorderBrush="#FF0078D7" BorderThickness="2">
+                    <StatusBar x:Name="statusBar_FileInfo" 
+                   Background="{DynamicResource StatusBarBackgroundBrush}"
+                   Grid.Row="1" 
+                   Height="22">
+                        <StatusBarItem>
+                            <TextBlock x:Name="textBlock_Filename" 
+                           Text="Load an existing gamelist or create a new one from the File menu." 
+                           HorizontalAlignment="Left" 
+                           VerticalAlignment="Center" 
+                           FontSize="12" 
+                           Foreground="{DynamicResource StatusBarForegroundBrush}" 
+                           Margin="2,0,0,0"/>
+                        </StatusBarItem>
+                        <StatusBarItem>
+                            <TextBlock x:Name="textBlock_LastModifiedTime" 
+                           HorizontalAlignment="Left" 
+                           VerticalAlignment="Center" 
+                           FontSize="12" 
+                           Foreground="{DynamicResource StatusBarForegroundBrush}" 
+                           Margin="2,0,0,0"/>
+                        </StatusBarItem>
+                    </StatusBar>
 
-                    <Grid>
-                        <!-- Define two rows -->
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                            <!-- DataGrid will take available space -->
-                            <RowDefinition Height="Auto" />
-                            <!-- DockPanel will adjust to its content -->
-                        </Grid.RowDefinitions>
+                    <DockPanel LastChildFill="True" 
+                   x:Name="dockPanel_Find" 
+                   Grid.Row="2" 
+                   Visibility="Collapsed" 
+                   Background="{DynamicResource PanelBackgroundBrush}" 
+                   Height="24">
+                        <TextBlock Text="Find" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="12" 
+                       FontWeight="SemiBold"  
+                       Foreground="{DynamicResource PanelForegroundBrush}" 
+                       Margin="5,0,0,0"/>
+                        <TextBox x:Name="textBox_Find" 
+                     Width="80" 
+                     FontSize="12"
+                     Style="{DynamicResource CustomTextBox}"
+                     Height="20"
+                     FontWeight="SemiBold" 
+                     MaxLength="20" 
+                     MaxLines="1" 
+                     HorizontalAlignment="Left" 
+                     VerticalAlignment="Center" 
+                     Margin="5,0,5,0" 
+                     TextChanged="TextBox_Find_TextChanged" 
+                     KeyDown="TextBox_Find_KeyDown" />
+                        <TextBlock Text="in column" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="12" 
+                       FontWeight="SemiBold" 
+                       Foreground="{DynamicResource PanelForegroundBrush}"/>
+                        <ComboBox x:Name="comboBox_FindColumns" 
+                      FontSize="12" 
+                      FontWeight="SemiBold" 
+                      Height="20" 
+                      Padding="3,0,0,0" 
+                      Width="120" 
+                      HorizontalAlignment="Left"  
+                      VerticalAlignment="Center" 
+                      Style="{DynamicResource CustomComboBox}" 
+                      Margin="5,0,5,0"/>
+                        <Button x:Name="button_Find" 
+                    IsEnabled="False" 
+                    Style="{DynamicResource GreenRoundedButton}" 
+                    HorizontalAlignment="Left" 
+                    Height="20" 
+                    Width="50" 
+                    Content="Find" 
+                    Margin="2,0,0,0" 
+                    Click="Button_Find_Click"/>
+                        <Button x:Name="button_CloseFind" 
+                    Style="{DynamicResource CustomImageButton}" 
+                    Margin="0,0,5,0" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Center" 
+                    Click="Button_CloseFind_Click">
+                            <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                       Width="16" 
+                       Height="16" 
+                       ToolTip="Close Panel" 
+                       VerticalAlignment="Center"/>
+                        </Button>
+                    </DockPanel>
 
-                        <!-- DataGrid -->
-                        <DataGrid x:Name="MainDataGrid" BorderThickness="0" SelectionChanged="MainDataGrid_SelectionChanged" AutoGenerateColumns="False" CanUserDeleteRows="False" CanUserAddRows="False">
-                            <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow">
-                                    <Style.Resources>
-                                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{x:Static SystemColors.HighlightColor}"/>
-                                    </Style.Resources>
-                                    <Style.Triggers>
-                                        <!-- Trigger for New status -->
-                                        <DataTrigger Binding="{Binding Path=Status}" Value="New">
-                                            <Setter Property="Foreground" Value="Green"/>
-                                        </DataTrigger>
+                    <DockPanel LastChildFill="True" 
+                   x:Name="dockPanel_SearchAndReplace" 
+                   Grid.Row="3" 
+                   Visibility="Collapsed" 
+                   Background="{DynamicResource PanelBackgroundBrush}" 
+                   Height="24">
+                        <TextBlock Text="Replace" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="12" 
+                       FontWeight="SemiBold"  
+                       Foreground="{DynamicResource PanelForegroundBrush}" 
+                       Margin="5,0,0,0"/>
+                        <TextBox x:Name="textBox_ChangeFrom" 
+                     Width="80" 
+                     FontSize="12"
+                     Style="{DynamicResource CustomTextBox}"
+                     Height="20"
+                     FontWeight="SemiBold" 
+                     MaxLength="20" 
+                     MaxLines="1" 
+                     HorizontalAlignment="Left" 
+                     VerticalAlignment="Center" 
+                     Margin="5,0,5,0" 
+                     TextChanged="TextBox_TextChanged" />
+                        <TextBlock Text="with" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="12" 
+                       FontWeight="SemiBold" 
+                       Foreground="{DynamicResource PanelForegroundBrush}"/>
+                        <TextBox x:Name="textBox_ChangeTo" 
+                     Width="80"
+                     Style="{DynamicResource CustomTextBox}"
+                     Height="20"
+                     FontSize="12" 
+                     FontWeight="SemiBold" 
+                     MaxLength="20" 
+                     MaxLines="1" 
+                     HorizontalAlignment="Left" 
+                     VerticalAlignment="Center" 
+                     TextWrapping="NoWrap"  
+                     Margin="5,0,5,0" 
+                     TextChanged="TextBox_TextChanged" />
+                        <TextBlock Text="for" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="12" 
+                       FontWeight="SemiBold"  
+                       Foreground="{DynamicResource PanelForegroundBrush}"/>
+                        <Button x:Name="button_Items" 
+                    IsEnabled="True" 
+                    Style="{DynamicResource GreyRoundedButton}" 
+                    HorizontalAlignment="Left" 
+                    Height="20" 
+                    Width="75" 
+                    Margin="5,0,5,0" 
+                    Content="All Items" 
+                    VerticalAlignment="Center" 
+                    Click="Button_Items_Click"/>
+                        <TextBlock Text="in column" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="12" 
+                       FontWeight="SemiBold" 
+                       Foreground="{DynamicResource PanelForegroundBrush}"/>
+                        <ComboBox x:Name="comboBox_FindAndReplaceColumns" 
+                      FontSize="12" 
+                      FontWeight="SemiBold" 
+                      Height="20" 
+                      Padding="3,0,0,0" 
+                      Width="120" 
+                      HorizontalAlignment="Left"  
+                      VerticalAlignment="Center" 
+                      Margin="5,0,5,0" 
+                      Style="{DynamicResource CustomComboBox}" 
+                      SelectionChanged="ComboBox_Columns_SelectionChanged"/>
+                        <Button x:Name="button_Apply" 
+                    IsEnabled="False" 
+                    Style="{DynamicResource GreenRoundedButton}" 
+                    HorizontalAlignment="Left" 
+                    Height="20" 
+                    Width="50" 
+                    Content="Replace" 
+                    Margin="2,0,0,0" 
+                    Click="Button_Apply_Click"/>
+                        <Button x:Name="button_CloseSearchAndReplace" 
+                    Style="{DynamicResource CustomImageButton}" 
+                    Margin="0,0,5,0" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Center" 
+                    Click="Button_CloseSearchAndReplace_Click">
+                            <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                       Width="16" 
+                       Height="16" 
+                       ToolTip="Close Panel" 
+                       VerticalAlignment="Center"/>
+                        </Button>
+                    </DockPanel>
+                </Grid>
+            </Border>
+            
+            
+            
+            <!-- GridSplitter between DataGrid and TextBox -->
+            <GridSplitter x:Name="gridSplitter_Vertical" 
+                          Grid.Row="0" 
+                          Grid.Column="1" 
+                          Style="{DynamicResource CusomVerticalGridSplitter}"/>
 
-                                        <!-- Trigger for Missing status -->
-                                        <DataTrigger Binding="{Binding Path=Status}" Value="Missing">
-                                            <Setter Property="Foreground" Value="red"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.RowStyle>
-                        </DataGrid>
-                        <StatusBar x:Name="statusBar_FileInfo" Background="AliceBlue" Grid.Row="1" Height="22">
-                            <StatusBarItem>
-                                <TextBlock x:Name="textBlock_Filename" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Foreground="#FF333333" Margin="2,0,0,0"/>
-                            </StatusBarItem>
-                            <StatusBarItem>
-                                <TextBlock x:Name="textBlock_LastModifiedTime" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" Foreground="#FF333333" Margin="2,0,0,0"/>
-                            </StatusBarItem>
-                        </StatusBar>
-                        <DockPanel LastChildFill="True" x:Name="dockPanel_Find" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
-                            <TextBlock Text="Find" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold"  Foreground="#FF333333" Margin="5,0,0,0"/>
-                            <TextBox x:Name="textBox_Find" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="textBox_Find_TextChanged" KeyDown="textBox_Find_KeyDown" />
-                            <TextBlock Text="in column" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <ComboBox x:Name="comboBox_Columns1" FontSize="12" FontWeight="Bold" Height="18" Padding="3,0,0,0" Width="120" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns1_SelectionChanged"/>
-                            <Button x:Name="button_Find" IsEnabled="False" Style="{StaticResource GreenRoundedButton}" HorizontalAlignment="Left" Height="18" Width="50" Content="Find" Margin="2,0,0,0" Click="button_Find_Click"/>
-                            <Button x:Name="button_CloseFind" Style="{StaticResource AnimatedTransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseFind_Click">
-                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Close Panel" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="2" 
+                     Grid.Row="0" 
+                     Style="{DynamicResource CustomTextBox}"
+                     x:Name="textBox_Description"
+                     Width="Auto"
+                     Height="Auto"
+                     TextWrapping="WrapWithOverflow" 
+                     Padding="3" 
+                     FontSize="12" 
+                     FontWeight="Medium" 
+                     BorderBrush="{DynamicResource TextBoxBorderBrush}"
+                     BorderThickness="1" 
+                     Background="{DynamicResource TextBoxBackgroundBrush}" 
+                     Foreground="{DynamicResource TextBoxForegroundBrush}"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalContentAlignment="Left"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"                
+                     VerticalContentAlignment="Top"
+                     LostFocus="TextBox_Description_LostFocus"/>
+
+            <!-- Content under datagrid -->
+            <StackPanel Grid.Row="1" 
+                        x:Name="stackPanel_InfoBar" 
+                        Grid.ColumnSpan="3" 
+                        Orientation="Horizontal" 
+                        Margin="0,5,0,5" 
+                        VerticalAlignment="Bottom">
+                <StackPanel x:Name="stackPanel_UndoRedoButtons" 
+                            Orientation="Vertical" 
+                            VerticalAlignment="Center" 
+                            Background="Transparent">
+                    <Button x:Name="UndoButton" 
+                            Click="UndoButton_Click" 
+                            Margin="0,0,0,3" 
+                            Style="{DynamicResource CustomImageButton}" 
+                            IsEnabled="False" >
+                        <Image Source="pack://application:,,,/Resources/buttons/undo-button.png" 
+                               Width="25" 
+                               Height="25" 
+                               ToolTip="Undo" />
+                    </Button>
+                    <Button x:Name="RedoButton" 
+                            Click="RedoButton_Click" 
+                            Style="{DynamicResource CustomImageButton}" 
+                            IsEnabled="false">
+                        <Image Source="pack://application:,,,/Resources/buttons/redo-button.png" 
+                               Width="25" 
+                               Height="25" 
+                               ToolTip="Redo" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical" Margin="5,0,4,0">
+                    <Image x:Name="PlatformLogo" 
+                           Height="30" 
+                           Width="150" 
+                           Source="pack://application:,,,/Resources/logos/gamelistmanager.png"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0" HorizontalAlignment="Center">
+                        <Button x:Name="button_Scraper" 
+                                IsEnabled="False" 
+                                ToolTip="Scraper Display" 
+                                Style="{DynamicResource GreyRoundedButton}" 
+                                Height="20" 
+                                Width="70" 
+                                Margin="0,0,3,0" 
+                                Content="Show Scraper" 
+                                Click="Button_Scraper_Click"/>
+                        <Button x:Name="button_Media" 
+                                IsEnabled="False" 
+                                ToolTip="Media Display" 
+                                Style="{DynamicResource GreyRoundedButton}" 
+                                Height="20" 
+                                Width="70" 
+                                Margin="3,0,0,0" 
+                                HorizontalAlignment="Center" 
+                                Content="Show Media" 
+                                Click="Button_Media_Click"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Grid Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Info Cards -->
+                    <Border Grid.Column="0" 
+                            Grid.Row="0" 
+                            Width="80"  
+                            Margin="0,0,5,0" 
+                            Padding="4,8,4,8" 
+                            BorderThickness="1" 
+                            BorderBrush="{DynamicResource DarkBorderBrush}" 
+                            Background="{DynamicResource TotalCardBackgroundBrush}" 
+                            CornerRadius="6">
+                        <StackPanel HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center">
+                                <Image Height="15" Source="/Resources/icons/gamepad.png"/>
+                                <TextBlock Text="Total" 
+                                           Margin="5,0,0,0" 
+                                           Foreground="{DynamicResource CardForegroundBrush}" 
+                                           FontSize="12" 
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <TextBlock x:Name="textBlock_TotalCount" 
+                                       Text="0" 
+                                       HorizontalAlignment="Center" 
+                                       Foreground="{DynamicResource CardForegroundBrush}" 
+                                       FontSize="16" 
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" 
+                            Grid.Row="0" 
+                            Width="80" 
+                            Margin="0,0,5,0" 
+                            Padding="2,8,2,8" 
+                            Background="{DynamicResource HiddenCardBackgroundBrush}" 
+                            BorderBrush="{DynamicResource DarkBorderBrush}" 
+                            BorderThickness="1"  
+                            CornerRadius="6">
+                        <StackPanel HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center">
+                                <Image Height="15" Source="/Resources/icons/invisible.png"/>
+                                <TextBlock Text="Hidden" 
+                                           Margin="5,0,0,0" 
+                                           Foreground="{DynamicResource CardForegroundBrush}" 
+                                           FontSize="12" 
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <TextBlock x:Name="textBlock_HiddenCount" 
+                                       HorizontalAlignment="Center" 
+                                       Text="0" 
+                                       Foreground="{DynamicResource CardForegroundBrush}" 
+                                       FontSize="16" 
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" 
+                            Grid.Row="0" 
+                            Margin="0,0,5,0" 
+                            Width="80" 
+                            Padding="2,8,2,8" 
+                            Background="{DynamicResource ShowingCardBackgroundBrush}" 
+                            BorderBrush="{DynamicResource DarkBorderBrush}" 
+                            BorderThickness="1"  
+                            CornerRadius="6">
+                        <StackPanel HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center">
+                                <Image Height="15" Source="/Resources/icons/magnifying-glass.png"/>
+                                <TextBlock Text="Showing" 
+                                           Margin="5,0,0,0" 
+                                           Foreground="{DynamicResource CardForegroundBrush}" 
+                                           FontSize="12" 
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <TextBlock x:Name="textBlock_ShowingCount" 
+                                       HorizontalAlignment="Center" 
+                                       Text="0" 
+                                       Foreground="{DynamicResource CardForegroundBrush}" 
+                                       FontSize="16" 
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" 
+                            Grid.Row="0" 
+                            Margin="0,0,5,0" 
+                            Width="80" 
+                            Padding="2,8,2,8" 
+                            Background="{DynamicResource FavoriteCardBackgroundBrush}" 
+                            BorderBrush="{DynamicResource DarkBorderBrush}" 
+                            BorderThickness="1"  
+                            CornerRadius="6">
+                        <StackPanel HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center">
+                                <Image Height="15" Source="/Resources/icons/heart.png"/>
+                                <TextBlock Text="Favorite" 
+                                           Margin="5,0,0,0" 
+                                           Foreground="{DynamicResource CardForegroundBrush}" 
+                                           FontSize="12" 
+                                           FontWeight="Bold"/>
+                            </StackPanel>
+                            <TextBlock x:Name="textBlock_FavoriteCount" 
+                                       HorizontalAlignment="Center" 
+                                       Text="0" 
+                                       Foreground="{DynamicResource CardForegroundBrush}" 
+                                       FontSize="16" 
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Border Width="320" 
+                        Background="{DynamicResource FilterPanelBackgroundBrush}" 
+                        Padding="5" 
+                        BorderBrush="{DynamicResource DarkBorderBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="6">
+                    <StackPanel x:Name="stackpanel_Filters" IsEnabled="False">
+                        <!-- Row 1: Visibility -->
+                        <StackPanel Orientation="Horizontal" 
+                                    Margin="0,0,0,3" 
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="View Filter:" 
+                                       FontSize="12" 
+                                       FontWeight="Bold" 
+                                       VerticalAlignment="Center" 
+                                       Margin="2,0,0,0" 
+                                       Width="70"/>
+                            <RadioButton x:Name="radioButton_AllItems" 
+                                         IsChecked="True" 
+                                         Style="{DynamicResource CustomRadioButton}" 
+                                         FontSize="12" 
+                                         FontWeight="SemiBold" 
+                                         Content="All" 
+                                         Margin="0,0,12,0" 
+                                         VerticalAlignment="Center" 
+                                         Checked="RadioButton_AllItems_Checked" />
+                            <RadioButton x:Name="radioButton_VisibleItems" 
+                                         Style="{DynamicResource CustomRadioButton}" 
+                                         FontSize="12" 
+                                         FontWeight="SemiBold" 
+                                         Content="Visible" 
+                                         Margin="0,0,12,0" 
+                                         VerticalAlignment="Center" 
+                                         Checked="RadioButton_VisibleItems_Checked"/>
+                            <RadioButton x:Name="radioButton_HiddenItems" 
+                                         Style="{DynamicResource CustomRadioButton}" 
+                                         FontSize="12" 
+                                         FontWeight="SemiBold" 
+                                         Content="Hidden" 
+                                         VerticalAlignment="Center" 
+                                         Checked="RadioButton_HiddenItems_Checked"/>
+                            <Button x:Name="button_ResetView" 
+                                    Style="{DynamicResource CustomImageButton}" 
+                                    ToolTip="Reset View" 
+                                    Click="Button_ResetView_Click"  
+                                    Margin="13,0,5,0">
+                                <Image Source="pack://application:,,,/Resources/buttons/redreset.png" 
+                                       Width="32" 
+                                       Height="16"/>
                             </Button>
-                        </DockPanel>
-                        <DockPanel LastChildFill="True" x:Name="dockPanel_SearchAndReplace" Grid.Row="1" Visibility="Collapsed" Background="#FFC1D1E4" Height="24">
-                            <TextBlock Text="Replace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold"  Foreground="#FF333333" Margin="5,0,0,0"/>
-                            <TextBox x:Name="textBox_ChangeFrom" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
-                            <TextBlock Text="with" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <TextBox x:Name="textBox_ChangeTo" Width="80" FontSize="12" FontWeight="Bold" MaxLength="20" MaxLines="1" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="NoWrap"  Margin="5,0,5,0" TextChanged="TextBox_TextChanged" />
-                            <TextBlock Text="for" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <Button x:Name="button_Items" IsEnabled="True" Style="{StaticResource GreyRoundedButton}" HorizontalAlignment="Left" Height="18" Width="75" Margin="5,0,5,0" Content="All Items" VerticalAlignment="Center" Click="button_Items_Click"/>
-                            <TextBlock Text="in column" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="#FF333333"/>
-                            <ComboBox x:Name="comboBox_Columns" FontSize="12" FontWeight="Bold" Height="18" Padding="3,0,0,0" Width="120" HorizontalAlignment="Left"  VerticalAlignment="Center" Margin="5,0,5,0" SelectionChanged="comboBox_Columns_SelectionChanged"/>
-                            <Button x:Name="button_Apply" IsEnabled="False" Style="{StaticResource GreenRoundedButton}" HorizontalAlignment="Left" Height="18" Width="50" Content="Replace" Margin="2,0,0,0" Click="button_Apply_Click"/>
-                            <Button x:Name="button_CloseSearchAndReplace" Style="{StaticResource AnimatedTransparentButton}" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Click="button_CloseSearchAndReplace_Click">
-                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16" ToolTip="Close Panel" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Row 2: Filter Toggle + Filter Controls -->
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Toggle Button -->
+                            <Button x:Name="ToggleFilterModeButton"
+                                    Style="{DynamicResource CustomImageButton}"
+                                    Width="20" 
+                                    Height="20"
+                                    Margin="0,0,5,0"
+                                    ToolTip="Switch filter mode"
+                                    Click="ToggleFilterModeButton_Click">
+                                <Image Source="/Resources/buttons/filter1.png"  
+                                       Width="18" 
+                                       Height="20"/>
                             </Button>
 
-                        </DockPanel>
-                    </Grid>
+                            <!-- Genre Filter -->
+                            <StackPanel x:Name="stackpanel_Genre" 
+                                        Orientation="Horizontal" 
+                                        Visibility="Visible" 
+                                        VerticalAlignment="Center" 
+                                        MinWidth="280">
+                                <TextBlock Text="Genre:" 
+                                           FontSize="12" 
+                                           FontWeight="Bold"  
+                                           Margin="0,0,5,0" 
+                                           VerticalAlignment="Center"/>
+                                <ComboBox x:Name="comboBox_Genre" 
+                                          Style="{DynamicResource CustomComboBox}" 
+                                          Padding="3,0,0,0" 
+                                          Height="20" 
+                                          Width="210" 
+                                          FontSize="12" 
+                                          FontWeight="SemiBold"  
+                                          SelectionChanged="ComboBox_Genre_SelectionChanged"/>
+                                <Button x:Name="button_ClearGenreSelection" 
+                                        Style="{DynamicResource CustomImageButton}" 
+                                        ToolTip="Clear" 
+                                        Click="Button_ClearGenreSelection_Click" 
+                                        Margin="5,0,0,0">
+                                    <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                                           Width="16" 
+                                           Height="16"/>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Custom Filter -->
+                            <StackPanel x:Name="stackpanel_Custom" 
+                                        Orientation="Horizontal" 
+                                        Visibility="Collapsed" 
+                                        VerticalAlignment="Center" 
+                                        MinWidth="280">
+                                <ComboBox x:Name="comboBox_CustomFilter" 
+                                          Padding="3,0,0,0" 
+                                          Height="20" 
+                                          Width="90" 
+                                          FontSize="12" 
+                                          FontWeight="SemiBold" 
+                                          Style="{DynamicResource CustomComboBox}" 
+                                          SelectionChanged="FilterModeComboBox_SelectionChanged"/>
+                                <ComboBox x:Name="comboBox_FilterMode" 
+                                          SelectedIndex="0" 
+                                          Padding="3,0,0,0" 
+                                          Height="20" 
+                                          Width="100" 
+                                          Margin="5,0" 
+                                          FontSize="12" 
+                                          FontWeight="SemiBold" 
+                                          Style="{DynamicResource CustomComboBox}" 
+                                          SelectionChanged="FilterModeComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="Is Like"/>
+                                    <ComboBoxItem Content="Is Not Like"/>
+                                    <ComboBoxItem Content="Starts With"/>
+                                    <ComboBoxItem Content="Ends With"/>
+                                    <ComboBoxItem Content="Is"/>
+                                    <ComboBoxItem Content="Is Empty"/>
+                                    <ComboBoxItem Content="Is Not Empty"/>
+                                </ComboBox>
+                                <TextBox x:Name="textBox_CustomFilter" 
+                                         Width="60"
+                                         Style="{DynamicResource CustomTextBox}"
+                                         Height="20"
+                                         FontSize="12" 
+                                         FontWeight="SemiBold" 
+                                         VerticalAlignment="Center" 
+                                         KeyUp="TextBox_CustomFilter_KeyUp"/>
+                                <Button x:Name="button_ClearCustomFilter" 
+                                        Style="{DynamicResource CustomImageButton}" 
+                                        Margin="3,0,0,0" 
+                                        ToolTip="Clear Filter" 
+                                        Click="Button_ClearCustomFilter_Click">
+                                    <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                                           Width="18" 
+                                           Height="20"/>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
-
-                <!-- GridSplitter between DataGrid and TextBox -->
-                <!-- <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="Silver" /> -->
-                <GridSplitter x:Name="gridSplitter_Vertical" Grid.Column="1" Style="{StaticResource CusomVerticalGridSplitter}" />
-                <TextBox Grid.Column="2" x:Name="textBox_Description"
-                         
-         Width="Auto"
-         Height="Auto"
-         TextWrapping="WrapWithOverflow" 
-         Margin="2,2,2,2" 
-         Padding="3" 
-         FontSize="12" 
-         FontWeight="Medium" 
-         BorderBrush="#FF0078D7" 
-         BorderThickness="2" 
-         Background="WhiteSmoke" 
-         Foreground="Black"
-         VerticalScrollBarVisibility="Auto"
-         HorizontalContentAlignment="Left"
-         IsReadOnly="True"
-         AcceptsReturn="True"                
-         VerticalContentAlignment="Top" LostFocus="textBox_Description_LostFocus">
-                </TextBox>
-            </Grid>
+            </StackPanel>
         </Grid>
 
-
-        <!-- Content under datagrid -->
-        <StackPanel Grid.Row="1" x:Name="stackPanel_InfoBar" Height="60" Orientation="Horizontal" VerticalAlignment="Bottom">
-            <StackPanel x:Name="stackPanel_UndoRedoButtons" Orientation="Vertical" VerticalAlignment="Center" Background="Transparent" Margin="3,0,0,0" >
-                <Button x:Name="UndoButton" Click="UndoButton_Click" Margin="0,0,0,3" Style="{StaticResource AnimatedTransparentButton}" IsEnabled="False" >
-                    <Image Source="pack://application:,,,/Resources/buttons/undo-button.png" Width="25" Height="25" ToolTip="Undo" />
-                </Button>
-                <Button x:Name="RedoButton" Click="RedoButton_Click" Margin="0" Style="{StaticResource AnimatedTransparentButton}" IsEnabled="false">
-                    <Image Source="pack://application:,,,/Resources/buttons/redo-button.png" Width="25" Height="25" ToolTip="Redo" />
-                </Button>
-            </StackPanel>
-            <StackPanel Orientation="Vertical" Margin="5,0,0,0">
-                <Image x:Name="PlatformLogo" Height="35" Width="150" Source="/Resources/gamelistmanager.png"/>
-                <StackPanel Orientation="Horizontal" Margin="4,2,4,2" HorizontalAlignment="Center">
-                    <Button x:Name="button_Scraper" IsEnabled="False" ToolTip="Scraper Display" Style="{StaticResource GreyRoundedButton}" Height="20" Width="70" Margin="0,0,3,0" Content="Show Scraper" Click="button_Scraper_Click"/>
-                    <Button x:Name="button_Media" IsEnabled="False" ToolTip="Media Display" Style="{StaticResource GreyRoundedButton}" Height="20" Width="70" Margin="3,0,0,0" HorizontalAlignment="Center" Content="Show Media" Click="button_Media_Click"/>
-
-                </StackPanel>
-            </StackPanel>
-
-
-
-
-            <Grid Background="Transparent">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="1*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="1*" />
-                </Grid.RowDefinitions>
-
-                <!-- First Row (3 items) -->
-                <Border Grid.Column="0" Grid.Row="0" Width="80"  Margin="2" Padding="4,8,4,8" BorderThickness="1" BorderBrush="Black" Background="#FF1976D2" CornerRadius="6">
-                    <StackPanel HorizontalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Image Height="15" Source="/Resources/icons/gamepad.png"/>
-                            <TextBlock Text="Total" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
-                        </StackPanel>
-                        <TextBlock x:Name="textBlock_TotalCount" Text="0" HorizontalAlignment="Center" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="1" Grid.Row="0" Width="80" Margin="2" Padding="2,8,2,8" Background="Orange" BorderBrush="Black" BorderThickness="1"  CornerRadius="6">
-                    <StackPanel HorizontalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Image Height="15" Source="/Resources/icons/invisible.png"/>
-                            <TextBlock Text="Hidden" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
-                        </StackPanel>
-
-                        <TextBlock x:Name="textBlock_HiddenCount" HorizontalAlignment="Center" Text="0" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2" Grid.Row="0" Margin="2" Width="80" Padding="2,8,2,8" Background="#66BB6A" BorderBrush="Black" BorderThickness="1"  CornerRadius="6">
-                    <StackPanel HorizontalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Image Height="15" Source="/Resources/icons/magnifying-glass.png"/>
-                            <TextBlock Text="Showing" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
-                        </StackPanel>
-                        <TextBlock x:Name="textBlock_ShowingCount" HorizontalAlignment="Center" Text="0" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    </StackPanel>
-                </Border>
-
-
-
-                <Border Grid.Column="3" Grid.Row="0" Margin="2" Width="80" Padding="2,8,2,8" Background="#FFB39DDB" BorderBrush="Black" BorderThickness="1"  CornerRadius="6">
-                    <StackPanel HorizontalAlignment="Center">
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Image Height="15" Source="/Resources/icons/heart.png"/>
-                            <TextBlock Text="Favorite" Margin="5,0,0,0" Foreground="White" FontSize="12" FontWeight="Bold"/>
-                        </StackPanel>
-
-
-
-                        <TextBlock x:Name="textBlock_FavoriteCount" HorizontalAlignment="Center" Text="0" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-        
-            <Border Margin="2" Width="320" Padding="0" Background="LightGray" BorderBrush="Black" BorderThickness="1" CornerRadius="6">
-                <StackPanel x:Name="stackpanel_Filters" IsEnabled="False" Margin="5,2,6,2">
-                    <!-- Row 1: Visibility -->
-                    <StackPanel Orientation="Horizontal" Margin="0,5,0,2" VerticalAlignment="Center">
-                        <TextBlock Text="View Filter:" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Margin="2,0,0,0" Width="70"/>
-                        <RadioButton x:Name="radioButton_AllItems" IsChecked="True" Style="{StaticResource CustomRadioButton}" FontSize="12" FontWeight="SemiBold" Content="All" Margin="0,0,12,0" VerticalAlignment="Center" Checked="radioButton_AllItems_Checked" />
-                        <RadioButton x:Name="radioButton_VisibleItems" Style="{StaticResource CustomRadioButton}" FontSize="12" FontWeight="SemiBold" Content="Visible" Margin="0,0,12,0" VerticalAlignment="Center" Checked="radioButton_VisibleItems_Checked"/>
-                        <RadioButton x:Name="radioButton_HiddenItems" Style="{StaticResource CustomRadioButton}" FontSize="12" FontWeight="SemiBold" Content="Hidden" VerticalAlignment="Center" Checked="radioButton_HiddenItems_Checked"/>
-                        <Button x:Name="button_ResetView" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Reset View" Click="button_ResetView_Click"  Margin="18,0,0,0">
-                            <Image Source="pack://application:,,,/Resources/buttons/redreset.png" Width="32" Height="16"/>
-                        </Button>
-
-                    </StackPanel>
-
-                    <!-- Row 2: Filter Toggle + Filter Controls -->
-                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                        <!-- Toggle Button -->
-                        <Button x:Name="ToggleFilterModeButton"
-                    Style="{StaticResource AnimatedTransparentButton}"
-                    Width="20" Height="20"
-                    Margin="0,0,5,0"
-                    ToolTip="Switch filter mode"
-                    Click="ToggleFilterModeButton_Click">
-                            <Image Source="/Resources/buttons/filter1.png"  Width="18" Height="18"/>
-                        </Button>
-
-                        <!-- Genre Filter -->
-                        <StackPanel x:Name="stackpanel_Genre" Orientation="Horizontal" Visibility="Visible" VerticalAlignment="Center" MinWidth="280">
-                            <TextBlock Text="Genre:" FontSize="12" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <ComboBox x:Name="comboBox_Genre" Padding="3,0,0,0" Height="18" Width="215" FontSize="12" FontWeight="Bold" SelectionChanged="comboBox_Genre_SelectionChanged"/>
-                            <Button x:Name="button_ClearGenreSelection" Style="{StaticResource AnimatedTransparentButton}" ToolTip="Clear" Click="button_ClearGenreSelection_Click" Margin="5,0,0,0">
-                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16"/>
-                            </Button>
-                        </StackPanel>
-
-                        <!-- Custom Filter -->
-                        <StackPanel x:Name="stackpanel_Custom" Orientation="Horizontal" Visibility="Collapsed" VerticalAlignment="Center" MinWidth="280">
-                            <ComboBox x:Name="comboBox_CustomFilter" Padding="3,0,0,0" Height="18" Width="90" FontSize="12" FontWeight="SemiBold" SelectionChanged="FilterModeComboBox_SelectionChanged"/>
-                            <ComboBox x:Name="comboBox_FilterMode" SelectedIndex="0" Padding="3,0,0,0" Height="18" Width="100" Margin="5,0" FontSize="12" FontWeight="SemiBold" SelectionChanged="FilterModeComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Is Like"/>
-                                <ComboBoxItem Content="Starts With"/>
-                                <ComboBoxItem Content="Ends With"/>
-                                <ComboBoxItem Content="Is"/>
-                                <ComboBoxItem Content="Is Empty"/>
-                                <ComboBoxItem Content="Is Not Empty"/>
-                            </ComboBox>
-                            <TextBox x:Name="textBox_CustomFilter" Width="60" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" KeyUp="textBox_CustomFilter_KeyUp"/>
-                            <Button x:Name="button_ClearCustomFilter" Style="{StaticResource AnimatedTransparentButton}" Margin="3,0,0,0" ToolTip="Clear Filter" Click="button_ClearCustomFilter_Click">
-                                <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="18" Height="18"/>
-                            </Button>
-                        </StackPanel>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-
-
-
-
-        </StackPanel>
         <!-- GridSplitter in the middle -->
-        <GridSplitter x:Name="gridSplitter_Horizontal" Grid.Row="2" Style="{StaticResource CustomGridSplitterHorizontalGripStyle}"/>
+        <GridSplitter x:Name="gridSplitter_Horizontal" 
+                      Grid.Row="2" 
+                      Height="5" 
+                      Visibility="Collapsed" 
+                      Style="{DynamicResource CustomGridSplitterHorizontalGripStyle}"/>
+
         <!-- Additional Content Area below GridSplitter -->
-        <Grid Grid.Row="3" Margin="2,2,2,4">
+        <Grid Grid.Row="3">
             <Grid.Background>
-                <VisualBrush Opacity="0.1" TileMode="Tile" Viewport="0,0,200,200" ViewportUnits="Absolute">
+                <VisualBrush Opacity="0.1" 
+                             TileMode="Tile" 
+                             Viewport="0,0,200,200" 
+                             ViewportUnits="Absolute">
                     <VisualBrush.Visual>
                         <Image x:Name="BackgroundImage">
                             <Image.LayoutTransform>
@@ -414,7 +818,7 @@
                     </VisualBrush.Visual>
                 </VisualBrush>
             </Grid.Background>
-            <Frame x:Name="MainContentFrame" BorderBrush="#FF0078D7" BorderThickness="2" NavigationUIVisibility="Hidden"/>
+            <Frame x:Name="MainContentFrame" NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
 </Window>

@@ -1,4 +1,6 @@
-﻿using GamelistManager.classes;
+﻿using GamelistManager.classes.core;
+using GamelistManager.classes.helpers;
+using GamelistManager.classes.io;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
@@ -17,8 +19,8 @@ namespace GamelistManager
 
         private string iniPath = $"{SharedData.ProgramDirectory}\\ini\\screenscraper_options.ini";
 
-        private Dictionary<string, string> regions = new Dictionary<string, string>();
-        private Dictionary<string, string> languages = new Dictionary<string, string>();
+        private Dictionary<string, string> regions = [];
+        private Dictionary<string, string> languages = [];
 
         // Default JSON fallback string
         private static readonly string DefaultJsonFallback =
@@ -36,8 +38,8 @@ namespace GamelistManager
                 regions = IniFileReader.GetSection(iniPath, "Regions");
                 languages = IniFileReader.GetSection(iniPath, "Languages");
 
-                AvailableRegions = new ObservableCollection<string>();
-                SelectedRegions = new ObservableCollection<string>();
+                AvailableRegions = [];
+                SelectedRegions = [];
 
                 listBoxAvailableRegions.ItemsSource = AvailableRegions;
                 listBoxSelectedRegions.ItemsSource = SelectedRegions;
@@ -59,7 +61,7 @@ namespace GamelistManager
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             string userName, userPassword;
-            (userName, userPassword) = CredentialManager.GetCredentials(currentScraper);
+            (userName, userPassword) = CredentialHelper.GetCredentials(currentScraper);
 
             textBox_UserID.Text = userName;
             textBox_Password.Text = userPassword;
@@ -91,7 +93,7 @@ namespace GamelistManager
 
             LoadListboxes();
 
-            // Remove primary region from fallback list if present
+            // Remove primary Region from fallback list if present
             var fallbackList = SelectedRegions.ToList();
             if (fallbackList.Contains(region) && !string.IsNullOrEmpty(region))
             {
@@ -119,12 +121,12 @@ namespace GamelistManager
 
             try
             {
-                fallbackList = JsonSerializer.Deserialize<List<string>>(jsonString) ?? new List<string>();
+                fallbackList = JsonSerializer.Deserialize<List<string>>(jsonString) ?? [];
             }
             catch
             {
                 // Fallback in case JSON is invalid
-                fallbackList = JsonSerializer.Deserialize<List<string>>(DefaultJsonFallback) ?? new List<string>();
+                fallbackList = JsonSerializer.Deserialize<List<string>>(DefaultJsonFallback) ?? [];
             }
 
             // Move fallback regions to SelectedRegions in order
@@ -138,7 +140,7 @@ namespace GamelistManager
             }
         }
 
-        private void textBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             button_Save.Content = "Save";
             button_Save.IsEnabled = true;
@@ -177,7 +179,7 @@ namespace GamelistManager
                 SelectedRegions.Remove(region);
                 AvailableRegions.Add(region);
             }
-            
+
             button_Save.Content = "Save";
             button_Save.IsEnabled = true;
         }
@@ -256,7 +258,7 @@ namespace GamelistManager
                 Properties.Settings.Default.Region_Fallback = jsonFallback;
             }
 
-            CredentialManager.SaveCredentials(currentScraper, userID, password);
+            CredentialHelper.SaveCredentials(currentScraper, userID, password);
             Properties.Settings.Default.Save();
 
             button_Save.Content = "Saved";

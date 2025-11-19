@@ -35,7 +35,7 @@
             </Grid.ColumnDefinitions>
 
             <Button x:Name="button_Playlist"
-            Style="{StaticResource AnimatedTransparentButton}"
+            Style="{StaticResource CustomImageButton}"
             ToolTip="Show File Picker"
             Click="button_Playlist_Click"
             Visibility="Visible"
@@ -59,35 +59,35 @@
                 VerticalAlignment="Center"
                 Grid.Column="2">
                 <Button x:Name="button_Previous"
-                Style="{StaticResource AnimatedTransparentButton}"
+                Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/Resources/buttons/previous.png" />
                 </Button>
                 <Button x:Name="button_Pause"
-                Style="{StaticResource AnimatedTransparentButton}"
+                Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/Resources/buttons/pause.png" ToolTip="Pause" />
                 </Button>
                 <Button x:Name="button_Stop"
-                Style="{StaticResource AnimatedTransparentButton}"
+                Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/Resources/buttons/stop.png" ToolTip="Stop" />
                 </Button>
                 <Button x:Name="button_Play"
-                Style="{StaticResource AnimatedTransparentButton}"
+                Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="True"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/Resources/buttons/play.png" ToolTip="Play" />
                 </Button>
                 <Button x:Name="button_Next"
-                Style="{StaticResource AnimatedTransparentButton}"
+                Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">

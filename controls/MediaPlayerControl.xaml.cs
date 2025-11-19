@@ -19,7 +19,7 @@ namespace GamelistManager.controls
         private bool _randomPlayback;
         private string[] _mediaFiles;
         private bool _visualizationsEnabled;
-   
+
         public MediaPlayerControl()
         {
             InitializeComponent();
@@ -100,7 +100,7 @@ namespace GamelistManager.controls
         }
 
         private void Play(string fileName)
-        {            
+        {
             if (_mediaPlayer != null)
             {
                 if (_mediaPlayer.IsPlaying || _isPaused == true)
@@ -425,10 +425,10 @@ namespace GamelistManager.controls
                 // Calculate the ratio of the mouse position to the slider width
                 var relativePosition = position.X / slider.ActualWidth;
 
-                // Determine the new value
+                // Determine the new Value
                 var newValue = relativePosition * (slider.Maximum - slider.Minimum) + slider.Minimum;
 
-                // Set the slider value
+                // Set the slider Value
                 slider.Value = newValue;
             }
         }

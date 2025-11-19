@@ -6,239 +6,449 @@
       xmlns:local="clr-namespace:GamelistManager.pages"
       mc:Ignorable="d"
       Title="Scraper"
-      Loaded="Page_Loaded">
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded">
 
-    <Grid Margin="3,3,3,3">
+    <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
+        <!-- ========= Card 1  ========== -->
+        <Grid Margin="0,0,5,0" Grid.Column="0">
+            <Border Background="{DynamicResource SecondaryBackgroundBrush}" 
+                    BorderBrush="{DynamicResource PrimaryBorderBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="8" 
+                    Padding="5">
+                <StackPanel x:Name="LeftMainGrid" HorizontalAlignment="Left" VerticalAlignment="Top">
 
-        <StackPanel Grid.Column="0" x:Name="LeftMainGrid" Width="285" HorizontalAlignment="Left">
-            <!-- Logo -->
-            <Image x:Name="MainLogo" Height="37" Width="Auto" Source="/Resources/scraperlogo2.png"/>
+                    <Image x:Name="MainLogo" Width="200" Source="pack://application:,,,/resources/logos/scraperlogo3.png" Visibility="Collapsed" HorizontalAlignment="Center"/>
 
-            <!-- Scraper + Scrape Mode -->
-            <Grid Margin="0,5,0,0">
+                    <Grid Margin="0,0,0,5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Scraper Label -->
+                        <TextBlock Text="Scraper:" Grid.Row="0" Grid.Column="0" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" Margin="0,0,0,2"/>
+
+                        <!-- Scrape Mode Label -->
+                        <TextBlock Text="Mode:" Grid.Row="0" Grid.Column="1" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+
+                        <!-- Scraper ComboBox -->
+                        <ComboBox x:Name="comboBox_SelectedScraper"
+                                  Style="{DynamicResource CustomComboBox}"
+                                  Grid.Row="1" Grid.Column="0"
+                                  Height="22"
+                                  Width="120"
+                                  Margin="3,0,5,0"
+                                  VerticalAlignment="Center">
+                            <ComboBoxItem Content="ArcadeDB"/>
+                            <ComboBoxItem Content="EmuMovies"/>
+                            <ComboBoxItem Content="ScreenScraper"/>
+                        </ComboBox>
+
+                        <!-- Scrape Mode RadioButtons -->
+                        <StackPanel x:Name="stackPanel_ScrapeMode" Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="3,0,0,0" VerticalAlignment="Center">
+                            <RadioButton x:Name="radioButton_ScrapeAll" IsChecked="True"
+                                         Style="{DynamicResource CustomRadioButton}" Content="All" Margin="0,0,5,0"/>
+                            <RadioButton x:Name="radioButton_ScrapeSelected"
+                                         Style="{DynamicResource CustomRadioButton}" Content="Selected" Margin="0,0,5,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Overwrite Options -->
+                    <TextBlock Text="Overwrite Options:" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                    <StackPanel x:Name="stackPanel_OverwriteOptions" Margin="0,0,0,5" Orientation="Horizontal">
+                        <CheckBox Content="Name" x:Name="checkBox_OverwriteNames" Style="{DynamicResource CustomCheckBox}" IsChecked="True" Margin="3,0"/>
+                        <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" Style="{DynamicResource CustomCheckBox}" Margin="10,0"/>
+                        <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" Style="{DynamicResource CustomCheckBox}" Margin="10,0"/>
+                    </StackPanel>
+
+                    <StackPanel x:Name="stackPanel_ScraperSettings" Margin="0,0,0,5">
+                        <CheckBox x:Name="checkBox_ScrapeFromCache"
+                                  Margin="3"
+                                  Content="Scrape from cache first (if available)"
+                                  Style="{DynamicResource CustomCheckBox}"
+                                  Checked="CheckBox_ScrapeFromCache_Checked"
+                                  Unchecked="CheckBox_ScrapeFromCache_Unchecked"/>
+
+                        <CheckBox x:Name="checkBox_ScrapeHidden"
+                                  Margin="3,0,3,3"
+                                  Content="Scrape hidden items"
+                                  Style="{DynamicResource CustomCheckBox}"
+                                  IsChecked="False"/>
+                        <CheckBox x:Name="checkBox_OnlyScrapeFromCache"
+                                  Margin="3,0,3,0"
+                                  Content="Skip non-cached items"
+                                  Style="{DynamicResource CustomCheckBox}"
+                                  IsEnabled="False"/>
+                    </StackPanel>
+
+                    <!-- Control Buttons -->
+                    <StackPanel x:Name="stackPanel_ScraperButtons" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button x:Name="button_Start" Width="40" Height="20" Content="Start" Style="{DynamicResource GreenRoundedButton}" Click="Button_Start_Click"/>
+                        <Button x:Name="button_Stop" Width="40" Height="20" Margin="10,0" Content="Stop" Style="{DynamicResource RedRoundedButton}" IsEnabled="False" Click="Button_Stop_Click"/>
+                        <StackPanel x:Name="stackPanel_SetupAndClearCacheButtons" Orientation="Horizontal">
+                            <Button x:Name="button_Setup" Width="40" Height="20" Content="Setup" Style="{DynamicResource BlueRoundedButton}" IsEnabled="False" Click="Button_Setup_Click"/>
+                            <Button x:Name="button_ClearCache" Width="70" Height="20" Margin="10,0,0,0" Content="Clear Cache" Style="{DynamicResource GreyRoundedButton}" IsEnabled="False" Click="Button_ClearCache_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Margin="5,5,5,0"
+                                HorizontalAlignment="Center">
+                        <TextBlock x:Name="textBlock_cacheNumber"
+                                   Text="0"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontSize="12"
+                                   FontStyle="Italic"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="textBlock_cacheText"
+                                   Margin="3,0,0,0"
+                                   Text="items in cache"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   FontStyle="Italic"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ========= Card 2  ========== -->
+        <Border Grid.Column="1"
+                Background="{DynamicResource SecondaryBackgroundBrush}"
+                BorderBrush="{DynamicResource PrimaryBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="5"
+                Width="Auto"
+                HorizontalAlignment="Left">
+
+            <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <!-- Scraper fixed -->
                     <ColumnDefinition Width="*"/>
-                    <!-- Scrape Mode stretches -->
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Scraper Selection -->
-                <GroupBox x:Name="groupBox_Scraper" Header="Scraper" Margin="5,0" Width="135" Grid.Column="0">
-                    <ComboBox x:Name="comboBox_SelectedScraper" Width="110" Height="22" Margin="5"
-                      VerticalAlignment="Center" SelectionChanged="comboBox_SelectedScraper_SelectionChanged">
-                        <ComboBoxItem Content="ArcadeDB"/>
-                        <ComboBoxItem Content="EmuMovies"/>
-                        <ComboBoxItem Content="ScreenScraper"/>
-                    </ComboBox>
-                </GroupBox>
+                <!-- Card Content -->
+                <Border x:Name="border_Card2Content"
+                        Grid.Column="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="8">
 
-                <!-- Filter Selection -->
-                <GroupBox x:Name="groupBox_ScrapeMode" Header="Scrape Mode" Margin="5,0,5,0" Grid.Column="1">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <RadioButton x:Name="radioButton_ScrapeAll" IsChecked="True"
-                             Style="{StaticResource CustomRadioButton}" 
-                             FontWeight="Normal" Content="All" Margin="5,0"/>
-                        <RadioButton x:Name="radioButton_ScrapeSelected" 
-                             Style="{StaticResource CustomRadioButton}" 
-                             FontWeight="Normal" Content="Selected" Margin="5,0"/>
-                    </StackPanel>
-                </GroupBox>
+                    <Grid x:Name="grid_MetaAndMediaControls">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ========== METADATA GRID ========== -->
+                        <Grid x:Name="grid_MetadataControls" Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Header + Buttons -->
+                            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,3">
+                                <TextBlock Text="Metadata" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" FontSize="16"/>
+                                <Button Content="All" Width="35" Height="20" Margin="10,0,0,0"
+                                        Click="Button_SelectAllMetaData_Click"
+                                        VerticalAlignment="Center"
+                                        Style="{DynamicResource GreenRoundedButton}"/>
+                                <Button Content="None" Width="35" Height="20" Margin="10,0,0,0"
+                                        Click="Button_SelectNoMetaData_Click"
+                                        VerticalAlignment="Center"
+                                        Style="{DynamicResource YellowRoundedButton}"/>
+                            </StackPanel>
+
+                            <!-- Metadata Checkboxes -->
+                            <CheckBox Grid.Row="1" Grid.Column="0" Tag="name" Content="Name"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="1" Grid.Column="1" Tag="desc" Content="Description"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <CheckBox Grid.Row="2" Grid.Column="0" Tag="genre" Content="Genre"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="2" Grid.Column="1" Tag="players" Content="Players"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <CheckBox Grid.Row="3" Grid.Column="0" Tag="rating" Content="Rating"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="3" Grid.Column="1" Tag="region" Content="Region"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <CheckBox Grid.Row="4" Grid.Column="0" Tag="lang" Content="Language"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="4" Grid.Column="1" Tag="releasedate" Content="Release Date"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <CheckBox Grid.Row="5" Grid.Column="0" Tag="developer" Content="Developer"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="5" Grid.Column="1" Tag="publisher" Content="Publisher"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <CheckBox Grid.Row="6" Grid.Column="0" Tag="arcadesystemname" Content="Arcade Name"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="6" Grid.Column="1" Tag="family" Content="Family"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <CheckBox Grid.Row="7" Grid.Column="0" Tag="id" Content="Game Id"
+                                      Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                        </Grid>
+
+                        <!-- ========== MEDIA GRID ========== -->
+                        <Grid x:Name="grid_MediaControls" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                                <RowDefinition Height="22"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Header + Buttons -->
+                            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,3">
+                                <TextBlock Text="Media Files" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" FontSize="16"/>
+                                <Button Content="All" Width="35" Height="20" Margin="5,0,0,0"
+                                        Click="Button_SelectAllMedia_Click"
+                                        Style="{DynamicResource GreenRoundedButton}"/>
+                                <Button Content="None" Width="35" Height="20" Margin="5,0,0,0"
+                                        Click="Button_SelectNoMedia_Click"
+                                        Style="{DynamicResource YellowRoundedButton}"/>
+                                <Button x:Name="button_ShowCounts" Content="Show Counts" Width="70" Height="20" Margin="5,0,0,0"
+                                        Click="Button_ShowCounts_Click"
+                                        Style="{DynamicResource BlueRoundedButton}"/>
+                                <Button Content="Reset Sources" Width="70" Height="20" Margin="5,0,5,0"
+                                        Click="Button_ResetSources_Click"
+                                        Style="{DynamicResource BlueRoundedButton}"/>
+                            </StackPanel>
+
+                            <!-- Left-side Media Checkboxes -->
+                            <CheckBox Grid.Row="1" Grid.Column="0" Tag="titleshot" Content="Titleshot" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="2" Grid.Column="0" Tag="map" Content="Map" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="3" Grid.Column="0" Tag="manual" Content="Manual" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="4" Grid.Column="0" Tag="bezel" Content="Bezel" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="5" Grid.Column="0" Tag="fanart" Content="Fan Art" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="6" Grid.Column="0" Tag="boxback" Content="Box Back" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+                            <CheckBox Grid.Row="7" Grid.Column="0" Tag="music" Content="Music" Margin="3,0,5,0"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomCheckBox}"/>
+
+                            <!-- Right-side Media Checkboxes + ComboBoxes -->
+                            <CheckBox Grid.Row="1" Grid.Column="1" Tag="image" Content="Image" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="1" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_ImageSource" Grid.Row="1" Grid.Column="3"
+                                      Height="20" Width="110" Tag="ImageSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+
+                            <CheckBox Grid.Row="2" Grid.Column="1" Tag="marquee" Content="Marquee" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="2" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_MarqueeSource" Grid.Row="2" Grid.Column="3"
+                                      Height="20" Width="110" Tag="MarqueeSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+
+                            <CheckBox Grid.Row="3" Grid.Column="1" Tag="thumbnail" Content="Thumbnail" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="3" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_ThumbnailSource" Grid.Row="3" Grid.Column="3"
+                                      Height="20" Width="110" Tag="ThumbnailSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+
+                            <CheckBox Grid.Row="4" Grid.Column="1" Tag="cartridge" Content="Cartridge" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="4" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_CartridgeSource" Grid.Row="4" Grid.Column="3"
+                                      Height="20" Width="110" Tag="CartridgeSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+
+                            <CheckBox Grid.Row="5" Grid.Column="1" Tag="video" Content="Video" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="5" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_VideoSource" Grid.Row="5" Grid.Column="3"
+                                      Height="20" Width="110" Tag="VideoSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+
+                            <CheckBox Grid.Row="6" Grid.Column="1" Tag="boxart" Content="Box Art" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="6" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_BoxArtSource" Grid.Row="6" Grid.Column="3"
+                                      Height="20" Width="110" Tag="BoxArtSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+
+                            <CheckBox Grid.Row="7" Grid.Column="1" Tag="wheel" Content="Wheel" Margin="3,0,3,0"
+                                      Style="{DynamicResource CustomCheckBox}"/>
+                            <Image Grid.Row="7" Grid.Column="2" Source="/Resources/rightarrow.png"
+                                   Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="comboBox_WheelSource" Grid.Row="7" Grid.Column="3"
+                                      Height="20" Width="110" Tag="WheelSource"
+                                      VerticalAlignment="Center" Style="{DynamicResource CustomComboBox}"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Toggle button -->
+                <Button x:Name="button_ToggleCard2"
+                        Grid.Column="1"
+                        Width="10"
+                        Height="30"
+                        Margin="5,0,0,0"
+                        BorderThickness="0"
+                        VerticalAlignment="Center"
+                        Style="{DynamicResource CustomImageButton}"
+                        Click="Button_ToggleCard2_Click">
+                    <Image x:Name="image_ExpanderButton"
+                           Stretch="Fill"
+                           Source="pack://application:,,,/Resources/buttons/greydoublearrowleft.png"/>
+                </Button>
             </Grid>
+        </Border>
 
-            <!-- Overwrite Options -->
-            <GroupBox x:Name="groupBox_OverwriteOptions" Header="Overwrite Options" Margin="5,0,5,0">
-                <StackPanel x:Name="stackPanel_OverwriteOptions" Orientation="Horizontal" Margin="5">
-                    <CheckBox Content="Name" x:Name="checkBox_OverwriteNames" Margin="5,0,0,0" IsChecked="True"/>
-                    <CheckBox Content="Metadata" x:Name="checkBox_OverwriteMetadata" Margin="30,0,0,0"/>
-                    <CheckBox Content="Media" x:Name="checkBox_OverwriteMedia" Margin="30,0,0,0"/>
-                </StackPanel>
-            </GroupBox>
+        <!-- ========= Card 3  ========== -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource SecondaryBackgroundBrush}"
+                BorderBrush="{DynamicResource PrimaryBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="5"
+                Margin="5,0,0,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                SnapsToDevicePixels="True">
 
-            <!-- Scraper Settings -->
-            <GroupBox x:Name="groupBox_ScraperSettings" Header="Scraper Settings" Margin="5,0,5,0">
-                <StackPanel x:Name="stackPanel_ScraperSettings" Margin="5">
-                    <CheckBox x:Name="checkBox_ScrapeFromCache" Content="Scrape from cache first (if available)" 
-                      Checked="checkBox_ScrapeFromCache_Checked" Unchecked="checkBox_ScrapeFromCache_Unchecked"/>
-                    <CheckBox x:Name="checkBox_OnlyScrapeFromCache" Content="Skip non-cached items" IsEnabled="False"/>
-                    <CheckBox x:Name="checkBox_ScrapeHidden" Content="Scrape hidden items" IsChecked="False"/>
-                </StackPanel>
-            </GroupBox>
-
-            <!-- Control Buttons -->
-            <StackPanel Orientation="Horizontal" Margin="0,3,0,0" HorizontalAlignment="Center">
-                <Button x:Name="button_Start" Width="40" Height="20" Content="Start" Style="{StaticResource GreenRoundedButton}" Click="button_Start_Click"/>
-                <Button x:Name="button_Stop" Width="40" Height="20" Margin="10,0,10,0" Content="Stop" Style="{StaticResource RedRoundedButton}" IsEnabled="False" Click="button_Stop_Click"/>
-                <StackPanel x:Name="stackPanel_ScraperButtons" Orientation="Horizontal">
-                    <Button x:Name="button_Setup" Width="40" Height="20" Content="Setup" Style="{StaticResource YellowRoundedButton}" IsEnabled="False" Click="button_Setup_Click"/>
-                    <Button x:Name="button_ClearCache" Width="70" Height="20" Margin="10,0,0,0" Content="Clear Cache" Style="{StaticResource GreyRoundedButton}" IsEnabled="False" Click="button_ClearCache_Click"/>
-                </StackPanel>
-            </StackPanel>
-        </StackPanel>
-
-        <!-- Left Main Grid -->
-        <Grid Grid.Column="1">
-            <Grid>
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" x:Name="stackPanel_AllScraperCheckboxes" Orientation="Horizontal">
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,5,0">
-                        <StackPanel x:Name="stackPanel_MetadataCheckboxes" Orientation="Vertical">
-                            <StackPanel Background="LightBlue"  Name="MetaTitle" Orientation="Horizontal" Margin="0,0,0,0">
-                                <TextBlock Text="Metadata" FontWeight="Bold" Foreground="Crimson" Margin="3" FontSize="16"/>
-                                <Button x:Name="button_SelectAllMetaData" Style="{StaticResource GreyRoundedButton}" Content="All" Height="20" Width="35" Margin="5,0,0,0" Click="button_SelectAllMetaData_Click"/>
-                                <Button x:Name="button_SelectNoMetaData" Style="{StaticResource GreyRoundedButton}" Content="None" Height="20" Width="35" Margin="5,0,0,0" Click="button_SelectNoMetaData_Click"/>
-                            </StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="3*"/>
-                                    <ColumnDefinition Width="4*"/>
-                                    <ColumnDefinition Width="49*"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Margin="0,2,0,0">
-                                    <CheckBox x:Name="checkBox_name" Tag="name" Content="Name" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_esc" Tag="desc" Content="Description" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_genre" Tag="genre" Content="Genre" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_players" Tag="players" Content="Players" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_rating" Tag="rating" Content="Rating" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_region" Tag="region"  Content="Region" Margin="3,3,3,4"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Margin="10,2,0,0">
-                                    <CheckBox x:Name="checkBox_lang" Tag="lang" Content="Language" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_releasedate" Tag="releasedate" Content="Release Date" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_developer" Tag="developer" Content="Developer" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_publisher" Tag="publisher" Content="Publisher" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_arcadesystemname" Tag="arcadesystemname"  Content="Arcade Name" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_family" Tag="family"  Content="Family" Margin="3,3,3,4"/>
-                                    <CheckBox x:Name="checkBox_id" Tag="id"  Content="Game Id" Margin="3,3,3,4"/>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-                    <!-- Media Column -->
-                    <Border BorderBrush="Black" BorderThickness="1">
-                        <StackPanel x:Name="stackPanel_MediaCheckboxes" Orientation="Vertical">
-                            <StackPanel Name="MediaTitle" Background="LightBlue" Orientation="Horizontal" Margin="0,0,0,0">
-                                <TextBlock Text="Media Files" FontWeight="Bold" Foreground="Crimson" Margin="3" FontSize="16"/>
-                                <Button x:Name="button_SelectAllMedia" Content="All" Style="{StaticResource GreyRoundedButton}" Height="20" Width="35" Margin="5,0,0,0" Click="button_SelectAllMedia_Click"/>
-                                <Button x:Name="button_SelectNoMedia" Content="None" Style="{StaticResource GreyRoundedButton}" Height="20" Width="35" Margin="5,0,0,0" Click="button_SelectNoMedia_Click"/>
-                                <Button x:Name="button_ShowCounts" Content="Show Counts" Style="{StaticResource GreyRoundedButton}" Height="20" Width="70" Margin="5,0,0,0" Click="button_ShowCounts_Click"/>
-                                <Button x:Name="button_ResetSources" Content="Reset Sources" Style="{StaticResource GreyRoundedButton}" Height="20" Width="70" Margin="5,0,5,0" Click="button_ResetSources_Click"/>
 
-                            </StackPanel>
-                            <StackPanel x:Name="stackPanel_Media" Orientation="Vertical" Width="Auto" Margin="0,2,0,0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="3*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <CheckBox x:Name="checkBox_Titleshot" Tag="titleshot" Content="Titleshot" Margin="3,3,3,4"/>
-                                        <CheckBox x:Name="checkBox_Map" Tag="map" Content="Map" Margin="3,4,3,4" />
-                                        <CheckBox x:Name="checkBox_Manual" Tag="manual" Content="Manual" Margin="3,3,3,4"/>
-                                        <CheckBox x:Name="checkBox_Bezel" Tag="bezel" Content="Bezel" Margin="3,3,3,4"/>
-                                        <CheckBox x:Name="checkBox_Fanart" Tag="fanart" Content="Fanart" Margin="3,3,3,4"/>
-                                        <CheckBox x:Name="checkBox_Boxback" Tag="boxback" Content="Boxback" Margin="3,3,3,4"/>
-                                        <CheckBox x:Name="checkBox_music" Tag="music" Content="Music" Margin="3,3,3,4"/>
-
-                                    </StackPanel>
-                                    <Grid Grid.Column="1" Margin="10,0,0,0">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="74*"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="checkBox_image" Tag="image" Content="Image" Margin="3,0,0,3" VerticalAlignment="Center"/>
-                                        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="checkBox_marquee" Tag="marquee" Content="Marquee" Margin="3,0,0,3" VerticalAlignment="Center"/>
-                                        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="checkBox_thumbnail" Tag="thumbnail" Content="Thumbnail" Margin="3,0,0,3" VerticalAlignment="Center"/>
-                                        <CheckBox Grid.Row="3" Grid.Column="0" x:Name="checkBox_cartridge" Tag="cartridge" Content="Cartridge" Margin="3,0,0,3" VerticalAlignment="Center"/>
-                                        <CheckBox Grid.Row="4" Grid.Column="0" x:Name="checkBox_video" Tag="video" Content="Video" Margin="3,0,0,3" VerticalAlignment="Center"/>
-                                        <CheckBox Grid.Row="5" Grid.Column="0" x:Name="checkBox_boxart" Tag="boxart" Content="Boxart" Margin="3,0,0,3" VerticalAlignment="Center" />
-                                        <CheckBox Grid.Row="6" Grid.Column="0" x:Name="checkBox_wheel" Tag="wheel" Content="Wheel" Margin="3,0,0,3" VerticalAlignment="Center" />
-                                        <Image Grid.Row="0" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <Image Grid.Row="1" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <Image Grid.Row="2" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <Image Grid.Row="3" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <Image Grid.Row="4" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <Image Grid.Row="5" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <Image Grid.Row="6" Grid.Column="1" Source="/Resources/rightarrow.png" Height="15" Width="15" Margin="2,4,2,4"/>
-                                        <ComboBox Grid.Row="0" Grid.Column="2" x:Name="comboBox_imageSource" Tag="ImageSource" VerticalAlignment="Center" Width="110" HorizontalAlignment="Left" Height="22" Margin="0,0,5,0"/>
-                                        <ComboBox Grid.Row="1" Grid.Column="2" x:Name="comboBox_marqueeSource" Tag="MarqueeSource" VerticalAlignment="Center" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
-                                        <ComboBox Grid.Row="2" Grid.Column="2" x:Name="comboBox_thumbnailSource" Tag="ThumbnailSource" VerticalAlignment="Center" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
-                                        <ComboBox Grid.Row="3" Grid.Column="2" x:Name="comboBox_cartridgeSource" Tag="CartridgeSource" VerticalAlignment="Center" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
-                                        <ComboBox Grid.Row="4" Grid.Column="2" x:Name="comboBox_videoSource" Tag="VideoSource" VerticalAlignment="Top" HorizontalAlignment="Left" Width="110" Height="22" Margin="0,0,5,0"/>
-                                        <ComboBox Grid.Row="5" Grid.Column="2" x:Name="comboBox_boxartSource" Tag="BoxartSource" VerticalAlignment="Center" HorizontalAlignment="Center" Width="110" Height="22" Margin="0,0,5,0"/>
-                                        <ComboBox Grid.Row="6" Grid.Column="2" x:Name="comboBox_wheelSource" Tag="WheelSource" VerticalAlignment="Center" HorizontalAlignment="Center" Width="110" Height="22" Margin="0,0,5,0"/>
-                                    </Grid>
-                                </Grid>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-
-                <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
+                <!-- Row 1: Current scrape + Threads -->
+                <Grid Grid.Row="0" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="400"/>
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Row="0" Grid.Column="0"  Orientation="Horizontal">
-                        <Label x:Name="label_Threads"  Foreground="Blue" Content="Threads:" />
-                        <Label x:Name="label_ThreadCount" Foreground="ForestGreen"  Content="1"/>
-                        <Label Content="Current Scrape:" Foreground="Blue" VerticalAlignment="Center"/>
-                        <Label x:Name="label_CurrentScrape" Grid.ColumnSpan="2" Foreground="ForestGreen" Padding="0,0,15,0"  VerticalAlignment="Center" Content="N/A"/>
-                    </StackPanel>
-                    <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" x:Name="label_cacheCount" Content="0 items in cache" Foreground="Blue" HorizontalAlignment="Left"/>
 
-                    <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                        <Label Content="Progress:" VerticalAlignment="Center" Foreground="Blue" />
-                        <Grid>
-                            <ProgressBar x:Name="progressBar_ProgressBar" Height="20" Margin="3,2,0,2" Width="100" VerticalAlignment="Center" />
-                            <Label x:Name="label_ProgressBarCount" Content="N/A" HorizontalAlignment="Center" Foreground="Black"  VerticalAlignment="Center"/>
-                        </Grid>
-                        <Label x:Name="label_Percentage" Content="0%" Foreground="Black" />
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Label Content="Current scrape:" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Padding="0"/>
+                        <Label x:Name="label_CurrentScrape" Content="N/A" Padding="0" Margin="5,0,0,0"/>
                     </StackPanel>
-                    <Label x:Name="label_ScrapeLimit" Foreground="Blue" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Content="Limit:"/>
-                    <Label x:Name="label_ScrapeLimitCount" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="N/A" HorizontalAlignment="Left" Foreground="ForestGreen"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Label Content="Threads:" Foreground="{DynamicResource AccentBrush}" FontStyle="Italic" Padding="0" Margin="0,0,3,0"/>
+                        <Label x:Name="label_ThreadCount" Content="1" Padding="0" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </Grid>
-            </Grid>
-        </Grid>
-        <Border Grid.Column="2" BorderBrush="Black" BorderThickness="1" Margin="5,0,5,0">
-            <Grid Width="Auto" Height="Auto">
 
+                <!-- Row 2: Progress + Limit -->
+                <Grid Grid.Row="1" Margin="0,3,0,0" HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <ListBox x:Name="LogListBox" Margin="2">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Message}" Foreground="{Binding Color}" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Label Content="Progress:" 
+           Foreground="{DynamicResource AccentBrush}" 
+           FontWeight="SemiBold" 
+           Padding="0" 
+           Margin="0,0,5,0"/>
+                        <Grid Width="90" Height="20" Margin="0,0,5,0">
+                            <ProgressBar x:Name="progressBar_ProgressBar" 
+                     Height="20"
+                     Style="{DynamicResource CustomProgressBar}"                    
+                     BorderThickness="1"/>
+                            <Label x:Name="label_ProgressBarCount" 
+               Content="N/A" 
+               Padding="0" 
+               HorizontalAlignment="Center" 
+               VerticalAlignment="Center"
+               Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        </Grid>
+                        <Label x:Name="label_Percentage" 
+           Content="0%" 
+           Padding="0" 
+           VerticalAlignment="Center"
+           Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Label Content="Limit:" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Padding="0" Margin="10,0,3,0"/>
+                        <Label x:Name="label_ScrapeLimitCount" Content="N/A" Padding="0" Foreground="{DynamicResource ShowingCardBackgroundBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
 
+                <!-- Row 3: Log -->
+                <Border Grid.Row="2" 
+                        Background="{DynamicResource PrimaryBackgroundBrush}" 
+                        BorderBrush="{DynamicResource PrimaryBorderBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="6" 
+                        Padding="4" 
+                        Margin="0,5,0,0" 
+                        MaxHeight="200">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ListBox x:Name="LogListBox" 
+                                 BorderThickness="0"
+                                 Background="Transparent">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Message}" Foreground="{Binding Color}" TextWrapping="Wrap"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Border>
             </Grid>
         </Border>
+
     </Grid>
 </Page>

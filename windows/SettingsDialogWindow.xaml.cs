@@ -1,4 +1,4 @@
-﻿using GamelistManager.classes;
+﻿using GamelistManager.classes.helpers;
 using Microsoft.Win32;
 using System.IO;
 using System.Reflection;
@@ -14,16 +14,16 @@ namespace GamelistManager
 {
     public partial class SettingsDialogWindow : Window
     {
-        private DataGrid dg;
+        private DataGrid _mainDataGrid;
         private StatusBar statusBar;
         public SettingsDialogWindow(MainWindow mainWindow)
         {
             InitializeComponent();
-            dg = mainWindow.MainDataGrid;
+            _mainDataGrid = mainWindow.MainDataGrid;
             statusBar = mainWindow.statusBar_FileInfo;
         }
 
-        private void buttonSave_Click(object sender, RoutedEventArgs e)
+        private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
             string hostName = textBox_HostName.Text;
             string userID = textBox_UserID.Text;
@@ -36,11 +36,15 @@ namespace GamelistManager
                 return;
             }
 
+            string theme = comboBox_Theme.Text;
+            Properties.Settings.Default.Theme = theme;
+
             string gridLineVisibility = comboBox_GridLinesVisibility.Text;
             if (Enum.TryParse(gridLineVisibility, out DataGridGridLinesVisibility visibility))
             {
-                dg.GridLinesVisibility = visibility;
+                _mainDataGrid.GridLinesVisibility = visibility;
             }
+
             Properties.Settings.Default.GridLineVisibility = gridLineVisibility;
 
             Properties.Settings.Default.BatoceraHostName = hostName;
@@ -52,6 +56,7 @@ namespace GamelistManager
             Properties.Settings.Default.VideoAutoplay = (bool)checkBox_VideoAutoplay.IsChecked!;
             Properties.Settings.Default.RememberAutoSize = (bool)checkBox_RememberAutosize.IsChecked!;
             Properties.Settings.Default.Volume = (int)sliderVolumeSetting.Value;
+            Properties.Settings.Default.AutoExpandLogger = (bool)checkBox_AutoExpandLogger.IsChecked!;
 
             string searchDepthString = textBox_SearchDepth.Text;
             int searchDepthInt = !int.TryParse(searchDepthString, out searchDepthInt) ? 0 : searchDepthInt;
@@ -64,10 +69,16 @@ namespace GamelistManager
             string MamePath = textBox_MamePath.Text;
             Properties.Settings.Default.MamePath = MamePath;
 
-            bool result = CredentialManager.SaveCredentials(hostName, userID, password);
+            bool result = CredentialHelper.SaveCredentials(hostName, userID, password);
 
-            var textBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<TextBox>(Paths);
-            Dictionary<string, string> mediaPaths = new Dictionary<string, string>();
+            if (!result)
+            {
+                MessageBox.Show("Failed to save credentials!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var textBoxes = GamelistManager.classes.helpers.VisualTreeHelper.GetAllVisualChildren<TextBox>(Paths);
+            Dictionary<string, string> mediaPaths = [];
             foreach (TextBox textBox in textBoxes)
             {
                 // Clean the text to keep only alphanumeric characters
@@ -88,12 +99,11 @@ namespace GamelistManager
             {
                 var colorName = selectedItem.Content.ToString();
                 var color = (Color)ColorConverter.ConvertFromString(colorName);
-                dg.AlternatingRowBackground = new SolidColorBrush(color);
+                _mainDataGrid.AlternatingRowBackground = new SolidColorBrush(color);
                 Properties.Settings.Default.AlternatingRowColor = colorName;
             }
 
             statusBar.Visibility = Properties.Settings.Default.ShowFileStatusBar ? Visibility.Visible : Visibility.Collapsed;
-
 
             button_Save.Content = "Saved";
             button_Save.IsEnabled = false;
@@ -102,12 +112,12 @@ namespace GamelistManager
 
         }
 
-        private void buttonClose_Click(object sender, RoutedEventArgs e)
+        private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
 
-        private void textBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             button_Save.Content = "Save";
             button_Save.IsEnabled = true;
@@ -120,13 +130,13 @@ namespace GamelistManager
             // Populate saved or default mediapaths from a serialized json string
             string mediaPathsJsonString = Properties.Settings.Default.MediaPaths;
             var mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)!;
-            var textBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<TextBox>(Paths);
+            var textBoxes = GamelistManager.classes.helpers.VisualTreeHelper.GetAllVisualChildren<TextBox>(Paths);
             foreach (TextBox textBox in textBoxes)
             {
                 var tagValue = textBox.Tag;
                 if (tagValue != null)
                 {
-                    string value = mediaPaths[tagValue.ToString()];
+                    string value = mediaPaths[tagValue.ToString()!];
                     textBox.Text = value;
                 }
             }
@@ -134,15 +144,17 @@ namespace GamelistManager
             string currentColorName = Properties.Settings.Default.AlternatingRowColor;
 
             var colors = typeof(Colors).GetProperties(BindingFlags.Public | BindingFlags.Static)
-                                     .Select(prop => new { Name = prop.Name, Color = (Color)prop.GetValue(null) })
+                                     .Select(prop => new { Name = prop.Name, Color = (Color)prop.GetValue(null)! })
                                      .ToList();
 
             foreach (var color in colors)
             {
-                ComboBoxItem item = new ComboBoxItem();
-                item.Content = color.Name;
-                item.Background = new SolidColorBrush(color.Color);
-                item.Foreground = new SolidColorBrush(Colors.Black); // Ensure text is visible
+                ComboBoxItem item = new()
+                {
+                    Content = color.Name,
+                    Background = new SolidColorBrush(color.Color),
+                    Foreground = new SolidColorBrush(Colors.Black) // Ensure text is visible
+                };
                 comboBox_AlternatingRowColor.Items.Add(item);
             }
 
@@ -163,7 +175,7 @@ namespace GamelistManager
 
             string hostName = Properties.Settings.Default.BatoceraHostName;
 
-            (string userName, string userPassword) = CredentialManager.GetCredentials(hostName);
+            (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
 
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
             {
@@ -185,6 +197,9 @@ namespace GamelistManager
 
             bool rememberColumns = Properties.Settings.Default.RememberColumns;
             checkBox_RememberColumns.IsChecked = rememberColumns;
+
+            bool autoExpandLogger = Properties.Settings.Default.AutoExpandLogger;
+            checkBox_AutoExpandLogger.IsChecked = autoExpandLogger;
 
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             checkBox_EnableSaveReminder.IsChecked = saveReminder;
@@ -223,13 +238,17 @@ namespace GamelistManager
                 textBox_ChangeCount.Text = maxUndo.ToString();
             }
 
+            string theme = Properties.Settings.Default.Theme;
+            comboBox_Theme.SelectedItem = comboBox_Theme.Items.Cast<ComboBoxItem>()
+                .FirstOrDefault(item => item.Content?.ToString() == theme);
+
         }
 
         private void SetTextBoxDefaults()
         {
             string mediaPathsJsonString = SettingsHelper.GetDefaultSetting("MediaPaths")!;
             var mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)!;
-            var textBoxes = VisualTreeHelperExtensions.GetAllVisualChildren<TextBox>(Paths);
+            var textBoxes = GamelistManager.classes.helpers.VisualTreeHelper.GetAllVisualChildren<TextBox>(Paths);
             foreach (TextBox textBox in textBoxes)
             {
                 var tagValue = textBox.Tag;
@@ -279,31 +298,78 @@ namespace GamelistManager
             }
         }
 
-        private bool IsTextNumeric(string text)
+        private static bool IsTextNumeric(string text)
         {
             // Use regex to match only digits 0-9
             return Regex.IsMatch(text, "^[0-9]+$");
         }
 
-        private void comboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_AlternatingRowColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (button_Save == null)
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem == null || _mainDataGrid == null)
             {
                 return;
             }
-            button_Save.Content = "Save";
-            button_Save.IsEnabled = true;
 
+            if (comboBox.Items[comboBox.SelectedIndex] is ComboBoxItem selectedItem)
+            {
+                string? colorName = selectedItem.Content?.ToString();
+                if (string.IsNullOrEmpty(colorName))
+                {
+                    return;
+                }
+
+                var color = (Color)ColorConverter.ConvertFromString(colorName);
+                _mainDataGrid.AlternatingRowBackground = new SolidColorBrush(color);
+
+                if (button_Save != null)
+                {
+                    button_Save.Content = "Save";
+                    button_Save.IsEnabled = true;
+                }
+            }
         }
 
-        private void button_Reset_Click(object sender, RoutedEventArgs e)
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem == null || _mainDataGrid == null)
+            {
+                return;
+            }
+
+            if (comboBox.Items[comboBox.SelectedIndex] is ComboBoxItem selectedItem)
+            {
+                string? gridLineVisibility = selectedItem.Content?.ToString();
+                if (string.IsNullOrEmpty(gridLineVisibility))
+                {
+                    return;
+                }
+
+                _mainDataGrid.GridLinesVisibility = gridLineVisibility switch
+                {
+                    "None" => DataGridGridLinesVisibility.None,
+                    "Horizontal" => DataGridGridLinesVisibility.Horizontal,
+                    "Vertical" => DataGridGridLinesVisibility.Vertical,
+                    "All" => DataGridGridLinesVisibility.All,
+                    _ => DataGridGridLinesVisibility.None,
+                };
+
+                if (button_Save != null)
+                {
+                    button_Save.Content = "Save";
+                    button_Save.IsEnabled = true;
+                }
+            }
+        }
+
+        private void Button_Reset_Click(object sender, RoutedEventArgs e)
         {
             SetTextBoxDefaults();
             button_Save.Content = "Save";
             button_Save.IsEnabled = true;
         }
 
-        private void sliderVolumeSetting_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void SliderVolumeSetting_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is Slider slider)
             {
@@ -313,15 +379,40 @@ namespace GamelistManager
                 // Calculate the ratio of the mouse position to the slider width
                 var relativePosition = position.X / slider.ActualWidth;
 
-                // Determine the new value
+                // Determine the new Value
                 var newValue = relativePosition * (slider.Maximum - slider.Minimum) + slider.Minimum;
 
-                // Set the slider value
+                // Set the slider Value
                 slider.Value = newValue;
             }
         }
 
-        private void button_FindMame_Click(object sender, RoutedEventArgs e)
+        private void ComboBox_Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (comboBox_Theme.SelectedItem is ComboBoxItem selectedItem)
+            {
+                var themeContent = selectedItem.Content.ToString();
+                var themeTag = selectedItem.Tag.ToString();
+
+                if (Enum.TryParse<ThemeHelper.Theme>(themeContent, out var theme))
+                {
+                    ThemeHelper.Instance.ApplyTheme(theme);
+                    ThemeHelper.Instance.SaveThemePreference(theme);
+                }
+
+                var item = comboBox_AlternatingRowColor.Items.Cast<ComboBoxItem>()
+                    .FirstOrDefault(i => i.Content.ToString() == themeTag);
+                if (item != null)
+                {
+                    comboBox_AlternatingRowColor.SelectedItem = item;
+                }
+
+                Properties.Settings.Default.AlternatingRowColor = themeTag;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+        private void Button_FindMame_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {

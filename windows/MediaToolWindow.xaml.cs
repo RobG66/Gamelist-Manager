@@ -1,4 +1,6 @@
-﻿using GamelistManager.classes;
+﻿using GamelistManager.classes.core;
+using GamelistManager.classes.gamelist;
+using GamelistManager.classes.helpers;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
@@ -16,12 +18,12 @@ namespace GamelistManager
 
     public partial class MediaToolWindow : Window
     {
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private CancellationToken _cancellationToken => _cancellationTokenSource.Token;
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private CancellationToken CancellationToken => _cancellationTokenSource.Token;
         Dictionary<string, string> _mediaItems;
         Dictionary<string, string> _mediaPaths;
-        private ObservableCollection<MediaSearchItem> _mediaSearchCollection = new ObservableCollection<MediaSearchItem>();
-        private ObservableCollection<MediaCleanupItem> _mediaCleanupCollection = new ObservableCollection<MediaCleanupItem>();
+        private ObservableCollection<MediaSearchItem> _mediaSearchCollection = [];
+        private ObservableCollection<MediaCleanupItem> _mediaCleanupCollection = [];
         string _parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename)!;
 
 
@@ -37,6 +39,27 @@ namespace GamelistManager
             public required string Status { get; set; }
             public required string MediaType { get; set; }
             public required string FileName { get; set; }
+        }
+
+        // Title bar drag functionality
+        private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
+        }
+
+        // Minimize button
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        // Close button
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
 
         public MediaToolWindow()
@@ -90,16 +113,15 @@ namespace GamelistManager
         }
 
 
-        private async void button_ScanForNewMedia_Click(object sender, RoutedEventArgs e)
+        private async void Button_ScanForNewMedia_Click(object sender, RoutedEventArgs e)
         {
             string folderToScan = textBox_SourceFolder.Text;
 
             if (string.IsNullOrEmpty(folderToScan))
-                if (string.IsNullOrEmpty(folderToScan))
-                {
-                    MessageBox.Show("Please specify a folder to scan.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+            {
+                MessageBox.Show("Please specify a folder to scan.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
             // Validate folder path
             try
@@ -130,8 +152,6 @@ namespace GamelistManager
                 return;
             }
 
-
-            //blah check below if can be cleaned up
             // Update UI for scanning
             contextMenu_DeleteItems.IsEnabled = false;
             progressBar_ProgressBar.IsIndeterminate = true;
@@ -180,7 +200,7 @@ namespace GamelistManager
                           file => file,                  // Value: Full file path
                           StringComparer.OrdinalIgnoreCase
                       ),
-                    _cancellationToken
+                    CancellationToken
                 );
 
                 // Create a list of keys to avoid repeatedly converting dictionary keys to a list
@@ -194,10 +214,10 @@ namespace GamelistManager
                     {
                         string romPath = romTuple.RomPath!;
                         string romName = romTuple.Name!;
-                        string filteredRomPath = Path.GetFileNameWithoutExtension(romPath)?.Replace("./", "") ?? string.Empty;
+                        string normalizedName = NameHelper.NormalizeRomName(romPath);
 
                         // Perform fuzzy matching
-                        string? matchedFile = TextSearchHelper.FindTextMatch(filteredRomPath, mediaFileKeys)
+                        string? matchedFile = TextSearchHelper.FindTextMatch(normalizedName, mediaFileKeys)
                             ?? TextSearchHelper.FindTextMatch(romName, mediaFileKeys);
 
                         if (!string.IsNullOrEmpty(matchedFile))
@@ -209,7 +229,7 @@ namespace GamelistManager
                             foundMedia.Add(Tuple.Create(romPath, mediaType, matchedValue));
                         }
                     }
-                }, _cancellationToken);
+                }, CancellationToken);
 
                 // Add found media to the observable collection
                 foreach (var media in foundMedia)
@@ -258,7 +278,7 @@ namespace GamelistManager
         }
 
 
-        private async void button_FindExistingMedia_Click(object sender, RoutedEventArgs e)
+        private async void Button_FindExistingMedia_Click(object sender, RoutedEventArgs e)
         {
 
             // GUI changes
@@ -287,7 +307,7 @@ namespace GamelistManager
                     foreach (var mediaItem in _mediaItems)
                     {
                         // Throw if cancelled
-                        _cancellationToken.ThrowIfCancellationRequested();
+                        CancellationToken.ThrowIfCancellationRequested();
 
                         // Media strings
                         string mediaDisplayName = mediaItem.Key;
@@ -344,15 +364,14 @@ namespace GamelistManager
                         // Process all the roms without media
                         Parallel.ForEach(romsWithoutMedia, romTuple =>
                         {
-
                             // Rom Variables
                             string romPath = romTuple.RomPath!;
                             string romName = romTuple.Name!;
 
-                            string filteredRomPath = Path.GetFileNameWithoutExtension(romPath).Replace("./", "");
+                            string normalizedName = NameHelper.NormalizeRomName(romPath);
 
                             // First search
-                            string searchPattern = $"{filteredRomPath}-{correctedMediaElementName}";
+                            string searchPattern = $"{normalizedName}-{correctedMediaElementName}";
                             var matchedFile = existingMediaFilesDictionary.Keys
                             .FirstOrDefault(key => key.StartsWith(searchPattern, StringComparison.OrdinalIgnoreCase));
 
@@ -361,7 +380,7 @@ namespace GamelistManager
                             {
                                 string searchPatternName = $"{romName}-{correctedMediaElementName}";
                                 matchedFile = existingMediaFilesDictionary.Keys
-                                .FirstOrDefault(key => key.StartsWith(searchPattern, StringComparison.OrdinalIgnoreCase));
+                                .FirstOrDefault(key => key.StartsWith(searchPatternName, StringComparison.OrdinalIgnoreCase));
                             }
 
                             // Add to concurrentbag tuple
@@ -387,7 +406,7 @@ namespace GamelistManager
                             });
                         }
                     }
-                }, _cancellationToken);
+                }, CancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -419,7 +438,7 @@ namespace GamelistManager
         }
 
 
-        private void button_AddExistingMedia_Click(object sender, RoutedEventArgs e)
+        private void Button_AddExistingMedia_Click(object sender, RoutedEventArgs e)
         {
             var rowLookup = SharedData.DataSet.Tables[0].AsEnumerable()
             .ToDictionary(
@@ -434,7 +453,7 @@ namespace GamelistManager
                 string matchedFile = item.MatchedFile;
 
                 // Convert the full path to a relative path
-                string relativePath = PathConverter.ConvertToRelativePath(matchedFile);
+                string relativePath = PathHelper.ConvertPathToRelativePath(matchedFile, _parentFolderPath);
 
                 if (rowLookup.TryGetValue(item.RomPath, out DataRow? foundRow))
 
@@ -456,7 +475,7 @@ namespace GamelistManager
 
         }
 
-        private void radioButton_ExistingMedia_Checked(object sender, RoutedEventArgs e)
+        private void RadioButton_ExistingMedia_Checked(object sender, RoutedEventArgs e)
         {
             if (stackPanel_ExistingMediaControls == null)
             {
@@ -514,7 +533,7 @@ namespace GamelistManager
         }
 
 
-        private void button_ScanFolder_Click(object sender, RoutedEventArgs e)
+        private void Button_ScanFolder_Click(object sender, RoutedEventArgs e)
         {
 
             var folderDialog = new OpenFolderDialog
@@ -522,7 +541,7 @@ namespace GamelistManager
                 Title = "Select Folder",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer)
             };
-            //blahcom
+          
             if (folderDialog.ShowDialog() == true)
             {
                 ResetAddFolderControls();
@@ -536,7 +555,7 @@ namespace GamelistManager
             }
         }
 
-        private void button_AddNewMedia_Click(object sender, RoutedEventArgs e)
+        private void Button_AddNewMedia_Click(object sender, RoutedEventArgs e)
         {
             string mediaName = comboBox_MediaTypes.Text;
             string mediaFolder = textBox_DestinationFolder.Text;
@@ -588,14 +607,12 @@ namespace GamelistManager
                 // Batocera naming standard
                 elementName = (elementName == "thumbnail" ? "thumb" : elementName);
 
-                string filteredRomPath = Path.GetFileNameWithoutExtension(romPath.TrimStart('.', '/'));
+                string normalizedRomName = NameHelper.NormalizeRomName(romPath);
                 string fileName = Path.GetFileName(filePath);
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
                 string fileExtension = Path.GetExtension(fileName);
-                string newFileName = $"{filteredRomPath}-{elementName}{fileExtension}";
+                string newFileName = $"{normalizedRomName}-{elementName}{fileExtension}";
                 string destinationFile = $"{destinationFolder}\\{newFileName}";
-
-                //blah fix this or check to make sure names are right
 
                 if (System.IO.File.Exists(destinationFile))
                 {
@@ -609,7 +626,7 @@ namespace GamelistManager
                             Directory.CreateDirectory(backupFolder);
                         }
 
-                        string backupFile = Path.Combine(backupFolder, fileName);
+                        string backupFile = Path.Combine(backupFolder, newFileName);
                         System.IO.File.Copy(destinationFile, backupFile, true);
 
                     }
@@ -646,19 +663,18 @@ namespace GamelistManager
 
             _mediaSearchCollection.Clear();
             button_AddNewMedia.IsEnabled = false;
-
-            SharedData.DataSet.AcceptChanges();
-
+                     
             MessageBox.Show($"{itemsAdded} {mediaName} items have been added to the gamelist\n\n You will still need to save the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
 
-        private async void button_ScanExistingMedia_Click(object sender, RoutedEventArgs e)
+        private async void Button_ScanExistingMedia_Click(object sender, RoutedEventArgs e)
         {
             // Start indeterminite progressbar animation
             progressBar_ProgressBar2.IsIndeterminate = true;
 
             // New cancel token
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
 
             // Set button states
@@ -708,7 +724,7 @@ namespace GamelistManager
 
                         var parallelOptions = new ParallelOptions
                         {
-                            CancellationToken = _cancellationToken
+                            CancellationToken = CancellationToken
                         };
 
                         // Use Parallel.ForEach to loop through gamelistMediaPaths in parallel
@@ -750,7 +766,7 @@ namespace GamelistManager
                         // Task was canceled, exit gracefully
                         isCancelled = true;
                     }
-                }, _cancellationToken);
+                }, CancellationToken);
 
 
                 if (isCancelled == true)
@@ -789,7 +805,7 @@ namespace GamelistManager
                         var gamelistPathsLookup = gamelistMediaPaths
                             .ToLookup(
                                 kvp => Path.GetFullPath(Path.Combine(_parentFolderPath, kvp.Value)),  // Key is the full path
-                                kvp => kvp.Key, // MediaType as the value
+                                kvp => kvp.Key, // MediaType as the Value
                                 StringComparer.OrdinalIgnoreCase);  // Case-insensitive comparison
 
                         // Concurrent collection for collecting missing items in a thread-safe manner
@@ -797,7 +813,7 @@ namespace GamelistManager
 
                         var parallelOptions = new ParallelOptions
                         {
-                            CancellationToken = _cancellationToken
+                            CancellationToken = CancellationToken
                         };
 
                         // Process allMedia in parallel
@@ -835,7 +851,7 @@ namespace GamelistManager
                         // Task was canceled, exit gracefully
                         isCancelled = true;
                     }
-                }, _cancellationToken);
+                }, CancellationToken);
 
 
                 if (isCancelled == true)
@@ -873,7 +889,7 @@ namespace GamelistManager
                     {
                         var parallelOptions = new ParallelOptions
                         {
-                            CancellationToken = _cancellationToken
+                            CancellationToken = CancellationToken
                         };
 
                         Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
@@ -928,7 +944,7 @@ namespace GamelistManager
                         // The task was canceled, exit the method gracefully
                         isCancelled = true;
                     }
-                }, _cancellationToken);
+                }, CancellationToken);
 
 
                 if (isCancelled == true)
@@ -957,18 +973,9 @@ namespace GamelistManager
             button_ScanExistingMediaCancel.IsEnabled = false;
 
             // Fix buttons enabled now that scanning is done
-            if (button_FixMissing.IsVisible)
-            {
-                button_FixMissing.IsEnabled = true;
-            }
-            if (button_FixUnused.IsVisible)
-            {
-                button_FixUnused.IsEnabled = true;
-            }
-            if (button_FixBad.IsVisible)
-            {
-                button_FixBad.IsEnabled = true;
-            }
+            button_FixMissing.IsEnabled = button_FixMissing.IsVisible;
+            button_FixUnused.IsEnabled = button_FixUnused.IsVisible;
+            button_FixBad.IsEnabled = button_FixBad.IsVisible;
         }
 
         private async Task<ConcurrentBag<KeyValuePair<string, string>>> GetGamelistMediaPathsAsync()
@@ -986,13 +993,13 @@ namespace GamelistManager
                     {
                         string columnName = mediaItem;
 
-                        // Get the value from the current row and column
+                        // Get the Value from the current row and column
                         object cellValue = row[columnName];
 
-                        // Check for null, DBNull, or empty value
+                        // Check for null, DBNull, or empty Value
                         if (cellValue != null && cellValue != DBNull.Value && !string.IsNullOrEmpty(cellValue.ToString()))
                         {
-                            // Add key-value pair to the ConcurrentBag
+                            // Add key-Value pair to the ConcurrentBag
                             media.Add(new KeyValuePair<string, string>(columnName, cellValue.ToString()!));
                         }
                     }
@@ -1036,17 +1043,16 @@ namespace GamelistManager
             return allFiles.Distinct().ToList();
         }
 
-        private void button_Cancel_Click(object sender, RoutedEventArgs e)
+        private void Button_Cancel_Click(object sender, RoutedEventArgs e)
         {
-            Button? button = sender as Button;
-            if (button != null)
+            if (sender is Button button)
             {
                 button.IsEnabled = false;
                 _cancellationTokenSource.Cancel();
             }
         }
 
-        private async void button_FixMissing_Click(object sender, RoutedEventArgs e)
+        private async void Button_FixMissing_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Do you want to remove the paths for missing media items in the gamelist?",
                                     "Confirm",
@@ -1081,7 +1087,7 @@ namespace GamelistManager
         }
 
 
-        private void BackupMedia(string system, List<string> files, string folder, bool delete)
+        private static void BackupMedia(string system, List<string> files, string folder, bool delete)
         {
 
             foreach (string filePath in files)
@@ -1114,7 +1120,7 @@ namespace GamelistManager
         }
 
 
-        private void button_FixUnused_Click(object sender, RoutedEventArgs e)
+        private void Button_FixUnused_Click(object sender, RoutedEventArgs e)
         {
 
             var result = MessageBox.Show("Do you want to backup the unused media first?  Selecting 'No' will send them straight to the windows recycle bin.  \n\nSelect Cancel to abort",
@@ -1127,12 +1133,7 @@ namespace GamelistManager
                 return;
             }
 
-            bool delete = true;
-
-            if (result == MessageBoxResult.Yes)
-            {
-                delete = false;
-            }
+            bool delete = result != MessageBoxResult.Yes;
 
             // Identify items to remove based on "Unused" status
             var unusedItems = _mediaCleanupCollection
@@ -1158,9 +1159,8 @@ namespace GamelistManager
 
         }
 
-        private async void button_FixBad_Click(object sender, RoutedEventArgs e)
+        private async void Button_FixBad_Click(object sender, RoutedEventArgs e)
         {
-
             var result = MessageBox.Show("Do you want to backup the bad media first?  Selecting 'No' will send them straight to the windows recycle bin.  \n\nSelect Cancel to abort",
                "Confirm",
                 MessageBoxButton.YesNoCancel,
@@ -1171,14 +1171,7 @@ namespace GamelistManager
                 return;
             }
 
-            bool delete = true;
-            SharedData.IsDataChanged = true;
-
-            if (result == MessageBoxResult.Yes)
-            {
-
-                delete = false;
-            }
+            bool delete = result != MessageBoxResult.Yes;
 
             // Identify items to remove based on status
             var badItems = _mediaCleanupCollection
@@ -1199,20 +1192,24 @@ namespace GamelistManager
             }
 
             // Convert full paths to relative paths for cleanup
-            var relativePaths = PathConverter.ConvertListToRelativePaths(fileNames);
+            var relativePaths = fileNames
+                .Select(f => PathHelper.ConvertPathToRelativePath(f, _parentFolderPath))
+                .ToList();
 
             await ClearMediaPathsAsync(relativePaths);
             progressBar_ProgressBar2.IsIndeterminate = false;
 
             button_FixBad.IsEnabled = false;
             SharedData.DataSet.AcceptChanges();
+            
+            SharedData.IsDataChanged = true;
 
             MessageBox.Show("Completed!", "Cleanup", MessageBoxButton.OK, MessageBoxImage.Information);
 
 
         }
 
-        private async Task ClearMediaPathsAsync(List<string> itemsToRemove)
+        private static async Task ClearMediaPathsAsync(List<string> itemsToRemove)
         {
             var dataTable = SharedData.DataSet.Tables[0];
             var changes = new ConcurrentBag<(DataRow Row, DataColumn Column)>(); // Thread-safe collection
@@ -1241,6 +1238,7 @@ namespace GamelistManager
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             TextSearchHelper.ClearCache();
+            _cancellationTokenSource?.Dispose();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -1272,7 +1270,7 @@ namespace GamelistManager
             comboBox_MediaTypes.SelectedIndex = 0;
         }
 
-        private void comboBox_MediaTypes_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void ComboBox_MediaTypes_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (comboBox_MediaTypes.IsEnabled == false)
             {

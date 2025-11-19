@@ -26,10 +26,6 @@
     <Setting Name="ShowCounts" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="MediaPaths" Type="System.String" Scope="User">
-      <Value Profile="(Default)">{"image":"images","titleshot":"images","marquee":"images","wheel":"images","thumbnail":"images","cartridge":"images","video":"videos","music":"music","map":"images","bezel":"images","manual":"manuals","fanart":"images","boxart":"images","boxback":"images","magazine":"images","mix":"images"}
-</Value>
-    </Setting>
     <Setting Name="Region" Type="System.String" Scope="User">
       <Value Profile="(Default)">wor</Value>
     </Setting>
@@ -54,10 +50,6 @@
     <Setting Name="ScrapeEnglishGenreOnly" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="VisibleGridColumns" Type="System.String" Scope="User">
-      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}
-</Value>
-    </Setting>
     <Setting Name="GridLineVisibility" Type="System.String" Scope="User">
       <Value Profile="(Default)">Horizontal</Value>
     </Setting>
@@ -74,17 +66,13 @@
       <Value Profile="(Default)">75</Value>
     </Setting>
     <Setting Name="SearchDepth" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">3</Value>
+      <Value Profile="(Default)">2</Value>
     </Setting>
     <Setting Name="MamePath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="RememberColumns" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="DefaultColumns" Type="System.String" Scope="User">
-      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}
-</Value>
     </Setting>
     <Setting Name="RememberAutoSize" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
@@ -95,12 +83,29 @@
     <Setting Name="SuspendSortingInEditMode" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="Region_Fallback" Type="System.String" Scope="User">
-      <Value Profile="(Default)">["USA (us)","ScreenScraper (ss)","Europe (eu)","United Kingdom (uk)","World (wor)"]
-</Value>
-    </Setting>
     <Setting Name="ScrapeAnyMedia" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AutoExpandLogger" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Theme" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="MediaPaths" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"image":"images","titleshot":"images","marquee":"images","wheel":"images","thumbnail":"images","cartridge":"images","video":"videos","music":"music","map":"images","bezel":"images","manual":"manuals","fanart":"images","boxart":"images","boxback":"images","magazine":"images","mix":"images"}</Value>
+    </Setting>
+    <Setting Name="VisibleGridColumns" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}</Value>
+    </Setting>
+    <Setting Name="DefaultColumns" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}</Value>
+    </Setting>
+    <Setting Name="Region_Fallback" Type="System.String" Scope="User">
+      <Value Profile="(Default)">["USA (us)","ScreenScraper (ss)","Europe (eu)","United Kingdom (uk)","World (wor)"]</Value>
+    </Setting>
+    <Setting Name="Version" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

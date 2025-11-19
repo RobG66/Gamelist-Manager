@@ -1,0 +1,57 @@
+﻿<Window x:Class="GamelistManager.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About Gamelist Manager"
+        Height="450" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+    <Grid Margin="15">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+
+            <!-- App Logo -->
+            <Image Source="/resources/logos/gamelistmanager.png" Height="80" Width="400" Margin="0,0,0,0"/>
+
+            <!-- App Icon -->
+            <Image Source="/resources/icons/icon.png" Height="60" Width="80" Margin="0,0,0,0"/>
+
+            <!-- Version -->
+            <TextBlock Text="{Binding Version}" Margin="0,5,0,10" 
+                       HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" />
+
+            <!-- Description / features -->
+            <TextBlock TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,10"
+                       Foreground="{DynamicResource SecondaryTextBrush}">
+                Manage and scrape your ROM libraries easily.
+                Supports ScreenScraper, ArcadeDB, EmuMovies.
+                Organize metadata, artwork, videos, and more.
+            </TextBlock>
+
+            <!-- Author / GitHub link -->
+            <TextBlock Text="Created by Rob Ganshorn" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+            <TextBlock Text="GitHub: https://github.com/RobG66/Gamelist-Manager"
+                       Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline" Cursor="Hand" 
+                       HorizontalAlignment="Center" MouseLeftButtonUp="GitHubLink_Click"/>
+
+            <!-- Donation Links -->
+            <TextBlock Text="Support development:" Margin="0,15,0,5" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                <TextBlock Text="PayPal: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="https://paypal.me/RobG" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
+                           Cursor="Hand" MouseLeftButtonUp="PaypalLink_Click" Margin="5,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="By Me A Coffee: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="https://buymeacoffee.com/silverballb" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
+                           Cursor="Hand" MouseLeftButtonUp="BMAC_Click" Margin="5,0"/>
+            </StackPanel>
+
+            <!-- Close button -->
+            <Button Content="Close" Width="100" Margin="0,20,0,0" HorizontalAlignment="Center" 
+                    Style="{DynamicResource GreyRoundedButton}" Click="Close_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

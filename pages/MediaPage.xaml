@@ -6,20 +6,27 @@
       xmlns:local="clr-namespace:GamelistManager.pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="MediaPage">
-
+      Title="MediaPage"
+      Background="{DynamicResource SecondaryBackgroundBrush}">
     <Grid>
-        <Viewbox Stretch="Uniform">
-            <Grid x:Name="MediaContentGrid"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch">
-                <!-- Define two rows in the grid -->
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
+        <Border Background="{DynamicResource SecondaryBackgroundBrush}"
+                BorderBrush="{DynamicResource PrimaryBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="5">
+            <Viewbox Stretch="Uniform">
+                <Grid x:Name="MediaContentGrid"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="{DynamicResource SecondaryBackgroundBrush}">
+                    <!-- Define two rows in the grid -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-             </Grid>
-        </Viewbox>
+                </Grid>
+            </Viewbox>
+        </Border>
     </Grid>
 </Page>

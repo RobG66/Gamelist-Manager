@@ -1,4 +1,6 @@
-﻿using GamelistManager.classes;
+﻿using GamelistManager.classes.core;
+using GamelistManager.classes.gamelist;
+using GamelistManager.classes.helpers;
 using GamelistManager.controls;
 using System.Data;
 using System.IO;
@@ -18,7 +20,7 @@ namespace GamelistManager.pages
         {
             InitializeComponent();
             _mediaPlayerControl = new MediaPlayerControl();
-           
+
             _mediaPlayerControl.SetVolume((int)Properties.Settings.Default.Volume);
 
             var metaDataDictionary = GamelistMetaData.GetMetaDataDictionary();
@@ -48,6 +50,10 @@ namespace GamelistManager.pages
 
             string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename)!;
 
+            bool nomedia = true;
+            // Reset grid row 0 to default state
+            MediaContentGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
+
             foreach (var column in MediaContentGrid.ColumnDefinitions)
             {
                 string columnName = column.Name.Replace("__", " ");
@@ -64,6 +70,7 @@ namespace GamelistManager.pages
                     {
                         MediaContentGrid.ColumnDefinitions[columnIndex].Width = new GridLength(1, GridUnitType.Star);
                         string videoFilePath = Path.Combine(parentFolderPath!, videoPath.TrimStart('.', '/').Replace('/', '\\'));
+                        nomedia = false;
                         PlayFile(videoFilePath);
                     }
                     else
@@ -83,6 +90,7 @@ namespace GamelistManager.pages
                 {
                     MediaContentGrid.ColumnDefinitions[columnIndex].Width = new GridLength(1, GridUnitType.Star);
                     pathValue = Path.Combine(parentFolderPath!, pathValue.TrimStart('.', '/').Replace('/', '\\'));
+                    nomedia = false;
                     DisplayItem(pathValue, columnName);
                 }
                 else
@@ -90,6 +98,24 @@ namespace GamelistManager.pages
                     MediaContentGrid.ColumnDefinitions[columnIndex].Width = new GridLength(0);
                 }
             }
+
+            if (nomedia)
+            {
+                var imageSource = new BitmapImage(new Uri("pack://application:,,,/Resources/nomedia.png", UriKind.Absolute));
+
+                MediaContentGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+                MediaContentGrid.RowDefinitions[0].Height = new GridLength(0);
+
+                var image = MediaContentGrid.Children
+                .OfType<System.Windows.Controls.Image>()
+                .FirstOrDefault(img => Grid.GetRow(img) == 1 && Grid.GetColumn(img) == 0);
+
+                if (image != null)
+                {
+                    image.Source = imageSource;
+                }
+            }
+
         }
 
         public void PlayFile(string fileName)
@@ -115,7 +141,7 @@ namespace GamelistManager.pages
             // Determine which image to load
             if (columnName == "Manual")
             {
-                string resourcePdfIcon = "pack://application:,,,/Resources/manual.png";
+                string resourcePdfIcon = "pack://application:,,,/Resources/icons/manual.png";
                 imageSource = new BitmapImage(new Uri(resourcePdfIcon, UriKind.Absolute));
             }
             else
@@ -185,15 +211,17 @@ namespace GamelistManager.pages
 
                 MediaContentGrid.ColumnDefinitions.Add(newColumn);
 
-                TextBlock textBlock = new TextBlock
+                TextBlock textBlock = new()
                 {
                     Text = columnName,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     FontSize = 48,
                     FontWeight = FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Colors.DarkSlateGray),
-                    Margin = new Thickness(0, 2, 0, 2) // Add margin to text block
+                    Margin = new Thickness(0, 2, 0, 2)
                 };
+
+                // Set Foreground as DynamicResource so it updates with theme changes
+                textBlock.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryTextBrush");
 
                 Grid.SetRow(textBlock, 0);
                 Grid.SetColumn(textBlock, columnIndex);
@@ -201,12 +229,16 @@ namespace GamelistManager.pages
 
                 if (item == "Video")
                 {
+                    // Get theme-aware shadow color
+                    var shadowColor = TryFindResource("ShadowColor") as Color?
+                        ?? Colors.Black;
+
                     var container = new System.Windows.Controls.Border
                     {
                         Child = _mediaPlayerControl,
                         Effect = new System.Windows.Media.Effects.DropShadowEffect
                         {
-                            Color = System.Windows.Media.Colors.Black,
+                            Color = shadowColor,
                             ShadowDepth = 10,
                             Direction = 315,
                             BlurRadius = 15,
@@ -220,6 +252,10 @@ namespace GamelistManager.pages
                 }
                 else
                 {
+                    // Get theme-aware shadow color
+                    var shadowColor = TryFindResource("ShadowColor") as Color?
+                        ?? Colors.Gray;
+
                     var image = new System.Windows.Controls.Image
                     {
                         MaxWidth = 400,
@@ -227,21 +263,21 @@ namespace GamelistManager.pages
                         Margin = new Thickness(20),
                         Stretch = Stretch.Uniform,
                         Tag = columnName,
-                        Source = null, // No initial image source
+                        Source = null,
                         Effect = new System.Windows.Media.Effects.DropShadowEffect
                         {
-                            Color = System.Windows.Media.Colors.Gray,   // Softer shadow color
-                            ShadowDepth = 10,                           // Increase shadow distance
-                            Direction = 320,                            // Angle slightly adjusted
-                            BlurRadius = 20,                            // More diffuse shadow
-                            Opacity = 0.7                               // Slightly stronger shadow visibility
+                            Color = shadowColor,
+                            ShadowDepth = 10,
+                            Direction = 320,
+                            BlurRadius = 20,
+                            Opacity = 0.7
                         },
                         RenderTransform = new System.Windows.Media.ScaleTransform
                         {
-                            ScaleX = 1.05,                              // Slight scale-up
+                            ScaleX = 1.05,
                             ScaleY = 1.05
                         },
-                        RenderTransformOrigin = new System.Windows.Point(0.5, 0.5) // Transform from center
+                        RenderTransformOrigin = new System.Windows.Point(0.5, 0.5)
                     };
                     Grid.SetRow(image, 1);
                     Grid.SetColumn(image, columnIndex);
@@ -254,7 +290,6 @@ namespace GamelistManager.pages
                 columnIndex++;
             }
         }
-
         public void PausePlaying()
         {
             if (_mediaPlayerControl != null)
@@ -264,4 +299,3 @@ namespace GamelistManager.pages
         }
     }
 }
-
