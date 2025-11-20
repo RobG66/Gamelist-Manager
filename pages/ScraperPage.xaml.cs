@@ -107,14 +107,6 @@ namespace GamelistManager.pages
         {
             string currentSystem = SharedData.CurrentSystem;
 
-            if (!string.IsNullOrEmpty(_currentScraper))
-            {
-                Properties.Settings.Default.LastScraper = _currentScraper;
-                SaveScraperSettings(_lastScraper, currentSystem);
-                _lastScraper = _currentScraper;
-            }
-
-            _currentScraper = scraper;
             button_Setup.IsEnabled = false;
 
             checkBox_OverwriteMetadata.IsEnabled = true;
@@ -240,12 +232,12 @@ namespace GamelistManager.pages
                 button_Start.IsEnabled = false;
             }
 
-            string lastScraper = Properties.Settings.Default.LastScraper;
+            string savedScraper = Properties.Settings.Default.LastScraper;
 
             // Ensure that the ComboBox is populated before setting the selected sourceItem
-            if (!string.IsNullOrEmpty(lastScraper))
+            if (!string.IsNullOrEmpty(savedScraper))
             {
-                var item = comboBox_SelectedScraper.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (i.Content as string) == lastScraper);
+                var item = comboBox_SelectedScraper.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (i.Content as string) == savedScraper);
                 if (item != null)
                 {
                     comboBox_SelectedScraper.SelectedItem = item;
@@ -254,11 +246,14 @@ namespace GamelistManager.pages
             else
             {
                 comboBox_SelectedScraper.SelectedIndex = 0;
-                lastScraper = (comboBox_SelectedScraper.Items[0] as ComboBoxItem)?.Content.ToString()!;
             }
 
+            _currentScraper = (comboBox_SelectedScraper.Items[0] as ComboBoxItem)?.Content.ToString()!;
             comboBox_SelectedScraper.SelectionChanged += ComboBox_SelectedScraper_SelectionChanged;
-            LoadScraperSettings(lastScraper);
+
+
+            LoadScraperSettings(_currentScraper);
+
 
             // Set to false initially to ensure button state is correct
             ShowOrHideCounts(false);
@@ -328,7 +323,18 @@ namespace GamelistManager.pages
             }
 
             ComboBoxItem selectedItem = (ComboBoxItem)comboBox.Items[comboBox.SelectedIndex];
-            LoadScraperSettings(selectedItem.Content.ToString()!);
+
+            if (!string.IsNullOrEmpty(_lastScraper))
+            {
+                SaveScraperSettings(_lastScraper, SharedData.CurrentSystem);
+            }
+
+            _lastScraper = _currentScraper;
+            _currentScraper = selectedItem.Content.ToString()!;
+
+            LoadScraperSettings(_currentScraper);
+            Properties.Settings.Default.LastScraper = _currentScraper;
+            Properties.Settings.Default.Save();
             _isAuthenticated = false;
         }
 
@@ -534,13 +540,17 @@ namespace GamelistManager.pages
             string userAccessToken = string.Empty;
             bool scrapeByCache = checkBox_ScrapeFromCache.IsChecked == true;
             bool skipNonCached = checkBox_OnlyScrapeFromCache.IsChecked == true;
-            bool overWriteNames = checkBox_OverwriteNames.IsChecked == true;
+            bool overWriteName = checkBox_OverwriteNames.IsChecked == true;
             bool overWriteMetadata = checkBox_OverwriteMetadata.IsChecked == true;
             bool overWriteMedia = checkBox_OverwriteMedia.IsChecked == true;
             bool englishGenreOnly = Properties.Settings.Default.ScrapeEnglishGenreOnly; // ScreenScraper Specific
             bool scrapeAnyMedia = Properties.Settings.Default.ScrapeAnyMedia; // ScreenScraper Specific
-
             bool isArcade = ArcadeSystemID.HasArcadeSystemName(SharedData.CurrentSystem);
+
+            if (overWriteMetadata)
+            {
+                overWriteMedia = true;
+            }
 
             string cacheFolder = $"{SharedData.ProgramDirectory}\\cache\\{_currentScraper}\\{SharedData.CurrentSystem}";
             if (!Directory.Exists(cacheFolder))
@@ -768,7 +778,7 @@ namespace GamelistManager.pages
             baseScraperParameters.VideoSource = videoSource;
             baseScraperParameters.OverwriteMedia = overWriteMedia;
             baseScraperParameters.OverwriteMetadata = overWriteMetadata;
-            baseScraperParameters.OverwriteNames = overWriteNames;
+            baseScraperParameters.OverwriteName = overWriteName;
             baseScraperParameters.UserAccessToken = userAccessToken;
             baseScraperParameters.ScraperPlatform = _currentScraper;
             baseScraperParameters.MediaPaths = mediaPaths;
@@ -778,7 +788,7 @@ namespace GamelistManager.pages
             baseScraperParameters.CacheFolder = cacheFolder;
             baseScraperParameters.ScrapeByGameID = false;
             baseScraperParameters.Verify = Properties.Settings.Default.VerifyDownloadedImages;
-
+            
             // Zero daily scrape counters
             int scrapeLimitMax = 0;
             int scrapeLimitProgress = 0;
@@ -877,7 +887,7 @@ namespace GamelistManager.pages
                                 string romLanguage = RegionLanguageHelper.GetLanguage(nameValue);
                                 rowView.Row["Language"] = romLanguage;
                             }
-
+                            
                             var itemsToScrape = new List<string>(baseScraperParameters.ElementsToScrape);
                             var itemsToRemove = new List<string>();
 

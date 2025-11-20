@@ -37,14 +37,20 @@ namespace GamelistManager.classes.helpers
         /// relPath:    "3/4.txt"    → "C:\\1\\2\\3\\4.txt"
         public static string ConvertGamelistPathToFullPath(string relativePath, string parentPath)
         {
-            // Strip "./" if present
-            if (relativePath.StartsWith("./"))
-                relativePath = relativePath[2..];
+            if (string.IsNullOrWhiteSpace(relativePath))
+                return string.Empty;
 
-            // Convert slashes to Windows style
+            // Normalize slashes first
             relativePath = relativePath.Replace('/', '\\');
-            return Path.Combine(parentPath, relativePath);
+
+            // Remove ANY leading dots or slashes
+            relativePath = relativePath.TrimStart('.', '\\');
+
+            // Combine and normalize path
+            string combined = Path.Combine(parentPath, relativePath);
+            return Path.GetFullPath(combined);
         }
+
 
 
     }

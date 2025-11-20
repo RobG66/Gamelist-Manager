@@ -78,7 +78,7 @@ namespace GamelistManager.classes.gamelist
                 // Store results in the static dictionary
                 Names = mameNames;
             }
-            catch (Exception ex)
+            catch
             {
                 // Handle exceptions (e.g., log them)
             }

@@ -59,12 +59,19 @@ namespace GamelistManager.classes.api
 
         public static void SaveJsonStringToCacheFile(string jsonString, string cacheFolder, string romName)
         {
-            if (!Directory.Exists(cacheFolder))
+            try
             {
-                Directory.CreateDirectory(cacheFolder);
+                if (!Directory.Exists(cacheFolder))
+                {
+                    Directory.CreateDirectory(cacheFolder);
+                }
+                string cacheFilePath = Path.Combine(cacheFolder, $"{romName}.json");
+                File.WriteAllText(cacheFilePath, jsonString);
             }
-            string cacheFilePath = Path.Combine(cacheFolder, $"{romName}.json");
-            File.WriteAllText(cacheFilePath, jsonString);
+            catch
+            {
+                // Ignore write errors
+            }
         }
 
         private static string ReadJsonFromCache(string romName, string cacheFolder)
@@ -74,42 +81,31 @@ namespace GamelistManager.classes.api
                 return string.Empty;
             }
 
-            string cacheFilePath = Path.Combine(cacheFolder, $"{romName}.json");
+            string cacheFile = Path.Combine(cacheFolder, $"{romName}.json");
 
-            if (!Path.Exists(cacheFilePath))
+            if (!File.Exists(cacheFile))
             {
                 return string.Empty;
             }
 
-            string jsonString = File.ReadAllText(cacheFilePath);
+            string jsonString = File.ReadAllText(cacheFile);
             return jsonString;
         }
 
         public async Task<bool> ScrapeArcadeDBAsync(DataRowView rowView, ScraperParameters scraperParameters)
         {
-
-            bool overwriteMetaData = scraperParameters.OverwriteMetadata;
-            bool overwriteName = scraperParameters.OverwriteNames;
-            if (overwriteMetaData)
+            if (scraperParameters.ElementsToScrape == null || scraperParameters.ElementsToScrape.Count == 0)
             {
-                overwriteName = true;
+                return false; // Nothing to scrape
             }
-
-            string romPath = rowView["Rom Path"].ToString()!;
-            string romName = Path.GetFileNameWithoutExtension(romPath);
-            string cacheFolder = scraperParameters.CacheFolder!;
-            bool scrapeByCache = scraperParameters.ScrapeByCache;
-            bool skipNonCached = scraperParameters.SkipNonCached;
-            // string? arcadeName = scraperParameters.MameArcadeName;
+                        
             string jsonResponse = string.Empty;
-            var elementsToScrape = scraperParameters.ElementsToScrape!;
-
 
             // Scrape by cache if selected
-            if (scrapeByCache)
+            if (scraperParameters.ScrapeByCache && !string.IsNullOrEmpty(scraperParameters.CacheFolder))
             {
-                jsonResponse = ReadJsonFromCache(romName, cacheFolder);
-                if (string.IsNullOrEmpty(jsonResponse) && skipNonCached)
+                jsonResponse = ReadJsonFromCache(scraperParameters.RomFileNameWithoutExtension!, scraperParameters.CacheFolder);
+                if (string.IsNullOrEmpty(jsonResponse) && scraperParameters.SkipNonCached)
                 {
                     return false;
                 }
@@ -118,7 +114,7 @@ namespace GamelistManager.classes.api
             // Scrape from website or if there was no cache file
             if (string.IsNullOrEmpty(jsonResponse))
             {
-                string url = $"{apiURL}?ajax=query_mame&game_name={romName}";
+                string url = $"{apiURL}?ajax=query_mame&game_name={scraperParameters.RomFileNameWithoutExtension}";
                 jsonResponse = await ScrapeGame(url);
 
                 if (string.IsNullOrEmpty(jsonResponse))
@@ -126,24 +122,35 @@ namespace GamelistManager.classes.api
                     return false; // Scrape failed
                 }
 
+                // Validate json
+                try
+                {
+                    JsonDocument.Parse(jsonResponse);
+                }
+                catch
+                {
+                    return false;
+                }
+
+
                 // Save json response to cache
-                SaveJsonStringToCacheFile(jsonResponse, cacheFolder, romName);
+                SaveJsonStringToCacheFile(jsonResponse, scraperParameters.CacheFolder!, scraperParameters.RomFileNameWithoutExtension!);
             }
 
             string downloadURL;
 
-            foreach (var element in elementsToScrape)
+            foreach (var element in scraperParameters.ElementsToScrape)
             {
                 switch (element)
                 {
                     case "publisher":
                         string publisher = GetJsonElementValue(jsonResponse, "manufacturer");
-                        UpdateMetadata(rowView, "Publisher", publisher, overwriteMetaData);
+                        UpdateMetadata(rowView, "Publisher", publisher, scraperParameters.OverwriteMetadata);
                         break;
 
                     case "players":
                         string players = GetJsonElementValue(jsonResponse, "players");
-                        UpdateMetadata(rowView, "Players", players, overwriteMetaData);
+                        UpdateMetadata(rowView, "Players", players, scraperParameters.OverwriteMetadata);
                         break;
 
                     case "rating":
@@ -155,64 +162,67 @@ namespace GamelistManager.classes.api
                                 : parseResult > 0 && parseResult < 100
                                     ? "." + parseResult.ToString().TrimStart('0')
                                     : rating;
-                            UpdateMetadata(rowView, "Rating", rating, overwriteMetaData);
+                            UpdateMetadata(rowView, "Rating", rating, scraperParameters.OverwriteMetadata);
                         }
                         break;
 
                     case "desc":
                         string description = GetJsonElementValue(jsonResponse, "history");
-                        UpdateMetadata(rowView, "Description", description, overwriteMetaData);
+                        UpdateMetadata(rowView, "Description", description, scraperParameters.OverwriteMetadata);
                         break;
 
                     case "name":
                         string name = GetJsonElementValue(jsonResponse, "title");
-                        UpdateMetadata(rowView, "Name", name, overwriteName);
+                        UpdateMetadata(rowView, "Name", name, scraperParameters.OverwriteName);
                         break;
 
                     case "genre":
                         string genre = GetJsonElementValue(jsonResponse, "genre");
-                        UpdateMetadata(rowView, "Genre", genre, overwriteMetaData);
+                        UpdateMetadata(rowView, "Genre", genre, scraperParameters.OverwriteMetadata);
                         break;
 
                     case "releasedate":
                         string releasedate = GetJsonElementValue(jsonResponse, "year");
-                        UpdateMetadata(rowView, "Release Date", releasedate, overwriteMetaData);
+                        UpdateMetadata(rowView, "Release Date", releasedate, scraperParameters.OverwriteMetadata);
                         break;
 
                     case "image":
                         downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.ImageSource!);
-                        await DownloadFile(downloadURL, rowView, romName, "image", "Image", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "image", "Image", scraperParameters);
                         break;
 
                     case "thumbnail":
                         downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.ThumbnailSource!);
-                        await DownloadFile(downloadURL, rowView, romName, "thumbnail", "Thumbnail", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "thumbnail", "Thumbnail", scraperParameters);
                         break;
 
                     case "bezel":
                         downloadURL = GetJsonElementValue(jsonResponse, "url_image_bezel");
-                        await DownloadFile(downloadURL, rowView, romName, "bezel", "Bezel", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "bezel", "Bezel", scraperParameters);
                         break;
 
                     case "manual":
                         downloadURL = GetJsonElementValue(jsonResponse, "url_manual");
-                        await DownloadFile(downloadURL, rowView, romName, "manual", "Manual", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "manual", "Manual", scraperParameters);
                         break;
 
                     case "titleshot":
                         downloadURL = GetJsonElementValue(jsonResponse, "url_image_title");
-                        await DownloadFile(downloadURL, rowView, romName, "titleshot", "Titleshot", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "titleshot", "Titleshot", scraperParameters);
                         break;
 
                     case "marquee":
                         downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.MarqueeSource!);
-                        await DownloadFile(downloadURL, rowView, romName, "marquee", "Marquee", scraperParameters);
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "marquee", "Marquee", scraperParameters);
                         break;
 
                     case "video":
-                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.VideoSource!)
-                            ?? GetJsonElementValue(jsonResponse, "url_video_shortplay");
-                        await DownloadFile(downloadURL, rowView, romName, "video", "Video", scraperParameters);
+                        downloadURL = GetJsonElementValue(jsonResponse, scraperParameters.VideoSource!);
+                        if (string.IsNullOrEmpty(downloadURL))
+                        {
+                            downloadURL = GetJsonElementValue(jsonResponse, "url_video_shortplay");
+                        }
+                        await DownloadFile(downloadURL, rowView, scraperParameters.RomFileNameWithoutExtension!, "video", "Video", scraperParameters);
                         break;
 
                 }
@@ -274,9 +284,12 @@ namespace GamelistManager.classes.api
                 mediaName = "thumb";
             }
 
+            // Convert forward slashes to backslashes for Windows file system
+            string destinationFolderWindows = destinationFolder.Replace('/', '\\');
+
             string fileName = $"{romName}-{mediaName}.{extension}";
-            string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-            string fileToDownload = $"{downloadPath}\\{fileName}";
+            string downloadPath = Path.Combine(parentFolderPath, destinationFolderWindows);
+            string fileToDownload = Path.Combine(downloadPath, fileName);
 
             bool downloadSuccessful = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL, string.Empty);
             // true is a successful download

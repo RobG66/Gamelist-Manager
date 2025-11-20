@@ -319,10 +319,13 @@ namespace GamelistManager
                             label_ScanningMessage.Content = mediaDisplayName;
                         });
 
+                        // Convert forward slashes to backslashes for Windows
+                        string mediaPath = _mediaPaths[mediaElementName].Replace('/', '\\');
+
                         // Build a full media path string
                         string mediaFolderPath = Path.Combine(
                             Path.GetDirectoryName(SharedData.XMLFilename)!,
-                            _mediaPaths[mediaElementName]
+                            mediaPath
                         );
 
                         // Skip if the directory does not exist
@@ -597,7 +600,9 @@ namespace GamelistManager
 
                 string parentFolder = Path.GetDirectoryName(SharedData.XMLFilename)!;
 
-                string destinationFolder = $"{parentFolder}\\{mediaFolder}";
+                // Convert forward slashes to backslashes for Windows
+                string mediaFolderWindows = mediaFolder.Replace('/', '\\');
+                string destinationFolder = Path.Combine(parentFolder, mediaFolderWindows);
 
                 if (!Directory.Exists(destinationFolder))
                 {
@@ -612,14 +617,20 @@ namespace GamelistManager
                 string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
                 string fileExtension = Path.GetExtension(fileName);
                 string newFileName = $"{normalizedRomName}-{elementName}{fileExtension}";
-                string destinationFile = $"{destinationFolder}\\{newFileName}";
+                string destinationFile = Path.Combine(destinationFolder, newFileName);
 
                 if (System.IO.File.Exists(destinationFile))
                 {
                     if (overwrite)
                     {
                         string parentDirectory = Directory.GetParent(destinationFile)!.Name;
-                        string backupFolder = $"{SharedData.ProgramDirectory}\\media backup\\replaced\\{SharedData.CurrentSystem}\\{parentDirectory}";
+                        string backupFolder = Path.Combine(
+                            SharedData.ProgramDirectory,
+                            "media backup",
+                            "replaced",
+                            SharedData.CurrentSystem,
+                            parentDirectory
+                        );
 
                         if (!Directory.Exists(backupFolder))
                         {
@@ -663,7 +674,7 @@ namespace GamelistManager
 
             _mediaSearchCollection.Clear();
             button_AddNewMedia.IsEnabled = false;
-                     
+
             MessageBox.Show($"{itemsAdded} {mediaName} items have been added to the gamelist\n\n You will still need to save the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -706,6 +717,7 @@ namespace GamelistManager
 
             // Check for missing media first
             // Using gamelistMediaPaths collection
+            // Check for missing media first
             if (checkBox_MissingMedia.IsChecked == true)
             {
                 label_Missing.Foreground = Brushes.Blue;
@@ -716,8 +728,29 @@ namespace GamelistManager
                 {
                     try
                     {
-                        // Normalize all media paths by replacing forward slashes with backslashes
-                        var allMediaNormalized = allMedia.Select(p => Path.GetFullPath(p).Replace('/', '\\')).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                        // Extract unique directories from gamelistMediaPaths
+                        var uniqueDirectories = gamelistMediaPaths
+                            .Select(kvp => Path.GetDirectoryName(Path.Combine(_parentFolderPath, kvp.Value)))
+                            .Where(dir => !string.IsNullOrEmpty(dir))
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+
+                        // Get all media files from each unique directory
+                        var allMediaFromGamelistDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                        foreach (var directory in uniqueDirectories)
+                        {
+                            if (Directory.Exists(directory))
+                            {
+                                var filesInDir = Directory.GetFiles(directory, "*.*", System.IO.SearchOption.TopDirectoryOnly)
+                                    .Select(f => Path.GetFullPath(f));
+
+                                foreach (var file in filesInDir)
+                                {
+                                    allMediaFromGamelistDirs.Add(file);
+                                }
+                            }
+                        }
 
                         // Thread-safe collection to collect missing media items
                         var missingItems = new ConcurrentBag<MediaCleanupItem>();
@@ -733,11 +766,11 @@ namespace GamelistManager
                             string itemType = item.Key;
                             string itemPath = item.Value;
 
-                            // Normalize the path (replace '/' with '\\')
-                            string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, itemPath)).Replace('/', '\\');
+                            // Get the full path for this media item
+                            string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, itemPath));
 
-                            // Check if the media item exists in allMedia (case-insensitive and normalized comparison)
-                            if (!allMediaNormalized.Contains(fullPath))
+                            // Check if the media item exists in the collected files
+                            if (!allMediaFromGamelistDirs.Contains(fullPath))
                             {
                                 // Add missing item to the thread-safe collection
                                 missingItems.Add(new MediaCleanupItem
@@ -977,6 +1010,7 @@ namespace GamelistManager
             button_FixUnused.IsEnabled = button_FixUnused.IsVisible;
             button_FixBad.IsEnabled = button_FixBad.IsVisible;
         }
+              
 
         private async Task<ConcurrentBag<KeyValuePair<string, string>>> GetGamelistMediaPathsAsync()
         {
@@ -1026,7 +1060,9 @@ namespace GamelistManager
                         return;
                     }
 
-                    string folderPath = Path.Combine(_parentFolderPath, uniqueFolderName);
+                    // Convert forward slashes to backslashes for Windows
+                    string folderPathWindows = uniqueFolderName.Replace('/', '\\');
+                    string folderPath = Path.Combine(_parentFolderPath, folderPathWindows);
 
                     if (Directory.Exists(folderPath))
                     {
@@ -1042,6 +1078,7 @@ namespace GamelistManager
             // Return distinct existingMediaFiles as a List
             return allFiles.Distinct().ToList();
         }
+
 
         private void Button_Cancel_Click(object sender, RoutedEventArgs e)
         {
@@ -1089,7 +1126,6 @@ namespace GamelistManager
 
         private static void BackupMedia(string system, List<string> files, string folder, bool delete)
         {
-
             foreach (string filePath in files)
             {
                 if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
@@ -1107,7 +1143,13 @@ namespace GamelistManager
                 else
                 {
                     string parentDirectory = Directory.GetParent(filePath)!.Name;
-                    string backupFolder = $"{SharedData.ProgramDirectory}\\media backup\\{folder}\\{system}\\{parentDirectory}";
+                    string backupFolder = Path.Combine(
+                        SharedData.ProgramDirectory,
+                        "media backup",
+                        folder,
+                        system,
+                        parentDirectory
+                    );
                     if (!Directory.Exists(backupFolder))
                     {
                         Directory.CreateDirectory(backupFolder);

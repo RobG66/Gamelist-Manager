@@ -28,14 +28,7 @@ namespace GamelistManager
             string hostName = textBox_HostName.Text;
             string userID = textBox_UserID.Text;
             string password = textBox_Password.Text;
-            string searchDepth = textBox_SearchDepth.Text;
-
-            if (string.IsNullOrEmpty(hostName) || string.IsNullOrEmpty(searchDepth) || string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(password))
-            {
-                MessageBox.Show("One or more fields are empty!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
+                       
             string theme = comboBox_Theme.Text;
             Properties.Settings.Default.Theme = theme;
 
@@ -58,14 +51,34 @@ namespace GamelistManager
             Properties.Settings.Default.Volume = (int)sliderVolumeSetting.Value;
             Properties.Settings.Default.AutoExpandLogger = (bool)checkBox_AutoExpandLogger.IsChecked!;
 
-            string searchDepthString = textBox_SearchDepth.Text;
-            int searchDepthInt = !int.TryParse(searchDepthString, out searchDepthInt) ? 0 : searchDepthInt;
+            // Search Depth (0-9, default: 2)
+            string searchDepth = textBox_SearchDepth.Text;
+            if (!int.TryParse(searchDepth, out int searchDepthInt) || searchDepthInt < 0 || searchDepthInt > 9)
+            {
+                searchDepthInt = 2;
+            }
+            textBox_SearchDepth.Text = searchDepthInt.ToString();
             Properties.Settings.Default.SearchDepth = searchDepthInt;
 
-            string changeTrackerValue = textBox_ChangeCount.Text;
-            int maxUndo = string.IsNullOrEmpty(changeTrackerValue) || !int.TryParse(changeTrackerValue, out maxUndo) ? 0 : maxUndo;
-            Properties.Settings.Default.MaxUndo = maxUndo;
+            // Max Undo (0-15, default: 5)
+            string maxUndo = textBox_MaxUndo.Text;
+            if (!int.TryParse(maxUndo, out int maxUndoInt) || maxUndoInt < 0 || maxUndoInt > 15)
+            {
+                maxUndoInt = 5;
+            }
+            textBox_MaxUndo.Text = maxUndoInt.ToString();
+            Properties.Settings.Default.MaxUndo = maxUndoInt;
 
+            // Recent Files Count (1-50, default: 15)
+            string recentFilesCount = textBox_RecentFilesCount.Text;
+            if (!int.TryParse(recentFilesCount, out int recentFilesInt) || recentFilesInt < 1 || recentFilesInt > 50)
+            {
+                recentFilesInt = 15;
+            }
+            textBox_RecentFilesCount.Text = recentFilesInt.ToString();
+            Properties.Settings.Default.RecentFilesCount = recentFilesInt;
+            
+                        
             string MamePath = textBox_MamePath.Text;
             Properties.Settings.Default.MamePath = MamePath;
 
@@ -81,13 +94,28 @@ namespace GamelistManager
             Dictionary<string, string> mediaPaths = [];
             foreach (TextBox textBox in textBoxes)
             {
-                // Clean the text to keep only alphanumeric characters
-                string cleanedText = Regex.Replace(textBox.Text, "[^a-zA-Z0-9]", "");
-                textBox.Text = cleanedText;
+                string text = textBox.Text.Trim();
+
+                // Remove drive letters (e.g., "C:", "D:")
+                text = Regex.Replace(text, @"^[a-zA-Z]:", "");
+
+                // Replace backslashes with forward slashes
+                text = text.Replace('\\', '/');
+
+                // Remove invalid filename characters except forward slash
+                // Windows invalid chars: < > : " | ? * and control characters
+                text = Regex.Replace(text, @"[<>:""|?*\x00-\x1F]", "");
+
+                // Remove leading/trailing slashes and consolidate multiple slashes
+                text = Regex.Replace(text, @"/+", "/").Trim('/');
+
+                text = text.Trim();
+
+                textBox.Text = text;
                 string? name = textBox.Tag.ToString();
                 if (!string.IsNullOrEmpty(name))
                 {
-                    mediaPaths[name.ToString()] = cleanedText;
+                    mediaPaths[name] = text;
                 }
             }
 
@@ -210,10 +238,17 @@ namespace GamelistManager
             bool videoAutoplay = Properties.Settings.Default.VideoAutoplay;
             checkBox_VideoAutoplay.IsChecked = videoAutoplay;
 
+            int recentFilesCount = Properties.Settings.Default.RecentFilesCount;
+            if (recentFilesCount < 1 || recentFilesCount > 50)
+            {
+                recentFilesCount = 15;
+            }
+            textBox_RecentFilesCount.Text = recentFilesCount.ToString();
+
             int searchDepth = Properties.Settings.Default.SearchDepth;
             if (searchDepth < 0 || searchDepth > 9)
             {
-                searchDepth = 0;
+                searchDepth = 2;
             }
             textBox_SearchDepth.Text = searchDepth.ToString();
 
@@ -225,17 +260,17 @@ namespace GamelistManager
             sliderVolumeSetting.Value = volume;
 
             int maxUndo = Properties.Settings.Default.MaxUndo;
-            if (maxUndo == 0)
+            if (maxUndo < 1 || maxUndo > 15)
             {
                 checkBox_TrackChanges.IsChecked = false;
-                textBox_ChangeCount.IsEnabled = false;
-                textBox_ChangeCount.Text = "0";
+                textBox_MaxUndo.IsEnabled = false;
+                textBox_MaxUndo.Text = "0";
             }
             else
             {
                 checkBox_TrackChanges.IsChecked = true;
-                textBox_ChangeCount.IsEnabled = true;
-                textBox_ChangeCount.Text = maxUndo.ToString();
+                textBox_MaxUndo.IsEnabled = true;
+                textBox_MaxUndo.Text = maxUndo.ToString();
             }
 
             string theme = Properties.Settings.Default.Theme;
@@ -263,15 +298,16 @@ namespace GamelistManager
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
             button_Save.IsEnabled = true;
+            button_Save.Content = "Save";
             if (checkBox_TrackChanges.IsChecked == true)
             {
-                textBox_ChangeCount.IsEnabled = true;
-                textBox_ChangeCount.Text = "15";
+                textBox_MaxUndo.IsEnabled = true;
+                textBox_MaxUndo.Text = "15";
             }
             else
             {
-                textBox_ChangeCount.IsEnabled = false;
-                textBox_ChangeCount.Text = "0";
+                textBox_MaxUndo.IsEnabled = false;
+                textBox_MaxUndo.Text = "0";
             }
         }
 
@@ -279,6 +315,8 @@ namespace GamelistManager
         {
             // Check if the input is a digit
             e.Handled = !IsTextNumeric(e.Text);
+            button_Save.IsEnabled = true;
+            button_Save.Content = "Save";
         }
 
         private void NumericTextBox_Pasting(object sender, DataObjectPastingEventArgs e)

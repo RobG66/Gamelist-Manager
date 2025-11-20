@@ -469,7 +469,7 @@ namespace GamelistManager
         }
 
 
-        private static void SaveGamelist()
+        private void SaveGamelist()
         {
 
             var result = MessageBox.Show("Do you want to save the current gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -492,6 +492,7 @@ namespace GamelistManager
             {
                 MessageBox.Show("File saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 SharedData.IsDataChanged = false;
+                SaveLastOpenedGamelistName(SharedData.XMLFilename);
             }
             else
             {
@@ -618,10 +619,9 @@ namespace GamelistManager
             {
                 await MameNames.GenerateAsync(mameFilePath);
             }
-            catch (Exception ex)
+            catch
             {
                 // Log or show an error
-                // e.g. textBlock_Status.Text = $"Error loading MAME names: {ex.Message}";
             }
         }
 
@@ -680,9 +680,9 @@ namespace GamelistManager
             }
 
 
-            int maxUndo = Properties.Settings.Default.MaxUndo;
-
             SaveLastOpenedGamelistName(fileName);
+
+            int maxUndo = Properties.Settings.Default.MaxUndo;
 
             if (maxUndo > 0)
             {
@@ -797,19 +797,32 @@ namespace GamelistManager
 
         public void SaveLastOpenedGamelistName(string lastFileName)
         {
-            if (string.IsNullOrWhiteSpace(lastFileName))
+            lastFileName = lastFileName.Trim();
+            if (string.IsNullOrEmpty(lastFileName))
             {
                 return;
             }
 
             string recentFiles = Properties.Settings.Default.RecentFiles;
-            int maxFiles = 15;
+            int maxFiles = Properties.Settings.Default.RecentFilesCount;
 
-            List<string> recentFilesList = !string.IsNullOrEmpty(recentFiles)
-                ? recentFiles.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                             .Select(f => f.Trim())
-                             .ToList()
-                : [];
+            // Deserialize from JSON
+            List<string> recentFilesList;
+            if (!string.IsNullOrEmpty(recentFiles))
+            {
+                try
+                {
+                    recentFilesList = JsonSerializer.Deserialize<List<string>>(recentFiles) ?? [];
+                }
+                catch
+                {
+                    recentFilesList = [];
+                }
+            }
+            else
+            {
+                recentFilesList = [];
+            }
 
             // Remove the existing one if it exists
             recentFilesList.RemoveAll(f => string.Equals(f, lastFileName, StringComparison.OrdinalIgnoreCase));
@@ -821,12 +834,10 @@ namespace GamelistManager
             if (recentFilesList.Count > maxFiles)
                 recentFilesList = recentFilesList.Take(maxFiles).ToList();
 
-            // Save back to settings
-            Properties.Settings.Default.RecentFiles = string.Join(",", recentFilesList);
+            // Serialize to JSON and save
+            Properties.Settings.Default.RecentFiles = JsonSerializer.Serialize(recentFilesList);
             Properties.Settings.Default.Save();
-
             AddRecentFilesToMenu();
-
         }
 
 
@@ -838,21 +849,40 @@ namespace GamelistManager
             {
                 if (menuItem_File.Items[i] is MenuItem menuItem && !string.IsNullOrEmpty(menuItem.Tag?.ToString()))
                 {
-
                     menuItem_File.Items.RemoveAt(i);
                 }
             }
 
             // Get the saved recent files list
             string recentFiles = Properties.Settings.Default.RecentFiles;
-
             if (string.IsNullOrEmpty(recentFiles))
             {
                 return;
             }
 
-            foreach (var file in recentFiles.Split(","))
+            // Deserialize from JSON
+            List<string> recentFilesList;
+            try
             {
+                recentFilesList = JsonSerializer.Deserialize<List<string>>(recentFiles);
+                if (recentFilesList == null || recentFilesList.Count == 0)
+                {
+                    return;
+                }
+            }
+            catch
+            {
+                // Invalid JSON, skip
+                return;
+            }
+
+            foreach (var file in recentFilesList)
+            {
+                if (string.IsNullOrWhiteSpace(file))
+                {
+                    continue;
+                }
+
                 // The margin is set to match the menu template
                 var menuItem = new MenuItem
                 {
@@ -860,15 +890,13 @@ namespace GamelistManager
                     Tag = file
                 };
                 menuItem.Style = (Style)Application.Current.FindResource("MinimalMenuItem");
-
                 menuItem.Click += RecentFilemenuItem_Click;
 
                 // Add the menu item to the recent files menu
                 menuItem_File.Items.Add(menuItem);
             }
-
         }
-                
+
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -2316,22 +2344,22 @@ namespace GamelistManager
 
             // Handle TextBox foreground color
 
-            //if (editMode)
-            //{
-            //    // Store the original foreground color only once
-            //    if (_originalTextBoxForeground == null)
-            //    {
-            //        _originalTextBoxForeground = textBox_Description.Foreground;
-            //    }
+            if (editMode)
+            {
+                // Store the original foreground color only once
+                if (_originalTextBoxForeground == null)
+                {
+                    _originalTextBoxForeground = textBox_Description.Foreground;
+                }
 
-            //    textBox_Description.Foreground = Brushes.Blue;
+                textBox_Description.Foreground = Brushes.Blue;
 
-            //}
-            //else
-            //{
-            //    // Restore original color if it was stored
-            //    textBox_Description.Foreground = _originalTextBoxForeground ?? Brushes.Black;
-            //}
+            }
+            else
+            {
+                // Restore original color if it was stored
+                textBox_Description.Foreground = _originalTextBoxForeground ?? Brushes.Black;
+            }
 
             //// blah textBox_Description.Focusable = !editMode;
 
@@ -2992,28 +3020,56 @@ namespace GamelistManager
 
             int missingCount = 0;
 
-            // Create a HashSet for fast lookups
-            var filesSet = new HashSet<string>(
-             Directory.GetFiles(_parentFolderPath!, "*", SearchOption.AllDirectories)
-              .Select(f => PathHelper.ConvertPathToRelativePath(f, _parentFolderPath!)));
-
-            var missingItems = new List<DataRowView>(); // To store rows with missing files
-
             // Temporarily disable DataGrid
             MainDataGrid.IsEnabled = false;
 
+            // --- STEP 1: Collect all referenced folders ---
+            var usedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
+            {
+                if (row["Rom Path"] is string romPath && !string.IsNullOrWhiteSpace(romPath))
+                {
+                    string cleaned = romPath.TrimStart('.', '\\', '/');
+                    string dir = Path.GetDirectoryName(cleaned) ?? "";
+
+                    string fullFolder = Path.GetFullPath(Path.Combine(_parentFolderPath!, dir));
+                    usedFolders.Add(fullFolder);
+                }
+            }
+
+            // Always include the base folder
+            usedFolders.Add(Path.GetFullPath(_parentFolderPath!));
+
+            // --- STEP 2: Build hash of all actual files in those folders ---
+            var filesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var folder in usedFolders)
+            {
+                if (!Directory.Exists(folder))
+                    continue;
+
+                foreach (var file in Directory.GetFiles(folder, "*", SearchOption.TopDirectoryOnly))
+                {
+                    string full = Path.GetFullPath(file);
+                    filesSet.Add(full);
+                }
+            }
+
+            var missingItems = new List<DataRowView>();
+
             try
             {
-                // First loop: Find missing items
+                // --- STEP 3: Compare normalized rom paths to the hash ---
                 foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
                 {
                     if (row["Rom Path"] is string romPath)
                     {
-                        string normalizedName = Path.GetFileName(romPath);
+                        string fullPath = PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!);
 
-                        if (!filesSet.Contains(normalizedName))
+                        if (!filesSet.Contains(fullPath))
                         {
-                            missingItems.Add(row); // Add to missing items
+                            missingItems.Add(row);
                             missingCount++;
                         }
                     }
@@ -3025,30 +3081,31 @@ namespace GamelistManager
                 MainDataGrid.IsEnabled = true;
             }
 
-            // If no missing items are found, show a message and exit
+            // --- No missing items ---
             if (missingItems.Count == 0)
             {
                 MessageBox.Show("No missing items were detected", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            // Show Status column if it exists
+            // --- Show Status column ---
             var statusColumn = MainDataGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "Status");
             if (statusColumn != null)
-            {
                 statusColumn.Visibility = Visibility.Visible;
-            }
 
-            // Ask user for confirmation before removal
-            var result = MessageBox.Show($"There are {missingItems.Count} missing items in this gamelist.\n\nDo you want to remove them?",
-                "Notice:", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            // --- Ask user ---
+            var result = MessageBox.Show(
+                $"There are {missingItems.Count} missing items in this gamelist.\n\nDo you want to remove them?",
+                "Notice:",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
                 SharedData.ChangeTracker!.StartBulkOperation();
+
                 foreach (var row in missingItems)
                 {
-                    // Remove from DataGrid source safely
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         if (MainDataGrid.ItemsSource is DataView dataView && dataView.Table != null)
@@ -3057,11 +3114,12 @@ namespace GamelistManager
                         }
                     });
                 }
+
                 SharedData.ChangeTracker!.EndBulkOperation();
             }
             else
             {
-                // If not removing, mark them as missing
+                // Mark missing
                 foreach (var row in missingItems)
                 {
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
@@ -3071,6 +3129,7 @@ namespace GamelistManager
                 }
             }
         }
+
 
         private void MenuItem_DatTools_Click(object sender, RoutedEventArgs e)
         {
@@ -3514,7 +3573,14 @@ namespace GamelistManager
                 return;
             }
 
+            string filePath = Assembly.GetExecutingAssembly().Location;
+            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
+            string fileVersion = fileVersionInfo.FileVersion!;
+
             Properties.Settings.Default.Reset();
+
+            Properties.Settings.Default.Version = fileVersion;
+
             Properties.Settings.Default.Save();
 
             string gridLineVisibility = Properties.Settings.Default.GridLineVisibility;

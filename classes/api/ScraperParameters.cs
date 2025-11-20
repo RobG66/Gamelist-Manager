@@ -1,5 +1,4 @@
-﻿
-namespace GamelistManager.classes.api
+﻿namespace GamelistManager.classes.api
 {
     public class ScraperParameters
     {
@@ -20,7 +19,7 @@ namespace GamelistManager.classes.api
         public string? WheelSource { get; set; }
         public string? VideoSource { get; set; }
         public string? CartridgeSource { get; set; }
-        public bool OverwriteNames { get; set; }
+        public bool OverwriteName { get; set; }
         public bool ScrapeEnglishGenreOnly { get; set; }
         public bool ScrapeAnyMedia { get; set; }
         public bool OverwriteMedia { get; set; }
@@ -36,10 +35,47 @@ namespace GamelistManager.classes.api
         public List<string>? ElementsToScrape { get; set; }
         public Dictionary<string, string>? MediaPaths { get; set; }
 
-        // Add the Clone method
+        /// Creates a deep clone of this ScraperParameters instance.
+        /// All collection properties are copied to new instances to ensure thread safety.
         public ScraperParameters Clone()
         {
-            return (ScraperParameters)this.MemberwiseClone();
+            return new ScraperParameters
+            {
+                RomFileNameWithExtension = this.RomFileNameWithExtension,
+                RomFileNameWithoutExtension = this.RomFileNameWithoutExtension,
+                Name = this.Name,
+                GameID = this.GameID,
+                SystemID = this.SystemID,
+                UserID = this.UserID,
+                UserPassword = this.UserPassword,
+                ParentFolderPath = this.ParentFolderPath,
+                SSLanguage = this.SSLanguage,
+
+                SSRegions = this.SSRegions != null ? new List<string>(this.SSRegions) : null,
+                ElementsToScrape = this.ElementsToScrape != null ? new List<string>(this.ElementsToScrape) : null,
+                MediaPaths = this.MediaPaths != null ? new Dictionary<string, string>(this.MediaPaths) : null,
+
+                ImageSource = this.ImageSource,
+                ThumbnailSource = this.ThumbnailSource,
+                BoxArtSource = this.BoxArtSource,
+                MarqueeSource = this.MarqueeSource,
+                WheelSource = this.WheelSource,
+                VideoSource = this.VideoSource,
+                CartridgeSource = this.CartridgeSource,
+                OverwriteName = this.OverwriteName,
+                ScrapeEnglishGenreOnly = this.ScrapeEnglishGenreOnly,
+                ScrapeAnyMedia = this.ScrapeAnyMedia,
+                OverwriteMedia = this.OverwriteMedia,
+                OverwriteMetadata = this.OverwriteMetadata,
+                Verify = this.Verify,
+                UserAccessToken = this.UserAccessToken,
+                ScraperPlatform = this.ScraperPlatform,
+                MameArcadeName = this.MameArcadeName,
+                ScrapeByGameID = this.ScrapeByGameID,
+                CacheFolder = this.CacheFolder,
+                ScrapeByCache = this.ScrapeByCache,
+                SkipNonCached = this.SkipNonCached
+            };
         }
     }
 }

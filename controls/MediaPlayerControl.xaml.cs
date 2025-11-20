@@ -314,8 +314,7 @@ namespace GamelistManager.controls
         {
             this.Unloaded -= UserControl_Unloaded;
             comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
-
-            _mediaFiles = null;
+                    
             comboBox_CurrentTrack.ItemsSource = null;
 
             if (_mediaPlayer != null)
@@ -330,13 +329,13 @@ namespace GamelistManager.controls
                     _mediaPlayer.EndReached -= MediaPlayer_EndReached;
                     _mediaPlayer.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
                     // Log or handle cleanup errors if needed
                 }
                 finally
                 {
-                    _mediaPlayer = null;
+                    _mediaPlayer = null!;
                 }
             }
 
@@ -346,13 +345,13 @@ namespace GamelistManager.controls
                 {
                     _libVLC.Dispose();
                 }
-                catch (Exception ex)
+                catch
                 {
                     // Log or handle cleanup errors
                 }
                 finally
                 {
-                    _libVLC = null;
+                    _libVLC = null!;
                 }
             }
         }

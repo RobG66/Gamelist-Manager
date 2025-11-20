@@ -30,7 +30,7 @@ namespace GamelistManager.classes.api
 
         public async Task<bool> ScrapeEmuMoviesAsync(DataRowView rowView, ScraperParameters scraperParameters, Dictionary<string, List<string>> mediaLists)
         {
-            var elementsToScrape = scraperParameters.ElementsToScrape!;
+            var elementsToScrape = new List<string>(scraperParameters.ElementsToScrape!);
 
             foreach (string element in elementsToScrape)
             {
@@ -143,9 +143,12 @@ namespace GamelistManager.classes.api
                 mediaName = "thumb";
             }
 
+            // Convert forward slashes to backslashes for Windows file system
+            string destinationFolderWindows = destinationFolder.Replace('/', '\\');
+
             string fileName = $"{romFileNameWithoutExtension}-{mediaName}{fileFormat}";
-            string downloadPath = $"{parentFolderPath}\\{destinationFolder}";
-            string fileToDownload = $"{downloadPath}\\{fileName}";
+            string downloadPath = Path.Combine(parentFolderPath, destinationFolderWindows);
+            string fileToDownload = Path.Combine(downloadPath, fileName);
 
             string downloadURL = $"{_apiURL}/Media/Download?accessToken={scraperParameters.UserAccessToken}&systemName={scraperParameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={UrlHelper.UrlEncodeFileName(remoteFileName)}";
             bool downloadResult = await _fileTransfer.DownloadFile(verify, fileToDownload, downloadURL, _bearerToken);

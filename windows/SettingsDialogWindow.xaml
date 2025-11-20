@@ -99,8 +99,9 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <CheckBox x:Name="checkBox_TrackChanges" Style="{DynamicResource CustomCheckBox}" Content="Track Changes" ToolTip="Keep track of changes for undo and redo purposes" VerticalAlignment="Center" Click="CheckBox_Click"/>
                             <TextBlock Text=" - Max:" VerticalAlignment="Center" />
-                            <TextBox x:Name="textBox_ChangeCount" Text="15" VerticalAlignment="Center" Width="30" Height="20" Style="{DynamicResource CustomTextBox}" Margin="5,0,0,0"
+                            <TextBox x:Name="textBox_MaxUndo" Text="15" VerticalAlignment="Center" Width="30" Height="20" Style="{DynamicResource CustomTextBox}" Margin="5,0,0,0"
                                      MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     TextChanged="TextBox_TextChanged"
                                      DataObject.Pasting="NumericTextBox_Pasting"/>
                         </StackPanel>
                         <CheckBox x:Name="checkBox_VideoAutoplay" Style="{DynamicResource CustomCheckBox}" Content="Autoplay Videos" ToolTip="Videos in the media display will automatically play or not" VerticalAlignment="Center" Click="CheckBox_Click" />
@@ -115,17 +116,29 @@
                 </GroupBox>
 
                 <GroupBox Header="Other Settings" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,10">
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <TextBlock Text="File Search Depth (0–9):" VerticalAlignment="Center"/>
-                        <TextBox x:Name="textBox_SearchDepth" Text="3" Width="30" Height="20" Margin="10,0,0,0"
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal" Margin="5">
+                            <TextBlock Text="File Search Depth (0–9):" VerticalAlignment="Center"/>
+                            <TextBox x:Name="textBox_SearchDepth" Text="2" Width="30" Height="20" Margin="10,0,0,0"
                                  Style="{DynamicResource CustomTextBox}"                                 
                                  MaxLength="1" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                 TextChanged="TextBox_TextChanged"    
                                  DataObject.Pasting="NumericTextBox_Pasting"/>
-                        <TextBlock Text="  |  " Margin="10,0,10,0" VerticalAlignment="Top"/>
-                        <TextBlock Text="Default Volume:" VerticalAlignment="Center"/>
-                        <Slider x:Name="sliderVolumeSetting" Minimum="0" Maximum="100" Width="100" Margin="5,0,0,0"
+                            <TextBlock Text="  |  " Margin="10,0,10,0" VerticalAlignment="Top"/>
+                            <TextBlock Text="Default Volume:" VerticalAlignment="Center"/>
+                            <Slider x:Name="sliderVolumeSetting" Minimum="0" Maximum="100" Width="100" Margin="5,0,0,0"
                                 PreviewMouseDown="SliderVolumeSetting_PreviewMouseDown"
                                 Style="{DynamicResource CustomSlider}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0">
+                            <TextBlock Text="Remember last" VerticalAlignment="Center" />
+                            <TextBox x:Name="textBox_RecentFilesCount" Text="15" VerticalAlignment="Center" Width="30" Height="20" Style="{DynamicResource CustomTextBox}" Margin="5,0,5,0"
+              MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                                     TextChanged="TextBox_TextChanged"
+              DataObject.Pasting="NumericTextBox_Pasting"/>
+                            <TextBlock Text="files (1-50)" VerticalAlignment="Center"/>
+                        </StackPanel>
+
                     </StackPanel>
                 </GroupBox>
 

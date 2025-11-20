@@ -13,9 +13,11 @@
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>8.2</FileVersion>
+    <FileVersion>8.22</FileVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Title>Gamelist Manager</Title>
+    <Version>$(VersionPrefix)</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -170,7 +172,6 @@
     <None Remove="resources\icons\gamepad.png" />
     <None Remove="resources\icons\heart.png" />
     <None Remove="resources\icons\icon.ico" />
-    <None Remove="resources\icons\icon.png" />
     <None Remove="resources\icons\invisible.png" />
     <None Remove="resources\icons\magnifying-glass.png" />
     <None Remove="resources\icons\manual.png" />
@@ -1822,6 +1823,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="resources\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="resources\icons\icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
