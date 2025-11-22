@@ -101,11 +101,22 @@ namespace GamelistManager.classes.api
 
             string cacheFilePath = Path.Combine(cacheFolder, $"{romName}.xml");
 
-            // Use placeholders that won't be confused with XML tags
-            xmlString = xmlString.Replace(_devPassword, "{{REDACTED_PASSWORD}}");
-            xmlString = xmlString.Replace(_devId, "{{REDACTED_DEVID}}");
-            xmlString = xmlString.Replace(scraperParameters.UserPassword!, "{{REDACTED_USERPASS}}");
-            xmlString = xmlString.Replace(scraperParameters.UserID!, "{{REDACTED_USERID}}");
+            // Redact in a specific order to avoid partial replacements
+            var redactions = new[]
+            {
+                (scraperParameters.UserPassword, "{{REDACTED_USERPASS}}"),
+                (scraperParameters.UserID, "{{REDACTED_USERID}}"),
+                (_devPassword, "{{REDACTED_PASSWORD}}"),
+                (_devId, "{{REDACTED_DEVID}}")
+            };
+
+            foreach (var (sensitive, placeholder) in redactions)
+            {
+                if (!string.IsNullOrEmpty(sensitive))
+                {
+                    xmlString = xmlString.Replace(sensitive, placeholder);
+                }
+            }
 
             File.WriteAllText(cacheFilePath, xmlString);
         }
@@ -147,7 +158,6 @@ namespace GamelistManager.classes.api
 
             string url = $"{_apiURL}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname=GamelistManager&output=xml&ssid={scraperParameters.UserID}&sspassword={scraperParameters.UserPassword}&systemeid={scraperParameters.SystemID}{scrapInfo}";
             string responseString = string.Empty;
-            // string mameArcadeName = scraperParameters.MameArcadeName!;
           
             XmlDocument xmlData = new();
             XmlNode? mediasNode = null;
@@ -165,10 +175,22 @@ namespace GamelistManager.classes.api
                 }
                 else if (!string.IsNullOrEmpty(responseString))
                 {
-                    responseString = responseString.Replace("{{REDACTED_PASSWORD}}", _devPassword);
-                    responseString = responseString.Replace("{{REDACTED_DEVID}}", _devId);
-                    responseString = responseString.Replace("{{REDACTED_USERPASS}}", scraperParameters.UserPassword!);
-                    responseString = responseString.Replace("{{REDACTED_USERID}}", scraperParameters.UserID!);
+                    // Restore redacted values from cache
+                    var restorations = new[]
+                    {
+                        ("{{REDACTED_USERPASS}}", scraperParameters.UserPassword),
+                        ("{{REDACTED_USERID}}", scraperParameters.UserID),
+                        ("{{REDACTED_PASSWORD}}", _devPassword),
+                        ("{{REDACTED_DEVID}}", _devId)
+                    };
+
+                    foreach (var (placeholder, actual) in restorations)
+                    {
+                        if (!string.IsNullOrEmpty(actual))
+                        {
+                            responseString = responseString.Replace(placeholder, actual);
+                        }
+                    }
                 }
                 cachedInfo = true;
             }
@@ -234,32 +256,6 @@ namespace GamelistManager.classes.api
             }
 
             mediasNode = xmlData.SelectSingleNode("/Data/jeu/medias");
-
-            if (scraperParameters.ScrapeAnyMedia)
-            {
-                XmlNode? nomsNode = xmlData.SelectSingleNode("/Data/jeu/noms");
-
-                if (nomsNode != null)
-                {
-                    var allNames = nomsNode.ChildNodes
-                        .OfType<XmlElement>()
-                        .Where(e => e.Name == "nom")
-                        .Select(e => e.GetAttribute("Region"))
-                        .Where(r => !string.IsNullOrEmpty(r));
-
-                    foreach (string regionValue in allNames)
-                    {
-                        if (!scraperParameters.SSRegions!.Contains(regionValue))
-                        {
-                            scraperParameters.SSRegions.Add(regionValue);
-                        }
-                    }
-                }
-            }
-
-            // Always add empty Region as fallback for videos
-            // Which tend to not have a Region set
-            scraperParameters.SSRegions!.Add(string.Empty);
 
             foreach (string element in scraperParameters.ElementsToScrape)
             {
@@ -470,7 +466,41 @@ namespace GamelistManager.classes.api
         }
         private async Task<bool> DownloadFile(DataRowView rowView, string mediaName, string mediaType, string remoteMediaType, ScraperParameters scraperParameters, XmlNode mediasNode)
         {
-            (string downloadURL, string fileFormat) = ParseMedia(remoteMediaType, mediasNode, scraperParameters.SSRegions!);
+            if (mediasNode == null)
+            {
+                return false;
+            }
+
+            (string downloadURL, string fileFormat) = (string.Empty, string.Empty);
+
+            // Try with user's preferred regions first (if any)
+            if (scraperParameters.SSRegions != null && scraperParameters.SSRegions.Count > 0)
+            {
+                (downloadURL, fileFormat) = ParseMedia(remoteMediaType, mediasNode, scraperParameters.SSRegions);
+            }
+
+            if (string.IsNullOrEmpty(downloadURL))
+            {
+                if (scraperParameters.ScrapeAnyMedia)
+                {
+                    // Try all available regions from the XML (including empty region via ??)
+                    var allRegions = mediasNode.SelectNodes($"//media[@type='{remoteMediaType}']")
+                        ?.Cast<XmlNode>()
+                        .Select(n => n.Attributes?["region"]?.Value ?? string.Empty)
+                        .Distinct()
+                        .ToList();
+
+                    if (allRegions != null && allRegions.Count > 0)
+                    {
+                        (downloadURL, fileFormat) = ParseMedia(remoteMediaType, mediasNode, allRegions);
+                    }
+                }
+                else if (mediaName == "video")
+                {
+                    // Fallback for videos which often have no region
+                    (downloadURL, fileFormat) = ParseMedia(remoteMediaType, mediasNode, new List<string> { string.Empty });
+                }
+            }
 
             if (string.IsNullOrEmpty(downloadURL) || string.IsNullOrEmpty(fileFormat))
             {
@@ -495,7 +525,6 @@ namespace GamelistManager.classes.api
             }
 
             string destinationFolderWindows = destinationFolder.Replace('/', '\\');
-
             string fileName = $"{romFileNameWithoutExtension}-{mediaName}.{fileFormat}";
             string downloadPath = Path.Combine(parentFolderPath, destinationFolderWindows);
             string fileToDownload = Path.Combine(downloadPath, fileName);
@@ -512,6 +541,7 @@ namespace GamelistManager.classes.api
             return false;
         }
 
+
         private static (string, string) ParseMedia(string mediaType, XmlNode xmlMedias, List<string> regionsList)
         {
             if (xmlMedias == null)
@@ -527,7 +557,7 @@ namespace GamelistManager.classes.api
                 if (!string.IsNullOrEmpty(currentRegion))
                 {
                     // Look for Region-specific media first
-                    media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @Region='{currentRegion}']");
+                    media = xmlMedias.SelectSingleNode($"//media[@type='{mediaType}' and @region='{currentRegion}']");
                 }
                 else
                 {

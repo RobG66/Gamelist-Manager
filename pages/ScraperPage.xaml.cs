@@ -248,9 +248,9 @@ namespace GamelistManager.pages
                 comboBox_SelectedScraper.SelectedIndex = 0;
             }
 
-            _currentScraper = (comboBox_SelectedScraper.Items[0] as ComboBoxItem)?.Content.ToString()!;
+            int selectedIndex = comboBox_SelectedScraper.SelectedIndex;
+            _currentScraper = (comboBox_SelectedScraper.Items[selectedIndex] as ComboBoxItem)?.Content.ToString()!;
             comboBox_SelectedScraper.SelectionChanged += ComboBox_SelectedScraper_SelectionChanged;
-
 
             LoadScraperSettings(_currentScraper);
 
