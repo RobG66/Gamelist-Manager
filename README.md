@@ -17,6 +17,13 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
   A new readme file which I had claude.ai create for me and it's done a better job than I could have ever.  8.23 is out now and fixes most known issues.  Unless something major is found, I'll wait to fix anything else until it's time for another regular update.  And speaking of updates, something I am experimenting with for the next update will be an optional ribbon menu.  You can still use the old menu, but the ribbon will be more practical and easier to use than constantly opening menus.  It takes up a bit more headroom so maybe I will have an option for it to auto collapse or not if you want.  There's always choice! :)  
 
   <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/de9c4e13-640b-473f-9f2f-01b950b014df" />
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/214d5d32-475a-41b6-83e9-683cd5e22611" />
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/35493581-136d-47d2-8f47-3ae13b38c5a7" />
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/39fae76a-491d-4477-8a14-b0f29d6085f4" />
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/a362d0aa-9072-4fc6-8a60-3eafb497bd99" />
+
+
+
 
 
 ---
