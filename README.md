@@ -12,6 +12,14 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 
 ---
 
+ Nov 23rd, 2025
+
+  A new readme file which I had claude.ai create for me and it's done a better job than I could have ever.  8.23 is out now and fixes most known issues.  Unless something major is found, I'll wait to fix anything else until it's time for another regular update.  And speaking of updates, something I am experimenting with for the next update will be an optional ribbon menu.  You can still use the old menu, but the ribbon will be more practical and easier to use than constantly opening menus.  It takes up a bit more headroom so maybe I will have an option for it to auto collapse or not if you want.  There's always choice! :)  
+
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/de9c4e13-640b-473f-9f2f-01b950b014df" />
+
+
+---
 # Gamelist Manager
 
 A comprehensive desktop application designed for retro gaming enthusiasts to manage, organize, and enhance their game collections. Gamelist Manager provides powerful tools for editing metadata, scraping information from online databases, and maintaining gamelist XML files for popular emulation frontends like EmulationStation and Batocera/Retrobat.
