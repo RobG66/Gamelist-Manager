@@ -1,5 +1,8 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/c6bcdaee-652e-4938-a6dc-cab2735ec621" />
+
+
 ### 💖 Support Development
 
 If you find Gamelist Manager helpful, consider supporting its continued development:
