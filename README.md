@@ -13,7 +13,7 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 ---
  November 26th, 2025
 
-  8.24 released with a few more minor bug fixes.  8.3 will probably come fairly soon (weekend?) with the new ribbon menu.  I had to remove the dark theme because the WPF ribbon just doesn't look good with dark colors.  The ribbon control itself just doesn't lend itself to being themed easily and I had to create another resource dictionary just to style disabled tabs/menus in the ribbon.  It's a very clunky control!  I was tempted to try fluent ribbon, but I think I'll be ok without it.  You will be able to seamlessly switch between old and new menus and also auto hide the ribbon menu if you want.  
+  8.24 released with a few more minor bug fixes.  8.3 will probably come fairly soon (weekend?) with the new ribbon menu.  I had to remove the dark theme because the WPF ribbon just doesn't look good with dark colors.  The ribbon control itself just doesn't lend itself to being themed easily and I had to create another resource dictionary just to style disabled tabs/menus in the ribbon.  It's a very clunky control!  I was tempted to try fluent ribbon, but I think I'll be ok without it.  You will be able to seamlessly switch between old and new menus and also auto hide the ribbon menu if you want.  I've also replaced many of the icons on the ribbon with new ones!
 
 ---
 
