@@ -549,7 +549,7 @@ namespace GamelistManager.pages
 
             if (overWriteMetadata)
             {
-                overWriteMedia = true;
+                overWriteName = true;
             }
 
             string cacheFolder = $"{SharedData.ProgramDirectory}\\cache\\{_currentScraper}\\{SharedData.CurrentSystem}";
@@ -855,7 +855,7 @@ namespace GamelistManager.pages
                             string romPath = rowView["Rom Path"].ToString()!; // Never empty
                             string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);
                             string romFileNameWithExtension = romPath[2..];
-                            string gameName = rowView["Name"]?.ToString()!; // Never empty
+                            string gameName = rowView["Name"]?.ToString() ?? romFileNameNoExtension;
                             string gameID = rowView["Game Id"]?.ToString() ?? string.Empty;
 
                             Interlocked.Increment(ref scraperCount);
@@ -887,13 +887,13 @@ namespace GamelistManager.pages
                                 string romLanguage = RegionLanguageHelper.GetLanguage(nameValue);
                                 rowView.Row["Language"] = romLanguage;
                             }
-                            
-                            var itemsToScrape = new List<string>(baseScraperParameters.ElementsToScrape);
+
+                            var itemsToScrape = new List<string>(scraperParameters.ElementsToScrape);
                             var itemsToRemove = new List<string>();
 
                             // Always remove Region and Language from the list, these are handled internally below
-                            itemsToScrape.Remove("Region");
-                            itemsToScrape.Remove("Language");
+                            itemsToScrape.Remove("region");
+                            itemsToScrape.Remove("language");
 
                             // Check if we need to skip items based on current Value and overwrite settings
                             foreach (var item in itemsToScrape!)
@@ -906,6 +906,15 @@ namespace GamelistManager.pages
                                 }
 
                                 string metaDataType = GamelistMetaData.GetMetadataDataTypeByType(item);
+                                
+                                if (item == "name")
+                                {
+                                    if (!overWriteName)
+                                    {
+                                        itemsToRemove.Add(item);
+                                    }
+                                    continue;
+                                }
 
                                 // Skip text metadata if overwrite is disabled
                                 if (!overWriteMetadata && metaDataType == "String")
@@ -1242,8 +1251,8 @@ namespace GamelistManager.pages
             // Update expander button image
             image_ExpanderButton.Source = new BitmapImage(new Uri(
                 expanded
-                ? "pack://application:,,,/Resources/buttons/greydoublearrowleft.png"
-                : "pack://application:,,,/Resources/buttons/greydoublearrowright.png",
+                ? "pack://application:,,,/resources/images/buttons/greydoublearrowleft.png"
+                : "pack://application:,,,/resources/images/buttons/greydoublearrowright.png",
                 UriKind.Absolute));
 
             // Animate width

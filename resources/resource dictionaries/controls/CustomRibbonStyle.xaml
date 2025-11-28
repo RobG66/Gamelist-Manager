@@ -1,0 +1,120 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:r="clr-namespace:System.Windows.Controls.Ribbon;assembly=System.Windows.Controls.Ribbon"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Master Style for Ribbon - Applies disabled state to entire Ribbon -->
+    <Style x:Key="RibbonDisabledStyle" TargetType="Ribbon" BasedOn="{StaticResource {x:Type Ribbon}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonApplicationMenu - Disabled State -->
+    <Style x:Key="RibbonApplicationMenuDisabledStyle" TargetType="RibbonApplicationMenu" BasedOn="{StaticResource {x:Type RibbonApplicationMenu}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonApplicationMenuItem - Disabled State -->
+    <Style x:Key="RibbonApplicationMenuItemDisabledStyle" TargetType="RibbonApplicationMenuItem" BasedOn="{StaticResource {x:Type RibbonApplicationMenuItem}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="#888888"/>
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonTab - Disabled State -->
+    <Style x:Key="RibbonTabDisabledStyle"
+       TargetType="RibbonTab"
+       BasedOn="{StaticResource {x:Type RibbonTab}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="#888888"/>
+                <Setter Property="Opacity" Value="0.5"/>
+
+                <!-- Fix: Override header so disabled text actually changes -->
+                <Setter Property="HeaderTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"
+                                   Foreground="#888888"
+                                   Margin="4,2,4,2"/>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonButton - Disabled State -->
+    <Style x:Key="RibbonButtonDisabledStyle" TargetType="RibbonButton" BasedOn="{StaticResource {x:Type RibbonButton}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonCheckBox - Disabled State -->
+    <Style x:Key="RibbonCheckBoxDisabledStyle" TargetType="RibbonCheckBox" BasedOn="{StaticResource {x:Type RibbonCheckBox}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonGroup - Disabled State -->
+    <Style x:Key="RibbonGroupDisabledStyle" TargetType="RibbonGroup" BasedOn="{StaticResource {x:Type RibbonGroup}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.5"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonComboBox - Disabled State -->
+    <Style x:Key="RibbonComboBoxDisabledStyle" TargetType="RibbonComboBox" BasedOn="{StaticResource {x:Type RibbonComboBox}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonTextBox - Disabled State -->
+    <Style x:Key="RibbonTextBoxDisabledStyle" TargetType="RibbonTextBox" BasedOn="{StaticResource {x:Type RibbonTextBox}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonMenuButton - Disabled State -->
+    <Style x:Key="RibbonMenuButtonDisabledStyle" TargetType="RibbonMenuButton" BasedOn="{StaticResource {x:Type RibbonMenuButton}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Style for RibbonSplitButton - Disabled State -->
+    <Style x:Key="RibbonSplitButtonDisabledStyle" TargetType="RibbonSplitButton" BasedOn="{StaticResource {x:Type RibbonSplitButton}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.4"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

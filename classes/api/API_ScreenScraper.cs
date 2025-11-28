@@ -309,8 +309,8 @@ namespace GamelistManager.classes.api
                         break;
 
                     case "name":
-                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms")!, scraperParameters.SSRegions);
-                        UpdateMetadata(rowView, "Name", name!, scraperParameters.OverwriteName);
+                        string? name = ParseNames(xmlData.SelectSingleNode("/Data/jeu/noms")!, scraperParameters.SSRegions!);
+                        UpdateMetadata(rowView, "Name", name, scraperParameters.OverwriteName);
                         break;
 
                     case "genre":
@@ -502,6 +502,7 @@ namespace GamelistManager.classes.api
                 }
             }
 
+
             if (string.IsNullOrEmpty(downloadURL) || string.IsNullOrEmpty(fileFormat))
             {
                 return false;
@@ -594,7 +595,7 @@ namespace GamelistManager.classes.api
 
             foreach (string region in regionsList)
             {
-                XmlNode? xmlNode2 = xmlNode.SelectSingleNode($"date[@Region='{region}']");
+                XmlNode? xmlNode2 = xmlNode.SelectSingleNode($"date[@region='{region}']");
                 if (xmlNode2 != null)
                 {
                     // Get the InnerText of the found node
@@ -619,7 +620,7 @@ namespace GamelistManager.classes.api
 
             foreach (string region in regionsList)
             {
-                XmlNode? xmlNode = namesElement.SelectSingleNode($"nom[@Region='{region}']");
+                XmlNode? xmlNode = namesElement.SelectSingleNode($"nom[@region='{region}']");
                 if (xmlNode != null)
                 {
                     string name = xmlNode.InnerText ?? string.Empty;

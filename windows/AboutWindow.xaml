@@ -11,10 +11,10 @@
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
 
             <!-- App Logo -->
-            <Image Source="/resources/logos/gamelistmanager.png" Height="80" Width="400" Margin="0,0,0,0"/>
+            <Image Source="pack://application:,,,/resources/images/logos/gamelistmanager.png" Height="80" Width="400" Margin="0,0,0,0"/>
 
             <!-- App Icon -->
-            <Image Source="/resources/icons/icon.png" Height="60" Width="80" Margin="0,0,0,0"/>
+            <Image Source="pack://application:,,,/resources/images/icons/icon.png" Height="60" Width="80" Margin="0,0,0,0"/>
 
             <!-- Version -->
             <TextBlock Text="{Binding Version}" Margin="0,5,0,10" 

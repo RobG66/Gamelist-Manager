@@ -18,6 +18,7 @@
           Background="{DynamicResource MainGridBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <!-- Menu -->
             <RowDefinition Height="*"/>
             <!-- Datagrid / Textbox -->
@@ -27,11 +28,420 @@
             <!-- Media Display / Scraper -->
         </Grid.RowDefinitions>
 
-        <!-- ======= Unified Top Menu + Font Size Controls ======= -->
-        <DockPanel Grid.Row="0" 
+        <Border x:Name="RibbonHotZone" Background="Transparent" Height="10" VerticalAlignment="Top"/>
+        
+        <!-- Ribbon Control (Initially Visible) -->
+        <Ribbon Grid.Row="0" x:Name="RibbonMenu" Visibility="Visible"
+        Loaded="MainRibbon_Loaded"
+        Margin="0,2,0,5"
+        Style="{StaticResource RibbonDisabledStyle}"
+        Background="{DynamicResource RibbonBackgroundBrush}"
+        Foreground="{DynamicResource RibbonForegroundBrush}"
+        BorderBrush="{DynamicResource RibbonBorderBrush}">
+
+            <!-- Application Menu -->
+            <Ribbon.ApplicationMenu>
+                <RibbonApplicationMenu
+            Style="{StaticResource RibbonApplicationMenuDisabledStyle}"
+            BorderThickness="0"
+            Background="{DynamicResource RibbonApplicationMenuBackground}"
+            BorderBrush="{DynamicResource RibbonApplicationMenuBorder}">
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="New Gamelist" Click="NewFile_Click"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Load Gamelist" Click="OpenFile_Click"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Reload" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reload Gamelist" Click="ReloadFile_Click" IsEnabled="False"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Save" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Save Gamelist" Click="SaveFile_Click" IsEnabled="False"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Restore" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Restore A Gamelist" Click="MenuItem_Restore_Click" IsEnabled="False"/>
+                    <RibbonSeparator/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_ExportToCSV" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Export To CSV" Click="Export_Click" IsEnabled="False"/>
+                    <RibbonSeparator/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Settings" Click="MenuItem_Settings_Click"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reset All Settings" Click="MenuItem_ResetAllSettings_Click"/>
+                    <RibbonSeparator/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Switch to Classic Menu" Click="ToggleMenuStyle_Click"/>
+                    <RibbonSeparator/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="About" Click="MenuItem_AboutClick"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Report An Issue" Click="MenuItem_Click_1"/>
+
+                    <!-- Recent Files in the side pane -->
+                    <RibbonApplicationMenu.AuxiliaryPaneContent>
+                        <DockPanel LastChildFill="True" Width="Auto"
+                   Background="{DynamicResource RibbonBackgroundBrush}">
+                            <TextBlock DockPanel.Dock="Top" 
+                       Text="Recent Gamelists" 
+                       FontWeight="Bold" 
+                       Margin="10,10,10,5"
+                       FontSize="13"
+                       Foreground="{DynamicResource RibbonForegroundBrush}"/>
+                            <ListBox x:Name="RecentFilesRibbon" 
+                     BorderThickness="0"
+                     Background="Transparent"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     SelectionChanged="RecentFilesRibbon_SelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" 
+                                   TextWrapping="Wrap"
+                                   Padding="5,3"
+                                   Background="{DynamicResource RibbonBackgroundBrush}"
+                                   Foreground="{DynamicResource RibbonForegroundBrush}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="5,2"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource RibbonButtonHoverBackground}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource RibbonButtonCheckedBackground}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                            </ListBox>
+                        </DockPanel>
+                    </RibbonApplicationMenu.AuxiliaryPaneContent>
+                </RibbonApplicationMenu>
+            </Ribbon.ApplicationMenu>
+
+            <!-- Home Tab -->
+            <RibbonTab x:Name="ribbonTab_Home" Header="Home" Style="{StaticResource RibbonTabDisabledStyle}" IsEnabled="False">
+         
+                <!-- View Group -->
+                <!-- XAML - Replace your existing View Group in Home Tab with this -->
+                <RibbonGroup Header="View">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Clear All Filters button (stays as regular button) -->
+                        <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" 
+                      Label="Clear All Filters"
+                      HorizontalAlignment="Left"
+                      Grid.Column="0"
+                      Grid.RowSpan="3"
+                      LargeImageSource="pack://application:,,,/resources/images/icons/magnifying-glass.png"
+                      Click="RibbonButton_ClearAllFilters_Click"/>
+
+                        <RibbonToggleButton x:Name="toggleButton_ShowAll"
+                            Label="Show All"
+                            HorizontalAlignment="Left"
+                            Grid.Column="1"
+                            Grid.Row="0"
+                            IsChecked="True"
+                            SmallImageSource="pack://application:,,,/resources/images/icons/magnifying-glass.png"
+                            Click="ShowAll_Click"/>
+
+                        <RibbonToggleButton x:Name="toggleButton_VisibleOnly"
+                            Label="Visible Only" 
+                            HorizontalAlignment="Left"
+                            Grid.Column="1"
+                            Grid.Row="1"
+                            SmallImageSource="pack://application:,,,/resources/images/icons/visible.png"
+                            Click="ShowVisible_Click"/>
+
+                        <RibbonToggleButton x:Name="toggleButton_HiddenOnly"
+                            Label="Hidden Only" 
+                            HorizontalAlignment="Left"
+                            Grid.Column="1"
+                            Grid.Row="2"
+                            SmallImageSource="pack://application:,,,/resources/images/icons/invisible.png"
+                            Click="ShowHidden_Click"/>
+
+                        <RibbonToggleButton x:Name="toggleButton_AllGenres"
+                            Label="All Genres"
+                            IsChecked="True"
+                            HorizontalAlignment="Left"
+                            Grid.Column="2"
+                            Grid.Row="0"
+                            SmallImageSource="pack://application:,,,/resources/images/icons/gamepad.png"
+                            Click="ShowAllGenres_Click"/>
+
+                        <RibbonToggleButton x:Name="toggleButton_SelectedGenre"
+                            Label="Selected Genre" 
+                            HorizontalAlignment="Left"
+                            Grid.Column="2"
+                            Grid.Row="1"
+                            SmallImageSource="pack://application:,,,/resources/images/icons/gamepad.png"
+                            Click="ShowGenreOnly_Click"/>
+                        <RibbonSeparator/>
+
+                        <!-- Checkboxes remain unchanged -->
+                        <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}"
+                        x:Name="ribbon_AlwaysOnTop"
+                        HorizontalAlignment="Left"
+                        Grid.Column="3"
+                        Grid.Row="0"
+                        Label="Always On Top" Click="AlwaysOnTop_Click"/>
+                        <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}"
+                        HorizontalAlignment="Left"
+                        Grid.Column="3"
+                        Grid.Row="1"
+                        Label="Autosize Columns" x:Name="ribbon_ColumnAutoSize" IsChecked="True" Click="MenuItem_ColumnAutoSize_Click"/>
+                        <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}"
+                        HorizontalAlignment="Left"
+                        Grid.Column="3"
+                        Grid.Row="2"
+                        Label="Auto Hide Ribbon" x:Name="ribbon_AutoHide" IsChecked="False" Click="ribbon_AutoHide_Click"/>
+                    </Grid>
+                </RibbonGroup>
+                <!-- Display Group -->
+                <RibbonGroup Header="Display">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Video Jukebox" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/video.png"
+                  Click="MenuItem_VideoJukebox_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Music Jukebox" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/music.png"
+                  Click="MenuItem_MusicJukebox_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Show Media" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/media.png"
+                  Click="Button_Media_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Show Scraper" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/scraper.png"
+                  Click="Button_Scraper_Click"/>
+                </RibbonGroup>
+
+                <!-- Font Size Group -->
+                <RibbonGroup Header="Font Size">
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <TextBlock Text="Grid Font Size:" FontSize="10" Margin="0,0,0,3"/>
+                        <Slider x:Name="RibbonFontSizeSlider"
+                Minimum="8"
+                Maximum="14"
+                Value="12"
+                TickFrequency="1"
+                IsSnapToTickEnabled="True"
+                Width="Auto"/>
+                        <TextBlock x:Name="RibbonFontSizeValue" Text="12" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Actions">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Reset View" Click="ResetView_Click"
+            LargeImageSource="pack://application:,,,/resources/images/icons/reset.png"/>
+                </RibbonGroup>
+
+            </RibbonTab>
+
+            <!-- Edit Tab -->
+            <RibbonTab Style="{StaticResource RibbonTabDisabledStyle}" Header="Edit" x:Name="ribbonTab_Edit" IsEnabled="False">
+
+                <!-- Visibility Group -->
+                <RibbonGroup Header="Visibility">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Set All Visible" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/visible.png"
+                  Click="MenuItem_AllVisible_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Set All Hidden" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/invisible.png"
+                  Click="MenuItem_AllHidden_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Set Selected Visible" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/visible.png"
+                  Click="MenuItem_SetSelectedVisible_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Set Selected Hidden" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/invisible.png"
+                  Click="MenuItem_SetSelectedHidden_Click"/>
+                    <RibbonSeparator/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Set Genre Visible" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/visible.png"
+                  Click="MenuItem_SetAllGenreVisible_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Set Genre Hidden" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/invisible.png"
+                  Click="MenuItem_SetAllGenreHidden_Click"/>
+                </RibbonGroup>
+
+                <!-- Modify Group -->
+                <RibbonGroup Header="Modify">
+                    <RibbonToggleButton x:Name="toggleButton_EditData" Label="Edit Data" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/edit.png"
+                  Click="MenuItem_EditData_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Find" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/magnifying-glass.png"
+                  Click="MenuItem_Find_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Search &amp; Replace" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/searchandreplace.png"
+                  Click="MenuItem_SearchAndReplace_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Reset Name" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/reset.png"
+                  Click="MenuItem_ResetName_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Remove Item" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/remove1.png"
+                  Click="MenuItem_RemoveItem_Click"/>
+                    <RibbonButton x:Name="ribbonButton_DeleteItem" Style="{StaticResource RibbonButtonDisabledStyle}" Label="Delete Item" 
+                    SmallImageSource="pack://application:,,,/resources/images/icons/delete.png"
+                    Click="ribbonButton_DeleteItem_Click"/>
+                </RibbonGroup>
+
+                <!-- Clear Group -->
+                <RibbonGroup Header="Clear Data">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Row 0, Col 0 -->
+                        <RibbonButton Grid.Row="0" Grid.Column="0"
+                  Style="{StaticResource RibbonButtonDisabledStyle}" 
+                  Label="Clear Selected Data"
+                  SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
+                  Click="MenuItem_ClearSelected_Click"/>
+
+                        <!-- Row 1, Col 0 -->
+                        <RibbonButton Grid.Row="1" Grid.Column="0"
+                  Style="{StaticResource RibbonButtonDisabledStyle}" 
+                  Label="Clear All Data"
+                  SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
+                  Click="MenuItem_ClearAllData_Click"/>
+
+                        <!-- Row 0, Col 1 -->
+                        <RibbonButton Grid.Row="0" Grid.Column="1"
+                  Style="{StaticResource RibbonButtonDisabledStyle}" 
+                  Label="Clear Selected Media"
+                  SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
+                  Click="MenuItem_ClearMediaPaths_Click"/>
+
+                        <!-- Row 1, Col 1 -->
+                        <RibbonButton Grid.Row="1" Grid.Column="1"
+                  Style="{StaticResource RibbonButtonDisabledStyle}" 
+                  Label="Clear All Media"
+                  SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
+                  Click="MenuItem_ClearMediaPaths_Click"/>
+                    </Grid>
+                </RibbonGroup>
+            </RibbonTab>
+
+            <!-- Columns Tab -->
+            <RibbonTab Style="{StaticResource RibbonTabDisabledStyle}" Header="Columns" x:Name="ribbonTab_Columns" IsEnabled="False">
+                <RibbonGroup Header="Game Information">
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Description" Label="Description" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Genre" Label="Genre" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameId" Label="Game Id" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Rating" Label="Rating" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ReleaseDate" Label="Release Date" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Players" Label="Players" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Favorite" Label="Favorite" Click="MenuItem_Clicked"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Publishers">
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Developer" Label="Developer" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Publisher" Label="Publisher" Click="MenuItem_Clicked"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="System">
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ArcadeSystemName" Label="Arcade System" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Family" Label="Family" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Region" Label="Region" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Language" Label="Language" Click="MenuItem_Clicked"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Usage">
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_PlayCount" Label="Play Count" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_LastPlayed" Label="Last Played" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameTime" Label="Game Time" Click="MenuItem_Clicked"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Media">
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_MediaPaths" Label="Media Paths" Click="MenuItem_Clicked"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Actions">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Reset View" Click="ResetView_Click"
+             LargeImageSource="pack://application:,,,/resources/images/icons/reset.png"/>
+                </RibbonGroup>
+            </RibbonTab>
+
+            <!-- Tools Tab -->
+            <RibbonTab Style="{StaticResource RibbonTabDisabledStyle}" Header="Tools" x:Name="ribbonTab_Tools" IsEnabled="False">
+                <RibbonGroup Header="Media">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Find/Add/Cleanup Media" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/cleaner.png"
+                  Click="MenuItem_AddMedia_Click"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Items">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Find New Items" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/findnew.png"
+                  Click="MenuItem_FindNewItems_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Identify Missing" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/findmissing.png"
+                  Click="MenuItem_FindMissingItems_Click"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="DAT">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="DAT Tools" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/dat.png"
+                  Click="MenuItem_DatTools_Click"/>
+                </RibbonGroup>
+            </RibbonTab>
+
+            <!-- Remote Tab -->
+            <RibbonTab Style="{StaticResource RibbonTabDisabledStyle}" Header="Remote" x:Name="ribbonTab_Remote">
+                <RibbonGroup Header="Connection">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Map Network Drive" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/mapdrive.png"
+                  Click="MenuItem_MapDrive_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Open Terminal" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/ssh.png"
+                  Click="MenuItem_OpenTerminal_Click"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="System Info">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Get Version" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/batocera.png"
+                  Click="MenuItem_GetVersion_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Show Updates" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/batocera.png"
+                  Click="MenuItem_ShowUpdates_Click"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Control">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Stop Emulators" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/stop.png"
+                  Click="MenuItem_StopEmulators_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Stop Emulationstation" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/stop.png"
+                  Click="MenuItem_StopEmulationstation_Click"/>
+                    <RibbonSeparator/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Reboot Host" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/reboot.png"
+                  Click="MenuItem_RebootHost_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Shutdown Host" 
+                  SmallImageSource="pack://application:,,,/resources/images/icons/shutdown.png"
+                  Click="MenuItem_ShutdownHost_Click"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header="Security">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Remove SSH Key" 
+                  LargeImageSource="pack://application:,,,/resources/images/icons/remove.png"
+                  Click="MenuItem_RemoveSshKey_Click"/>
+                </RibbonGroup>
+            </RibbonTab>
+
+        </Ribbon>
+            
+        <!-- Traditional Menu (Initially Collapsed) -->
+        <DockPanel Grid.Row="1" 
+                   x:Name="ClassicMenu"
+                   Visibility="Collapsed"
                    LastChildFill="True" 
                    Background="{DynamicResource MenuBackgroundBrush}" 
-                   Margin="-5,0,-5,0">
+                   Margin="0">
 
             <!-- Right side: Font size slider -->
             <StackPanel DockPanel.Dock="Right"
@@ -44,7 +454,7 @@
                            Foreground="{DynamicResource MenuForegroundBrush}"
                            VerticalAlignment="Center"
                            Margin="0,0,3,0"/>
-                <Slider x:Name="FontSizeSlider"
+                <Slider x:Name="ClassicFontSizeSlider"
                         Minimum="8"
                         Maximum="14"
                         Value="12"
@@ -52,7 +462,7 @@
                         IsSnapToTickEnabled="True"
                         Width="100"
                         Margin="0,0,3,0"/>
-                <TextBlock x:Name="FontSizeValue"
+                <TextBlock x:Name="ClassicFontSizeValue"
                            Text="12"
                            FontSize="12"
                            Foreground="{DynamicResource MenuForegroundBrush}"
@@ -115,6 +525,8 @@
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Item Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearMediaPaths_Click"/>
                     <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Item Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearMediaPaths_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_DeleteSelectedItems" Header="Delete Item" Style="{DynamicResource MinimalMenuItem}" Click="ribbonButton_DeleteItem_Click"/>
                 </MenuItem>
 
                 <MenuItem Style="{DynamicResource BaseMenuItem}" x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
@@ -168,6 +580,8 @@
                     <MenuItem Header="Open Settings Menu" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_Settings_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem Header="Reset All Settings" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ResetAllSettings_Click"/>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem Visibility="Visible" Header="Switch to Ribbon Menu" Style="{DynamicResource MinimalMenuItem}" Click="ToggleMenuStyle_Click"/>
                 </MenuItem>
 
                 <MenuItem Header="Help" Style="{DynamicResource MinimalMenuItem}">
@@ -177,7 +591,8 @@
             </Menu>
         </DockPanel>
 
-        <Grid x:Name="grid_gridrow1" Grid.Row="1">
+
+        <Grid x:Name="grid_gridrow1" Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -187,7 +602,7 @@
                 <!-- DataGrid -->
                 <ColumnDefinition Width="Auto" />
                 <!-- Vertical GridSplitter -->
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition x:Name="column_Description" Width="2*" />
                 <!-- TextBox -->
             </Grid.ColumnDefinitions>
 
@@ -215,7 +630,7 @@
                   AutoGenerateColumns="False" 
                   CanUserDeleteRows="False" 
                   CanUserAddRows="False">
-                 <DataGrid.RowStyle>
+                        <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Style.Resources>
                                     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{x:Static SystemColors.HighlightColor}"/>
@@ -314,7 +729,7 @@
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Center" 
                     Click="Button_CloseFind_Click">
-                            <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                            <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" 
                        Width="16" 
                        Height="16" 
                        ToolTip="Close Panel" 
@@ -414,7 +829,7 @@
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Center" 
                     Click="Button_CloseSearchAndReplace_Click">
-                            <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                            <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" 
                        Width="16" 
                        Height="16" 
                        ToolTip="Close Panel" 
@@ -423,9 +838,9 @@
                     </DockPanel>
                 </Grid>
             </Border>
-            
-            
-            
+
+
+
             <!-- GridSplitter between DataGrid and TextBox -->
             <GridSplitter x:Name="gridSplitter_Vertical" 
                           Grid.Row="0" 
@@ -454,7 +869,7 @@
                      LostFocus="TextBox_Description_LostFocus"/>
 
             <!-- Content under datagrid -->
-            <StackPanel Grid.Row="1" 
+            <StackPanel Grid.Row="2" 
                         x:Name="stackPanel_InfoBar" 
                         Grid.ColumnSpan="3" 
                         Orientation="Horizontal" 
@@ -469,7 +884,7 @@
                             Margin="0,0,0,3" 
                             Style="{DynamicResource CustomImageButton}" 
                             IsEnabled="False" >
-                        <Image Source="pack://application:,,,/Resources/buttons/undo-button.png" 
+                        <Image Source="pack://application:,,,/resources/images/buttons/undo-button.png" 
                                Width="25" 
                                Height="25" 
                                ToolTip="Undo" />
@@ -478,7 +893,7 @@
                             Click="RedoButton_Click" 
                             Style="{DynamicResource CustomImageButton}" 
                             IsEnabled="false">
-                        <Image Source="pack://application:,,,/Resources/buttons/redo-button.png" 
+                        <Image Source="pack://application:,,,/resources/images/buttons/redo-button.png" 
                                Width="25" 
                                Height="25" 
                                ToolTip="Redo" />
@@ -489,7 +904,7 @@
                     <Image x:Name="PlatformLogo" 
                            Height="30" 
                            Width="150" 
-                           Source="pack://application:,,,/Resources/logos/gamelistmanager.png"/>
+                           Source="pack://application:,,,/resources/images/logos/gamelistmanager.png"/>
                     <StackPanel Orientation="Horizontal" Margin="0,3,0,0" HorizontalAlignment="Center">
                         <Button x:Name="button_Scraper" 
                                 IsEnabled="False" 
@@ -538,7 +953,7 @@
                             <StackPanel Orientation="Horizontal" 
                                         HorizontalAlignment="Center" 
                                         VerticalAlignment="Center">
-                                <Image Height="15" Source="/Resources/icons/gamepad.png"/>
+                                <Image Height="15" Source="pack://application:,,,/resources/images/icons/gamepad.png"/>
                                 <TextBlock Text="Total" 
                                            Margin="5,0,0,0" 
                                            Foreground="{DynamicResource CardForegroundBrush}" 
@@ -567,7 +982,7 @@
                             <StackPanel Orientation="Horizontal" 
                                         HorizontalAlignment="Center" 
                                         VerticalAlignment="Center">
-                                <Image Height="15" Source="/Resources/icons/invisible.png"/>
+                                <Image Height="15" Source="pack://application:,,,/resources/images/icons/invisible.png"/>
                                 <TextBlock Text="Hidden" 
                                            Margin="5,0,0,0" 
                                            Foreground="{DynamicResource CardForegroundBrush}" 
@@ -596,7 +1011,7 @@
                             <StackPanel Orientation="Horizontal" 
                                         HorizontalAlignment="Center" 
                                         VerticalAlignment="Center">
-                                <Image Height="15" Source="/Resources/icons/magnifying-glass.png"/>
+                                <Image Height="15" Source="pack://application:,,,/resources/images/icons/magnifying-glass.png"/>
                                 <TextBlock Text="Showing" 
                                            Margin="5,0,0,0" 
                                            Foreground="{DynamicResource CardForegroundBrush}" 
@@ -625,7 +1040,7 @@
                             <StackPanel Orientation="Horizontal" 
                                         HorizontalAlignment="Center" 
                                         VerticalAlignment="Center">
-                                <Image Height="15" Source="/Resources/icons/heart.png"/>
+                                <Image Height="15" Source="pack://application:,,,/resources/images/icons/heart.png"/>
                                 <TextBlock Text="Favorite" 
                                            Margin="5,0,0,0" 
                                            Foreground="{DynamicResource CardForegroundBrush}" 
@@ -688,7 +1103,7 @@
                                     ToolTip="Reset View" 
                                     Click="Button_ResetView_Click"  
                                     Margin="13,0,5,0">
-                                <Image Source="pack://application:,,,/Resources/buttons/redreset.png" 
+                                <Image Source="pack://application:,,,/resources/images/buttons/redreset.png" 
                                        Width="32" 
                                        Height="16"/>
                             </Button>
@@ -704,7 +1119,7 @@
                                     Margin="0,0,5,0"
                                     ToolTip="Switch filter mode"
                                     Click="ToggleFilterModeButton_Click">
-                                <Image Source="/Resources/buttons/filter1.png"  
+                                <Image Source="pack://application:,,,/resources/images/buttons/filter1.png"  
                                        Width="18" 
                                        Height="20"/>
                             </Button>
@@ -733,7 +1148,7 @@
                                         ToolTip="Clear" 
                                         Click="Button_ClearGenreSelection_Click" 
                                         Margin="5,0,0,0">
-                                    <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                                    <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" 
                                            Width="16" 
                                            Height="16"/>
                                 </Button>
@@ -784,7 +1199,7 @@
                                         Margin="3,0,0,0" 
                                         ToolTip="Clear Filter" 
                                         Click="Button_ClearCustomFilter_Click">
-                                    <Image Source="pack://application:,,,/Resources/buttons/x-button.png" 
+                                    <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" 
                                            Width="18" 
                                            Height="20"/>
                                 </Button>
@@ -797,13 +1212,13 @@
 
         <!-- GridSplitter in the middle -->
         <GridSplitter x:Name="gridSplitter_Horizontal" 
-                      Grid.Row="2" 
+                      Grid.Row="3" 
                       Height="5" 
                       Visibility="Collapsed" 
                       Style="{DynamicResource CustomGridSplitterHorizontalGripStyle}"/>
 
         <!-- Additional Content Area below GridSplitter -->
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.Background>
                 <VisualBrush Opacity="0.1" 
                              TileMode="Tile" 

@@ -25,7 +25,7 @@
                     Padding="5">
                 <StackPanel x:Name="LeftMainGrid" HorizontalAlignment="Left" VerticalAlignment="Top">
 
-                    <Image x:Name="MainLogo" Width="200" Source="pack://application:,,,/resources/logos/scraperlogo3.png" Visibility="Collapsed" HorizontalAlignment="Center"/>
+                    <Image x:Name="MainLogo" Width="200" Source="pack://application:,,,/resources/images/logos/scraperlogo3.png" Visibility="Collapsed" HorizontalAlignment="Center"/>
 
                     <Grid Margin="0,0,0,5">
                         <Grid.RowDefinitions>
@@ -277,7 +277,7 @@
                             <!-- Right-side Media Checkboxes + ComboBoxes -->
                             <CheckBox Grid.Row="1" Grid.Column="1" Tag="image" Content="Image" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="1" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="1" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_ImageSource" Grid.Row="1" Grid.Column="3"
                                       Height="20" Width="110" Tag="ImageSource"
@@ -285,7 +285,7 @@
 
                             <CheckBox Grid.Row="2" Grid.Column="1" Tag="marquee" Content="Marquee" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="2" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="2" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_MarqueeSource" Grid.Row="2" Grid.Column="3"
                                       Height="20" Width="110" Tag="MarqueeSource"
@@ -293,7 +293,7 @@
 
                             <CheckBox Grid.Row="3" Grid.Column="1" Tag="thumbnail" Content="Thumbnail" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="3" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="3" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_ThumbnailSource" Grid.Row="3" Grid.Column="3"
                                       Height="20" Width="110" Tag="ThumbnailSource"
@@ -301,7 +301,7 @@
 
                             <CheckBox Grid.Row="4" Grid.Column="1" Tag="cartridge" Content="Cartridge" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="4" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="4" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_CartridgeSource" Grid.Row="4" Grid.Column="3"
                                       Height="20" Width="110" Tag="CartridgeSource"
@@ -309,7 +309,7 @@
 
                             <CheckBox Grid.Row="5" Grid.Column="1" Tag="video" Content="Video" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="5" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="5" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_VideoSource" Grid.Row="5" Grid.Column="3"
                                       Height="20" Width="110" Tag="VideoSource"
@@ -317,7 +317,7 @@
 
                             <CheckBox Grid.Row="6" Grid.Column="1" Tag="boxart" Content="Box Art" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="6" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="6" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_BoxArtSource" Grid.Row="6" Grid.Column="3"
                                       Height="20" Width="110" Tag="BoxArtSource"
@@ -325,7 +325,7 @@
 
                             <CheckBox Grid.Row="7" Grid.Column="1" Tag="wheel" Content="Wheel" Margin="3,0,3,0"
                                       Style="{DynamicResource CustomCheckBox}"/>
-                            <Image Grid.Row="7" Grid.Column="2" Source="/Resources/rightarrow.png"
+                            <Image Grid.Row="7" Grid.Column="2" Source="pack://application:,,,/resources/images/rightarrow.png"
                                    Height="14" Margin="2,0,2,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_WheelSource" Grid.Row="7" Grid.Column="3"
                                       Height="20" Width="110" Tag="WheelSource"
@@ -346,7 +346,7 @@
                         Click="Button_ToggleCard2_Click">
                     <Image x:Name="image_ExpanderButton"
                            Stretch="Fill"
-                           Source="pack://application:,,,/Resources/buttons/greydoublearrowleft.png"/>
+                           Source="pack://application:,,,/resources/images/buttons/greydoublearrowleft.png"/>
                 </Button>
             </Grid>
         </Border>

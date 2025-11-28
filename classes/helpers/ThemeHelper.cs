@@ -12,6 +12,7 @@ namespace GamelistManager.classes.helpers
             Blue,
             Dark,
             Warm,
+            Gray,
             Cool
         }
         public void ApplyTheme(Theme theme)
@@ -24,6 +25,7 @@ namespace GamelistManager.classes.helpers
                                 d.Source.OriginalString.Contains("BlueTheme") ||
                                 d.Source.OriginalString.Contains("WarmTheme") ||
                                 d.Source.OriginalString.Contains("CoolTheme") ||
+                                d.Source.OriginalString.Contains("GrayTheme") ||
                                 d.Source.OriginalString.Contains("DarkTheme")));
 
             if (existingTheme != null)
@@ -35,6 +37,7 @@ namespace GamelistManager.classes.helpers
                 Theme.Dark => "DarkTheme.xaml",
                 Theme.Warm => "WarmTheme.xaml",
                 Theme.Cool => "CoolTheme.xaml",
+                Theme.Gray => "GrayTheme.xaml",
                 Theme.Blue => "BlueTheme.xaml",
                 _ => "DefaultTheme.xaml"
             };

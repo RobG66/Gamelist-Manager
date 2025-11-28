@@ -6,19 +6,20 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomRoundedButton.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/themes/DefaultTheme.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomComboBox.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomCheckBox.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomSlider.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomImageButton.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomSplitter.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomRadioButton.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomGroupBox.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomTabControl.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomTextBox.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomMenuItem.xaml"/>
-                <ResourceDictionary Source="/Resources/Resource Dictionaries/controls/CustomProgressBar.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomRoundedButton.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/themes/DefaultTheme.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomComboBox.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomCheckBox.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomSlider.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomImageButton.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomSplitter.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomRadioButton.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomGroupBox.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomTabControl.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomTextBox.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomMenuItem.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomProgressBar.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomRibbonStyle.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

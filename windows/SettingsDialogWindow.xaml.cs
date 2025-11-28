@@ -44,6 +44,7 @@ namespace GamelistManager
             Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;
             Properties.Settings.Default.RememberColumns = (bool)checkBox_RememberColumns.IsChecked!;
             Properties.Settings.Default.SaveReminder = (bool)checkBox_EnableSaveReminder.IsChecked!;
+            Properties.Settings.Default.EnableDelete = (bool)checkBox_EnableDelete.IsChecked!;
             Properties.Settings.Default.ShowFileStatusBar = (bool)checkBox_ShowFileStatusBar.IsChecked!;
             Properties.Settings.Default.VerifyDownloadedImages = (bool)checkBox_VerifyImageDownloads.IsChecked!;
             Properties.Settings.Default.VideoAutoplay = (bool)checkBox_VideoAutoplay.IsChecked!;
@@ -222,6 +223,9 @@ namespace GamelistManager
 
             bool showFileStatusBar = Properties.Settings.Default.ShowFileStatusBar;
             checkBox_ShowFileStatusBar.IsChecked = showFileStatusBar;
+
+            bool enableDelete = Properties.Settings.Default.EnableDelete;
+            checkBox_EnableDelete.IsChecked = enableDelete;
 
             bool rememberColumns = Properties.Settings.Default.RememberColumns;
             checkBox_RememberColumns.IsChecked = rememberColumns;

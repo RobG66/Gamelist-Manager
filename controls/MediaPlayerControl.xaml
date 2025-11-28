@@ -41,7 +41,7 @@
             Visibility="Visible"
             Grid.Column="0"
             HorizontalAlignment="Left">
-                <Image Source="pack://application:,,,/Resources/buttons/glossybutton.png" />
+                <Image Source="pack://application:,,,/resources/images/buttons/glossybutton.png" />
             </Button>
 
             <CheckBox x:Name="checkBox_Randomize"
@@ -63,35 +63,35 @@
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
-                    <Image Source="pack://application:,,,/Resources/buttons/previous.png" />
+                    <Image Source="pack://application:,,,/resources/images/buttons/previous.png" />
                 </Button>
                 <Button x:Name="button_Pause"
                 Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
-                    <Image Source="pack://application:,,,/Resources/buttons/pause.png" ToolTip="Pause" />
+                    <Image Source="pack://application:,,,/resources/images/buttons/pause.png" ToolTip="Pause" />
                 </Button>
                 <Button x:Name="button_Stop"
                 Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
-                    <Image Source="pack://application:,,,/Resources/buttons/stop.png" ToolTip="Stop" />
+                    <Image Source="pack://application:,,,/resources/images/buttons/stop.png" ToolTip="Stop" />
                 </Button>
                 <Button x:Name="button_Play"
                 Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="True"
                 Click="Button_Click">
-                    <Image Source="pack://application:,,,/Resources/buttons/play.png" ToolTip="Play" />
+                    <Image Source="pack://application:,,,/resources/images/buttons/play.png" ToolTip="Play" />
                 </Button>
                 <Button x:Name="button_Next"
                 Style="{StaticResource CustomImageButton}"
                 Margin="0,2,5,2"
                 IsEnabled="False"
                 Click="Button_Click">
-                    <Image Source="pack://application:,,,/Resources/buttons/next.png" ToolTip="Next" />
+                    <Image Source="pack://application:,,,/resources/images/buttons/next.png" ToolTip="Next" />
                 </Button>
             </StackPanel>
 

@@ -101,7 +101,7 @@ namespace GamelistManager.pages
 
             if (nomedia)
             {
-                var imageSource = new BitmapImage(new Uri("pack://application:,,,/Resources/nomedia.png", UriKind.Absolute));
+                var imageSource = new BitmapImage(new Uri("pack://application:,,,/resources/images/nomedia.png", UriKind.Absolute));
 
                 MediaContentGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
                 MediaContentGrid.RowDefinitions[0].Height = new GridLength(0);
@@ -141,14 +141,14 @@ namespace GamelistManager.pages
             // Determine which image to load
             if (columnName == "Manual")
             {
-                string resourcePdfIcon = "pack://application:,,,/Resources/icons/manual.png";
+                string resourcePdfIcon = "pack://application:,,,/resources/images/icons/manual.png";
                 imageSource = new BitmapImage(new Uri(resourcePdfIcon, UriKind.Absolute));
             }
             else
             {
                 if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
                 {
-                    string resourceMissingIcon = "pack://application:,,,/Resources/missing.png";
+                    string resourceMissingIcon = "pack://application:,,,/resources/images/missing.png";
                     imageSource = new BitmapImage(new Uri(resourceMissingIcon, UriKind.Absolute));
                     filePath = null!;
                 }
@@ -159,7 +159,7 @@ namespace GamelistManager.pages
                     // Fallback to "missing" image if loading failed (e.g., corrupt)
                     if (imageSource == null)
                     {
-                        string resourceMissingIcon = "pack://application:,,,/Resources/missing.png";
+                        string resourceMissingIcon = "pack://application:,,,/resources/images/missing.png";
                         imageSource = new BitmapImage(new Uri(resourceMissingIcon, UriKind.Absolute));
                         filePath = null!;
                     }

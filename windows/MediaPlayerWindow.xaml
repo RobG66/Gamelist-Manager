@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager.controls"
         mc:Ignorable="d"
-        Title="Jukebox" MinHeight="400" MinWidth="500" Height="400" Width="500">
+        Title="Jukebox" MinHeight="400" MinWidth="500" Height="400" Width="500"
+        Closing="Window_Closing">
     <Grid x:Name="grid_MainGrid">
-        <local:MediaPlayerControl x:Name="mediaPlayerControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     </Grid>
 </Window>

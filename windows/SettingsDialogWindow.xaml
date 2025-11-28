@@ -8,7 +8,7 @@
         Background="{DynamicResource WindowBackgroundBrush}">
     <Grid Margin="0">
         <Grid.Background>
-            <ImageBrush ImageSource="pack://application:,,,/Resources/backgrounds/gears.png"
+            <ImageBrush ImageSource="pack://application:,,,/resources/images/backgrounds/gears.png"
                         Opacity="0.08"
                         Stretch="UniformToFill" />
         </Grid.Background>
@@ -18,207 +18,396 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left Settings Panel -->
-        <StackPanel Grid.Column="0" Margin="5,0,10,0">
-            <GroupBox Header="Batocera Host Connection" Margin="0,0,0,10" Foreground="{DynamicResource AccentBrush}">
-                <StackPanel Margin="5">
-                    <Label Content="Hostname:" />
-                    <TextBox x:Name="textBox_HostName" Height="20" MaxLength="50" Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
+        <StackPanel Grid.Column="0" Margin="5,5,10,0">
+            <!-- Batocera Host Connection -->
+            <Border Background="{DynamicResource ControlBackgroundBrush}" 
+                    CornerRadius="8" 
+                    Padding="5" 
+                    Margin="0,0,0,10"
+                    BorderBrush="{DynamicResource AccentBrush}" 
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Batocera Host Connection" 
+                               FontWeight="SemiBold" 
+                               Foreground="{DynamicResource AccentBrush}" 
+                               Margin="0,0,0,8"/>
 
-                    <Label Content="User ID:" Margin="0,5,0,0"/>
-                    <TextBox x:Name="textBox_UserID" Height="20" MaxLength="50" Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
+                    <Label Content="Hostname:" Padding="0,0,0,2"/>
+                    <TextBox x:Name="textBox_HostName" Height="20" MaxLength="50" 
+                             Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
 
-                    <Label Content="Password:" Margin="0,5,0,0"/>
-                    <TextBox x:Name="textBox_Password" Height="20" MaxLength="50" Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
+                    <Label Content="User ID:" Margin="0,8,0,2" Padding="0,0,0,2"/>
+                    <TextBox x:Name="textBox_UserID" Height="20" MaxLength="50" 
+                             Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
+
+                    <Label Content="Password:" Margin="0,8,0,2" Padding="0,0,0,2"/>
+                    <TextBox x:Name="textBox_Password" Height="20" MaxLength="50" 
+                             Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
                 </StackPanel>
-            </GroupBox>
+            </Border>
 
-            <GroupBox Header="Appearance" Margin="0,0,0,10" Foreground="{DynamicResource AccentBrush}">
-                <StackPanel Margin="5">
-                    <Label Content="Theme:" />
-                    <ComboBox x:Name="comboBox_Theme" Height="20" Style="{DynamicResource CustomComboBox}" SelectionChanged="ComboBox_Theme_SelectionChanged">
+            <!-- Appearance -->
+            <Border Background="{DynamicResource ControlBackgroundBrush}" 
+                    CornerRadius="8" 
+                    Padding="5" 
+                    Margin="0,0,0,10"
+                    BorderBrush="{DynamicResource AccentBrush}" 
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Appearance" 
+                               FontWeight="SemiBold" 
+                               Foreground="{DynamicResource AccentBrush}" 
+                               Margin="0,0,0,8"/>
+
+                    <Label Content="Theme:" Padding="0,0,0,2"/>
+                    <ComboBox x:Name="comboBox_Theme" Height="20" 
+                              Style="{DynamicResource CustomComboBox}" 
+                              SelectionChanged="ComboBox_Theme_SelectionChanged">
                         <ComboBoxItem Content="Default" Tag="Silver"/>
                         <ComboBoxItem Content="Blue" Tag="Azure"/>
-                        <ComboBoxItem Content="Dark" Tag="Black"/>
                         <ComboBoxItem Content="Cool" Tag="AliceBlue"/>
                         <ComboBoxItem Content="Warm" Tag="WhiteSmoke"/>
+                        <ComboBoxItem Content="Gray" Tag="LightGray"/>
                     </ComboBox>
 
-                    <Label Content="Alternating Row Color:" Margin="0,5,0,0" />
-                    <ComboBox x:Name="comboBox_AlternatingRowColor" Height="20" Style="{DynamicResource CustomComboBox}" SelectionChanged="ComboBox_AlternatingRowColor_SelectionChanged"/>
+                    <Label Content="Alternating Row Color:" Margin="0,8,0,2" Padding="0,0,0,2"/>
+                    <ComboBox x:Name="comboBox_AlternatingRowColor" Height="20" 
+                              Style="{DynamicResource CustomComboBox}" 
+                              SelectionChanged="ComboBox_AlternatingRowColor_SelectionChanged"/>
 
-                    <Label Content="Line Visibility:" Margin="0,5,0,0" />
-                    <ComboBox x:Name="comboBox_GridLinesVisibility" Height="20" Style="{DynamicResource CustomComboBox}" SelectionChanged="ComboBox_SelectionChanged">
+                    <Label Content="Line Visibility:" Margin="0,8,0,2" Padding="0,0,0,2"/>
+                    <ComboBox x:Name="comboBox_GridLinesVisibility" Height="20" 
+                              Style="{DynamicResource CustomComboBox}" 
+                              SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem Content="Horizontal" IsSelected="True" />
                         <ComboBoxItem Content="Vertical" />
                         <ComboBoxItem Content="All" />
                         <ComboBoxItem Content="None" />
                     </ComboBox>
                 </StackPanel>
-            </GroupBox>
-            
-            <GroupBox Header="MAME Path" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,5">
-                <Grid Margin="5,0,5,5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="textBox_MamePath" Grid.Column="0" Height="20"
-                             Style="{DynamicResource CustomTextBox}"
-                             VerticalAlignment="Center"
-                             MaxLength="150"
-                             TextChanged="TextBox_TextChanged"/>
-                    <Button x:Name="button_FindMame"
-                            Grid.Column="1"
-                            Width="26" Height="26"
-                            Click="Button_FindMame_Click"
-                            Style="{DynamicResource CustomImageButton}"
-                            ToolTip="Browse for MAME">
-                        <Image Source="/resources/icons/folder.png" Width="18" Height="18"/>
-                    </Button>
-                </Grid>
-            </GroupBox>
+            </Border>
+
+            <!-- MAME Path -->
+            <Border Background="{DynamicResource ControlBackgroundBrush}" 
+                    CornerRadius="8" 
+                    Padding="5" 
+                    Margin="0,0,0,10"
+                    BorderBrush="{DynamicResource AccentBrush}" 
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="MAME Exe Path" 
+                               FontWeight="SemiBold" 
+                               Foreground="{DynamicResource AccentBrush}" 
+                               Margin="0,0,0,8"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="textBox_MamePath" Grid.Column="0" Height="20"
+                                 Style="{DynamicResource CustomTextBox}"
+                                 VerticalAlignment="Center"
+                                 MaxLength="150"
+                                 TextChanged="TextBox_TextChanged"/>
+                        <Button x:Name="button_FindMame"
+                                Grid.Column="1"
+                                Width="26" Height="26"
+                                Margin="5,0,0,0"
+                                Click="Button_FindMame_Click"
+                                Style="{DynamicResource CustomImageButton}"
+                                ToolTip="Browse for MAME">
+                            <Image Source="pack://application:,,,/resources/images/icons/folder.png" Width="18" Height="18"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
 
             <!-- Save / Close -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="button_Save" Content="Save" Style="{DynamicResource GreenRoundedButton}"
-                        Width="70" Margin="0,0,5,0" Height="20" Click="ButtonSave_Click" IsEnabled="False"/>
-                <Button x:Name="button_Close" Content="Close" Style="{DynamicResource GreyRoundedButton}"
-                        Width="70" Margin="5,0,0,0" Height="20" Click="ButtonClose_Click"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                <Button x:Name="button_Save" Content="Save" 
+                        Style="{DynamicResource GreenRoundedButton}"
+                        Width="70" Margin="0,0,5,0" Height="20" 
+                        Click="ButtonSave_Click" IsEnabled="False"/>
+                <Button x:Name="button_Close" Content="Close" 
+                        Style="{DynamicResource GreyRoundedButton}"
+                        Width="70" Margin="5,0,0,0" Height="20" 
+                        Click="ButtonClose_Click"/>
             </StackPanel>
 
-            <TextBlock TextWrapping="Wrap" FontStyle="Italic" Margin="5,5,0,0" Text="Change Tracking changes do not take effect until a new gamelist is loaded." VerticalAlignment="Top"/>
+            <TextBlock TextWrapping="Wrap" 
+                       FontStyle="Italic" 
+                       FontSize="10"
+                       Opacity="0.7"
+                       Margin="5,0,0,0" 
+                       Text="Change Tracking changes do not take effect until a new gamelist is loaded." 
+                       VerticalAlignment="Top"/>
 
         </StackPanel>
 
         <!-- Right Settings Panel -->
-        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="0,0,5,0">
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="0,5,5,0">
             <StackPanel>
 
-                <GroupBox Header="Behavior Options" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,10">
-                    <UniformGrid Columns="2" Rows="5" Margin="5">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <CheckBox x:Name="checkBox_TrackChanges" Style="{DynamicResource CustomCheckBox}" Content="Track Changes" ToolTip="Keep track of changes for undo and redo purposes" VerticalAlignment="Center" Click="CheckBox_Click"/>
-                            <TextBlock Text=" - Max:" VerticalAlignment="Center" />
-                            <TextBox x:Name="textBox_MaxUndo" Text="15" VerticalAlignment="Center" Width="30" Height="20" Style="{DynamicResource CustomTextBox}" Margin="5,0,0,0"
-                                     MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
-                                     TextChanged="TextBox_TextChanged"
-                                     DataObject.Pasting="NumericTextBox_Pasting"/>
-                        </StackPanel>
-                        <CheckBox x:Name="checkBox_VideoAutoplay" Style="{DynamicResource CustomCheckBox}" Content="Autoplay Videos" ToolTip="Videos in the media display will automatically play or not" VerticalAlignment="Center" Click="CheckBox_Click" />
-                        <CheckBox x:Name="checkBox_ConfirmBulkChanges" Style="{DynamicResource CustomCheckBox}" Content="Confirm Bulk Changes" ToolTip="Major changes will requiring confirmation" VerticalAlignment="Center" Click="CheckBox_Click" />
-                        <CheckBox x:Name="checkBox_EnableSaveReminder" Style="{DynamicResource CustomCheckBox}" Content="Enable Save Reminder" ToolTip="If changes are about to be lost, ask to save first" VerticalAlignment="Center" Click="CheckBox_Click" />
-                        <CheckBox x:Name="checkBox_VerifyImageDownloads" Style="{DynamicResource CustomCheckBox}" VerticalAlignment="Center" ToolTip="Scraped images are verified to be non-corrupt and not single color as they are downloaded" Content="Verify Image Downloads" Click="CheckBox_Click"/>
-                        <CheckBox x:Name="checkBox_ShowFileStatusBar" Style="{DynamicResource CustomCheckBox}" VerticalAlignment="Center" ToolTip="Displays the gamelist filename and modification time at the bottom of the datagrid" Click="CheckBox_Click" Content="Show File Statusbar" />
-                        <CheckBox x:Name="checkBox_RememberColumns" Style="{DynamicResource CustomCheckBox}" VerticalAlignment="Center" ToolTip="Changes to column visibility will be retained until changed again" Content="Remember Displayed Columns" Click="CheckBox_Click"/>
-                        <CheckBox x:Name="checkBox_RememberAutosize" Style="{DynamicResource CustomCheckBox}" VerticalAlignment="Center" ToolTip="Remember column autosize settings" Content="Remember Column Autosize" Click="CheckBox_Click"/>
-                        <CheckBox x:Name="checkBox_AutoExpandLogger" Style="{DynamicResource CustomCheckBox}" VerticalAlignment="Center" ToolTip="Automatically expand the logger size when scraping" Content="Auto Expand Logger When Scraping" Click="CheckBox_Click"/>
-                    </UniformGrid>
-                </GroupBox>
+                <!-- Behavior Options -->
+                <Border Background="{DynamicResource ControlBackgroundBrush}" 
+        CornerRadius="8" 
+        Padding="5" 
+        Margin="0,0,0,10"
+        BorderBrush="{DynamicResource AccentBrush}" 
+        BorderThickness="1">
 
-                <GroupBox Header="Other Settings" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,10">
-                    <StackPanel Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal" Margin="5">
+                    <StackPanel>
+
+                        <TextBlock Text="Option Settings" 
+                   FontWeight="SemiBold" 
+                   Foreground="{DynamicResource AccentBrush}" 
+                   Margin="0,0,0,10"/>
+
+                        <UniformGrid Columns="2" Rows="5">
+
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                                <CheckBox x:Name="checkBox_TrackChanges" 
+                          Style="{DynamicResource CustomCheckBox}" 
+                          Content="Track Changes" 
+                          ToolTip="Keep track of changes for undo and redo purposes" 
+                          VerticalAlignment="Center" 
+                          Click="CheckBox_Click"/>
+                                <TextBlock Text=" - Max:" VerticalAlignment="Center" />
+                                <TextBox x:Name="textBox_MaxUndo" Text="15" 
+                         VerticalAlignment="Center" Width="30" Height="20" 
+                         Style="{DynamicResource CustomTextBox}" Margin="5,0,0,0"
+                         MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                         TextChanged="TextBox_TextChanged"
+                         DataObject.Pasting="NumericTextBox_Pasting"/>
+                            </StackPanel>
+
+                            <CheckBox x:Name="checkBox_VideoAutoplay" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      Content="Autoplay Videos" 
+                      ToolTip="Videos in the media display will automatically play or not" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      Click="CheckBox_Click" />
+
+                            <CheckBox x:Name="checkBox_ConfirmBulkChanges" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      Content="Confirm Bulk Changes" 
+                      ToolTip="Major changes will requiring confirmation" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      Click="CheckBox_Click" />
+
+                            <CheckBox x:Name="checkBox_EnableSaveReminder" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      Content="Enable Save Reminder" 
+                      ToolTip="If changes are about to be lost, ask to save first" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      Click="CheckBox_Click" />
+
+                            <CheckBox x:Name="checkBox_VerifyImageDownloads" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      ToolTip="Scraped images are verified to be non-corrupt and not single color as they are downloaded" 
+                      Content="Verify Image Downloads" 
+                      Click="CheckBox_Click"/>
+
+                            <CheckBox x:Name="checkBox_ShowFileStatusBar" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      ToolTip="Displays the gamelist filename and modification time at the bottom of the datagrid" 
+                      Click="CheckBox_Click" 
+                      Content="Show File Statusbar" />
+
+                            <CheckBox x:Name="checkBox_RememberColumns" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      ToolTip="Changes to column visibility will be retained until changed again" 
+                      Content="Remember Displayed Columns" 
+                      Click="CheckBox_Click"/>
+
+                            <CheckBox x:Name="checkBox_RememberAutosize" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      VerticalAlignment="Center" 
+                      Margin="0,0,0,5"
+                      ToolTip="Remember column autosize settings" 
+                      Content="Remember Column Autosize" 
+                      Click="CheckBox_Click"/>
+
+                            <CheckBox x:Name="checkBox_AutoExpandLogger" 
+                      Style="{DynamicResource CustomCheckBox}" 
+                      VerticalAlignment="Center" 
+                      ToolTip="Automatically expand the logger size when scraping" 
+                      Content="Auto Expand Logger When Scraping" 
+                      Click="CheckBox_Click"/>
+
+                            <CheckBox x:Name="checkBox_EnableDelete" 
+                        Style="{DynamicResource CustomCheckBox}" 
+                        VerticalAlignment="Center" 
+                        ToolTip="Enalble the ability to delete items permanently" 
+                        Content="Enable Item Deletion" 
+                        Click="CheckBox_Click"/>
+
+
+
+                        </UniformGrid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,8">
                             <TextBlock Text="File Search Depth (0–9):" VerticalAlignment="Center"/>
                             <TextBox x:Name="textBox_SearchDepth" Text="2" Width="30" Height="20" Margin="10,0,0,0"
-                                 Style="{DynamicResource CustomTextBox}"                                 
-                                 MaxLength="1" PreviewTextInput="NumericTextBox_PreviewTextInput"
-                                 TextChanged="TextBox_TextChanged"    
-                                 DataObject.Pasting="NumericTextBox_Pasting"/>
+                     Style="{DynamicResource CustomTextBox}"                                 
+                     MaxLength="1" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                     TextChanged="TextBox_TextChanged"    
+                     DataObject.Pasting="NumericTextBox_Pasting"/>
+
                             <TextBlock Text="  |  " Margin="10,0,10,0" VerticalAlignment="Top"/>
+
                             <TextBlock Text="Default Volume:" VerticalAlignment="Center"/>
                             <Slider x:Name="sliderVolumeSetting" Minimum="0" Maximum="100" Width="100" Margin="5,0,0,0"
-                                PreviewMouseDown="SliderVolumeSetting_PreviewMouseDown"
-                                Style="{DynamicResource CustomSlider}"/>
+                    PreviewMouseDown="SliderVolumeSetting_PreviewMouseDown"
+                    Style="{DynamicResource CustomSlider}"/>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0">
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Remember last" VerticalAlignment="Center" />
-                            <TextBox x:Name="textBox_RecentFilesCount" Text="15" VerticalAlignment="Center" Width="30" Height="20" Style="{DynamicResource CustomTextBox}" Margin="5,0,5,0"
-              MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
-                                     TextChanged="TextBox_TextChanged"
-              DataObject.Pasting="NumericTextBox_Pasting"/>
+                            <TextBox x:Name="textBox_RecentFilesCount" Text="15" 
+                     VerticalAlignment="Center" Width="30" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" Margin="5,0,5,0"
+                     MaxLength="2" PreviewTextInput="NumericTextBox_PreviewTextInput"
+                     TextChanged="TextBox_TextChanged"
+                     DataObject.Pasting="NumericTextBox_Pasting"/>
                             <TextBlock Text="files (1-50)" VerticalAlignment="Center"/>
                         </StackPanel>
 
                     </StackPanel>
-                </GroupBox>
+                </Border>
 
-                <GroupBox Header="Folder Paths" Foreground="{DynamicResource AccentBrush}">
-                    <Grid Margin="5" x:Name="Paths">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                <!-- Folder Paths -->
+                <Border Background="{DynamicResource ControlBackgroundBrush}" 
+                        CornerRadius="8" 
+                        Padding="5" 
+                        Margin="0,0,0,10"
+                        BorderBrush="{DynamicResource AccentBrush}" 
+                        BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Folder Paths" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource AccentBrush}" 
+                                   Margin="0,0,0,10"/>
 
-                        <!-- Column 1 -->
-                        <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Content="Image:" />
-                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" Height="20" Style="{DynamicResource CustomTextBox}"  VerticalAlignment="Center" Tag="image"/>
+                        <Grid x:Name="Paths">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                        <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Content="Titleshot:" />
-                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="titleshot" />
+                            <!-- Column 1 -->
+                            <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Content="Image:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="image" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Content="Marquee:" />
-                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="marquee" />
+                            <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Content="Titleshot:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="titleshot" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Wheel:" />
-                        <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_wheel" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="wheel" />
+                            <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Content="Marquee:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="marquee" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Thumbnail:" />
-                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_thumbnail" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="thumbnail" />
+                            <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Wheel:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_wheel" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="wheel" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Content="Cartridge:" />
-                        <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_cartridge" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="cartridge" />
+                            <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Thumbnail:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_thumbnail" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="thumbnail" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Content="Video:" />
-                        <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_video" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="video" />
+                            <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Content="Cartridge:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_cartridge" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="cartridge" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Music:" />
-                        <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_music" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="music" />
+                            <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Content="Video:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_video" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="video" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Map:" />
-                        <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_map" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="map" />
+                            <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Music:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_music" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="music" Margin="0,0,5,3"/>
 
-                        <!-- Column 2 -->
-                        <Label Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="Bezel:" />
-                        <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_bezel" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="bezel" />
+                            <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Map:" Padding="0,0,5,0"/>
+                            <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_map" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="map" Margin="0,0,5,3"/>
 
-                        <Label Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="Manual:" />
-                        <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_manual" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="manual" />
+                            <!-- Column 2 -->
+                            <Label Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="Bezel:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_bezel" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="bezel" Margin="0,0,0,3"/>
 
-                        <Label Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Content="Fan Art:" />
-                        <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_fanart" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="fanart" />
+                            <Label Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="Manual:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_manual" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="manual" Margin="0,0,0,3"/>
 
-                        <Label Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Content="Box Art:" />
-                        <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxart" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="boxart" />
+                            <Label Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Content="Fan Art:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_fanart" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="fanart" Margin="0,0,0,3"/>
 
-                        <Label Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Content="Box Back:" />
-                        <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_boxback" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="boxback" />
+                            <Label Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Content="Box Art:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxart" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="boxart" Margin="0,0,0,3"/>
 
-                        <Label Grid.Row="5" Grid.Column="2" VerticalAlignment="Center" Content="Magazine:" />
-                        <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_magazine" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="magazine" />
+                            <Label Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Content="Box Back:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_boxback" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="boxback" Margin="0,0,0,3"/>
 
-                        <Label Grid.Row="6" Grid.Column="2" VerticalAlignment="Center" Content="Mix:" />
-                        <TextBox Grid.Row="6" Grid.Column="3" x:Name="textBox_mix" Height="20" Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" Tag="mix" />
+                            <Label Grid.Row="5" Grid.Column="2" VerticalAlignment="Center" Content="Magazine:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_magazine" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="magazine" Margin="0,0,0,3"/>
 
-                        <Button Grid.Row="7" Grid.Column="3" VerticalAlignment="Center" Grid.ColumnSpan="2"
-                                Content="Reset Folder Paths"
-                                Style="{DynamicResource GreyRoundedButton}"
-                                Width="100" Height="20" Click="Button_Reset_Click"
-                                HorizontalAlignment="Center" Margin="0,0,0,0"/>
-                    </Grid>
-                </GroupBox>
+                            <Label Grid.Row="6" Grid.Column="2" VerticalAlignment="Center" Content="Mix:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="6" Grid.Column="3" x:Name="textBox_mix" Height="20" 
+                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                                     Tag="mix" Margin="0,0,0,3"/>
+
+                            <Button Grid.Row="7" Grid.Column="3" VerticalAlignment="Center" Grid.ColumnSpan="2"
+                                    Content="Reset Folder Paths"
+                                    Style="{DynamicResource GreyRoundedButton}"
+                                    Width="120" Height="20" Click="Button_Reset_Click"
+                                    HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
             </StackPanel>
         </ScrollViewer>

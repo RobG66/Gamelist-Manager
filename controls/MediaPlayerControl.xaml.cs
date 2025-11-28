@@ -36,6 +36,7 @@ namespace GamelistManager.controls
             checkBox_Randomize.Visibility = Visibility.Collapsed;
             button_Next.IsEnabled = false;
             button_Previous.IsEnabled = false;
+            _mediaPlayer.EndReached -= MediaPlayer_EndReached!;
             _mediaPlayer.EndReached += MediaPlayer_EndReached!;
         }
 
@@ -95,6 +96,7 @@ namespace GamelistManager.controls
                 Play(_mediaFiles[_currentIndex]);
             }
 
+            comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
             comboBox_CurrentTrack.SelectionChanged += comboBox_CurrentTrack_SelectionChanged;
 
         }
@@ -310,7 +312,7 @@ namespace GamelistManager.controls
             MediaPlayerControlDispose();
         }
 
-        private void MediaPlayerControlDispose()
+        public void MediaPlayerControlDispose()
         {
             this.Unloaded -= UserControl_Unloaded;
             comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
@@ -354,6 +356,12 @@ namespace GamelistManager.controls
                     _libVLC = null!;
                 }
             }
+
+            _mediaFiles = Array.Empty<string>();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
         }
 
 
@@ -382,6 +390,7 @@ namespace GamelistManager.controls
                 _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
                 VideoView.MediaPlayer = _mediaPlayer;
                 sliderVolume.Value = _volume;
+                _mediaPlayer.EndReached -= MediaPlayer_EndReached!;
                 _mediaPlayer.EndReached += MediaPlayer_EndReached!;
             }
             catch

@@ -108,7 +108,7 @@ namespace GamelistManager.classes.helpers
     // LogEntry class to support messages with color
     public class LogEntry
     {
-        public string Message { get; set; }
-        public Brush Color { get; set; }
+        public string? Message { get; set; }
+        public Brush? Color { get; set; }
     }
 }

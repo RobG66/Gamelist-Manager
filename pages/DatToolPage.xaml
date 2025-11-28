@@ -224,7 +224,7 @@
                                 Margin="5,0,0,0"
                                 ToolTip="Close DAT Summary Panel"
                                 Click="button_DatPageClose_Click">
-                            <Image Source="pack://application:,,,/Resources/buttons/x-button.png" Width="16" Height="16"/>
+                            <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" Width="16" Height="16"/>
                         </Button>
                     </StackPanel>
                 </StackPanel>

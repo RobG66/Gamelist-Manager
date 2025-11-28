@@ -49,6 +49,35 @@
     <SolidColorBrush x:Key="MenuItem.Highlight.Disabled.Background" Color="#F0F0F0"/>
     <SolidColorBrush x:Key="MenuItem.Highlight.Disabled.Border" Color="#D0D0D0"/>
 
+    <!-- Ribbon Colors -->
+    <SolidColorBrush x:Key="RibbonBackgroundBrush" Color="#F5F0EB"/>
+    <SolidColorBrush x:Key="RibbonForegroundBrush" Color="#2C2C2C"/>
+    <SolidColorBrush x:Key="RibbonBorderBrush" Color="#E8E0D8"/>
+
+    <!-- Ribbon Tab Colors -->
+    <SolidColorBrush x:Key="RibbonTabHoverBackground" Color="#F0EBE6"/>
+    <SolidColorBrush x:Key="RibbonTabSelectedBackground" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="RibbonTabSelectedBorder" Color="#B08870"/>
+
+    <!-- Ribbon Button Colors -->
+    <SolidColorBrush x:Key="RibbonButtonHoverBackground" Color="#F0EBE6"/>
+    <SolidColorBrush x:Key="RibbonButtonHoverBorder" Color="#D8C8B8"/>
+    <SolidColorBrush x:Key="RibbonButtonPressedBackground" Color="#E8DDD0"/>
+    <SolidColorBrush x:Key="RibbonButtonPressedBorder" Color="#B08870"/>
+    <SolidColorBrush x:Key="RibbonButtonCheckedBackground" Color="#E8DDD0"/>
+    <SolidColorBrush x:Key="RibbonButtonCheckedBorder" Color="#B08870"/>
+
+    <!-- Ribbon Group Colors -->
+    <SolidColorBrush x:Key="RibbonGroupBorder" Color="#E8E0D8"/>
+    <SolidColorBrush x:Key="RibbonGroupLabelBackground" Color="#F8F4F0"/>
+
+    <!-- Ribbon Separator -->
+    <SolidColorBrush x:Key="RibbonSeparatorBrush" Color="#E8E4E0"/>
+
+    <!-- Application Menu Colors -->
+    <SolidColorBrush x:Key="RibbonApplicationMenuBackground" Color="#E8E0D8"/>
+    <SolidColorBrush x:Key="RibbonApplicationMenuBorder" Color="#E8E0D8"/>
+
     <!-- DataGrid Colors -->
     <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="DataGridForegroundBrush" Color="#2C2C2C"/>
