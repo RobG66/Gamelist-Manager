@@ -1,5 +1,8 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/c6bcdaee-652e-4938-a6dc-cab2735ec621" />
+
+
 ### 💖 Support Development
 
 If you find Gamelist Manager helpful, consider supporting its continued development:
@@ -8,7 +11,27 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+ November 26th, 2025
 
+  8.24 released with a few more minor bug fixes.  8.3 will probably come fairly soon (weekend?) with the new ribbon menu.  I had to remove the dark theme because the WPF ribbon just doesn't look good with dark colors.  The ribbon control itself just doesn't lend itself to being themed easily and I had to create another resource dictionary just to style disabled tabs/menus in the ribbon.  It's a very clunky control!  I was tempted to try fluent ribbon, but I think I'll be ok without it.  You will be able to seamlessly switch between old and new menus and also auto hide the ribbon menu if you want.  I've also replaced many of the icons on the ribbon with new ones!
+
+---
+
+ Nov 23rd, 2025
+
+  A new readme file which I had claude.ai create for me and it's done a better job than I could have ever.  8.23 is out now and fixes most known issues.  Unless something major is found, I'll wait to fix anything else until it's time for another regular update.  And speaking of updates, something I am experimenting with for the next update will be an optional ribbon menu.  You can still use the old menu, but the ribbon will be more practical and easier to use than constantly opening menus.  It takes up a bit more headroom so maybe I will have an option for it to auto collapse or not if you want.  There's always choice! :)  
+
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/de9c4e13-640b-473f-9f2f-01b950b014df" />
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/214d5d32-475a-41b6-83e9-683cd5e22611" />
+  <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/35493581-136d-47d2-8f47-3ae13b38c5a7" />
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/39fae76a-491d-4477-8a14-b0f29d6085f4" />
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/a362d0aa-9072-4fc6-8a60-3eafb497bd99" />
+
+
+
+
+
+---
 # Gamelist Manager
 
 A comprehensive desktop application designed for retro gaming enthusiasts to manage, organize, and enhance their game collections. Gamelist Manager provides powerful tools for editing metadata, scraping information from online databases, and maintaining gamelist XML files for popular emulation frontends like EmulationStation and Batocera/Retrobat.
