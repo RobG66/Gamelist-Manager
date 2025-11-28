@@ -11,6 +11,15 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+ Novermber 28th, 2025
+
+  8.3 release on schedule.  New optional ribbon menu and the ability to delete items and optionally delete the associated media too.
+  The dark theme was removed (for now) because it proved just too difficult to theme the ribbon that way.  I may add it back just for the classic menu...
+  The ribbon was spur of the moment design and it was a lot of work in such a short period of time.  I hope you like it and find it useful.  What is coming
+  for 8.4?  I dunno, I keep wanting to add media drag/drop, but it keeps getting pushed back.  Please report any bugs, thank you.  :) 
+
+
+---
  November 26th, 2025
 
   8.24 released with a few more minor bug fixes.  8.3 will probably come fairly soon (weekend?) with the new ribbon menu.  I had to remove the dark theme because the WPF ribbon just doesn't look good with dark colors.  The ribbon control itself just doesn't lend itself to being themed easily and I had to create another resource dictionary just to style disabled tabs/menus in the ribbon.  It's a very clunky control!  I was tempted to try fluent ribbon, but I think I'll be ok without it.  You will be able to seamlessly switch between old and new menus and also auto hide the ribbon menu if you want.  I've also replaced many of the icons on the ribbon with new ones!
