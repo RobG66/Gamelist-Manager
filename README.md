@@ -18,6 +18,8 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
   The ribbon was spur of the moment design and it was a lot of work in such a short period of time.  I hope you like it and find it useful.  What is coming
   for 8.4?  I dunno, I keep wanting to add media drag/drop, but it keeps getting pushed back.  Please report any bugs, thank you.  :) 
 
+<img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/b6d001f4-44ca-4b2b-b005-080a5cbfd59c" />
+
 
 ---
  November 26th, 2025
