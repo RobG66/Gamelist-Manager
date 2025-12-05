@@ -11,6 +11,17 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+December 5th, 2025
+
+ Phew, who knew that editing icons could be so time consuming!  I finally managed to put decent icons on the ribbon application drop down menu.
+
+ <img width="1546" height="1724" alt="image" src="https://github.com/user-attachments/assets/2e16b76b-c19f-4789-a50d-6ff334842abf" />
+
+
+
+
+
+---
 December 4th, 2025
 
  The next version forthcoming will contain a considerable refactor in scraping code.  Functionality is not changing, but there's been a lot of code cleanup which prioritizes separation of concern.  This means the scraper classes have one concern and that is to do the url scrape.  That (now) does not include downloading or updating data.  It's a cleaner approach and something I have been wanting to do for a while now.  As part of that cleanup, I've added logging (to file) of the log output and there is also a new download summary when finished.  BTW, deletions are also logged as well (logs folder).  Dat tools is getting another function to identify what you are 'missing' in your gamelist (ie: playable roms).  I have to figure out some more filtering magic of the mame xml first.
