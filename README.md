@@ -13,6 +13,9 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 ---
 December 5th, 2025
 
+So I have an eperimental build of my Gamelist Manager and it can now do batch processing from ArcadeDB.  For stricly metadata (not files) it can download and update all metadata in less than 10 seconds for 3500 games..  For 15000 items, it's about a minute.  It's too fast and the gui logger cannot keep up so I have to turn that off.  It's not the first trouble I've had with the visual logger not being able to keep up.  Your mileage may vary depending on how many cpu cores you have.  I tested with 5 tasks in parallel. 
+
+
  Phew, who knew that editing icons could be so time consuming!  I finally managed to put decent icons on the ribbon application drop down menu.
 
  <img width="1546" height="1724" alt="image" src="https://github.com/user-attachments/assets/2e16b76b-c19f-4789-a50d-6ff334842abf" />
