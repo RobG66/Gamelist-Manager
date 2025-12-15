@@ -4,14 +4,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Message"
         Width="450" 
-        SizeToContent="Height"
         MinHeight="200"
         MaxHeight="600"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         WindowStyle="ToolWindow"
-        Background="{DynamicResource WindowBackgroundBrush}">
-
+        Background="{DynamicResource WindowBackgroundBrush}"
+        SizeToContent="Height">
     <Border Background="{DynamicResource PrimaryBackgroundBrush}"
             CornerRadius="8"
             BorderBrush="{DynamicResource AccentBrush}"
@@ -23,24 +22,28 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-
             <!-- Icon and Message -->
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <Grid Grid.Row="0" Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock x:Name="IconText" 
+                          Grid.Column="0"
                           FontSize="32" 
                           Margin="0,0,15,0" 
                           VerticalAlignment="Top"
                           Visibility="Collapsed"/>
                 <TextBlock x:Name="MessageText"
+                          Grid.Column="1"
                           TextWrapping="Wrap"
                           FontSize="13"
                           Foreground="{DynamicResource PrimaryTextBrush}"
                           VerticalAlignment="Center"/>
-            </StackPanel>
-
+            </Grid>
             <!-- Additional Info Text (Optional) -->
             <TextBlock Grid.Row="1"
                       x:Name="InfoText"
@@ -49,7 +52,6 @@
                       Foreground="{DynamicResource SecondaryTextBrush}"
                       Margin="0,0,0,10"
                       Visibility="Collapsed"/>
-
             <!-- Warning Text (Optional) -->
             <TextBlock Grid.Row="2"
                       x:Name="WarningText"
@@ -58,7 +60,6 @@
                       FontWeight="Bold"
                       Margin="0,0,0,15"
                       Visibility="Collapsed"/>
-
             <!-- Checkbox (Optional) -->
             <CheckBox Grid.Row="3"
                      x:Name="OptionCheckBox"
@@ -67,7 +68,6 @@
                      VerticalAlignment="Center"
                      Margin="0,0,0,20"
                      Visibility="Collapsed"/>
-
             <!-- Buttons -->
             <StackPanel Grid.Row="4" 
                        x:Name="ButtonPanel"

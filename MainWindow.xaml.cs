@@ -30,8 +30,8 @@ namespace GamelistManager
         private string _visibilityFilter;
         private string _genreFilter;
         private string _customFilter;
-        bool _autosizeColumns;
-        bool _confirmBulkChange;
+        private bool _autosizeColumns;
+        private bool _confirmBulkChange;
         private DispatcherTimer _dataGridSelectionChangedTimer;
         private DataRowView _pendingSelectedRow;
         private MediaPage _mediaPage;
@@ -52,7 +52,7 @@ namespace GamelistManager
             _dataGridSelectionChangedTimer.Tick += DataGridSelectionChangedTimer_Tick;
             SharedData.ProgramDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
             SharedData.InitializeChangeTracker();
-            SharedData.ChangeTracker!.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
+            SharedData.ChangeTracker.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
 
             _autosizeColumns = true;
             _parentFolderPath = string.Empty;
@@ -70,49 +70,49 @@ namespace GamelistManager
             Dispatcher.Invoke(() =>
             {
                 UpdateCounters();
+
+                if (SharedData.ChangeTracker?.IsTrackingEnabled == false)
+                {
+                    return;
+                }
+
+                UpdateChangeTrackerButtons();
             });
-
-            if (SharedData.ChangeTracker!.IsTrackingEnabled == false)
-            {
-                return;
-            }
-
-            UpdateChangeTrackerButtons();
         }
 
         private void UpdateChangeTrackerButtons()
         {
-            if (SharedData.ChangeTracker!.IsTrackingEnabled == false)
+            if (SharedData.ChangeTracker?.IsTrackingEnabled == false)
             {
                 return;
             }
 
             Dispatcher.Invoke(() =>
             {
-                UndoButton.IsEnabled = SharedData.ChangeTracker!.UndoCount > 1;
-                RedoButton.IsEnabled = SharedData.ChangeTracker!.RedoCount > 0;
+                UndoButton.IsEnabled = SharedData.ChangeTracker?.UndoCount > 1;
+                RedoButton.IsEnabled = SharedData.ChangeTracker?.RedoCount > 0;
             });
         }
 
 
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
-            if (SharedData.ChangeTracker!.IsTrackingEnabled == false)
+            if (SharedData.ChangeTracker?.IsTrackingEnabled == false)
             {
                 return;
             }
 
-            SharedData.ChangeTracker!.Undo();
+            SharedData.ChangeTracker?.Undo();
             UpdateCounters();
         }
 
         private void RedoButton_Click(object sender, RoutedEventArgs e)
         {
-            if (SharedData.ChangeTracker!.IsTrackingEnabled == false)
+            if (SharedData.ChangeTracker?.IsTrackingEnabled == false)
             {
                 return;
             }
-            SharedData.ChangeTracker!.Redo();
+            SharedData.ChangeTracker?.Redo();
             UpdateCounters();
         }
 
@@ -127,8 +127,8 @@ namespace GamelistManager
                 textBlock_Filename.Text = $"Loading {fileName}...";
                 textBlock_LastModifiedTime.Text = "";
 
-                // Run the potentially blocking operation on a background thread
-                var data = await Task.Run(() => GamelistLoader.LoadGamelist(fileName));
+                bool ignoreDuplicates = Properties.Settings.Default.IgnoreDuplicates;
+                var data = await Task.Run(() => GamelistLoader.LoadGamelist(fileName, ignoreDuplicates));
 
                 if (data == null)
                 {
@@ -145,6 +145,7 @@ namespace GamelistManager
                 return null;
             }
         }
+
 
 
         private void SetupMainDataGrid()
@@ -461,7 +462,7 @@ namespace GamelistManager
         }
 
 
-        private void ReloadFile_Click(object sender, RoutedEventArgs e)
+        private async void ReloadFile_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult result = MessageBox.Show($"Do you want to reload the file '{SharedData.XMLFilename}'?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)
@@ -475,7 +476,7 @@ namespace GamelistManager
                 return;
             }
 
-            OpenFile(SharedData.XMLFilename);
+            await OpenFileAsync(SharedData.XMLFilename);
         }
 
 
@@ -488,21 +489,22 @@ namespace GamelistManager
         private void SaveGamelist()
         {
 
-            var result = MessageBox.Show("Do you want to save the current gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            string currentSystem =  char.ToUpper(SharedData.CurrentSystem[0]) + SharedData.CurrentSystem.Substring(1); 
+            var result = MessageBox.Show($"Do you want to save the '{currentSystem}' gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
             {
                 return;
             }
 
-            SharedData.ChangeTracker!.PauseTracking();
+            SharedData.ChangeTracker?.PauseTracking();
 
             GamelistSaver.BackupGamelist(SharedData.CurrentSystem, SharedData.XMLFilename);
             Mouse.OverrideCursor = Cursors.Wait;
             bool saveResult = GamelistSaver.SaveGamelist(SharedData.XMLFilename);
             Mouse.OverrideCursor = null;
 
-            SharedData.ChangeTracker!.ResumeTracking();
+            SharedData.ChangeTracker?.ResumeTracking();
 
             if (saveResult)
             {
@@ -626,14 +628,14 @@ namespace GamelistManager
                 return;
             }
 
-            if (MameNames.Names.Count > 0)
+            if (MameNamesHelper.Names.Count > 0)
             {
                 return;
             }
 
             try
             {
-                await MameNames.GenerateAsync(mameFilePath);
+                await MameNamesHelper.GenerateAsync(mameFilePath);
             }
             catch
             {
@@ -642,46 +644,37 @@ namespace GamelistManager
         }
 
 
-        private void OpenFile_Click(object sender, RoutedEventArgs e)
+        private async void OpenFile_Click(object sender, RoutedEventArgs e)
         {
+            
             string fileName = SelectXMLFile();
             if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
-
-            OpenFile(fileName);
+                    
+            await OpenFileAsync(fileName);
         }
 
-        private async void OpenFile(string fileName)
+        private async Task OpenFileAsync(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
-            {
                 return;
-            }
 
             bool saveReminder = Properties.Settings.Default.SaveReminder;
 
             if (SharedData.IsDataChanged && saveReminder)
-            {
                 SaveGamelist();
-            }
 
-            if (string.IsNullOrEmpty(fileName) || !Path.Exists(fileName))
+            if (!Path.Exists(fileName))
             {
                 MessageBox.Show("File not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
 
             if (_scraper != null)
-            {
                 LogHelper.Instance.ClearLog();
-            }
-
-            if (_datToolPage != null && MainContentFrame.Content == _datToolPage)
-            {
-                _datToolPage.CloseDatToolPage();
-            }
-
+                     
             Mouse.OverrideCursor = Cursors.Wait;
             this.IsEnabled = false;
 
@@ -694,7 +687,6 @@ namespace GamelistManager
                 this.IsEnabled = true;
                 return;
             }
-
 
             SaveLastOpenedGamelistName(fileName);
 
@@ -713,9 +705,7 @@ namespace GamelistManager
             SharedData.CurrentSystem = new DirectoryInfo(_parentFolderPath).Name;
 
             if (SharedData.CurrentSystem == "mame")
-            {
                 GenerateMameNames();
-            }
 
             DateTime lastModifiedTime = File.GetLastWriteTime(fileName);
             textBlock_Filename.Text = $"File: {fileName}";
@@ -734,18 +724,27 @@ namespace GamelistManager
             Mouse.OverrideCursor = default;
             this.IsEnabled = true;
 
+            if (ribbonApplicationMenu.IsDropDownOpen == true)
+            {
+                ribbonApplicationMenu.IsDropDownOpen = false;
+            }
+
+            // Reset dattool page if showing
+            if (_datToolPage != null && MainContentFrame.Content == _datToolPage)
+            {
+                _datToolPage.ResetDatToolPage();
+            }
+
         }
 
-        private void RecentFilemenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem)
+
+        private async void RecentFilemenuItem_Click(object sender, RoutedEventArgs e)
+        {            
+            if (sender is MenuItem menuItem && menuItem.Tag is string fileName && !string.IsNullOrEmpty(fileName))
             {
-                string fileName = menuItem.Tag as string ?? string.Empty;
-                if (!string.IsNullOrEmpty(fileName))
-                {
-                    OpenFile(fileName);
-                }
+                await OpenFileAsync(fileName);
             }
+
         }
 
         private static string SelectXMLFile()
@@ -857,7 +856,6 @@ namespace GamelistManager
         }
 
 
-
         private void AddRecentFilesToMenu()
         {
             // Clear existing items first (Classic Menu)
@@ -934,13 +932,13 @@ namespace GamelistManager
             }
         }
 
-        private void RecentFilesRibbon_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void RecentFilesRibbon_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ListBox listBox && listBox.SelectedItem is string fileName)
             {
                 if (!string.IsNullOrEmpty(fileName))
                 {
-                    OpenFile(fileName);
+                    await OpenFileAsync(fileName);
                     // Clear selection so the same file can be selected again
                     listBox.SelectedIndex = -1;
                 }
@@ -1258,30 +1256,27 @@ namespace GamelistManager
 
         private void MenuItem_Clicked(object sender, RoutedEventArgs e)
         {
-            string? columnName = null;
-            bool isChecked = false;
+            // Try reading the Tag from either control type
+            string? columnName = (sender as FrameworkElement)?.Tag?.ToString();
+            if (string.IsNullOrEmpty(columnName))
+                return;
+
+            bool isChecked;
 
             if (sender is MenuItem menuItem)
             {
-                columnName = menuItem.Header?.ToString();
                 isChecked = menuItem.IsChecked == true;
-                SyncColumnCheckboxes(true); // menu  to ribbon
+                SyncColumnCheckboxes(true);   // menu → ribbon
             }
             else if (sender is System.Windows.Controls.Ribbon.RibbonCheckBox ribbonCheckBox)
             {
-                // RibbonCheckBox commonly uses Label or Content
-                columnName = ribbonCheckBox.Label?.ToString() ?? ribbonCheckBox.Content?.ToString();
                 isChecked = ribbonCheckBox.IsChecked == true;
-                SyncColumnCheckboxes(false); // false = ribbon to menu
+                SyncColumnCheckboxes(false);  // ribbon → menu
             }
             else
             {
-                // Unknown sender type - ignore
-                return;
+                return; // unexpected sender
             }
-
-            if (string.IsNullOrEmpty(columnName))
-                return;
 
             SetColumnVisibility(columnName, isChecked);
         }
@@ -1339,12 +1334,12 @@ namespace GamelistManager
                                 .Select(decl => decl.Name)
                                 .ToList();
 
-            foreach (DataGridColumn column1 in MainDataGrid.Columns)
+            foreach (DataGridColumn column in MainDataGrid.Columns)
             {
-                if (mediaItems.Contains(column1.Header.ToString()!))
+                if (mediaItems.Contains(column.Header.ToString()!))
                 {
-                    column1.Visibility = (showPaths) ? Visibility.Visible : Visibility.Collapsed;
-                    column1.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
+                    column.Visibility = (showPaths) ? Visibility.Visible : Visibility.Collapsed;
+                    column.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
                 }
             }
 
@@ -2265,8 +2260,12 @@ namespace GamelistManager
 
             if (maxUndo == 0)
             {
-                SharedData.ChangeTracker!.StopTracking();
-                SharedData.ChangeTracker!.UndoRedoStateChanged -= ChangeTracker_UndoRedoStateChanged!;
+                SharedData.ChangeTracker?.StopTracking();
+                if (SharedData.ChangeTracker != null)
+                {
+                    SharedData.ChangeTracker.UndoRedoStateChanged -= ChangeTracker_UndoRedoStateChanged!;
+                }
+
                 RedoButton.IsEnabled = false;
                 UndoButton.IsEnabled = false;
                 return;
@@ -2274,8 +2273,8 @@ namespace GamelistManager
 
             if (maxUndo != originalMaxUndo && SharedData.DataSet.Tables.Count > 0)
             {
-                SharedData.ChangeTracker!.StartTracking(SharedData.DataSet.Tables[0], maxUndo);
-                // SharedData.ChangeTracker!.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
+                SharedData.ChangeTracker?.StartTracking(SharedData.DataSet.Tables[0], maxUndo);
+                // SharedData.ChangeTracker?.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
             }
 
         }
@@ -2370,14 +2369,14 @@ namespace GamelistManager
                                where selectedPaths.Contains(pathValue)
                                select row;
 
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
             foreach (var row in matchingRows)
             {
                 int rowIndex = SharedData.DataSet.Tables[0].Rows.IndexOf(row);
                 row["hidden"] = visible;
             }
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
 
 
 
@@ -2425,14 +2424,14 @@ namespace GamelistManager
                 (string.IsNullOrEmpty(colvalue) && string.IsNullOrEmpty(row.Field<string>(colname))))
             );
 
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
             foreach (var row in rowsToUpdate)
             {
                 int rowIndex = SharedData.DataSet.Tables[0].Rows.IndexOf(row);
                 row["hidden"] = visible;
             }
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
 
             UpdateCounters();
             SharedData.IsDataChanged = true;
@@ -2470,10 +2469,10 @@ namespace GamelistManager
                 return;
             }
 
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
             DeleteSelectedItems(selectedItems, deleteMedia);
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
             SetSelectedRowAfterChange(selectedIndex);
             UpdateCounters();
             SharedData.IsDataChanged = true;
@@ -2678,7 +2677,7 @@ namespace GamelistManager
                                 select row).ToList(); // Convert to a list to avoid modifying the collection during iteration
 
 
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
             // Delete rows in reverse order
             for (int i = matchingRows.Count - 1; i >= 0; i--)
             {
@@ -2688,7 +2687,7 @@ namespace GamelistManager
             }
 
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
 
             SetSelectedRowAfterChange(selectedIndex);
 
@@ -2913,7 +2912,7 @@ namespace GamelistManager
                     string romPath = row[romPathColumn]?.ToString() ?? string.Empty;
                     string newName = NameHelper.NormalizeRomName(romPath);
 
-                    if (useMameNames && MameNames.Names.TryGetValue(newName, out string? value))
+                    if (useMameNames && MameNamesHelper.Names.TryGetValue(newName, out string? value) && !string.IsNullOrEmpty(value))
                     {
                         newName = value;
                     }
@@ -3023,7 +3022,7 @@ namespace GamelistManager
         }
 
 
-        private void MenuItem_Restore_Click(object sender, RoutedEventArgs e)
+        private async void MenuItem_Restore_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_parentFolderPath))
             {
@@ -3112,7 +3111,7 @@ namespace GamelistManager
             File.Copy(selectedPath, SharedData.XMLFilename, true);
             MessageBox.Show("Restore completed.\n\nThe new gamelist will now be loaded.", "Restore Completed", MessageBoxButton.OK, MessageBoxImage.Information);
             SharedData.IsDataChanged = false;
-            OpenFile(SharedData.XMLFilename);
+            await OpenFileAsync(SharedData.XMLFilename);
         }
 
         private void Button_Scraper_Click(object sender, RoutedEventArgs e)
@@ -3377,7 +3376,7 @@ namespace GamelistManager
                     var fileName = Path.GetFileName(relativeFile); // filter by filename only
                     return !fileListSet.Contains(fileName) && !m3uContents.Contains(fileName);
                 })
-                .Distinct(StringComparer.OrdinalIgnoreCase) // distinct by full relative path
+                .Distinct(StringComparer.OrdinalIgnoreCase) // distinct by fullPath relative path
                 .ToList();
 
             int totalNewItems = newFileList.Count;
@@ -3388,7 +3387,7 @@ namespace GamelistManager
             }
 
             // Begin bulk operations
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
             SharedData.DataSet.Tables[0].BeginLoadData();
 
             foreach (string fileName in newFileList)
@@ -3396,7 +3395,7 @@ namespace GamelistManager
                 string newName = Path.GetFileNameWithoutExtension(fileName);
                 if (SharedData.CurrentSystem == "mame")
                 {
-                    newName = MameNames.Names.TryGetValue(newName, out string? value) ? value : newName;
+                    newName = MameNamesHelper.Names.TryGetValue(newName, out string? value) ? value : newName;
                 }
 
                 var newRow = SharedData.DataSet.Tables[0].NewRow();
@@ -3411,7 +3410,7 @@ namespace GamelistManager
 
             // Finalize changes
             SharedData.DataSet.Tables[0].EndLoadData();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
 
             return totalNewItems;
         }
@@ -3422,7 +3421,7 @@ namespace GamelistManager
             MediaToolWindow mediaSearch = new();
 
             // Stop Change Tracker
-            SharedData.ChangeTracker!.StopTracking();
+            SharedData.ChangeTracker?.StopTracking();
 
             mediaSearch.ShowDialog();
 
@@ -3431,7 +3430,7 @@ namespace GamelistManager
             if (maxUndo > 0)
             {
                 // Re-initialize Change Tracker
-                SharedData.ChangeTracker!.StartTracking(SharedData.DataSet.Tables[0], maxUndo);
+                SharedData.ChangeTracker?.StartTracking(SharedData.DataSet.Tables[0], maxUndo);
                 UpdateChangeTrackerButtons();
             }
         }
@@ -3453,11 +3452,8 @@ namespace GamelistManager
             Mouse.OverrideCursor = Cursors.Wait;
 
             int missingCount = 0;
-
-            // Temporarily disable DataGrid
             MainDataGrid.IsEnabled = false;
 
-            // --- STEP 1: Collect all referenced folders ---
             var usedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
@@ -3465,28 +3461,37 @@ namespace GamelistManager
                 if (row["Rom Path"] is string romPath && !string.IsNullOrWhiteSpace(romPath))
                 {
                     string cleaned = romPath.TrimStart('.', '\\', '/');
-                    string dir = Path.GetDirectoryName(cleaned) ?? "";
+                    string dir = Path.GetDirectoryName(cleaned) ?? string.Empty;
 
-                    string fullFolder = Path.GetFullPath(Path.Combine(_parentFolderPath!, dir));
+                    string fullFolder = Path.GetFullPath(
+                        Path.Combine(_parentFolderPath!, dir)
+                    );
+
                     usedFolders.Add(fullFolder);
                 }
             }
 
-            // Always include the base folder
             usedFolders.Add(Path.GetFullPath(_parentFolderPath!));
 
-            // --- STEP 2: Build hash of all actual files in those folders ---
-            var filesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // 🔹 Track BOTH files and directories
+            var existingPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var folder in usedFolders)
             {
                 if (!Directory.Exists(folder))
                     continue;
 
-                foreach (var file in Directory.GetFiles(folder, "*", SearchOption.TopDirectoryOnly))
+                try
                 {
-                    string full = Path.GetFullPath(file);
-                    filesSet.Add(full);
+                    foreach (var file in Directory.GetFiles(folder, "*", SearchOption.TopDirectoryOnly))
+                        existingPaths.Add(Path.GetFullPath(file));
+
+                    foreach (var dir in Directory.GetDirectories(folder, "*", SearchOption.TopDirectoryOnly))
+                        existingPaths.Add(Path.GetFullPath(dir));
+                }
+                catch
+                {
+                    // Skip inaccessible folders
                 }
             }
 
@@ -3494,18 +3499,19 @@ namespace GamelistManager
 
             try
             {
-                // --- STEP 3: Compare normalized rom paths to the hash ---
                 foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
                 {
-                    if (row["Rom Path"] is string romPath)
-                    {
-                        string fullPath = PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!);
+                    if (row["Rom Path"] is not string romPath || string.IsNullOrWhiteSpace(romPath))
+                        continue;
 
-                        if (!filesSet.Contains(fullPath))
-                        {
-                            missingItems.Add(row);
-                            missingCount++;
-                        }
+                    string fullPath = Path.GetFullPath(
+                        PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!)
+                    );
+
+                    if (!existingPaths.Contains(fullPath))
+                    {
+                        missingItems.Add(row);
+                        missingCount++;
                     }
                 }
             }
@@ -3515,54 +3521,61 @@ namespace GamelistManager
                 MainDataGrid.IsEnabled = true;
             }
 
-            // --- No missing items ---
             if (missingItems.Count == 0)
             {
-                MessageBox.Show("No missing items were detected", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "No missing items were detected",
+                    "Notice",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
                 return;
             }
 
-            // --- Show Status column ---
-            var statusColumn = MainDataGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "Status");
+            var statusColumn = MainDataGrid.Columns
+                .FirstOrDefault(c => c.Header?.ToString() == "Status");
+
             if (statusColumn != null)
                 statusColumn.Visibility = Visibility.Visible;
 
-            // --- Ask user ---
             var result = MessageBox.Show(
                 $"There are {missingItems.Count} missing items in this gamelist.\n\nDo you want to remove them?",
                 "Notice:",
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                MessageBoxImage.Question
+            );
+
+            SharedData.ChangeTracker.StartBulkOperation();
 
             if (result == MessageBoxResult.Yes)
             {
-                SharedData.ChangeTracker!.StartBulkOperation();
-
                 foreach (var row in missingItems)
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        if (MainDataGrid.ItemsSource is DataView dataView && dataView.Table != null)
-                        {
-                            dataView.Table.Rows.Remove(row.Row);
-                        }
+                        if (MainDataGrid.ItemsSource is DataView dataView)
+                            dataView.Table?.Rows.Remove(row.Row);
                     });
                 }
-
-                SharedData.ChangeTracker!.EndBulkOperation();
             }
             else
             {
-                // Mark missing
+                SharedData.ChangeTracker.StopTracking();
+
                 foreach (var row in missingItems)
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         row["Status"] = "Missing";
                     });
                 }
+
+                SharedData.ChangeTracker.ResumeTracking();
             }
+
+            SharedData.ChangeTracker.EndBulkOperation();
         }
+
 
 
         private void MenuItem_DatTools_Click(object sender, RoutedEventArgs e)
@@ -3627,7 +3640,7 @@ namespace GamelistManager
                ? MainDataGrid.Items.OfType<DataRowView>().ToList()
                : MainDataGrid.SelectedItems.OfType<DataRowView>().ToList();
 
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
 
             foreach (DataRowView row in datagridRowSelection)
             {
@@ -3658,7 +3671,7 @@ namespace GamelistManager
                 }
             }
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
 
             button_Apply.IsEnabled = false;
 
@@ -3907,7 +3920,7 @@ namespace GamelistManager
                 }
             }
 
-            SharedData.ChangeTracker!.StartBulkOperation();
+            SharedData.ChangeTracker?.StartBulkOperation();
 
             var mediaItems = GamelistMetaData.GetMetaDataDictionary().Values
                     .Where(decl => decl.DataType == MetaDataType.Image ||
@@ -3932,7 +3945,7 @@ namespace GamelistManager
             }
 
             SharedData.DataSet.AcceptChanges();
-            SharedData.ChangeTracker!.EndBulkOperation();
+            SharedData.ChangeTracker?.EndBulkOperation();
 
             // Flip selected row to invoke selection changed event
             // It's just easier to do this way
@@ -3959,10 +3972,55 @@ namespace GamelistManager
                 return;
             }
 
-            bool saveReminder = Properties.Settings.Default.SaveReminder;
-            if (SharedData.IsDataChanged && saveReminder)
+            // Last chance to save, always ask!
+            if (SharedData.IsDataChanged)
             {
                 SaveGamelist();
+            }
+
+            // Unsubscribe from event handlers to prevent memory leaks
+            if (_dataGridSelectionChangedTimer != null)
+            {
+                _dataGridSelectionChangedTimer.Tick -= DataGridSelectionChangedTimer_Tick;
+                _dataGridSelectionChangedTimer.Stop();
+            }
+
+            if (SharedData.ChangeTracker != null)
+            {
+                SharedData.ChangeTracker.UndoRedoStateChanged -= ChangeTracker_UndoRedoStateChanged;
+            }
+
+            // Unsubscribe ComboBox selection changed
+            if (_scraper != null)
+            {
+                _scraper.comboBox_SelectedScraper.SelectionChanged -= _scraper.ComboBox_SelectedScraper_SelectionChanged;
+            }
+
+            // Unsubscribe Ribbon auto-hide events if they were attached
+            RibbonHotZone.MouseEnter -= RibbonHotZone_MouseEnter;
+            RibbonMenu.MouseLeave -= RibbonMenu_MouseLeave;
+
+            // Unsubscribe font size sliders
+            RibbonFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
+            ClassicFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
+
+            // Stop media playback if active
+            if (_mediaPage != null)
+            {
+                _mediaPage.StopPlaying();
+                _mediaPage.ClearAllImages();
+            }
+
+            // Clean up scraper resources
+            if (_scraper != null)
+            {
+                // Any scraper-specific cleanup if needed
+            }
+
+            // Clean up dat tool page
+            if (_datToolPage != null && MainContentFrame.Content == _datToolPage)
+            {
+                _datToolPage.CloseDatToolPage();
             }
         }
 
@@ -3990,7 +4048,7 @@ namespace GamelistManager
                     string newName = NameHelper.NormalizeRomName(path);
                     if (SharedData.CurrentSystem == "mame")
                     {
-                        newName = MameNames.Names.ContainsKey(newName) ? MameNames.Names[newName] : newName;
+                        newName = MameNamesHelper.Names.ContainsKey(newName) ? MameNamesHelper.Names[newName] : newName;
                     }
                     row["Name"] = newName;
                 }
@@ -4308,6 +4366,108 @@ namespace GamelistManager
         private void RibbonButton_ClearAllFilters_Click(object sender, RoutedEventArgs e)
         {
             ResetAllFilters();
+        }
+
+  
+        private void menuItem_FindDuplicate_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show("This will quickly identify any duplicate items in this gamelist, regardless of text case.\n\nDo you want to continue?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            FindDuplicateItems();
+
+        }
+
+        private void FindDuplicateItems()
+        {
+            Mouse.OverrideCursor = Cursors.Wait;
+
+            // Temporarily disable DataGrid
+            MainDataGrid.IsEnabled = false;
+
+            var duplicateItems = new List<DataRowView>();
+
+            // Track seen ROM paths (case-insensitive)
+            var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                // Detect duplicates
+                foreach (DataRowView row in MainDataGrid.Items.OfType<DataRowView>())
+                {
+                    if (row["Rom Path"] is string romPath && !string.IsNullOrWhiteSpace(romPath))
+                    {
+                        string fullPath = PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!);
+
+                        // Check for duplicates - if already seen, it's a duplicate
+                        if (seenPaths.Contains(fullPath))
+                        {
+                            duplicateItems.Add(row);
+                        }
+                        else
+                        {
+                            seenPaths.Add(fullPath);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                MainDataGrid.IsEnabled = true;
+            }
+
+            // --- No duplicate items ---
+            if (duplicateItems.Count == 0)
+            {
+                MessageBox.Show("No duplicate items were detected", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // --- Show Status column ---
+            var statusColumn = MainDataGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "Status");
+            if (statusColumn != null)
+                statusColumn.Visibility = Visibility.Visible;
+
+            // --- Ask user ---
+            var result = MessageBox.Show(
+                $"There are {duplicateItems.Count} duplicate items in this gamelist.\n\nDo you want to remove them?",
+                "Notice:",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                SharedData.ChangeTracker!.StartBulkOperation();
+
+                foreach (var row in duplicateItems)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        if (MainDataGrid.ItemsSource is DataView dataView && dataView.Table != null)
+                        {
+                            dataView.Table.Rows.Remove(row.Row);
+                        }
+                    });
+                }
+
+                SharedData.ChangeTracker!.EndBulkOperation();
+            }
+            else
+            {
+                // Mark duplicates
+                foreach (var row in duplicateItems)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        row["Status"] = "Duplicate";
+                    });
+                }
+            }
         }
     }
 }

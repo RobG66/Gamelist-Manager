@@ -50,8 +50,8 @@
             </StackPanel>
 
             <!-- Close button -->
-            <Button Content="Close" Width="100" Margin="0,20,0,0" HorizontalAlignment="Center" 
-                    Style="{DynamicResource GreyRoundedButton}" Click="Close_Click"/>
+            <Button Content="Close" Width="60" Margin="0,20,0,0" HorizontalAlignment="Center" Height="20" 
+                    Style="{DynamicResource OrangeRoundedButton}" Click="Close_Click"/>
         </StackPanel>
     </Grid>
 </Window>

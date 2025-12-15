@@ -16,6 +16,24 @@ namespace GamelistManager
     {
         private DataGrid _mainDataGrid;
         private StatusBar statusBar;
+
+        // Constants for validation ranges
+        private const int MIN_SEARCH_DEPTH = 0;
+        private const int MAX_SEARCH_DEPTH = 9;
+        private const int DEFAULT_SEARCH_DEPTH = 2;
+               
+        private const int MIN_MAX_UNDO = 0;
+        private const int MAX_MAX_UNDO = 15;
+        private const int DEFAULT_MAX_UNDO = 5;
+
+        private const int MIN_RECENT_FILES = 1;
+        private const int MAX_RECENT_FILES = 50;
+        private const int DEFAULT_RECENT_FILES = 15;
+
+        private const int MIN_BATCH_SIZE = 50;
+        private const int MAX_BATCH_SIZE = 300;
+        private const int DEFAULT_BATCH_SIZE = 300;
+
         public SettingsDialogWindow(MainWindow mainWindow)
         {
             InitializeComponent();
@@ -28,7 +46,7 @@ namespace GamelistManager
             string hostName = textBox_HostName.Text;
             string userID = textBox_UserID.Text;
             string password = textBox_Password.Text;
-                       
+
             string theme = comboBox_Theme.Text;
             Properties.Settings.Default.Theme = theme;
 
@@ -38,8 +56,8 @@ namespace GamelistManager
                 _mainDataGrid.GridLinesVisibility = visibility;
             }
 
+            Properties.Settings.Default.LogVerbosity = comboBox_LogVerbosity.SelectedIndex;
             Properties.Settings.Default.GridLineVisibility = gridLineVisibility;
-
             Properties.Settings.Default.BatoceraHostName = hostName;
             Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;
             Properties.Settings.Default.RememberColumns = (bool)checkBox_RememberColumns.IsChecked!;
@@ -51,35 +69,46 @@ namespace GamelistManager
             Properties.Settings.Default.RememberAutoSize = (bool)checkBox_RememberAutosize.IsChecked!;
             Properties.Settings.Default.Volume = (int)sliderVolumeSetting.Value;
             Properties.Settings.Default.AutoExpandLogger = (bool)checkBox_AutoExpandLogger.IsChecked!;
+            Properties.Settings.Default.IgnoreDuplicates = (bool)checkBox_IgnoreDuplicates.IsChecked!;
+            Properties.Settings.Default.BatchProcessing = (bool)checkBox_BatchProcessing.IsChecked!;
+            Properties.Settings.Default.LargeImagePreview = (bool)checkBox_LargeImagePreview.IsChecked!;
 
-            // Search Depth (0-9, default: 2)
+            // Search Depth validation
             string searchDepth = textBox_SearchDepth.Text;
-            if (!int.TryParse(searchDepth, out int searchDepthInt) || searchDepthInt < 0 || searchDepthInt > 9)
+            if (!int.TryParse(searchDepth, out int searchDepthInt) || searchDepthInt < MIN_SEARCH_DEPTH || searchDepthInt > MAX_SEARCH_DEPTH)
             {
-                searchDepthInt = 2;
+                searchDepthInt = DEFAULT_SEARCH_DEPTH;
             }
             textBox_SearchDepth.Text = searchDepthInt.ToString();
             Properties.Settings.Default.SearchDepth = searchDepthInt;
 
-            // Max Undo (0-15, default: 5)
+            // Max Undo validation
             string maxUndo = textBox_MaxUndo.Text;
-            if (!int.TryParse(maxUndo, out int maxUndoInt) || maxUndoInt < 0 || maxUndoInt > 15)
+            if (!int.TryParse(maxUndo, out int maxUndoInt) || maxUndoInt < MIN_MAX_UNDO || maxUndoInt > MAX_MAX_UNDO)
             {
-                maxUndoInt = 5;
+                maxUndoInt = DEFAULT_MAX_UNDO;
             }
             textBox_MaxUndo.Text = maxUndoInt.ToString();
             Properties.Settings.Default.MaxUndo = maxUndoInt;
 
-            // Recent Files Count (1-50, default: 15)
+            // Recent Files Count validation
             string recentFilesCount = textBox_RecentFilesCount.Text;
-            if (!int.TryParse(recentFilesCount, out int recentFilesInt) || recentFilesInt < 1 || recentFilesInt > 50)
+            if (!int.TryParse(recentFilesCount, out int recentFilesInt) || recentFilesInt < MIN_RECENT_FILES || recentFilesInt > MAX_RECENT_FILES)
             {
-                recentFilesInt = 15;
+                recentFilesInt = DEFAULT_RECENT_FILES;
             }
             textBox_RecentFilesCount.Text = recentFilesInt.ToString();
             Properties.Settings.Default.RecentFilesCount = recentFilesInt;
+
+            // Max Batch validation
+            string maxBatch = textBox_MaxBatch.Text;
+            if (!int.TryParse(maxBatch, out int maxBatchInt) || maxBatchInt < MIN_BATCH_SIZE || maxBatchInt > MAX_BATCH_SIZE)
+            {
+                maxBatchInt = DEFAULT_BATCH_SIZE;
+            }
+            textBox_MaxBatch.Text = maxBatchInt.ToString();
+            Properties.Settings.Default.BatchProcessingMaximum = maxBatchInt;
             
-                        
             string MamePath = textBox_MamePath.Text;
             Properties.Settings.Default.MamePath = MamePath;
 
@@ -91,7 +120,7 @@ namespace GamelistManager
                 return;
             }
 
-            var textBoxes = GamelistManager.classes.helpers.VisualTreeHelper.GetAllVisualChildren<TextBox>(Paths);
+            var textBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<TextBox>(Paths);
             Dictionary<string, string> mediaPaths = [];
             foreach (TextBox textBox in textBoxes)
             {
@@ -138,7 +167,6 @@ namespace GamelistManager
             button_Save.IsEnabled = false;
 
             Properties.Settings.Default.Save();
-
         }
 
         private void ButtonClose_Click(object sender, RoutedEventArgs e)
@@ -158,14 +186,24 @@ namespace GamelistManager
 
             // Populate saved or default mediapaths from a serialized json string
             string mediaPathsJsonString = Properties.Settings.Default.MediaPaths;
-            var mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)!;
-            var textBoxes = GamelistManager.classes.helpers.VisualTreeHelper.GetAllVisualChildren<TextBox>(Paths);
+            Dictionary<string, string> mediaPaths;
+
+            try
+            {
+                mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
+                             ?? new Dictionary<string, string>();
+            }
+            catch
+            {
+                mediaPaths = new Dictionary<string, string>();
+            }
+
+            var textBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<TextBox>(Paths);
             foreach (TextBox textBox in textBoxes)
             {
                 var tagValue = textBox.Tag;
-                if (tagValue != null)
+                if (tagValue != null && mediaPaths.TryGetValue(tagValue.ToString()!, out string? value))
                 {
-                    string value = mediaPaths[tagValue.ToString()!];
                     textBox.Text = value;
                 }
             }
@@ -203,17 +241,14 @@ namespace GamelistManager
             }
 
             string hostName = Properties.Settings.Default.BatoceraHostName;
-
             (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
 
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
+            if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(userPassword))
             {
-                return;
+                textBox_HostName.Text = hostName;
+                textBox_UserID.Text = userName;
+                textBox_Password.Text = userPassword;
             }
-
-            textBox_HostName.Text = hostName;
-            textBox_UserID.Text = userName;
-            textBox_Password.Text = userPassword;
 
             bool confirmBulkChanges = Properties.Settings.Default.ConfirmBulkChange;
             checkBox_ConfirmBulkChanges.IsChecked = confirmBulkChanges;
@@ -227,6 +262,13 @@ namespace GamelistManager
             bool enableDelete = Properties.Settings.Default.EnableDelete;
             checkBox_EnableDelete.IsChecked = enableDelete;
 
+            bool ignoreDuplicates = Properties.Settings.Default.IgnoreDuplicates;
+            checkBox_IgnoreDuplicates.IsChecked = ignoreDuplicates;
+
+            bool batchProcessing = Properties.Settings.Default.BatchProcessing;
+            checkBox_BatchProcessing.IsChecked = batchProcessing;
+            textBox_MaxBatch.IsEnabled = batchProcessing;
+
             bool rememberColumns = Properties.Settings.Default.RememberColumns;
             checkBox_RememberColumns.IsChecked = rememberColumns;
 
@@ -236,23 +278,26 @@ namespace GamelistManager
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             checkBox_EnableSaveReminder.IsChecked = saveReminder;
 
+            bool largeImagePreview = Properties.Settings.Default.LargeImagePreview;
+            checkBox_LargeImagePreview.IsChecked = largeImagePreview;
+
             bool verifyImages = Properties.Settings.Default.VerifyDownloadedImages;
             checkBox_VerifyImageDownloads.IsChecked = verifyImages;
-
+                 
             bool videoAutoplay = Properties.Settings.Default.VideoAutoplay;
             checkBox_VideoAutoplay.IsChecked = videoAutoplay;
 
             int recentFilesCount = Properties.Settings.Default.RecentFilesCount;
-            if (recentFilesCount < 1 || recentFilesCount > 50)
+            if (recentFilesCount < MIN_RECENT_FILES || recentFilesCount > MAX_RECENT_FILES)
             {
-                recentFilesCount = 15;
+                recentFilesCount = DEFAULT_RECENT_FILES;
             }
             textBox_RecentFilesCount.Text = recentFilesCount.ToString();
 
             int searchDepth = Properties.Settings.Default.SearchDepth;
-            if (searchDepth < 0 || searchDepth > 9)
+            if (searchDepth < MIN_SEARCH_DEPTH || searchDepth > MAX_SEARCH_DEPTH)
             {
-                searchDepth = 2;
+                searchDepth = DEFAULT_SEARCH_DEPTH;
             }
             textBox_SearchDepth.Text = searchDepth.ToString();
 
@@ -264,7 +309,7 @@ namespace GamelistManager
             sliderVolumeSetting.Value = volume;
 
             int maxUndo = Properties.Settings.Default.MaxUndo;
-            if (maxUndo < 1 || maxUndo > 15)
+            if (maxUndo < 1 || maxUndo > MAX_MAX_UNDO)
             {
                 checkBox_TrackChanges.IsChecked = false;
                 textBox_MaxUndo.IsEnabled = false;
@@ -281,19 +326,32 @@ namespace GamelistManager
             comboBox_Theme.SelectedItem = comboBox_Theme.Items.Cast<ComboBoxItem>()
                 .FirstOrDefault(item => item.Content?.ToString() == theme);
 
+            int logVerbosity = Properties.Settings.Default.LogVerbosity;    
+            comboBox_LogVerbosity.SelectedIndex = logVerbosity;
+
         }
 
         private void SetTextBoxDefaults()
         {
             string mediaPathsJsonString = SettingsHelper.GetDefaultSetting("MediaPaths")!;
-            var mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)!;
-            var textBoxes = GamelistManager.classes.helpers.VisualTreeHelper.GetAllVisualChildren<TextBox>(Paths);
+            Dictionary<string, string> mediaPaths;
+
+            try
+            {
+                mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
+                             ?? new Dictionary<string, string>();
+            }
+            catch
+            {
+                mediaPaths = new Dictionary<string, string>();
+            }
+
+            var textBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<TextBox>(Paths);
             foreach (TextBox textBox in textBoxes)
             {
                 var tagValue = textBox.Tag;
-                if (tagValue != null)
+                if (tagValue != null && mediaPaths.TryGetValue(tagValue.ToString()!, out string? value))
                 {
-                    string value = mediaPaths[tagValue.ToString()!];
                     textBox.Text = value;
                 }
             }
@@ -303,16 +361,28 @@ namespace GamelistManager
         {
             button_Save.IsEnabled = true;
             button_Save.Content = "Save";
+
             if (checkBox_TrackChanges.IsChecked == true)
             {
                 textBox_MaxUndo.IsEnabled = true;
-                textBox_MaxUndo.Text = "15";
+                textBox_MaxUndo.Text = MAX_MAX_UNDO.ToString();
             }
             else
             {
                 textBox_MaxUndo.IsEnabled = false;
                 textBox_MaxUndo.Text = "0";
             }
+
+            if (checkBox_BatchProcessing.IsChecked == true)
+            {
+                textBox_MaxBatch.IsEnabled = true;
+                textBox_MaxBatch.Text = DEFAULT_BATCH_SIZE.ToString();
+            }
+            else
+            {
+                textBox_MaxBatch.IsEnabled = false;
+            }
+                       
         }
 
         private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -472,4 +542,3 @@ namespace GamelistManager
         }
     }
 }
-

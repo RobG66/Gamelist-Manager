@@ -509,5 +509,77 @@ namespace GamelistManager.Properties {
                 this["EnableDelete"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IgnoreDuplicates {
+            get {
+                return ((bool)(this["IgnoreDuplicates"]));
+            }
+            set {
+                this["IgnoreDuplicates"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool BatchProcessing {
+            get {
+                return ((bool)(this["BatchProcessing"]));
+            }
+            set {
+                this["BatchProcessing"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("300")]
+        public int BatchProcessingMaximum {
+            get {
+                return ((int)(this["BatchProcessingMaximum"]));
+            }
+            set {
+                this["BatchProcessingMaximum"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int LogVerbosity {
+            get {
+                return ((int)(this["LogVerbosity"]));
+            }
+            set {
+                this["LogVerbosity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool LargeImagePreview {
+            get {
+                return ((bool)(this["LargeImagePreview"]));
+            }
+            set {
+                this["LargeImagePreview"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Scaling {
+            get {
+                return ((bool)(this["Scaling"]));
+            }
+            set {
+                this["Scaling"] = value;
+            }
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace GamelistManager
             grid_MainGrid.Children.Add(_mediaPlayerControl);
 
             // Start playback
-            _mediaPlayerControl.PlayMedia(fileNames, true);
+            _mediaPlayerControl.PlayMediaFiles(fileNames, true);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

@@ -1,209 +1,256 @@
 ﻿using GamelistManager.classes.helpers;
 using System.Data;
+using System.IO;
 using System.Windows;
 
-namespace GamelistManager.classes.gamelist;
-
-public static class GamelistLoader
+namespace GamelistManager.classes.gamelist
 {
-    /// <summary>
-    /// Load an existing gamelist XML file into a DataSet.
-    /// Returns null if the file cannot be read or has no valid "game" table.
-    /// </summary>
-    public static DataSet? LoadGamelist(string xmlFilePath)
+    public static class GamelistLoader
     {
-        DataSet sourceDataSet = new();
-
-        try
+        // Load an existing gamelist XML file into a DataSet.
+        // Returns null if the file cannot be read or has no valid "game" table.
+        public static DataSet? LoadGamelist(string xmlFilePath, bool ignoreDuplicates)
         {
-            sourceDataSet.ReadXml(xmlFilePath);
-        }
-        catch
-        {
-            return null;
-        }
+            DataSet sourceDataSet = new();
 
-        DataTable? sourceTable = sourceDataSet.Tables["game"];
-
-        if (sourceTable == null || sourceDataSet == null || sourceDataSet.Tables.Count == 0 || sourceDataSet.Tables["game"] == null)
-        {
-            return null;
-        }
-
-        DataSet destinationDataSet = new();
-        DataTable newTable = CreateGameTable();
-        destinationDataSet.Tables.Add(newTable);
-
-        // Pre-cache viewable metadata to avoid repeated LINQ queries
-        var viewableMetadata = GamelistMetaData.GetMetaDataDictionary().Values
-            .Where(d => d.Viewable)
-            .ToList();
-
-        // Pre-build column existence lookup for O(1) access
-        var sourceColumns = new HashSet<string>(
-            sourceTable.Columns.Cast<DataColumn>().Select(c => c.ColumnName),
-            StringComparer.OrdinalIgnoreCase
-        );
-
-        // Track unique Rom Paths
-        var uniqueRomPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var duplicateRomPaths = new List<string>();
-
-        int indexCounter = 1;
-        DataTable destTable = destinationDataSet.Tables[0];
-
-        // Get target column info once
-        var destColumns = destTable.Columns;
-
-        foreach (DataRow sourceRow in sourceTable.Rows)
-        {
-            DataRow destinationRow = destTable.NewRow();
-
-            // Process all metadata columns
-            foreach (var metaDataDecl in viewableMetadata)
+            try
             {
-                string sourceColumnName = metaDataDecl.Type;
-                string destinationColumnName = metaDataDecl.Name;
+                sourceDataSet.ReadXml(xmlFilePath);
+            }
+            catch
+            {
+                return null;
+            }
 
-                // Fast column existence check
-                if (sourceColumns.Contains(sourceColumnName))
+            DataTable? sourceTable = sourceDataSet.Tables["game"];
+
+            if (sourceTable == null || sourceDataSet == null || sourceDataSet.Tables.Count == 0 || sourceDataSet.Tables["game"] == null)
+            {
+                return null;
+            }
+
+            DataSet destinationDataSet = new();
+            DataTable newTable = CreateGameTable();
+            destinationDataSet.Tables.Add(newTable);
+
+            // Pre-cache viewable metadata to avoid repeated LINQ queries
+            var viewableMetadata = GamelistMetaData.GetMetaDataDictionary().Values
+                .Where(d => d.Viewable)
+                .ToList();
+
+            // Pre-build column existence lookup for O(1) access
+            var sourceColumns = new HashSet<string>(
+                sourceTable.Columns.Cast<DataColumn>().Select(c => c.ColumnName),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            // Track unique ROM paths
+            var uniqueRomPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var duplicateRomPaths = new List<string>();
+
+            int indexCounter = 1;
+            DataTable destTable = destinationDataSet.Tables[0];
+
+            var parentFolderPath = Path.GetDirectoryName(xmlFilePath);
+
+            foreach (DataRow sourceRow in sourceTable.Rows)
+            {
+                DataRow destinationRow = destTable.NewRow();
+
+                // Process metadata fields
+                foreach (var metaDataDecl in viewableMetadata)
                 {
-                    var sourceValue = sourceRow[sourceColumnName];
+                    string sourceColumnName = metaDataDecl.Type;
+                    string destinationColumnName = metaDataDecl.Name;
 
-                    if (metaDataDecl.DataType == MetaDataType.Bool)
+                    if (sourceColumns.Contains(sourceColumnName))
                     {
-                        // Handle boolean
-                        bool destinationValue = false;
-                        if (sourceValue != DBNull.Value && sourceValue != null)
-                        {
-                            try
-                            {
-                                destinationValue = Convert.ToBoolean(sourceValue);
-                            }
-                            catch
-                            {
-                                destinationValue = false;
-                            }
-                        }
-                        destinationRow[destinationColumnName] = destinationValue;
-                    }
-                    else
-                    {
-                        // Handle string values
-                        if (sourceValue == DBNull.Value || sourceValue == null)
-                            continue;
+                        var sourceValue = sourceRow[sourceColumnName];
 
-                        string stringValue = sourceValue.ToString()!;
-                        if (string.IsNullOrEmpty(stringValue))
-                            continue;
-
-                        // Handle date conversions
-                        if (destinationColumnName == "Release Date" || destinationColumnName == "Last Played")
+                        if (metaDataDecl.DataType == MetaDataType.Bool)
                         {
-                            string formattedDate = ISO8601Helper.ConvertFromISO8601(stringValue);
-                            destinationRow[destinationColumnName] = !string.IsNullOrEmpty(formattedDate)
-                                ? formattedDate
-                                : stringValue;
+                            bool destinationValue = false;
+                            if (sourceValue != DBNull.Value && sourceValue != null)
+                            {
+                                try
+                                {
+                                    destinationValue = Convert.ToBoolean(sourceValue);
+                                }
+                                catch
+                                {
+                                    destinationValue = false;
+                                }
+                            }
+                            destinationRow[destinationColumnName] = destinationValue;
                         }
                         else
                         {
-                            destinationRow[destinationColumnName] = stringValue;
+                            if (sourceValue == DBNull.Value || sourceValue == null)
+                                continue;
+
+                            string stringValue = sourceValue.ToString()!;
+                            if (string.IsNullOrEmpty(stringValue))
+                                continue;
+
+                            // Date conversions
+                            if (destinationColumnName == "Release Date" || destinationColumnName == "Last Played")
+                            {
+                                string formattedDate = ISO8601Helper.ConvertFromISO8601(stringValue);
+                                destinationRow[destinationColumnName] =
+                                    !string.IsNullOrEmpty(formattedDate) ? formattedDate : stringValue;
+                            }
+                            else
+                            {
+                                destinationRow[destinationColumnName] = stringValue;
+                            }
                         }
                     }
+                    else
+                    {
+                        // Column missing in source - default false for bool
+                        if (metaDataDecl.DataType == MetaDataType.Bool)
+                            destinationRow[destinationColumnName] = false;
+                    }
                 }
-                else
+
+                // Duplicate ROM-path detection
+                string? normalizedFilePath =
+                    PathHelper.ConvertGamelistPathToFullPath(destinationRow["Rom Path"].ToString()!, parentFolderPath!);
+
+                if (!string.IsNullOrEmpty(normalizedFilePath))
                 {
-                    // Column missing in source - set default for bool
-                    if (metaDataDecl.DataType == MetaDataType.Bool)
-                        destinationRow[destinationColumnName] = false;
+                    if (!uniqueRomPaths.Add(normalizedFilePath)) // duplicate detected
+                    {
+                        duplicateRomPaths.Add(normalizedFilePath);
+
+                        if (ignoreDuplicates)
+                            continue; // skip duplicate entirely
+                        // else: keep duplicate
+                    }
                 }
+
+                // Assign unique index
+                destinationRow["Index"] = indexCounter++;
+                destTable.Rows.Add(destinationRow);
             }
 
-            // Check for duplicate Rom Path
-            string? romPath = destinationRow["Rom Path"]?.ToString();
-            if (!string.IsNullOrEmpty(romPath))
+            // Duplicate warnings / logging
+            if (duplicateRomPaths.Count > 0)
             {
-                if (!uniqueRomPaths.Add(romPath)) // Add returns false if already exists
-                {
-                    duplicateRomPaths.Add(romPath);
-                    continue; // Skip duplicate
-                }
+                ShowDuplicateWarning(duplicateRomPaths, ignoreDuplicates);
             }
 
-            // Assign unique index
-            destinationRow["Index"] = indexCounter++;
-            destTable.Rows.Add(destinationRow);
+            return destinationDataSet;
         }
 
-        // Show duplicate warning if needed
-        if (duplicateRomPaths.Count > 0)
+        private static void ShowDuplicateWarning(List<string> duplicates, bool removed)
         {
-            ShowDuplicateWarning(duplicateRomPaths);
+            var preview = string.Join(", ", duplicates.Take(10));
+
+            string header = removed
+                ? "Duplicate Entries Ignored"
+                : "Duplicate Entries Detected";
+
+            string body;
+
+            if (removed)
+            {
+                body = $"The following duplicates were found and ignored:\n{preview}";
+                if (duplicates.Count > 10)
+                    body += $"\n... and {duplicates.Count - 10} more.";
+
+                // Log removed duplicate paths
+                WriteDuplicateLog(duplicates);
+            }
+            else
+            {
+                body =
+                    "Duplicate item entries are detected.\n" +
+                    "Use the 'Find Duplicates' tool to inspect and fix them.\n\n" +
+                    preview;
+
+                if (duplicates.Count > 10)
+                    body += $"\n... and {duplicates.Count - 10} more.";
+            }
+
+            MessageBox.Show(body, header, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
-        return destinationDataSet;
-    }
-
-    private static void ShowDuplicateWarning(List<string> duplicates)
-    {
-        var preview = string.Join(", ", duplicates.Take(10));
-        string warningMessage = $"The following duplicates were found and ignored:\n{preview}";
-
-        if (duplicates.Count > 10)
-            warningMessage += $"\n... and {duplicates.Count - 10} more.";
-
-        MessageBox.Show(warningMessage, "Duplicate Detected", MessageBoxButton.OK, MessageBoxImage.Warning);
-    }
-
-    /// <summary>
-    /// Create a new, empty gamelist DataSet with the correct schema.
-    /// </summary>
-    public static DataSet CreateEmptyGamelist()
-    {
-        DataSet dataSet = new();
-        dataSet.Tables.Add(CreateGameTable());
-        return dataSet;
-    }
-
-    /// <summary>
-    /// Internal helper to build the "game" DataTable schema.
-    /// Includes a hidden "Index" column not written to XML.
-    /// </summary>
-    private static DataTable CreateGameTable()
-    {
-        var viewableMetaData = GamelistMetaData.GetMetaDataDictionary().Values
-            .Where(decl => decl.Viewable)
-            .ToList();
-
-        DataTable table = new("game");
-
-        // Hidden index column (not written to XML)
-        table.Columns.Add(new DataColumn
+        private static void WriteDuplicateLog(List<string> duplicates)
         {
-            ColumnName = "Index",
-            DataType = typeof(int),
-            ColumnMapping = MappingType.Hidden
-        });
+            try
+            {
+                string logDir = Path.Combine(Environment.CurrentDirectory, "logs");
+                Directory.CreateDirectory(logDir);
 
-        // Status column
-        table.Columns.Add(new DataColumn
+                string logPath = Path.Combine(logDir, "duplicate_removed.log");
+
+                using (StreamWriter writer = new StreamWriter(logPath, append: true))
+                {
+                    writer.WriteLine("=== Duplicate Entries Removed ===");
+                    writer.WriteLine($"Timestamp: {DateTime.Now}");
+                    writer.WriteLine("List of removed duplicate ROM paths:");
+
+                    foreach (string entry in duplicates)
+                        writer.WriteLine(entry);
+
+                    writer.WriteLine();
+                }
+            }
+            catch
+            {
+                // Silent fail – logging must not interrupt main workflow
+            }
+        }
+
+        // Create a new, empty gamelist DataSet with the correct schema.
+        public static DataSet CreateEmptyGamelist()
         {
-            ColumnName = "Status",
-            DataType = typeof(string),
-        });
+            DataSet dataSet = new();
+            dataSet.Tables.Add(CreateGameTable());
+            return dataSet;
+        }
 
-        // All viewable metadata columns
-        foreach (var metaDataDecl in viewableMetaData)
+        // Internal helper to build the "game" DataTable schema.
+        // Includes a hidden "Index" column not written to XML.
+        private static DataTable CreateGameTable()
         {
-            Type dataType = metaDataDecl.DataType == MetaDataType.Bool ? typeof(bool) : typeof(string);
+            var viewableMetaData = GamelistMetaData.GetMetaDataDictionary().Values
+                .Where(decl => decl.Viewable)
+                .ToList();
 
+            DataTable table = new("game");
+
+            // Hidden index column
             table.Columns.Add(new DataColumn
             {
-                ColumnName = metaDataDecl.Name,
-                DataType = dataType,
+                ColumnName = "Index",
+                DataType = typeof(int),
+                ColumnMapping = MappingType.Hidden
             });
-        }
 
-        return table;
+            // Status column
+            table.Columns.Add(new DataColumn
+            {
+                ColumnName = "Status",
+                DataType = typeof(string),
+            });
+
+            // All viewable metadata columns
+            foreach (var metaDataDecl in viewableMetaData)
+            {
+                Type dataType = metaDataDecl.DataType == MetaDataType.Bool
+                    ? typeof(bool)
+                    : typeof(string);
+
+                table.Columns.Add(new DataColumn
+                {
+                    ColumnName = metaDataDecl.Name,
+                    DataType = dataType,
+                });
+            }
+
+            return table;
+        }
     }
 }

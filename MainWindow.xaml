@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GamelistManager"
         mc:Ignorable="d"
-        Title="MainWindow" 
+        Title="Gamelist Manager" 
         Height="490" MinHeight="490" 
         Width="870" MinWidth="870" 
         Loaded="Window_Loaded" 
@@ -42,25 +42,39 @@
             <!-- Application Menu -->
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu
+           
             Style="{StaticResource RibbonApplicationMenuDisabledStyle}"
             BorderThickness="0"
+            x:Name="ribbonApplicationMenu"
             Background="{DynamicResource RibbonApplicationMenuBackground}"
             BorderBrush="{DynamicResource RibbonApplicationMenuBorder}">
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="New Gamelist" Click="NewFile_Click"/>
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Load Gamelist" Click="OpenFile_Click"/>
-                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Reload" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reload Gamelist" Click="ReloadFile_Click" IsEnabled="False"/>
-                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Save" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Save Gamelist" Click="SaveFile_Click" IsEnabled="False"/>
-                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Restore" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Restore A Gamelist" Click="MenuItem_Restore_Click" IsEnabled="False"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="New Gamelist" Click="NewFile_Click"
+                        ImageSource="pack://application:,,,/resources/images/icons/new.png"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Load Gamelist" Click="OpenFile_Click"
+                    ImageSource="pack://application:,,,/resources/images/icons/load.png"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Reload" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reload Gamelist" Click="ReloadFile_Click" IsEnabled="False"
+                           ImageSource="pack://application:,,,/resources/images/icons/reload.png"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Save" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Save Gamelist" Click="SaveFile_Click" IsEnabled="False"
+                        ImageSource="pack://application:,,,/resources/images/icons/save.png"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_Restore" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Restore A Gamelist" Click="MenuItem_Restore_Click" IsEnabled="False"
+                    ImageSource="pack://application:,,,/resources/images/icons/restore.png"/>
                     <RibbonSeparator/>
-                    <RibbonApplicationMenuItem x:Name="ribbonMenu_ExportToCSV" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Export To CSV" Click="Export_Click" IsEnabled="False"/>
+                    <RibbonApplicationMenuItem x:Name="ribbonMenu_ExportToCSV" Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Export To CSV" Click="Export_Click" IsEnabled="False"
+                    ImageSource="pack://application:,,,/resources/images/icons/export.png"/>
                     <RibbonSeparator/>
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Settings" Click="MenuItem_Settings_Click"/>
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reset All Settings" Click="MenuItem_ResetAllSettings_Click"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Settings" Click="MenuItem_Settings_Click"
+                    ImageSource="pack://application:,,,/resources/images/icons/settings2.png"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reset All Settings" Click="MenuItem_ResetAllSettings_Click"
+                        ImageSource="pack://application:,,,/resources/images/icons/reset2.png"/>
+                    
                     <RibbonSeparator/>
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Switch to Classic Menu" Click="ToggleMenuStyle_Click"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Switch to Classic Menu" Click="ToggleMenuStyle_Click"
+                    ImageSource="pack://application:,,,/resources/images/icons/menu.png"/>
                     <RibbonSeparator/>
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="About" Click="MenuItem_AboutClick"/>
-                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Report An Issue" Click="MenuItem_Click_1"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="About" Click="MenuItem_AboutClick"
+                    ImageSource="pack://application:,,,/resources/images/icons/icon.png"/>
+                    <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Report An Issue" Click="MenuItem_Click_1"
+                    ImageSource="pack://application:,,,/resources/images/icons/stop.png"/>
 
                     <!-- Recent Files in the side pane -->
                     <RibbonApplicationMenu.AuxiliaryPaneContent>
@@ -111,91 +125,110 @@
             <RibbonTab x:Name="ribbonTab_Home" Header="Home" Style="{StaticResource RibbonTabDisabledStyle}" IsEnabled="False">
          
                 <!-- View Group -->
-                <!-- XAML - Replace your existing View Group in Home Tab with this -->
                 <RibbonGroup Header="View">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
 
-                        <!-- Clear All Filters button (stays as regular button) -->
+                        <!-- Clear All Filters button -->
                         <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" 
-                      Label="Clear All Filters"
-                      HorizontalAlignment="Left"
-                      Grid.Column="0"
-                      Grid.RowSpan="3"
-                      LargeImageSource="pack://application:,,,/resources/images/icons/magnifying-glass.png"
-                      Click="RibbonButton_ClearAllFilters_Click"/>
+                  Label="Clear All Filters"
+                  Grid.Column="0"
+                  Margin="0,0,2,0"
+                  LargeImageSource="pack://application:,,,/resources/images/icons/magnifying-glass.png"
+                  Click="RibbonButton_ClearAllFilters_Click"/>
 
-                        <RibbonToggleButton x:Name="toggleButton_ShowAll"
+                        <!-- Nested Grid for toggles and checkboxes -->
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Show / Visible / Hidden Toggle Buttons -->
+                            <RibbonToggleButton x:Name="toggleButton_ShowAll"
                             Label="Show All"
+                            Margin="0,0,2,0"
                             HorizontalAlignment="Left"
-                            Grid.Column="1"
+                            Grid.Column="0"
                             Grid.Row="0"
                             IsChecked="True"
                             SmallImageSource="pack://application:,,,/resources/images/icons/magnifying-glass.png"
                             Click="ShowAll_Click"/>
 
-                        <RibbonToggleButton x:Name="toggleButton_VisibleOnly"
-                            Label="Visible Only" 
+                            <RibbonToggleButton x:Name="toggleButton_VisibleOnly"
+                            Label="Visible Only"
+                            Margin="0,0,2,0"
                             HorizontalAlignment="Left"
-                            Grid.Column="1"
+                            Grid.Column="0"
                             Grid.Row="1"
                             SmallImageSource="pack://application:,,,/resources/images/icons/visible.png"
                             Click="ShowVisible_Click"/>
 
-                        <RibbonToggleButton x:Name="toggleButton_HiddenOnly"
-                            Label="Hidden Only" 
+                            <RibbonToggleButton x:Name="toggleButton_HiddenOnly"
+                            Label="Hidden Only"
+                            Margin="0,0,2,0"
                             HorizontalAlignment="Left"
-                            Grid.Column="1"
+                            Grid.Column="0"
                             Grid.Row="2"
                             SmallImageSource="pack://application:,,,/resources/images/icons/invisible.png"
                             Click="ShowHidden_Click"/>
 
-                        <RibbonToggleButton x:Name="toggleButton_AllGenres"
+                            <!-- Genre Toggle Buttons -->
+                            <RibbonToggleButton x:Name="toggleButton_AllGenres"
                             Label="All Genres"
                             IsChecked="True"
                             HorizontalAlignment="Left"
-                            Grid.Column="2"
+                            Grid.Column="1"
                             Grid.Row="0"
                             SmallImageSource="pack://application:,,,/resources/images/icons/gamepad.png"
                             Click="ShowAllGenres_Click"/>
 
-                        <RibbonToggleButton x:Name="toggleButton_SelectedGenre"
+                            <RibbonToggleButton x:Name="toggleButton_SelectedGenre"
                             Label="Selected Genre" 
                             HorizontalAlignment="Left"
-                            Grid.Column="2"
+                            Grid.Column="1"
                             Grid.Row="1"
                             SmallImageSource="pack://application:,,,/resources/images/icons/gamepad.png"
                             Click="ShowGenreOnly_Click"/>
-                        <RibbonSeparator/>
 
-                        <!-- Checkboxes remain unchanged -->
-                        <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}"
-                        x:Name="ribbon_AlwaysOnTop"
+                            <!-- Checkboxes -->
+                            <RibbonCheckBox x:Name="ribbon_AlwaysOnTop"
+                        Style="{StaticResource RibbonCheckBoxDisabledStyle}"
                         HorizontalAlignment="Left"
-                        Grid.Column="3"
+                        Grid.Column="2"
                         Grid.Row="0"
-                        Label="Always On Top" Click="AlwaysOnTop_Click"/>
-                        <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}"
+                        Label="Always On Top"
+                        Click="AlwaysOnTop_Click"/>
+
+                            <RibbonCheckBox x:Name="ribbon_ColumnAutoSize"
+                        Style="{StaticResource RibbonCheckBoxDisabledStyle}"
                         HorizontalAlignment="Left"
-                        Grid.Column="3"
+                        Grid.Column="2"
                         Grid.Row="1"
-                        Label="Autosize Columns" x:Name="ribbon_ColumnAutoSize" IsChecked="True" Click="MenuItem_ColumnAutoSize_Click"/>
-                        <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}"
+                        Label="Autosize Columns"
+                        IsChecked="True"
+                        Click="MenuItem_ColumnAutoSize_Click"/>
+
+                            <RibbonCheckBox x:Name="ribbon_AutoHide"
+                        Style="{StaticResource RibbonCheckBoxDisabledStyle}"
                         HorizontalAlignment="Left"
-                        Grid.Column="3"
+                        Grid.Column="2"
                         Grid.Row="2"
-                        Label="Auto Hide Ribbon" x:Name="ribbon_AutoHide" IsChecked="False" Click="ribbon_AutoHide_Click"/>
+                        Label="Auto Hide Ribbon"
+                        IsChecked="False"
+                        Click="ribbon_AutoHide_Click"/>
+                        </Grid>
                     </Grid>
+
                 </RibbonGroup>
                 <!-- Display Group -->
                 <RibbonGroup Header="Display">
@@ -211,6 +244,10 @@
                     <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Show Scraper" 
                   SmallImageSource="pack://application:,,,/resources/images/icons/scraper.png"
                   Click="Button_Scraper_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Filter Switch" 
+                        SmallImageSource="pack://application:,,,/resources/images/buttons/filter1.png"
+                        Click="ToggleFilterModeButton_Click"/>
+
                 </RibbonGroup>
 
                 <!-- Font Size Group -->
@@ -329,35 +366,35 @@
             <!-- Columns Tab -->
             <RibbonTab Style="{StaticResource RibbonTabDisabledStyle}" Header="Columns" x:Name="ribbonTab_Columns" IsEnabled="False">
                 <RibbonGroup Header="Game Information">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Description" Label="Description" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Genre" Label="Genre" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameId" Label="Game Id" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Rating" Label="Rating" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ReleaseDate" Label="Release Date" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Players" Label="Players" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Favorite" Label="Favorite" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Description" Label="Description" Tag="Description" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Genre" Label="Genre" Tag="Genre" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameId" Label="Game Id" Tag="Game Id" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Rating" Label="Rating" Tag="Rating" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ReleaseDate" Label="Release Date" Tag="Release Date" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Players" Label="Players" Tag="Players" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Favorite" Label="Favorite" Tag="Favorite" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Publishers">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Developer" Label="Developer" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Publisher" Label="Publisher" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Developer" Label="Developer" Tag="Developer" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Publisher" Label="Publisher" Tag="Publisher" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="System">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ArcadeSystemName" Label="Arcade System" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Family" Label="Family" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Region" Label="Region" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Language" Label="Language" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ArcadeSystemName" Label="Arcade System" Tag="Arcade System Name" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Family" Label="Family" Tag="Family" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Region" Label="Region" Tag="Region" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Language" Label="Language" Tag="Language" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Usage">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_PlayCount" Label="Play Count" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_LastPlayed" Label="Last Played" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameTime" Label="Game Time" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_PlayCount" Label="Play Count" Tag="Play Count" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_LastPlayed" Label="Last Played" Tag="Last Played" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameTime" Label="Game Time" Tag="Game Time" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Media">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_MediaPaths" Label="Media Paths" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_MediaPaths" Label="Media Paths" Tag="Media Paths" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Actions">
@@ -379,8 +416,11 @@
                   LargeImageSource="pack://application:,,,/resources/images/icons/findnew.png"
                   Click="MenuItem_FindNewItems_Click"/>
                     <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Identify Missing" 
-                  LargeImageSource="pack://application:,,,/resources/images/icons/findmissing.png"
+                  LargeImageSource="pack://application:,,,/resources/images/icons/findmissing.png" 
                   Click="MenuItem_FindMissingItems_Click"/>
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Identify Duplicates" 
+                      LargeImageSource="pack://application:,,,/resources/images/icons/findduplicates.png" 
+                      Click="menuItem_FindDuplicate_Click"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="DAT">
@@ -530,22 +570,22 @@
                 </MenuItem>
 
                 <MenuItem Style="{DynamicResource BaseMenuItem}" x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
-                    <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Description" Header="Description" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Developer" Header="Developer" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Family" Header="Family" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Genre" Header="Genre" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_GameId" Header="Game Id" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Language" Header="Language" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_LastPlayed" Header="Last Played" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Publisher" Header="Publisher" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_PlayCount" Header="Play Count" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Players" Header="Players" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Rating" Header="Rating" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_Region" Header="Region" Click="MenuItem_Clicked" IsCheckable="true"/>
-                    <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_ArcadeSystemName" Header="Arcade System Name" Tag="Arcade System Name" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Description" Header="Description" Tag="Description" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Developer" Header="Developer" Tag="Developer" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Family" Header="Family" Tag="Family" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Favorite" Header="Favorite" Tag="Favorite" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_GameTime" Header="Game Time" Tag="Game Time" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Genre" Header="Genre" Tag="Genre" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_GameId" Header="Game Id" Tag="Game Id" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Language" Header="Language" Tag="Language" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_LastPlayed" Header="Last Played" Tag="Last Played" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Publisher" Header="Publisher" Tag="Publisher" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_PlayCount" Header="Play Count" Tag="Play Count" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Players" Header="Players" Tag="Players" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Rating" Header="Rating" Tag="Rating" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_Region" Header="Region" Tag="Region" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Tag="Release Date" Click="MenuItem_Clicked" IsCheckable="true"/>
                     <Separator/>
                     <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="MenuItem_Clicked" IsCheckable="true"/>
                 </MenuItem>
@@ -555,6 +595,7 @@
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_FindNewItems" Header="Find New Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindNewItems_Click"/>
                     <MenuItem x:Name="menuItem_FindMissing" Header="Identify Missing Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindMissingItems_Click"/>
+                    <MenuItem x:Name="menuItem_FindDuplicate" Header="Identify Duplicate Items" Style="{DynamicResource MinimalMenuItem}" Click="menuItem_FindDuplicate_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_DatTools" Header="DAT Tools" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_DatTools_Click"/>
                 </MenuItem>
@@ -642,6 +683,10 @@
                                     </DataTrigger>
                                     <!-- Trigger for Missing status -->
                                     <DataTrigger Binding="{Binding Path=Status}" Value="Missing">
+                                        <Setter Property="Foreground" Value="{DynamicResource DataGridMissingItemBrush}"/>
+                                    </DataTrigger>
+                                    <!-- Duplicate -->
+                                    <DataTrigger Binding="{Binding Status}" Value="Duplicate">
                                         <Setter Property="Foreground" Value="{DynamicResource DataGridMissingItemBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>

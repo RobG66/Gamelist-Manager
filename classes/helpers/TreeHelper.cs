@@ -2,7 +2,7 @@
 
 namespace GamelistManager.classes.helpers
 {
-    public static class VisualTreeHelper
+    public static class TreeHelper
     {
         // Gets all visual children of a given parent filtered by type
         public static IEnumerable<T> GetAllVisualChildren<T>(DependencyObject parent) where T : DependencyObject

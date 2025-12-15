@@ -76,6 +76,7 @@
                     <StackPanel x:Name="stackPanel_ScraperSettings" Margin="0,0,0,5">
                         <CheckBox x:Name="checkBox_ScrapeFromCache"
                                   Margin="3"
+                                  IsChecked="True"
                                   Content="Scrape from cache first (if available)"
                                   Style="{DynamicResource CustomCheckBox}"
                                   Checked="CheckBox_ScrapeFromCache_Checked"
@@ -103,7 +104,7 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal"
+                    <StackPanel x:Name="stackPanel_CacheCount" Orientation="Horizontal"
                                 Margin="5,5,5,0"
                                 HorizontalAlignment="Center">
                         <TextBlock x:Name="textBlock_cacheNumber"
@@ -383,7 +384,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Label Content="Threads:" Foreground="{DynamicResource AccentBrush}" FontStyle="Italic" Padding="0" Margin="0,0,3,0"/>
+                        <Label Content="Threads:" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Padding="0" Margin="0,0,3,0"/>
                         <Label x:Name="label_ThreadCount" Content="1" Padding="0" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
@@ -401,9 +402,9 @@
            FontWeight="SemiBold" 
            Padding="0" 
            Margin="0,0,5,0"/>
-                        <Grid Width="90" Height="20" Margin="0,0,5,0">
+                        <Grid Width="90" Height="18" Margin="0,0,5,0">
                             <ProgressBar x:Name="progressBar_ProgressBar" 
-                     Height="20"
+                   Height="18"
                      Style="{DynamicResource CustomProgressBar}"                    
                      BorderThickness="1"/>
                             <Label x:Name="label_ProgressBarCount" 
@@ -414,12 +415,13 @@
                Foreground="{DynamicResource PrimaryTextBrush}"/>
                         </Grid>
                         <Label x:Name="label_Percentage" 
+              
            Content="0%" 
            Padding="0" 
            VerticalAlignment="Center"
            Foreground="{DynamicResource PrimaryTextBrush}"/>
                     </StackPanel>
-                    
+
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Label Content="Limit:" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" Padding="0" Margin="10,0,3,0"/>
                         <Label x:Name="label_ScrapeLimitCount" Content="N/A" Padding="0" Foreground="{DynamicResource ShowingCardBackgroundBrush}" VerticalAlignment="Center"/>
@@ -435,9 +437,10 @@
                         Padding="4" 
                         Margin="0,5,0,0" 
                         MaxHeight="200">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ListBox x:Name="LogListBox" 
                                  BorderThickness="0"
+                                 ScrollViewer.CanContentScroll="False"
+                                 VirtualizingPanel.IsVirtualizing="True"
                                  Background="Transparent">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
@@ -445,10 +448,8 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                    </ScrollViewer>
                 </Border>
             </Grid>
         </Border>
-
     </Grid>
 </Page>

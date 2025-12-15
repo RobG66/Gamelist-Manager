@@ -35,6 +35,7 @@ namespace GamelistManager.classes.helpers
         /// parentPath: "C:/1/2"
         /// relPath:    "./3/4.txt"  → "C:\\1\\2\\3\\4.txt"
         /// relPath:    "3/4.txt"    → "C:\\1\\2\\3\\4.txt"
+        /// result:      "C:\\1\\2\\3\\4.txt"
         public static string ConvertGamelistPathToFullPath(string relativePath, string parentPath)
         {
             if (string.IsNullOrWhiteSpace(relativePath))

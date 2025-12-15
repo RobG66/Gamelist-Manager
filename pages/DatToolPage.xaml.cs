@@ -54,7 +54,7 @@ namespace GamelistManager.pages
             _datSummary.Clear();
             _gamelistSummary.Clear();
             _datHeader = null;
-    
+
             if (SharedData.CurrentSystem == "mame" &&
               !string.IsNullOrWhiteSpace(Properties.Settings.Default.MamePath) &&
               File.Exists(Properties.Settings.Default.MamePath))
@@ -74,8 +74,9 @@ namespace GamelistManager.pages
         {
             ResetDatToolPage();
             comboBox_ReportView.IsEnabled = false;
-           
+
             Mouse.OverrideCursor = Cursors.Wait;
+            _mainWindow.IsEnabled = false;
             button_StreamFromMame.IsEnabled = false;
             button_OpenDatFile.IsEnabled = false;
             button_CloseDATPage.IsEnabled = false;
@@ -99,6 +100,7 @@ namespace GamelistManager.pages
                     }
                     button_OpenDatFile.IsEnabled = true;
                     Mouse.OverrideCursor = null;
+                    _mainWindow.IsEnabled = true;
                     return;
                 }
 
@@ -112,6 +114,7 @@ namespace GamelistManager.pages
             }
             finally
             {
+                _mainWindow.IsEnabled = true;
                 button_CloseDATPage.IsEnabled = true;
                 button_StreamFromMame.IsEnabled = true;
                 button_OpenDatFile.IsEnabled = true;
@@ -145,6 +148,8 @@ namespace GamelistManager.pages
             button_OpenDatFile.IsEnabled = false;
             button_StreamFromMame.IsEnabled = false;
             button_CloseDATPage.IsEnabled = false;
+            Mouse.OverrideCursor = Cursors.Wait;
+            _mainWindow.IsEnabled = false;
 
             try
             {
@@ -159,6 +164,7 @@ namespace GamelistManager.pages
             }
             finally
             {
+                _mainWindow.IsEnabled = true;
                 button_OpenDatFile.IsEnabled = true;
                 button_CloseDATPage.IsEnabled = true;
                 Mouse.OverrideCursor = null;
@@ -212,6 +218,8 @@ namespace GamelistManager.pages
                 }
 
                 checkBox_IncludeHidden.IsEnabled = true;
+                checkBox_CsvOutput.IsEnabled = true;
+                button_FindMissing.IsEnabled = true;
             }
             finally
             {
@@ -372,6 +380,8 @@ namespace GamelistManager.pages
             var diskStatus = new List<string>();
             string description = "";
             bool needsCHD = false;
+            bool hasSoftwareList = false;
+            bool hasScreen = false;
 
             if (runnable.Equals("no", StringComparison.OrdinalIgnoreCase))
                 nonPlayable.Add("Not runnable");
@@ -387,36 +397,65 @@ namespace GamelistManager.pages
             // Parse within this one game/machine subtree
             while (reader.Read())
             {
-                if (reader.NodeType != XmlNodeType.Element)
-                    continue;
-
-                switch (reader.Name.ToLowerInvariant())
+                if (reader.NodeType == XmlNodeType.Element)
                 {
-                    case "disk":
-                        {
-                            var (diskStatusText, nonPlayableReason, requiresCHD) =
-                                ResolveDiskStatus(reader, name, mameRomPath);
+                    switch (reader.Name.ToLowerInvariant())
+                    {
+                        case "disk":
+                            {
+                                var (diskStatusText, nonPlayableReason, requiresCHD) =
+                                    ResolveDiskStatus(reader, name, mameRomPath);
 
-                            diskStatus.Add(diskStatusText);
-                            if (requiresCHD)
-                                needsCHD = true;
+                                diskStatus.Add(diskStatusText);
+                                if (requiresCHD)
+                                    needsCHD = true;
 
-                            if (!string.IsNullOrEmpty(nonPlayableReason))
-                                nonPlayable.Add(nonPlayableReason);
+                                if (!string.IsNullOrEmpty(nonPlayableReason))
+                                    nonPlayable.Add(nonPlayableReason);
 
+                                break;
+                            }
+
+                        case "driver":
+                            string driverStatus = reader.GetAttribute("status") ?? "";
+                            if (driverStatus.Equals("preliminary", StringComparison.OrdinalIgnoreCase))
+                                nonPlayable.Add("Preliminary driver");
                             break;
-                        }
 
-                    case "driver":
-                        string driverStatus = reader.GetAttribute("status") ?? "";
-                        if (driverStatus.Equals("preliminary", StringComparison.OrdinalIgnoreCase))
-                            nonPlayable.Add("Preliminary driver");
-                        break;
+                        case "description":
+                            description = reader.ReadElementContentAsString().Trim();
+                            break;
 
-                    case "description":
-                        description = reader.ReadElementContentAsString().Trim();
-                        break;
+                        case "display":
+                            hasScreen = true;
+                            break;
+
+                        case "softwarelist":
+                            hasSoftwareList = true;
+                            break;
+
+                        case "device":
+                            {
+                                string deviceType = reader.GetAttribute("type") ?? "";
+                                if (deviceType.Equals("software_list", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    hasSoftwareList = true;
+                                }
+                                break;
+                            }
+                    }
                 }
+            }
+
+            if (hasSoftwareList)
+            {
+                nonPlayable.Add("Software list");
+            }
+
+            // Check if no screen tag found - indicates not a game
+            if (!hasScreen && nonPlayable.Count == 0)
+            {
+                nonPlayable.Add("Not a game");
             }
 
             return new GameReportItem
@@ -512,8 +551,6 @@ namespace GamelistManager.pages
                 text_DatInfoDescription.Text = "—";
             }
         }
-
-
 
         private void UpdateGamelistSummaryCounts(bool includeHidden)
         {
@@ -611,7 +648,6 @@ namespace GamelistManager.pages
             text_GamelistNotInDAT.Text = notInDat.ToString();
         }
 
-
         private void UpdateDatSummaryCounts()
         {
             // Always write values so UI doesn't show stale values
@@ -638,9 +674,7 @@ namespace GamelistManager.pages
             text_DatCHD.Text = needsChd.ToString();
             text_DatNonPlayable.Text = nonPlayable.ToString();
             text_DatPlayable.Text = playable.ToString();
-
         }
-
 
         private async void ComboBox_ReportView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -656,6 +690,11 @@ namespace GamelistManager.pages
                 return;
             }
 
+            ShowReport(selectedText, dataView);
+        }
+
+        private async void ShowReport(string selectedText, DataView dataView)
+        {
             // Show cursor and disable during processing
             Mouse.OverrideCursor = Cursors.Wait;
             this.IsEnabled = false;
@@ -663,7 +702,7 @@ namespace GamelistManager.pages
             SharedData.ChangeTracker?.StopTracking();
 
             // Move the heavy work to background thread
-            await Task.Run(() =>
+            int itemsWithStatus = await Task.Run(() =>
             {
                 var table = dataView.Table;
 
@@ -672,6 +711,7 @@ namespace GamelistManager.pages
                     .ToDictionary(g => g.Name, StringComparer.OrdinalIgnoreCase);
 
                 table.BeginLoadData();
+                int count = 0;
 
                 try
                 {
@@ -696,22 +736,49 @@ namespace GamelistManager.pages
                         }
 
                         row["Status"] = string.IsNullOrEmpty(newStatus) ? DBNull.Value : newStatus;
+                        if (!string.IsNullOrEmpty(newStatus))
+                            count++;
                     }
                 }
                 finally
                 {
                     table.EndLoadData();
                 }
+
+                return count;
             });
 
+            // Check if any items have status
+            if (itemsWithStatus == 0)
+            {
+                // Hide status column
+                var statusColumn = _mainWindow.MainDataGrid.Columns
+                    .FirstOrDefault(c => c.Header?.ToString() == "Status");
+                if (statusColumn != null)
+                {
+                    statusColumn.Visibility = Visibility.Collapsed;
+                }
+
+                // Reset combobox selection
+                comboBox_ReportView.SelectedIndex = 0;
+
+                Mouse.OverrideCursor = null;
+                this.IsEnabled = true;
+                SharedData.ChangeTracker?.ResumeTracking();
+
+                MessageBox.Show($"No items found for '{selectedText}' report.", "No Items",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             // Back on UI thread - update UI elements
-            var statusColumn = _mainWindow.MainDataGrid.Columns
+            var statusColumnVisible = _mainWindow.MainDataGrid.Columns
                 .FirstOrDefault(c => c.Header?.ToString() == "Status");
 
-            if (statusColumn != null)
+            if (statusColumnVisible != null)
             {
-                statusColumn.Visibility = Visibility.Visible;
-                statusColumn.Width = DataGridLength.Auto;
+                statusColumnVisible.Visibility = Visibility.Visible;
+                statusColumnVisible.Width = DataGridLength.Auto;
             }
 
             dataView.Sort = "Status DESC";
@@ -733,10 +800,7 @@ namespace GamelistManager.pages
 
             _mainWindow.MainDataGrid.Items.Refresh();
             _mainWindow.MainDataGrid.UpdateLayout();
-
-
         }
-
 
         private static Task<(Stream?, Process?)> GetMameListXmlStreamAsync(string mamePath, string arguments)
         {
@@ -808,6 +872,280 @@ namespace GamelistManager.pages
         {
             bool includeHidden = checkBox_IncludeHidden.IsChecked == true;
             UpdateGamelistSummaryCounts(includeHidden);
+        }
+
+
+        private string EscapeCsv(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return "";
+
+            // If value contains comma, quote, or newline, wrap in quotes and escape internal quotes
+            if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+            {
+                return $"\"{value.Replace("\"", "\"\"")}\"";
+            }
+
+            return value;
+        }
+
+        private string GenerateTextReport(
+          List<(string Name, string Description, string NonPlayable, string CHDRequired)> missingParents,
+          List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)> missingClones,
+          string datFileName)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("===================================================================");
+            sb.AppendLine("MISSING GAMES REPORT");
+            sb.AppendLine("===================================================================");
+            sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"DAT File: {datFileName}");
+            sb.AppendLine();
+            sb.AppendLine($"Total Missing Parents: {missingParents.Count}");
+            sb.AppendLine($"Total Missing Clones: {missingClones.Count}");
+            sb.AppendLine($"Total Missing: {missingParents.Count + missingClones.Count}");
+            sb.AppendLine("===================================================================");
+            sb.AppendLine();
+
+            // Sort and add parents
+            if (missingParents.Count > 0)
+            {
+                sb.AppendLine("MISSING PARENTS (Alphabetical)");
+                sb.AppendLine("-------------------------------------------------------------------");
+
+                foreach (var parent in missingParents.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    sb.AppendLine($"{parent.Name}");
+
+                    if (!string.IsNullOrEmpty(parent.Description))
+                        sb.AppendLine($"  Description: {parent.Description}");
+
+                    // Determine playability
+                    bool isPlayable = string.IsNullOrEmpty(parent.NonPlayable);
+                    sb.AppendLine($"  Playable: {(isPlayable ? "Yes" : "No")}");
+
+                    // Show status reasons if non-playable
+                    if (!string.IsNullOrEmpty(parent.NonPlayable))
+                    {
+                        // Convert newlines to comma-separated
+                        string statusReasons = parent.NonPlayable.Replace(Environment.NewLine, ", ");
+                        sb.AppendLine($"  Status: {statusReasons}");
+                    }
+
+                    // Show CHD requirements
+                    if (!string.IsNullOrEmpty(parent.CHDRequired))
+                    {
+                        string chdInfo = parent.CHDRequired.Replace(Environment.NewLine, ", ");
+                        sb.AppendLine($"  CHD Required: {chdInfo}");
+                    }
+
+                    sb.AppendLine();
+                }
+            }
+
+            // Sort and add clones (by parent, then by clone name)
+            if (missingClones.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("MISSING CLONES (Grouped by Parent, Alphabetical)");
+                sb.AppendLine("-------------------------------------------------------------------");
+
+                var clonesByParent = missingClones
+                    .GroupBy(c => c.CloneOf, StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase);
+
+                foreach (var parentGroup in clonesByParent)
+                {
+                    sb.AppendLine($"Parent: {parentGroup.Key}");
+
+                    foreach (var clone in parentGroup.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+                    {
+                        sb.AppendLine($"  {clone.Name}");
+
+                        if (!string.IsNullOrEmpty(clone.Description))
+                            sb.AppendLine($"    Description: {clone.Description}");
+
+                        // Determine playability
+                        bool isPlayable = string.IsNullOrEmpty(clone.NonPlayable);
+                        sb.AppendLine($"    Playable: {(isPlayable ? "Yes" : "No")}");
+
+                        // Show status reasons if non-playable
+                        if (!string.IsNullOrEmpty(clone.NonPlayable))
+                        {
+                            // Convert newlines to comma-separated
+                            string statusReasons = clone.NonPlayable.Replace(Environment.NewLine, ", ");
+                            sb.AppendLine($"    Status: {statusReasons}");
+                        }
+
+                        // Show CHD requirements
+                        if (!string.IsNullOrEmpty(clone.CHDRequired))
+                        {
+                            string chdInfo = clone.CHDRequired.Replace(Environment.NewLine, ", ");
+                            sb.AppendLine($"    CHD Required: {chdInfo}");
+                        }
+                    }
+                    sb.AppendLine();
+                }
+            }
+
+            sb.AppendLine("===================================================================");
+            sb.AppendLine("END OF REPORT");
+            sb.AppendLine("===================================================================");
+
+            return sb.ToString();
+        }
+
+        // Replace the GenerateCsvReport method with this enhanced version:
+        private string GenerateCsvReport(
+            List<(string Name, string Description, string NonPlayable, string CHDRequired)> missingParents,
+            List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)> missingClones,
+            string datFileName)
+        {
+            var sb = new StringBuilder();
+
+            // CSV Header - added more columns
+            sb.AppendLine("Type,Name,CloneOf,Description,Playable,Status,CHD Required");
+
+            // Add parents (sorted alphabetically)
+            foreach (var parent in missingParents.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                bool isPlayable = string.IsNullOrEmpty(parent.NonPlayable);
+                string statusReasons = string.IsNullOrEmpty(parent.NonPlayable)
+                    ? ""
+                    : parent.NonPlayable.Replace(Environment.NewLine, ", ");
+                string chdInfo = string.IsNullOrEmpty(parent.CHDRequired)
+                    ? ""
+                    : parent.CHDRequired.Replace(Environment.NewLine, ", ");
+
+                sb.AppendLine($"Parent,{EscapeCsv(parent.Name)},,{EscapeCsv(parent.Description)},{(isPlayable ? "Yes" : "No")},{EscapeCsv(statusReasons)},{EscapeCsv(chdInfo)}");
+            }
+
+            // Add clones (sorted by parent, then by clone name)
+            var clonesByParent = missingClones
+                .GroupBy(c => c.CloneOf, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var parentGroup in clonesByParent)
+            {
+                foreach (var clone in parentGroup.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    bool isPlayable = string.IsNullOrEmpty(clone.NonPlayable);
+                    string statusReasons = string.IsNullOrEmpty(clone.NonPlayable)
+                        ? ""
+                        : clone.NonPlayable.Replace(Environment.NewLine, ", ");
+                    string chdInfo = string.IsNullOrEmpty(clone.CHDRequired)
+                        ? ""
+                        : clone.CHDRequired.Replace(Environment.NewLine, ", ");
+
+                    sb.AppendLine($"Clone,{EscapeCsv(clone.Name)},{EscapeCsv(clone.CloneOf)},{EscapeCsv(clone.Description)},{(isPlayable ? "Yes" : "No")},{EscapeCsv(statusReasons)},{EscapeCsv(chdInfo)}");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private async void button_GenerateMissingReport_Click(object sender, RoutedEventArgs e)
+        {
+            if (_datSummary == null || _datSummary.Count == 0)
+            {
+                MessageBox.Show("No DAT file loaded.", "No Data",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (_gamelistSummary == null || _gamelistSummary.Count == 0)
+            {
+                MessageBox.Show("No gamelist data available.", "No Data",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            Mouse.OverrideCursor = Cursors.Wait;
+            this.IsEnabled = false;
+
+            try
+            {
+                // Capture UI values on UI thread before going to background
+                bool isTextFormat = checkBox_CsvOutput.IsChecked != true; // Unchecked = Text, Checked = CSV
+                string datFileName = textBlock_DatFileName.Text;
+
+                string reportContent = await Task.Run(() =>
+                {
+                    // Get all games in gamelist (no filtering)
+                    var gamelistLookup = new HashSet<string>(
+                        _gamelistSummary.Select(g => g.Name),
+                        StringComparer.OrdinalIgnoreCase
+                    );
+                                        
+                    // Find missing games from DAT
+                    var missingParents = new List<(string Name, string Description, string NonPlayable, string CHDRequired)>();
+                    var missingClones = new List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)>();
+
+                    foreach (var datItem in _datSummary)
+                    {
+                        // Skip if game exists in gamelist
+                        if (gamelistLookup.Contains(datItem.Name))
+                        {
+                            continue;
+                        }
+
+                        // Skip devices, BIOS entries, and software list items
+                        if (!string.IsNullOrEmpty(datItem.NonPlayable))
+                        {
+                            string nonPlayable = datItem.NonPlayable.ToLowerInvariant();
+                            if (nonPlayable.Contains("device") ||
+                                nonPlayable.Contains("bios") ||
+                                nonPlayable.Contains("software list"))
+                                continue;
+                        }
+
+                        if (string.IsNullOrEmpty(datItem.CloneOf))
+                        {
+                            // Missing parent
+                            missingParents.Add((datItem.Name, datItem.Description, datItem.NonPlayable, datItem.CHDRequired));
+                        }
+                        else
+                        {
+                            // Missing clone
+                            missingClones.Add((datItem.Name, datItem.CloneOf, datItem.Description, datItem.NonPlayable, datItem.CHDRequired));
+                        }
+                    }
+
+                    // If nothing missing, return empty
+                    if (missingParents.Count == 0 && missingClones.Count == 0)
+                        return "";
+
+                    // Generate appropriate format
+                    return isTextFormat
+                        ? GenerateTextReport(missingParents, missingClones, datFileName)
+                        : GenerateCsvReport(missingParents, missingClones, datFileName);
+                });
+
+                if (string.IsNullOrEmpty(reportContent))
+                {
+                    MessageBox.Show("All playable games from the DAT are present in your gamelist!", "No Missing Games",
+                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // Create temp file with appropriate extension
+                string extension = isTextFormat ? "txt" : "csv";
+                string tempFilePath = Path.Combine(Path.GetTempPath(), $"MissingGames_{DateTime.Now:yyyyMMdd_HHmmss}.{extension}");
+                await File.WriteAllTextAsync(tempFilePath, reportContent);
+
+                // Open file with appropriate application
+                Process.Start(new ProcessStartInfo(tempFilePath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error generating report: {ex.Message}", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                this.IsEnabled = true;
+            }
         }
     }
 }

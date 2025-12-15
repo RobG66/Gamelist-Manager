@@ -1,7 +1,6 @@
 ﻿using GamelistManager.classes.helpers;
 using System.IO;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 
 namespace GamelistManager.classes.io
 {
@@ -16,7 +15,6 @@ namespace GamelistManager.classes.io
 
         public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url, string bearerToken)
         {
-
             string fileExtension = Path.GetExtension(fileDownloadPath).ToLowerInvariant();
             string parentFolder = Path.GetDirectoryName(fileDownloadPath)!;
 
@@ -33,18 +31,6 @@ namespace GamelistManager.classes.io
                 {
                     File.Delete(fileDownloadPath);
                 }
-
-                string fileName = Path.GetFileName(fileDownloadPath);
-                string region = string.Empty;
-
-                string input = url;
-                Match match = Regex.Match(input, @"\(([^)]*)\)$");
-                if (match.Success)
-                {
-                    region = $" ({match.Groups[1].Value})";
-                }
-
-                await LogHelper.Instance.LogAsync($"Downloading file{region}: {fileName}", System.Windows.Media.Brushes.Blue);
 
                 // Download the file using HttpClient
                 using (HttpRequestMessage request = new(HttpMethod.Get, url))
@@ -91,27 +77,11 @@ namespace GamelistManager.classes.io
                 if (verifyResult != "OK")
                 {
                     File.Delete(fileDownloadPath); // Delete invalid image file
-                    string fileName = Path.GetFileName(fileDownloadPath);
-                    await LogHelper.Instance.LogAsync($"Discarding bad image '{fileName}'", System.Windows.Media.Brushes.Red);
                     return false; // Treat as a failed download
                 }
             }
 
-            /*
-            if (convertToPNG)
-            {
-                if (fileExtension != ".png" && imageExtensions.Contains(fileExtension))
-                {
-                    string pngFilePath = Path.ChangeExtension(fileDownloadPath, ".png");
-                    ImageUtility.ConvertToPng(fileDownloadPath, pngFilePath);
-                    File.Delete(fileDownloadPath); // Remove the original file
-                    return pngFilePath;
-                }
-            }
-            */
-
             return true;
         }
-
     }
 }

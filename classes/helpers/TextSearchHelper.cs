@@ -2,146 +2,184 @@
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 namespace GamelistManager.classes.helpers
 {
     public static class TextSearchHelper
     {
-        // Cache multiple normalized name dictionaries identified by hash keys
-        private static readonly Dictionary<int, Dictionary<string, string>> CachedNormalizedLists = [];
+        private const int MaxCacheEntries = 50;
 
-        // Normalize a string by removing file extensions, parentheses, diacritics, punctuation, etc.
+        private static readonly Dictionary<int, Dictionary<string, string>> CachedNormalizedLists
+            = new Dictionary<int, Dictionary<string, string>>();
+
+        private static readonly object cacheLock = new object();
+
+        private static readonly HashSet<string> StopWordsSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "the", "a", "an", "and", "in", "of", "on", "at", "for", "by", "to", "is", "it" };
+
+        private static readonly Regex BracketRegex = new Regex(@"\([^)]*\)|\[.*?\]", RegexOptions.Compiled);
+        private static readonly Regex NonWordRegex = new Regex(@"[\W_]+", RegexOptions.Compiled);
+
+        // Ordered – longest first (critical!)
+        private static readonly (Regex Pattern, string Replacement)[] RomanNumeralRules =
+        {
+            (new Regex(@"\bVII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "7"),
+            (new Regex(@"\bVI\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "6"),
+            (new Regex(@"\bV\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "5"),
+            (new Regex(@"\bIV\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "4"),
+            (new Regex(@"\bIII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "3"),
+            (new Regex(@"\bII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "2"),
+            (new Regex(@"\bI\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "1")
+        };
+
         private static string NormalizeText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
 
-            // Normalize to a consistent Unicode form (NFC is commonly used)
             text = text.Normalize(NormalizationForm.FormC);
 
-            // Remove text after the first underscore, including the underscore
-            int underscoreIndex = text.IndexOf('_');
-            if (underscoreIndex >= 0)
+            // Only remove underscore suffix if this looks like a ROM dump filename
+            if (text.Contains('_') && text.IndexOf('_') is int underscoreIndex && underscoreIndex > 0)
             {
-                text = text.Substring(0, underscoreIndex);
+                // Do not apply to natural names like "Metal_Gear_Solid"
+                if (Path.HasExtension(text) || text.Any(char.IsDigit))
+                    text = text[..underscoreIndex];
             }
 
-            // Remove text in brackets (including the brackets)
-            string pattern = @"\([^)]*\)|\[.*?\]";
-            text = Regex.Replace(text, pattern, string.Empty);
+            text = BracketRegex.Replace(text, string.Empty);
 
-            // Remove diacritics (accents)
             text = RemoveDiacritics(text);
 
-            // Remove file extension using Path.GetFileNameWithoutExtension
-            text = Path.GetFileNameWithoutExtension(text);
+            // Only remove extension if string seems like a file
+            if (text.Contains('.') && Path.GetExtension(text).Length > 1)
+                text = Path.GetFileNameWithoutExtension(text);
 
-            // Remove punctuation, symbols, and non-word characters
-            text = Regex.Replace(text, @"[\W_]+", " ");
+            text = NonWordRegex.Replace(text, " ");
 
-            // Convert possible Roman numerals to numbers (up to 7)
             text = ConvertRomanNumerals(text);
 
-            // Define stop words to exclude, only for longer strings
             if (text.Length > 7)
             {
-                var stopWords = new HashSet<string> { "the ", " the ", " the", " a ", " an ", " and ", " in ", " of ", " on ", " at ", " for ", " by ", " to ", " is ", " it " };
-
-                // Remove stop words while preserving other short words
-                text = string.Join(" ", text
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                    .Where(word => !stopWords.Contains(word.ToLower())));
+                text = string.Join(" ",
+                    text.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Where(w => !StopWordsSet.Contains(w)));
             }
 
-            text = text.Replace(" ", string.Empty);
-
-            // Trim whitespace and convert to lowercase
-            return text.Trim().ToLower();
+            return text.Replace(" ", string.Empty).Trim().ToLowerInvariant();
         }
 
-        // Helper method to remove diacritics (accents) from characters
         private static string RemoveDiacritics(string text)
         {
             string normalizedString = text.Normalize(NormalizationForm.FormD);
-            var stringBuilder = new StringBuilder();
 
-            foreach (char c in normalizedString)
+            if (normalizedString.Length <= 256)
             {
-                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-                {
-                    stringBuilder.Append(c);
-                }
-            }
+                Span<char> buffer = stackalloc char[normalizedString.Length];
+                int index = 0;
 
-            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+                foreach (char c in normalizedString)
+                {
+                    if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                        buffer[index++] = c;
+                }
+
+                return new string(buffer[..index]).Normalize(NormalizationForm.FormC);
+            }
+            else
+            {
+                var sb = new StringBuilder(normalizedString.Length);
+                foreach (char c in normalizedString)
+                {
+                    if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                        sb.Append(c);
+                }
+                return sb.ToString().Normalize(NormalizationForm.FormC);
+            }
         }
 
-        // Helper method to convert Roman numerals to numbers
         private static string ConvertRomanNumerals(string text)
         {
-            var romanToNumber = new Dictionary<string, string>
-            {
-                { "VII", "7" },
-                { "VI", "6" },
-                { "V", "5" },
-                { "IV", "4" },
-                { "III", "3" },
-                { "II", "2" },
-                { "I", "1" }
-            };
-            foreach (var roman in romanToNumber)
-            {
-                text = Regex.Replace(text, $@"\b{roman.Key}\b", roman.Value, RegexOptions.IgnoreCase);
-            }
+            foreach (var (pattern, replacement) in RomanNumeralRules)
+                text = pattern.Replace(text, replacement);
 
             return text;
         }
 
-        // Precompute and cache normalized names for a specific list
+        private static int ComputeListHash(List<string> names)
+        {
+            using SHA1 sha1 = SHA1.Create();
+            byte[] raw = sha1.ComputeHash(Encoding.UTF8.GetBytes(string.Join("|", names)));
+            return BitConverter.ToInt32(raw, 0);
+        }
+
         private static int CacheNormalizedNames(List<string> names)
         {
-            // Compute a hash of the input list to uniquely identify it
-            int namesHash = names.Aggregate(17, (current, name) => current * 31 + name.GetHashCode());
+            int key = ComputeListHash(names);
 
-            // If the cache already exists for the given hash, return the hash
-            if (CachedNormalizedLists.ContainsKey(namesHash))
-                return namesHash;
-
-            // Compute the normalized names dictionary
-            var normalizedNames = names
-                .GroupBy(name => NormalizeText(name)) // Group by normalized names
-                .Select(group => new { Normalized = group.Key, Original = group.First() }) // Select the first occurrence of each group
-                .ToDictionary(x => x.Normalized, x => x.Original); // Create dictionary with normalized name as the key
-
-            // Store the normalized names dictionary in the cache
-            CachedNormalizedLists[namesHash] = normalizedNames;
-
-            return namesHash; // Return the hash as the cache key
-        }
-
-        // Find the closest match to the searchName in a specific cached list
-        public static string FindTextMatch(string searchName, List<string> names)
-        {
-            // Cache the normalized names for the given list and get its hash
-            int cacheKey = CacheNormalizedNames(names);
-
-            // Normalize the search name
-            string normalizedSearchName = NormalizeText(searchName);
-
-            // Attempt to find the match using TryGetValue
-            if (CachedNormalizedLists[cacheKey].TryGetValue(normalizedSearchName, out var originalName))
+            lock (cacheLock)
             {
-                return originalName;
+                if (CachedNormalizedLists.ContainsKey(key))
+                    return key;
+
+                // Evict cache if too large
+                if (CachedNormalizedLists.Count >= MaxCacheEntries)
+                    CachedNormalizedLists.Clear();
+
+                Dictionary<string, string> normalizedNames;
+
+                if (names.Count > 2000)
+                {
+                    normalizedNames = names
+                        .AsParallel()
+                        .Select(n => new { Original = n, Normalized = NormalizeText(n) })
+                        .GroupBy(x => x.Normalized)
+                        .Select(g => new { g.Key, Value = g.First().Original })
+                        .ToDictionary(x => x.Key, x => x.Value);
+                }
+                else
+                {
+                    normalizedNames = names
+                        .GroupBy(n => NormalizeText(n))
+                        .Select(g => new { Key = g.Key, Value = g.First() })
+                        .ToDictionary(x => x.Key, x => x.Value);
+                }
+
+                CachedNormalizedLists[key] = normalizedNames;
             }
 
-            return string.Empty;
+            return key;
         }
 
-        // Clear all caches
+        public static string FindTextMatch(string searchName, List<string> names)
+        {
+            int key = CacheNormalizedNames(names);
+            string normalized = NormalizeText(searchName);
+
+            lock (cacheLock)
+            {
+                return CachedNormalizedLists.TryGetValue(key, out var dict) && dict.TryGetValue(normalized, out var original)
+                    ? original
+                    : string.Empty;
+            }
+        }
+
         public static void ClearCache()
         {
-            CachedNormalizedLists.Clear();
+            lock (cacheLock)
+            {
+                CachedNormalizedLists.Clear();
+            }
+        }
+
+        public static void ClearCache(List<string> names)
+        {
+            int key = ComputeListHash(names);
+            lock (cacheLock)
+            {
+                CachedNormalizedLists.Remove(key);
+            }
         }
     }
 }

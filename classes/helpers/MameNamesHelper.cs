@@ -2,15 +2,14 @@
 using System.IO;
 using System.Xml;
 
-namespace GamelistManager.classes.gamelist
+namespace GamelistManager.classes.helpers
 {
-    static class MameNames
+    static class MameNamesHelper
     {
         public static Dictionary<string, string> Names { get; private set; } = [];
 
-        /// Generates the MAME name/description dictionary from -listxml output.
-        /// Revisit this method to improve error handling and performance as needed.
-
+        // Generates the MAME name/description dictionary from -listxml output.
+        
         public static async Task GenerateAsync(string mameExePath)
         {
             if (string.IsNullOrEmpty(mameExePath) || !File.Exists(mameExePath))
@@ -80,7 +79,7 @@ namespace GamelistManager.classes.gamelist
             }
             catch
             {
-                // Handle exceptions (e.g., log them)
+                // Handle exceptions, or nothing
             }
         }
     }

@@ -94,9 +94,7 @@ namespace GamelistManager.classes.helpers
                 {
                     string friendlyName = appKey.GetValue(null)?.ToString(); // Default Value usually contains the friendly name
                     if (!string.IsNullOrEmpty(friendlyName))
-                    {
                         return friendlyName;
-                    }
                 }
             }
 

@@ -1,114 +1,245 @@
-﻿using System.Collections.ObjectModel;
+﻿using GamelistManager.classes.core;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace GamelistManager.classes.helpers
 {
-    public sealed class LogHelper
+    // Log entry
+    public class LogEntry
     {
-        // Lazy Singleton instance for thread-safe initialization
-        private static readonly Lazy<LogHelper> _instance = new(() => new LogHelper());
-        private ObservableCollection<LogEntry> _logMessages;
-        private ListBox? _logListBox;
+        public string? Message { get; set; }
+        public Brush? Color { get; set; }
+    }
 
-        // Private constructor to prevent external instantiation
-        private LogHelper()
+    // Sink interface
+    public interface ILogSink
+    {
+        void Emit(LogEntry entry);
+    }
+
+    public class UiLogSink : ILogSink, IDisposable
+    {
+        private readonly ObservableCollection<LogEntry> _uiList;
+        private readonly object _uiLock;
+
+        private readonly ConcurrentQueue<LogEntry> _buffer = new();
+        private readonly CancellationTokenSource _cts = new();
+
+        private readonly int _uiWindowSize = 300;
+        private readonly TimeSpan _uiUpdateRate = TimeSpan.FromMilliseconds(50);
+
+        private readonly ListBox? _listBox;
+
+        public UiLogSink(ObservableCollection<LogEntry> uiList, object uiLock, ListBox? listBox)
         {
-            _logMessages = [];
+            _uiList = uiList;
+            _uiLock = uiLock;
+            _listBox = listBox;
+
+            Task.Run(FlushLoopAsync);
         }
 
-        // Public Singleton instance
+        public void Emit(LogEntry entry)
+        {
+            _buffer.Enqueue(entry);
+        }
+
+        private async Task FlushLoopAsync()
+        {
+            try
+            {
+                while (!_cts.Token.IsCancellationRequested)
+                {
+                    await Task.Delay(_uiUpdateRate, _cts.Token);
+
+                    if (_buffer.IsEmpty)
+                        continue;
+
+                    // Drain buffer fast
+                    List<LogEntry> batch = new();
+                    while (_buffer.TryDequeue(out var e))
+                        batch.Add(e);
+
+                    if (batch.Count == 0)
+                        continue;
+
+                    // UI update is THROTTLED and LIGHTWEIGHT
+                    _listBox?.Dispatcher.InvokeAsync(() =>
+                    {
+                        lock (_uiLock)
+                        {
+                            foreach (var msg in batch)
+                                _uiList.Add(msg);
+
+                            // UI window limit: remove oldest
+                            while (_uiList.Count > _uiWindowSize)
+                                _uiList.RemoveAt(0);
+                        }
+
+                        // Only scroll if list has items
+                        if (_uiList.Count > 0)
+                            _listBox?.ScrollIntoView(_uiList[^1]);
+
+                    }, DispatcherPriority.Background);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected on disposal
+            }
+        }
+
+        public void Dispose()
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+    }
+
+
+    // File Sink
+    public class FileLogSink : ILogSink
+    {
+        private readonly ConcurrentBag<string> _buffer = new();
+        private string? _filePath;
+        private volatile bool _isActive;
+
+        public void StartLog(string folder, string systemName)
+        {
+            Directory.CreateDirectory(folder);
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            _filePath = Path.Combine(folder, $"{systemName}_scrape_log_{timestamp}.txt");
+
+            _buffer.Clear();
+            _buffer.Add("=".PadRight(80, '='));
+            _buffer.Add($"Scrape Log - {DateTime.Now:F}");
+            _buffer.Add("=".PadRight(80, '='));
+            _buffer.Add("");
+
+            _isActive = true;
+        }
+
+        public void Emit(LogEntry entry)
+        {
+            if (_isActive)
+                _buffer.Add(entry.Message ?? string.Empty);
+        }
+
+        public async Task FlushAsync()
+        {
+            var path = _filePath;
+            if (!_isActive || string.IsNullOrEmpty(path))
+                return;
+
+            _buffer.Add("");
+            _buffer.Add("=".PadRight(80, '='));
+            _buffer.Add($"Log ended - {DateTime.Now:F}");
+            _buffer.Add("=".PadRight(80, '='));
+
+            var lines = _buffer.ToArray();
+            await File.WriteAllLinesAsync(path, lines);
+
+            _buffer.Clear();
+            _filePath = null;
+            _isActive = false;
+        }
+    }
+
+
+    public sealed class LogHelper : IDisposable
+    {
+        private static readonly Lazy<LogHelper> _instance = new(() => new LogHelper());
         public static LogHelper Instance => _instance.Value;
 
-        // Initialize the logger with a ListBox
-        public void Initialize(ListBox logListBox)
-        {
-            if (logListBox == null)
-                throw new ArgumentNullException(nameof(logListBox), "ListBox cannot be null.");
+        private readonly ObservableCollection<LogEntry> _logMessages = new();
+        private readonly object _collectionLock = new();
+        private ListBox? _logListBox;
 
-            _logListBox = logListBox;
-            _logListBox.ItemsSource = _logMessages;
+        private readonly List<ILogSink> _sinks = new();
+        private readonly FileLogSink _fileSink = new();
+        private bool _disposed;
+
+        private LogHelper()
+        {
+            BindingOperations.EnableCollectionSynchronization(_logMessages, _collectionLock);
+
+            // Add default file sink
+            AddSink(_fileSink);
         }
 
-        // Log a message with optional color asynchronously
-        public async Task LogAsync(string message, Brush color = null)
+        // Initialize UI
+        public void Initialize(ListBox listBox)
         {
-            //EnsureInitialized();
+            _logListBox = listBox ?? throw new ArgumentNullException(nameof(listBox));
+            _logListBox.ItemsSource = _logMessages;
 
-            var logEntry = new LogEntry
+            // Add updated UI sink
+            AddSink(new UiLogSink(_logMessages, _collectionLock, _logListBox));
+        }
+
+        // Add custom sink
+        public void AddSink(ILogSink sink)
+        {
+            if (!_sinks.Contains(sink))
+                _sinks.Add(sink);
+        }
+
+        // Log a message to all sinks (now synchronous)
+        public void Log(string message, Brush? color = null)
+        {
+            var entry = new LogEntry
             {
                 Message = $"{DateTime.Now:G}: {message}",
                 Color = color ?? Brushes.Black
             };
 
-            // Small delay so UI doesn’t get overwhelmed
-            await Task.Delay(1);
-
-            // Use Task.Run to offload the work to another thread
-            await Task.Run(() =>
-            {
-                if (_logListBox.Dispatcher.CheckAccess())
-                {
-                    AppendMessage(logEntry);
-                }
-                else
-                {
-                    _logListBox.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        AppendMessage(logEntry);
-                    }));
-                }
-            });
+            foreach (var sink in _sinks)
+                sink.Emit(entry);
         }
 
-        // Clear log
+        // Start file logging
+        public void StartFileLog(string folder)
+        {
+            _fileSink.StartLog(folder, SharedData.CurrentSystem);
+        }
+
+        // Flush file log
+        public async Task FlushFileLogAsync()
+        {
+            await _fileSink.FlushAsync();
+        }
+
+        // Clear UI log
         public void ClearLog()
         {
-            EnsureInitialized();
+            if (_logListBox == null)
+                return;
 
             if (_logListBox.Dispatcher.CheckAccess())
-            {
                 _logMessages.Clear();
-            }
             else
-            {
-                _logListBox.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    _logMessages.Clear();
-                }));
-            }
+                _logListBox.Dispatcher.Invoke(() => _logMessages.Clear());
         }
 
-        // Private method to append a message to the log
-        private void AppendMessage(LogEntry logEntry)
+        public void Dispose()
         {
-            _logMessages.Add(logEntry);
+            if (_disposed)
+                return;
 
-            // Scroll to the latest entry
-            _logListBox.ScrollIntoView(_logMessages[^1]);
+            _disposed = true;
 
-            // Limit the log size to prevent performance degradation
-            const int MaxLogEntries = 200;
-            if (_logMessages.Count > MaxLogEntries)
+            // Dispose all disposable sinks
+            foreach (var sink in _sinks.OfType<IDisposable>())
             {
-                _logMessages.RemoveAt(0);
+                sink.Dispose();
             }
-        }
 
-        // Ensure the logger is initialized
-        private void EnsureInitialized()
-        {
-            if (_logListBox == null)
-            {
-                throw new InvalidOperationException("LogHelper must be initialized with a ListBox before use.");
-            }
+            _sinks.Clear();
         }
-    }
-
-    // LogEntry class to support messages with color
-    public class LogEntry
-    {
-        public string? Message { get; set; }
-        public Brush? Color { get; set; }
     }
 }

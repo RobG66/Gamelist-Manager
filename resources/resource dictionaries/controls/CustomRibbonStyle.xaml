@@ -32,24 +32,21 @@
 
     <!-- Style for RibbonTab - Disabled State -->
     <Style x:Key="RibbonTabDisabledStyle"
-       TargetType="RibbonTab"
-       BasedOn="{StaticResource {x:Type RibbonTab}}">
+           TargetType="RibbonTab"
+           BasedOn="{StaticResource {x:Type RibbonTab}}">
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="#888888"/>
                 <Setter Property="Opacity" Value="0.5"/>
-
-                <!-- Fix: Override header so disabled text actually changes -->
                 <Setter Property="HeaderTemplate">
                     <Setter.Value>
                         <DataTemplate>
                             <TextBlock Text="{Binding}"
-                                   Foreground="#888888"
-                                   Margin="4,2,4,2"/>
+                                       Foreground="#888888"
+                                       Margin="4,2,4,2"/>
                         </DataTemplate>
                     </Setter.Value>
                 </Setter>
-
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -116,5 +113,20 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+
+    <!-- RibbonGroup style WITHOUT the top separator line -->
+    <Style x:Key="RibbonGroupNoLineStyle" TargetType="RibbonGroup">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RibbonGroup">
+                    <Grid>
+                        <!-- Removes the default chrome that draws the top border/line -->
+                        <ContentPresenter/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 
 </ResourceDictionary>

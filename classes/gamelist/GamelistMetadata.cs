@@ -105,7 +105,7 @@
                 new() { Key = MetaDataKeys.fanart, Type = "fanart", Name = "Fan Art", DataType = MetaDataType.Image, Scrapers = ["ScreenScraper", "EmuMovies"], Viewable = true, editible = false },
                 new() { Key = MetaDataKeys.map, Type = "map", Name = "Map", DataType = MetaDataType.Image, Scrapers = ["ScreenScraper", "EmuMovies"], Viewable = true, editible = false },
                 new() { Key = MetaDataKeys.bezel, Type = "bezel", Name = "Bezel", DataType = MetaDataType.Image, Scrapers = ["ScreenScraper", "EmuMovies", "ArcadeDB"], Viewable = true, editible = false },
-                new() { Key = MetaDataKeys.cartridge, Type = "cartridge", Name = "Cartridge", DataType = MetaDataType.Image, Scrapers = ["EmuMovies"], Viewable = true, editible = false },
+                new() { Key = MetaDataKeys.cartridge, Type = "cartridge", Name = "Cartridge", DataType = MetaDataType.Image, Scrapers = ["ScreenScraper", "EmuMovies"], Viewable = true, editible = false },
                 new() { Key = MetaDataKeys.titleshot, Type = "titleshot", Name = "Titleshot", DataType = MetaDataType.Image, Scrapers = ["ArcadeDB", "ScreenScraper", "EmuMovies"], Viewable = true, editible = false },
                 new() { Key = MetaDataKeys.video, Type = "video", Name = "Video", DataType = MetaDataType.Video, Scrapers = ["ArcadeDB", "ScreenScraper", "EmuMovies"], Viewable = true, editible = false },
                 new() { Key = MetaDataKeys.music, Type = "music", Name = "Music", DataType = MetaDataType.Music, Scrapers = ["EmuMovies"], Viewable = true, editible = false },

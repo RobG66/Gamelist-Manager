@@ -8,25 +8,33 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
 
         <!-- Video Playback Area -->
-        <Grid Grid.Row="0" Background="Black">
+        <Grid Grid.Row="0" Background="Black" x:Name="VideoContainer">
             <vlc:VideoView x:Name="VideoView"/>
+            <Image x:Name="ThumbnailOverlay"
+           Stretch="Uniform"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Center"
+           Width="{Binding ActualWidth, ElementName=VideoContainer}"
+           Height="{Binding ActualHeight, ElementName=VideoContainer}"/>
         </Grid>
 
         <!-- File Selector -->
-        <ComboBox x:Name="comboBox_CurrentTrack"
-            Width="Auto"
-            Grid.Row="1"
-            HorizontalAlignment="Center"
-            Visibility="Collapsed">
-        </ComboBox>
+        <Border Grid.Row="1" Background="Black">
+            <ComboBox x:Name="comboBox_CurrentTrack"
+              Style="{StaticResource CustomComboBox}"
+              VirtualizingPanel.IsVirtualizing="True"
+              VirtualizingPanel.VirtualizationMode="Recycling"
+              HorizontalAlignment="Center"
+              Visibility="Collapsed" />
+        </Border>
         <!-- Bottom Control Bar -->
 
-        <Grid Grid.Row="2" Background="Silver">
+        <Grid Grid.Row="2" Background="LightGray">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -38,6 +46,7 @@
             Style="{StaticResource CustomImageButton}"
             ToolTip="Show File Picker"
             Click="button_Playlist_Click"
+            Margin="5,3,5,3"
             Visibility="Visible"
             Grid.Column="0"
             HorizontalAlignment="Left">
@@ -46,11 +55,13 @@
 
             <CheckBox x:Name="checkBox_Randomize"
               Content="Random"
+              Style="{StaticResource CustomCheckBox}"
               VerticalAlignment="Center"
               Click="checkBox_Randomize_Click"
               Margin="5,0,5,0"
               Grid.Column="1"
               Visibility="Visible"
+              ToolTip="Randomize Playback"
               HorizontalAlignment="Left">
             </CheckBox>
 
@@ -60,35 +71,35 @@
                 Grid.Column="2">
                 <Button x:Name="button_Previous"
                 Style="{StaticResource CustomImageButton}"
-                Margin="0,2,5,2"
+                Margin="5,3,5,3"
                 IsEnabled="False"
                 Click="Button_Click">
-                    <Image Source="pack://application:,,,/resources/images/buttons/previous.png" />
+                    <Image Source="pack://application:,,,/resources/images/buttons/previous.png" ToolTip="Previous" />
                 </Button>
                 <Button x:Name="button_Pause"
                 Style="{StaticResource CustomImageButton}"
-                Margin="0,2,5,2"
+                Margin="0,3,5,3"
                 IsEnabled="False"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/resources/images/buttons/pause.png" ToolTip="Pause" />
                 </Button>
                 <Button x:Name="button_Stop"
                 Style="{StaticResource CustomImageButton}"
-                Margin="0,2,5,2"
+                Margin="0,3,5,3"
                 IsEnabled="False"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/resources/images/buttons/stop.png" ToolTip="Stop" />
                 </Button>
                 <Button x:Name="button_Play"
                 Style="{StaticResource CustomImageButton}"
-                Margin="0,2,5,2"
+                Margin="0,3,5,3"
                 IsEnabled="True"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/resources/images/buttons/play.png" ToolTip="Play" />
                 </Button>
                 <Button x:Name="button_Next"
                 Style="{StaticResource CustomImageButton}"
-                Margin="0,2,5,2"
+                Margin="0,3,5,3"
                 IsEnabled="False"
                 Click="Button_Click">
                     <Image Source="pack://application:,,,/resources/images/buttons/next.png" ToolTip="Next" />
@@ -102,6 +113,7 @@
             Minimum="0"
             Maximum="100"
             Value="75"
+            ToolTip="Volume"
             Width="100"
             Margin="10,0,10,0"
             Style="{StaticResource CustomSlider}"

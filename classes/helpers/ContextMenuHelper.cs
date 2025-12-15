@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,8 +8,8 @@ namespace GamelistManager.classes.helpers
 {
     public static class ContextMenuHelper
     {
-        // Creates a reusable context menu
-        public static ContextMenu CreateContextMenu()
+        // Creates a reusable context menu for a given file path
+        public static ContextMenu CreateContextMenu(string filePath)
         {
             ContextMenu contextMenu = new();
 
@@ -19,28 +20,30 @@ namespace GamelistManager.classes.helpers
             var menuItemStyle = Application.Current.FindResource("MinimalContextMenuItem") as Style;
 
             // Add the Open menu item
-            MenuItem openItem = new() { Header = "Open", Style = menuItemStyle };
+            MenuItem openItem = new() { Header = "Open", Style = menuItemStyle, Tag = filePath };
             openItem.Click += MenuItem_Click;
 
             // Add the Open With menu item
             MenuItem openWithItem = new() { Header = "Open With", Style = menuItemStyle };
-            contextMenu.Items.Add(openItem);
-            contextMenu.Items.Add(openWithItem);
 
             // Add the Open File Location menu item
-            MenuItem openLocationItem = new() { Header = "Open File Location", Style = menuItemStyle };
+            MenuItem openLocationItem = new() { Header = "Open File Location", Style = menuItemStyle, Tag = filePath };
             openLocationItem.Click += MenuItem_Click;
-            contextMenu.Items.Add(openLocationItem);
 
             // Add the Properties menu item
-            MenuItem propertiesItem = new() { Header = "Properties", Style = menuItemStyle };
+            MenuItem propertiesItem = new() { Header = "Properties", Style = menuItemStyle, Tag = filePath };
             propertiesItem.Click += MenuItem_Click;
+
+            // Add items to context menu
+            contextMenu.Items.Add(openItem);
+            contextMenu.Items.Add(openWithItem);
+            contextMenu.Items.Add(openLocationItem);
             contextMenu.Items.Add(propertiesItem);
 
-            // Attach the event handler for when the context menu is opened
+            // Populate Open With submenu when opened
             contextMenu.Opened += (sender, args) =>
             {
-                PopulateOpenWithSubmenu(openWithItem, contextMenu);
+                PopulateOpenWithSubmenu(openWithItem, filePath);
             };
 
             return contextMenu;
@@ -49,41 +52,33 @@ namespace GamelistManager.classes.helpers
         // Generic click handler for all menu items
         private static void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem? menuItem = sender as MenuItem;
-            ContextMenu? contextMenu = menuItem?.Parent as ContextMenu;
-            Image? parentImage = contextMenu?.PlacementTarget as Image;
-            string? filePath = parentImage?.Tag as string;
+            if (sender is not MenuItem menuItem) return;
 
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
-            {
-                switch (menuItem?.Header.ToString())
-                {
-                    case "Open":
-                        OpenFile(filePath);
-                        break;
-                    case "Open File Location":
-                        OpenFileLocation(filePath);
-                        break;
-                    case "Properties":
-                        PropertiesHelper.Show(filePath);
-                        break;
+            string? filePath = menuItem.Tag as string;
 
-                }
-            }
-            else
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
                 MessageBox.Show("File not found or invalid.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            switch (menuItem.Header?.ToString())
+            {
+                case "Open":
+                    OpenFile(filePath);
+                    break;
+                case "Open File Location":
+                    OpenFileLocation(filePath);
+                    break;
+                case "Properties":
+                    PropertiesHelper.Show(filePath);
+                    break;
             }
         }
 
-        private static void PopulateOpenWithSubmenu(MenuItem openWithMenu, ContextMenu contextMenu)
+        private static void PopulateOpenWithSubmenu(MenuItem openWithMenu, string filePath)
         {
-            // Clear any existing submenu items
             openWithMenu.Items.Clear();
-
-            // Retrieve the file path from the parent context menu
-            Image? parentImage = contextMenu?.PlacementTarget as Image;
-            string? filePath = parentImage?.Tag as string;
 
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
@@ -116,12 +111,10 @@ namespace GamelistManager.classes.helpers
                     {
                         if (!command.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                         {
-                            // ✅ UWP app: Launch using AppUserModelID
                             UwpAppHelper.LaunchAppWithFile(command, targetFile, null);
                         }
                         else
                         {
-                            // ✅ Win32 app: Start the process with the file as argument
                             var psi = new ProcessStartInfo
                             {
                                 FileName = command,
@@ -129,7 +122,6 @@ namespace GamelistManager.classes.helpers
                                 UseShellExecute = true,
                                 CreateNoWindow = true
                             };
-
                             Process.Start(psi);
                         }
                     }
@@ -147,17 +139,15 @@ namespace GamelistManager.classes.helpers
             }
         }
 
-        // Opens the file with its default application
         private static void OpenFile(string filePath)
         {
-            System.Diagnostics.Process.Start(new ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
                 FileName = filePath,
                 UseShellExecute = true
             });
         }
 
-        // Opens the folder containing the file and highlights it
         private static void OpenFileLocation(string filePath)
         {
             Process.Start(new ProcessStartInfo

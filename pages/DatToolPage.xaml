@@ -161,7 +161,7 @@
                     <TextBlock x:Name="text_GamelistNotInDAT" Text="—" Grid.Row="7" Grid.Column="1" Margin="5,0,0,0"/>
 
                     <CheckBox Grid.Row="8" x:Name="checkBox_IncludeHidden"
-                              Content="Include hidden items"
+                              Content="Include hidden items in count"
                               IsChecked="True"
                               IsEnabled="False"
                               VerticalAlignment="Center"
@@ -171,6 +171,27 @@
                               Grid.ColumnSpan="2"                           
                               Margin="0,5,5,0"/>
                 </Grid>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="button_FindMissing"
+        Content="Identify Missing"
+        Style="{DynamicResource GreenRoundedButton}"
+        Height="20"
+        Width="85"
+        IsEnabled="False"
+        HorizontalAlignment="Center"
+        Margin="0,0,0,0"
+        Click="button_GenerateMissingReport_Click"/>
+
+           <CheckBox x:Name="checkBox_CsvOutput"
+          Content="CSV Format"
+          IsChecked="False"
+          IsEnabled="False"
+          VerticalAlignment="Center"
+          Style="{DynamicResource CustomCheckBox}"
+          Margin="5,0,0,0"/>
+
+
+                </StackPanel>
             </StackPanel>
         </Border>
 
@@ -215,7 +236,7 @@
                         <ComboBoxItem FontWeight="SemiBold" Content="CHD Required"/>
                         <ComboBoxItem FontWeight="SemiBold" Content="Non Playable"/>
                         <ComboBoxItem FontWeight="SemiBold" Content="Not In DAT"/>
-                    </ComboBox>
+                      </ComboBox>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                         <Button Style="{DynamicResource CustomImageButton}"
                                 Name="button_CloseDATPage"

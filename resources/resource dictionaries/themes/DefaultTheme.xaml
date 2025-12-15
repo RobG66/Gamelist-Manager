@@ -132,8 +132,8 @@
     <!-- ProgressBar -->
     <SolidColorBrush x:Key="ProgressBarBackgroundBrush" Color="#FFE0E0E0"/>
     <SolidColorBrush x:Key="ProgressBarBorderBrush" Color="#FFAAAAAA"/>
-    <SolidColorBrush x:Key="ProgressBarForegroundBrush" Color="#FF0078D4"/>
-    <SolidColorBrush x:Key="ProgressBarIndicatorBrush" Color="#FF0078D4"/>
+    <SolidColorBrush x:Key="ProgressBarForegroundBrush" Color="#FF4CAF50"/>
+    <SolidColorBrush x:Key="ProgressBarIndicatorBrush" Color="#FF66BB6A"/>
     <SolidColorBrush x:Key="ProgressBarSuccessBrush" Color="#FF4CAF50"/>
     <SolidColorBrush x:Key="ProgressBarWarningBrush" Color="#FFFF9800"/>
     <SolidColorBrush x:Key="ProgressBarErrorBrush" Color="#FFF44336"/>

@@ -13,7 +13,19 @@
         <Setter Property="Foreground" Value="#495057"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="10,0"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
+        <!-- REMOVE this: <Setter Property="FontWeight" Value="SemiBold"/> -->
+
+        <!-- Bold only the header text -->
+        <Setter Property="HeaderTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" FontWeight="SemiBold" 
+                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
@@ -23,30 +35,40 @@
                             CornerRadius="8,8,0,0"
                             Margin="2,0,2,0"
                             Padding="{TemplateBinding Padding}">
+                        <!-- header content will be the TextBlock from HeaderTemplate -->
                         <ContentPresenter x:Name="ContentSite"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center"
-                                        ContentSource="Header"
-                                        RecognizesAccessKey="True"/>
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Center"
+                                          ContentSource="Header"
+                                          RecognizesAccessKey="True"/>
                     </Border>
+
                     <ControlTemplate.Triggers>
+
+                        <!-- SELECTED -->
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SelectedBrush}"/>
                             <Setter Property="Foreground" Value="White"/>
                         </Trigger>
+
+                        <!-- NOT SELECTED -->
                         <Trigger Property="IsSelected" Value="False">
                             <Setter TargetName="Border" Property="Background" Value="#E9ECEF"/>
                             <Setter Property="Foreground" Value="#495057"/>
                         </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
+
+                        <!-- HOVER (ONLY when mouse is over the visible tab header) -->
+                        <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
                             <Setter TargetName="Border" Property="Background" Value="#DEE2E6"/>
                         </Trigger>
+
+                        <!-- HOVER + SELECTED -->
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
-                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition SourceName="Border" Property="IsMouseOver" Value="True"/>
                                 <Condition Property="IsSelected" Value="True"/>
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SelectedBrush}"/>
                         </MultiTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

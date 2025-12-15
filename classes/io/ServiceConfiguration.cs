@@ -16,35 +16,24 @@ namespace GamelistManager.classes.io
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add HttpClientFactory with configuration
-            services.AddHttpClient<API_ScreenScraper>(client =>
+            services.AddHttpClient("ScraperClient", client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
             })
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
-                MaxConnectionsPerServer = 50 // Adjust as needed
+                MaxConnectionsPerServer = 50
             });
 
-            services.AddHttpClient<API_ArcadeDB>(client =>
-            {
-                client.Timeout = TimeSpan.FromSeconds(30);
-            })
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                MaxConnectionsPerServer = 50 // Adjust as needed
-            });
+            // Your scraper classes can be transient
+            services.AddTransient<API_ScreenScraper>();
+            services.AddTransient<API_ArcadeDB>();
+            services.AddTransient<API_EmuMovies>();
 
-            services.AddHttpClient<API_EmuMovies>(client =>
-            {
-                client.Timeout = TimeSpan.FromSeconds(30);
-            })
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                MaxConnectionsPerServer = 50 // Adjust as needed
-            });
-
-            // Other service configurations
+            // File transfer/downloader too
+            services.AddTransient<FileTransfer>();
         }
+
     }
 }
+
