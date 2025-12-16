@@ -71,8 +71,7 @@ namespace GamelistManager
             Properties.Settings.Default.AutoExpandLogger = (bool)checkBox_AutoExpandLogger.IsChecked!;
             Properties.Settings.Default.IgnoreDuplicates = (bool)checkBox_IgnoreDuplicates.IsChecked!;
             Properties.Settings.Default.BatchProcessing = (bool)checkBox_BatchProcessing.IsChecked!;
-            Properties.Settings.Default.LargeImagePreview = (bool)checkBox_LargeImagePreview.IsChecked!;
-
+         
             // Search Depth validation
             string searchDepth = textBox_SearchDepth.Text;
             if (!int.TryParse(searchDepth, out int searchDepthInt) || searchDepthInt < MIN_SEARCH_DEPTH || searchDepthInt > MAX_SEARCH_DEPTH)
@@ -277,10 +276,7 @@ namespace GamelistManager
 
             bool saveReminder = Properties.Settings.Default.SaveReminder;
             checkBox_EnableSaveReminder.IsChecked = saveReminder;
-
-            bool largeImagePreview = Properties.Settings.Default.LargeImagePreview;
-            checkBox_LargeImagePreview.IsChecked = largeImagePreview;
-
+                    
             bool verifyImages = Properties.Settings.Default.VerifyDownloadedImages;
             checkBox_VerifyImageDownloads.IsChecked = verifyImages;
                  

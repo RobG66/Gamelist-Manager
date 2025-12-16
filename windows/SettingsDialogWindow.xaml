@@ -276,15 +276,7 @@
                                    DataObject.Pasting="NumericTextBox_Pasting"/>
                                     </StackPanel>
 
-                            <CheckBox x:Name="checkBox_LargeImagePreview" 
-                             Style="{DynamicResource CustomCheckBox}" 
-                             VerticalAlignment="Center" 
-                             Margin="0,0,0,5"
-                             ToolTip="Shows a larger preview image when a media image is clicked" 
-                             Content="Large Image Preview" 
-                             Click="CheckBox_Click"/>
-
-
+                     
                         </UniformGrid>
 
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,8">

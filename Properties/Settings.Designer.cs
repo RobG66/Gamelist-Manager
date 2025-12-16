@@ -561,18 +561,6 @@ namespace GamelistManager.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool LargeImagePreview {
-            get {
-                return ((bool)(this["LargeImagePreview"]));
-            }
-            set {
-                this["LargeImagePreview"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool Scaling {
             get {
                 return ((bool)(this["Scaling"]));

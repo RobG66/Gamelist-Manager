@@ -21,6 +21,7 @@ namespace GamelistManager.pages
         private Window? _previewWindow;
         private string? _currentVideoPath;
         private bool _wasVideoPlaying;
+        private bool _mediaGridSetupDone = false;
 
         private const double PREVIEW_MAX_WIDTH_RATIO = 0.7;
         private const double PREVIEW_MAX_HEIGHT_RATIO = 0.7;
@@ -72,15 +73,15 @@ namespace GamelistManager.pages
             }
 
             Button_ToggleMode.Content = _scaledDisplay ? "Fit To View: On" : "Fit To View: Off";
+            SetupMediaGrid();
 
         }
 
         public void ShowMedia(DataRowView selectedRow)
-        {
-            if (selectedRow == null) return;
-
-            if (MediaContentGrid.ColumnDefinitions.Count == 0) SetupGrid();
-
+        {           
+           if (selectedRow == null || _mediaGridSetupDone == false) 
+                return;
+                        
             ClearAllImages();
             StopPlaying();
 
@@ -261,7 +262,7 @@ namespace GamelistManager.pages
             }
         }
 
-        private void SetupGrid()
+        private void SetupMediaGrid()
         {
             int columnIndex = 0;
 
@@ -375,6 +376,9 @@ namespace GamelistManager.pages
 
                 columnIndex++;
             }
+
+            _mediaGridSetupDone = true;
+
         }
 
         private void MediaMenuButton_Click(object sender, RoutedEventArgs e)
