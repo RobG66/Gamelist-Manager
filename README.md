@@ -11,6 +11,12 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+December 15th, 2025
+
+ 8.4 is here and it's a bit of a doozy!  I did A LOT of code refactoring on the scrapers which was quite involved.  And the other day someone pointed out to me that ScreenScraper has 'support-2d' media which is essentialy cartridge media.  I didn't know about that so I added it now!  I could not test EmuMovies scraping since the weekend because their site is having issues after a server move - I hope that gets sorted soon.  I've added some buttons on the media page which will get expanded upon in future releases.  Like more media options and drag/drop (which keeps getting pushed back).  And of important note, since I did a lot of work on this version, please let me know about anything that doesn't seem right.  Is the .Net10 requirement any trouble??
+
+---
+
 December 5th, 2025
 
 So I have an eperimental build of my Gamelist Manager and it can now do batch processing from ArcadeDB.  For stricly metadata (not files) it can download and update all metadata in less than 10 seconds for 3500 games..  For 15000 items, it's about a minute.  It's too fast and the gui logger cannot keep up so I have to turn that off.  It's not the first trouble I've had with the visual logger not being able to keep up.  Your mileage may vary depending on how many cpu cores you have.  I tested with 5 tasks in parallel. 
