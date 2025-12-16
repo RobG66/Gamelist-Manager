@@ -13,6 +13,8 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 ---
 December 15th, 2025
 
+ Update:  Emumovies is now back in business!  You can try downloading their videos with "High Definition" as the source.  The quality of these videos is excellent!  Although I think you need an Emumovies subscription to download videos.
+
  8.4 is here and it's a bit of a doozy!  I did A LOT of code refactoring on the scrapers which was quite involved.  And the other day someone pointed out to me that ScreenScraper has 'support-2d' media which is essentialy cartridge media.  I didn't know about that so I added it now!  I could not test EmuMovies scraping since the weekend because their site is having issues after a server move - I hope that gets sorted soon.  I've added some buttons on the media page which will get expanded upon in future releases.  Like more media options and drag/drop (which keeps getting pushed back).  And of important note, since I did a lot of work on this version, please let me know about anything that doesn't seem right.  Is the .Net10 requirement any trouble??
 
 ---
