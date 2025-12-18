@@ -345,20 +345,18 @@
                   Label="Clear All Data"
                   SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
                   Click="MenuItem_ClearAllData_Click"/>
-
                         <!-- Row 0, Col 1 -->
                         <RibbonButton Grid.Row="0" Grid.Column="1"
                   Style="{StaticResource RibbonButtonDisabledStyle}" 
-                  Label="Clear Selected Media"
+                  Label="Clear Selected Media Paths"
                   SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
-                  Click="MenuItem_ClearMediaPaths_Click"/>
-
+                  Click="MenuItem_ClearSelectedMediaPaths_Click"/>
                         <!-- Row 1, Col 1 -->
                         <RibbonButton Grid.Row="1" Grid.Column="1"
                   Style="{StaticResource RibbonButtonDisabledStyle}" 
-                  Label="Clear All Media"
+                  Label="Clear All Media Paths"
                   SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
-                  Click="MenuItem_ClearMediaPaths_Click"/>
+                  Click="MenuItem_ClearAllMediaPaths_Click"/>
                     </Grid>
                 </RibbonGroup>
             </RibbonTab>
@@ -563,8 +561,8 @@
                     <MenuItem x:Name="menuItem_ClearSelected" Header="Clear Selected Item Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelected_Click"/>
                     <MenuItem x:Name="menuItem_ClearAllData" Header="Clear All Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllData_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
-                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Item Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearMediaPaths_Click"/>
-                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Item Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearMediaPaths_Click"/>
+                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelectedMediaPaths_Click"/>
+                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllMediaPaths_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_DeleteSelectedItems" Header="Delete Item" Style="{DynamicResource MinimalMenuItem}" Click="ribbonButton_DeleteItem_Click"/>
                 </MenuItem>
@@ -669,7 +667,8 @@
                   Foreground="{DynamicResource DataGridForegroundBrush}"
                   SelectionChanged="MainDataGrid_SelectionChanged" 
                   AutoGenerateColumns="False" 
-                  CanUserDeleteRows="False" 
+                  CanUserDeleteRows="False"
+                  Sorting="MainDataGrid_Sorting"            
                   CanUserAddRows="False">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">

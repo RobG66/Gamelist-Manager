@@ -31,9 +31,11 @@ namespace GamelistManager
         private string _genreFilter;
         private string _customFilter;
         private bool _autosizeColumns;
+        private bool _isUpdatingSelection = false;
         private bool _confirmBulkChange;
         private DispatcherTimer _dataGridSelectionChangedTimer;
-        private DataRowView _pendingSelectedRow;
+        private DataRowView _currentSelectedRow;
+        private int _currentSelectedRowIndex;
         private MediaPage _mediaPage;
         private Scraper _scraper;
         private Dictionary<DataGridColumn, Style?> _originalCellStyles = [];
@@ -46,7 +48,7 @@ namespace GamelistManager
             // In case of fast scrolling
             _dataGridSelectionChangedTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(500) // Set the delay interval
+                Interval = TimeSpan.FromMilliseconds(300) // Set the delay interval
             };
 
             _dataGridSelectionChangedTimer.Tick += DataGridSelectionChangedTimer_Tick;
@@ -59,7 +61,7 @@ namespace GamelistManager
             _visibilityFilter = string.Empty;
             _genreFilter = string.Empty;
             _customFilter = string.Empty;
-            _pendingSelectedRow = null!;
+            _currentSelectedRow = null!;
             _scraper = new Scraper(this);
             _mediaPage = new MediaPage();
         }
@@ -145,8 +147,6 @@ namespace GamelistManager
                 return null;
             }
         }
-
-
 
         private void SetupMainDataGrid()
         {
@@ -313,7 +313,6 @@ namespace GamelistManager
             comboBox_FindColumns.Items.Add("Description");
             comboBox_CustomFilter.Items.Add("Description");
 
-
             if (comboBox_FindAndReplaceColumns.Items.Contains(previousTextComboboxColumns))
             {
                 comboBox_FindAndReplaceColumns.Text = previousTextComboboxColumns;
@@ -340,6 +339,7 @@ namespace GamelistManager
             {
                 comboBox_CustomFilter.SelectedIndex = 0;
             }
+
         }
 
         public void SetBackground(string system)
@@ -1830,43 +1830,90 @@ namespace GamelistManager
         }
 
 
-
         private void MainDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selectedRow = MainDataGrid.SelectedItems.OfType<DataRowView>().FirstOrDefault();
-
-            if (selectedRow == null)
-            {
+            if (MainDataGrid.Items.Count == 0)
                 return;
-            }
 
-            _pendingSelectedRow = selectedRow;
+            _isUpdatingSelection = true;
+
+            // Always restart the timer to handle null-selection edge case
             _dataGridSelectionChangedTimer.Stop();
             _dataGridSelectionChangedTimer.Start();
+
+            // Update current row/index only if a valid row is selected
+            var selectedRow = MainDataGrid.SelectedItem as DataRowView;
+            if (selectedRow != null)
+            {
+                _currentSelectedRow = selectedRow;
+                _currentSelectedRowIndex = MainDataGrid.SelectedIndex;
+            }
+
+            _isUpdatingSelection = false;
         }
 
         private void DataGridSelectionChangedTimer_Tick(object? sender, EventArgs e)
         {
-
+            if (_isUpdatingSelection) return;
             _dataGridSelectionChangedTimer.Stop();
 
-            if (_pendingSelectedRow == null)
+            if (MainDataGrid.Items.Count == 0)
             {
+                textBox_Description.Text = string.Empty;
                 return;
             }
 
-            textBox_Description.Text = _pendingSelectedRow["Description"] is DBNull ? string.Empty : _pendingSelectedRow?["Description"]?.ToString() ?? string.Empty;
+            // Filter out any selected rows that are no longer visible
+            var visibleSelectedRows = MainDataGrid.SelectedItems
+                .OfType<DataRowView>()
+                .Where(r => MainDataGrid.Items.Contains(r))
+                .ToList();
 
-            if (_mediaPage == null)
+            // If nothing is left selected, pick the next available row
+            if (!visibleSelectedRows.Any())
             {
-                return;
+                int nextIndex = _currentSelectedRowIndex;
+                if (nextIndex >= MainDataGrid.Items.Count)
+                    nextIndex = MainDataGrid.Items.Count - 1;
+
+                var nextRow = MainDataGrid.Items[nextIndex] as DataRowView
+                    ?? MainDataGrid.Items.OfType<DataRowView>().FirstOrDefault();
+
+                if (nextRow != null)
+                {
+                    _currentSelectedRow = nextRow;
+                    _currentSelectedRowIndex = nextIndex;
+                    MainDataGrid.SelectedItem = nextRow;
+                    MainDataGrid.ScrollIntoView(nextRow);
+                }
+            }
+            else
+            {
+                // Keep only the visible rows selected
+                MainDataGrid.SelectedItems.Clear();
+                foreach (var row in visibleSelectedRows)
+                    MainDataGrid.SelectedItems.Add(row);
+
+                // Update the “current” row to the first visible selected row
+                _currentSelectedRow = visibleSelectedRows.First();
+                _currentSelectedRowIndex = MainDataGrid.Items.IndexOf(_currentSelectedRow);
             }
 
-            if (button_Media.Content.ToString() == "Hide Media" && _pendingSelectedRow != null)
+            // Update description and media for the current row
+            if (_currentSelectedRow != null)
             {
-                _mediaPage.ShowMedia(_pendingSelectedRow);
+                textBox_Description.Text =
+                    _currentSelectedRow["Description"] is DBNull
+                        ? string.Empty
+                        : _currentSelectedRow["Description"]?.ToString() ?? string.Empty;
+
+                if (_mediaPage != null && button_Media.Content?.ToString() == "Hide Media")
+                {
+                    _mediaPage.ShowMedia(_currentSelectedRow);
+                }
             }
         }
+
 
         private void Export_Click(object sender, RoutedEventArgs e)
         {
@@ -2650,7 +2697,7 @@ namespace GamelistManager
                 }
             }
 
-            _pendingSelectedRow = null!;
+            _currentSelectedRow = null!;
         }
 
         private void MenuItem_RemoveItem_Click(object sender, RoutedEventArgs e)
@@ -2683,7 +2730,7 @@ namespace GamelistManager
             {
                 var row = matchingRows[i];
                 row.Delete();
-                _pendingSelectedRow = null!;
+                _currentSelectedRow = null!;
             }
 
             SharedData.DataSet.AcceptChanges();
@@ -3298,7 +3345,11 @@ namespace GamelistManager
                 if (statusColumn != null)
                 {
                     statusColumn.Visibility = Visibility.Visible;
-                }
+             
+                    if (!comboBox_CustomFilter.Items.Contains("Status"))
+                        comboBox_CustomFilter.Items.Add("Status");
+            }
+
                 MessageBox.Show($"{totalNewItems} items were found and added to the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
@@ -3536,7 +3587,13 @@ namespace GamelistManager
                 .FirstOrDefault(c => c.Header?.ToString() == "Status");
 
             if (statusColumn != null)
+            {
                 statusColumn.Visibility = Visibility.Visible;
+               
+                if (!comboBox_CustomFilter.Items.Contains("Status"))
+                    comboBox_CustomFilter.Items.Add("Status");
+
+            }
 
             var result = MessageBox.Show(
                 $"There are {missingItems.Count} missing items in this gamelist.\n\nDo you want to remove them?",
@@ -3868,100 +3925,81 @@ namespace GamelistManager
             }
         }
 
-        private void MenuItem_ClearMediaPaths_Click(object sender, RoutedEventArgs e)
+        private void MenuItem_ClearSelectedMediaPaths_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem? menuItem = sender as MenuItem;
-
             DataTable dataTable = SharedData.DataSet.Tables[0];
             IEnumerable<DataRow> rows;
 
-            string text = "all";
+            var selectedPaths = MainDataGrid.SelectedItems.Cast<DataRowView>()
+            .Select(rowView => rowView.Row["Rom Path"]?.ToString())
+            .ToList();
 
+            rows = dataTable.AsEnumerable()
+                 .Where(row => selectedPaths.Contains(row.Field<string>("Rom Path")));
+
+            ClearMediaPaths(rows,"selected");
+
+        }
+
+        private void MenuItem_ClearAllMediaPaths_Click(object sender, RoutedEventArgs e)
+        {
+            DataTable dataTable = SharedData.DataSet.Tables[0];
+            IEnumerable<DataRow> rows;
+            rows = dataTable.AsEnumerable();
+
+            ClearMediaPaths(rows,"all");
+        }
+
+
+        public void ClearMediaPaths(IEnumerable<DataRow> rows, string text)
+        {
             int index = 0;
-
-            if (menuItem?.Name == "menuItem_ClearAllMediaPaths")
-            {
-                if (MainDataGrid.Items.Count == 0)
-                {
-                    MessageBox.Show("There are no displayed items!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                // Get all rows
-                rows = dataTable.AsEnumerable();
-
-            }
-            else
-            {
-                if (MainDataGrid.SelectedItems.Count < 1)
-                {
-                    MessageBox.Show("No item is selected!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // Get only the selected rows
-                var selectedPaths = MainDataGrid.SelectedItems.Cast<DataRowView>()
-                    .Select(rowView => rowView.Row["Rom Path"]?.ToString())
-                    .ToList();
-
-                rows = dataTable.AsEnumerable()
-                    .Where(row => selectedPaths.Contains(row.Field<string>("Rom Path")));
-
-                var firstSelectedRow = MainDataGrid.SelectedItems[0];
-                index = MainDataGrid.Items.IndexOf(firstSelectedRow);
-                text = "selected";
-            }
+            DataTable dataTable = SharedData.DataSet.Tables[0];
 
             if (_confirmBulkChange)
             {
-                var result = MessageBox.Show($"Do you want clear {text} media paths?\n\nAll other metadata remains unchanged", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                var result = MessageBox.Show(
+                    $"Do you want clear {text} media paths?\n\nAll other metadata remains unchanged",
+                    "Confirmation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
                 if (result != MessageBoxResult.Yes)
-                {
                     return;
-                }
             }
 
             SharedData.ChangeTracker?.StartBulkOperation();
 
             var mediaItems = GamelistMetaData.GetMetaDataDictionary().Values
-                    .Where(decl => decl.DataType == MetaDataType.Image ||
-                                   decl.DataType == MetaDataType.Video ||
-                                   decl.DataType == MetaDataType.Music ||
-                                   decl.DataType == MetaDataType.Document)
-                                   .Select(decl => decl.Name)
-                                   .ToList();
+                .Where(decl =>
+                    decl.DataType == MetaDataType.Image ||
+                    decl.DataType == MetaDataType.Video ||
+                    decl.DataType == MetaDataType.Music ||
+                    decl.DataType == MetaDataType.Document)
+                .Select(decl => decl.Name)
+                .ToList();
 
-            // Iterate through each column in the DataTable
             foreach (var columnName in mediaItems)
             {
-                // Ensure the column exists
-                if (dataTable.Columns.Contains(columnName))
-                {
-                    // Iterate through all rows in the table and clear the column's content
-                    foreach (DataRow row in rows)
-                    {
-                        row[columnName] = DBNull.Value;
-                    }
-                }
+                if (!dataTable.Columns.Contains(columnName))
+                    continue;
+
+                foreach (var row in rows)
+                    row[columnName] = DBNull.Value;
             }
 
             SharedData.DataSet.AcceptChanges();
             SharedData.ChangeTracker?.EndBulkOperation();
 
-            // Flip selected row to invoke selection changed event
-            // It's just easier to do this way
-            // If media is showing, view will be updated
+            // Force selection refresh to update media view
             if (MainDataGrid.Items.Count > 1)
             {
-                int modifier = 1;
-                if (MainDataGrid.Items.Count - 1 == index)
-                {
-                    modifier = -1;
-                }
-
+                int modifier = MainDataGrid.Items.Count - 1 == index ? -1 : 1;
                 MainDataGrid.SelectedIndex = index + modifier;
                 MainDataGrid.SelectedIndex = index;
             }
         }
+
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -4088,9 +4126,7 @@ namespace GamelistManager
 
             statusBar_FileInfo.Visibility = Properties.Settings.Default.ShowFileStatusBar ? Visibility.Visible : Visibility.Collapsed;
 
-
             MessageBox.Show("All settings have been reset.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-
 
         }
 
@@ -4431,7 +4467,13 @@ namespace GamelistManager
             // --- Show Status column ---
             var statusColumn = MainDataGrid.Columns.FirstOrDefault(c => c.Header.ToString() == "Status");
             if (statusColumn != null)
+            {
                 statusColumn.Visibility = Visibility.Visible;
+      
+                if (!comboBox_CustomFilter.Items.Contains("Status"))
+                    comboBox_CustomFilter.Items.Add("Status");
+
+            }
 
             // --- Ask user ---
             var result = MessageBox.Show(
@@ -4469,5 +4511,57 @@ namespace GamelistManager
                 }
             }
         }
+
+        private async void MainDataGrid_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+
+            if (_currentSelectedRow != null)
+            {
+                MainDataGrid.SelectedItem = _currentSelectedRow;
+                MainDataGrid.UpdateLayout(); // important for virtualization
+                MainDataGrid.ScrollIntoView(_currentSelectedRow);
+            }
+        }
+
+        // In InitializeComponent() or Window_Loaded, add:
+        // MainDataGrid.RowEditEnding += MainDataGrid_RowEditEnding;
+
+        private void MainDataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
+        {
+            if (e.EditAction != DataGridEditAction.Commit)
+                return;
+
+            var dataView = (DataView)MainDataGrid.ItemsSource;
+            if (string.IsNullOrEmpty(dataView?.RowFilter))
+                return; // No filter, nothing to worry about
+
+            int currentIndex = MainDataGrid.SelectedIndex;
+            var editedRow = e.Row.Item as DataRowView;
+
+            // Check after the edit completes
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                // Is the edited row still visible?
+                if (!MainDataGrid.Items.Contains(editedRow))
+                {
+                    // Row filtered out, select next or previous visible row
+                    if (MainDataGrid.Items.Count == 0)
+                    {
+                        // No rows left, do nothing
+                        return;
+                    }
+
+                    // Try next row at same index, or previous if at end
+                    int newIndex = currentIndex < MainDataGrid.Items.Count
+                        ? currentIndex
+                        : MainDataGrid.Items.Count - 1;
+
+                    MainDataGrid.SelectedIndex = newIndex;
+                    MainDataGrid.ScrollIntoView(MainDataGrid.Items[newIndex]);
+                }
+            }), DispatcherPriority.Background);
+        }
+
     }
 }

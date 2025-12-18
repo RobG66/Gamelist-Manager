@@ -15,12 +15,6 @@
         <!-- Video Playback Area -->
         <Grid Grid.Row="0" Background="Black" x:Name="VideoContainer">
             <vlc:VideoView x:Name="VideoView"/>
-            <Image x:Name="ThumbnailOverlay"
-           Stretch="Uniform"
-           HorizontalAlignment="Center"
-           VerticalAlignment="Center"
-           Width="{Binding ActualWidth, ElementName=VideoContainer}"
-           Height="{Binding ActualHeight, ElementName=VideoContainer}"/>
         </Grid>
 
         <!-- File Selector -->

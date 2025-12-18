@@ -299,8 +299,6 @@ namespace GamelistManager.pages
                         MaxWidth = 400,
                         MaxHeight = 300,
                         Stretch = Stretch.Uniform,
-                        RenderTransform = new ScaleTransform(1.05, 1.05),
-                        RenderTransformOrigin = new Point(0.5, 0.5)
                     };
 
                 var shadowColor = TryFindResource("ShadowColor") as Color? ?? Colors.Black;

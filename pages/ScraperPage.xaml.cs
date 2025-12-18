@@ -591,10 +591,23 @@ namespace GamelistManager.pages
             var apiEmuMovies = serviceProvider.GetRequiredService<API_EmuMovies>();
 
             bool hasListsForSystem = _mediaTypes != null && _mediaTypes.Count > 0 &&
-            _mediaTypes.All(mt => _mediaListCache.ContainsKey((scraperProperties.SystemID, mt)));
+                _mediaTypes.All(mt => _mediaListCache.ContainsKey((scraperProperties.SystemID, mt)));
 
             if (hasListsForSystem)
+            {
+                // Populate scraperProperties from the existing cache (no API call needed)
+                foreach (string mediaType in _mediaTypes)
+                {
+                    var key = (scraperProperties.SystemID, mediaType);
+                    if (_mediaListCache.TryGetValue(key, out var cachedList))
+                    {
+                        scraperProperties.EmuMoviesMediaLists[mediaType] = cachedList;
+                    }
+                }
+                LogHelper.Instance.Log("Using cached media lists...", System.Windows.Media.Brushes.Teal);
                 return;
+            }
+
             LogHelper.Instance.Log("Downloading media lists...", System.Windows.Media.Brushes.Teal);
 
             var (mediaTypes, errorMessage) = await apiEmuMovies.GetMediaTypesAsync(scraperProperties.SystemID);
@@ -606,7 +619,7 @@ namespace GamelistManager.pages
             }
 
             _mediaTypes = mediaTypes;
-         
+
             foreach (string mediaType in _mediaTypes)
             {
                 var key = (scraperProperties.SystemID, mediaType);
@@ -617,28 +630,20 @@ namespace GamelistManager.pages
                     continue;
                 }
 
-                if (!scraperProperties.EmuMoviesMediaLists.TryGetValue(mediaType, out var existingList) ||
-                    existingList == null ||
-                    existingList.Count == 0)
-                {
-                    var (mediaList, errorMessage3) = await apiEmuMovies.GetMediaListAsync(
-                        scraperProperties.SystemID,
-                        mediaType);
+                var (mediaList, errorMessage3) = await apiEmuMovies.GetMediaListAsync(
+                    scraperProperties.SystemID,
+                    mediaType);
 
-                    if (mediaList == null)
-                    {
-                        mediaList = new List<string>();
-                    }
-
-                    scraperProperties.EmuMoviesMediaLists[mediaType] = mediaList;
-                    _mediaListCache[key] = mediaList;
-                }
-                else
+                if (mediaList == null)
                 {
-                    _mediaListCache[key] = existingList;
+                    mediaList = new List<string>();
                 }
+
+                scraperProperties.EmuMoviesMediaLists[mediaType] = mediaList;
+                _mediaListCache[key] = mediaList;
             }
         }
+
 
         private async Task<bool> AuthenticateScreenScraperAsync(ScraperProperties scraperProperties)
         {

@@ -757,6 +757,8 @@ namespace GamelistManager.pages
                 if (statusColumn != null)
                 {
                     statusColumn.Visibility = Visibility.Collapsed;
+                    if (_mainWindow.comboBox_CustomFilter.Items.Contains("Status"))
+                        _mainWindow.comboBox_CustomFilter.Items.Remove("Status");
                 }
 
                 // Reset combobox selection
@@ -779,6 +781,8 @@ namespace GamelistManager.pages
             {
                 statusColumnVisible.Visibility = Visibility.Visible;
                 statusColumnVisible.Width = DataGridLength.Auto;
+                if (!_mainWindow.comboBox_CustomFilter.Items.Contains("Status"))
+                    _mainWindow.comboBox_CustomFilter.Items.Add("Status");
             }
 
             dataView.Sort = "Status DESC";
@@ -843,8 +847,8 @@ namespace GamelistManager.pages
 
             // Unsubscribe from event to prevent memory leaks
             comboBox_ReportView.SelectionChanged -= ComboBox_ReportView_SelectionChanged;
-
-            _mainWindow.MainGrid.RowDefinitions[3].Height = new GridLength(0);
+            
+            _mainWindow.MainGrid.RowDefinitions[4].Height = new GridLength(0);
             _mainWindow.gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
         }
 

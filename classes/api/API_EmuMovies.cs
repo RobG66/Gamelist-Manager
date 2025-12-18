@@ -168,7 +168,7 @@ namespace GamelistManager.classes.api
                 return null;
 
             string romFileNameWithoutExtension = Path.GetFileNameWithoutExtension(parameters.RomFileName);
-            List<string> searchItems = new List<string> { parameters.RomName, romFileNameWithoutExtension };
+            List<string> searchItems = new List<string> { romFileNameWithoutExtension, parameters.RomName, };
 
             string remoteFileName = FindString(searchItems, mediaList);
 
@@ -186,6 +186,20 @@ namespace GamelistManager.classes.api
 
         private static string FindString(List<string> searchText, List<string> mediaList)
         {
+            // First pass: exact match without extensions (case-insensitive)
+            foreach (string item in searchText)
+            {
+                var exactMatch = mediaList.FirstOrDefault(m =>
+                {
+                    string mediaNameWithoutExt = Path.GetFileNameWithoutExtension(m);
+                    return string.Equals(mediaNameWithoutExt, item, StringComparison.OrdinalIgnoreCase);
+                });
+
+                if (!string.IsNullOrEmpty(exactMatch))
+                    return exactMatch;
+            }
+
+            // Second pass: normalized fuzzy match
             foreach (string item in searchText)
             {
                 string result = TextSearchHelper.FindTextMatch(item, mediaList);

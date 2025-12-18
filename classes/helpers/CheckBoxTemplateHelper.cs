@@ -13,11 +13,13 @@ namespace GamelistManager.classes.helpers
         /// <param name="bindingPath">The property name to bind the CheckBox to.</param>
         /// <param name="checkedHandler">Optional Checked event handler.</param>
         /// <param name="uncheckedHandler">Optional Unchecked event handler.</param>
+        /// <param name="clickHandler">Optional Click event handler.</param>
         /// <returns>A DataTemplate with the configured CheckBox.</returns>
         public static DataTemplate CreateCheckbox(
             string bindingPath,
             RoutedEventHandler? checkedHandler = null,
-            RoutedEventHandler? uncheckedHandler = null)
+            RoutedEventHandler? uncheckedHandler = null,
+            RoutedEventHandler? clickHandler = null)
         {
             if (string.IsNullOrWhiteSpace(bindingPath))
                 throw new ArgumentException("Binding path cannot be null or empty.", nameof(bindingPath));
@@ -37,8 +39,12 @@ namespace GamelistManager.classes.helpers
             // Attach event handlers if provided
             if (checkedHandler != null)
                 checkBoxFactory.AddHandler(CheckBox.CheckedEvent, checkedHandler);
+
             if (uncheckedHandler != null)
                 checkBoxFactory.AddHandler(CheckBox.UncheckedEvent, uncheckedHandler);
+
+            if (clickHandler != null)
+                checkBoxFactory.AddHandler(CheckBox.ClickEvent, clickHandler);
 
             // Create and return the DataTemplate
             DataTemplate template = new()

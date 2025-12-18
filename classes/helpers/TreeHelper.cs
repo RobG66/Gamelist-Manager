@@ -18,12 +18,25 @@ namespace GamelistManager.classes.helpers
                 {
                     yield return typedChild;
                 }
-
                 foreach (var grandChild in GetAllVisualChildren<T>(child))
                 {
                     yield return grandChild;
                 }
             }
+        }
+
+        // Finds a visual parent of the specified type by walking up the visual tree
+        public static T? FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            var parent = System.Windows.Media.VisualTreeHelper.GetParent(child);
+
+            if (parent == null)
+                return null;
+
+            if (parent is T typedParent)
+                return typedParent;
+
+            return FindVisualParent<T>(parent);
         }
     }
 }
