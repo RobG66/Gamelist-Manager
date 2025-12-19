@@ -11,6 +11,12 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+ December 19th Part 2!
+
+  The ArcadDB scraper is weird. I noticed something strange and have realized at some point in the last year the api was changed and now to get metadata and all media info is 2 separate scrapes!  This doesn't make sense, but I can work around the issue by combining the json into 1 return value.  And why it doesn't make sense is that one scrape returns all the metadata and half of the image links...  You still need to do the other scrape to get the other image links.  I'm going to ask the site host why this is before I do anything further. 
+
+
+---
 December 19th 2025
 
  Another small update posted tonight.  Credentials were being stored in windows credential manager and I have changed that to use an encrypted json string that is saved with all the other settings.  It's more consistent and simpler design.  I did a bit more cleanup too, it's ongoing WIP.   
