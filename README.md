@@ -13,8 +13,7 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 ---
  December 19th Part 2!
 
-  The ArcadDB scraper is weird. I noticed something strange and have realized at some point in the last year the api was changed and now to get metadata and all media info is 2 separate scrapes!  This doesn't make sense, but I can work around the issue by combining the json into 1 return value.  And why it doesn't make sense is that one scrape returns all the metadata and half of the image links...  You still need to do the other scrape to get the other image links.  I'm going to ask the site host why this is before I do anything further. 
-
+ I guess I will be posting 8.43 this weekend.  I have had to update ArcadeDB scraping due to some host API changes which I just noticed.  I'm also making methofs like clear all data and clear all media respect the filtered view.  So now 'all' means everything you see grid, not everything including what you don't see because of a filter.
 
 ---
 December 19th 2025
