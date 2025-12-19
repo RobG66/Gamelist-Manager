@@ -13,7 +13,7 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 ---
  December 19th Part 2!
 
- I guess I will be posting 8.43 this weekend.  I have had to update ArcadeDB scraping due to some host API changes which I just noticed.  I'm also making methofs like clear all data and clear all media respect the filtered view.  So now 'all' means everything you see grid, not everything including what you don't see because of a filter.
+ I guess I will be posting 8.43 this weekend.  I have had to update ArcadeDB scraping due to some host API changes which I just noticed.  I'm also making methods like clear all data and clear all media respect the filtered view.  So now 'all' means everything you see grid, not everything including what you don't see because of a filter.
 
 ---
 December 19th 2025
