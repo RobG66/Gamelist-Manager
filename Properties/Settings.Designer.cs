@@ -193,7 +193,7 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool VerifyDownloadedImages {
             get {
                 return ((bool)(this["VerifyDownloadedImages"]));
@@ -567,6 +567,18 @@ namespace GamelistManager.Properties {
             }
             set {
                 this["Scaling"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string EncryptedCredentials {
+            get {
+                return ((string)(this["EncryptedCredentials"]));
+            }
+            set {
+                this["EncryptedCredentials"] = value;
             }
         }
     }

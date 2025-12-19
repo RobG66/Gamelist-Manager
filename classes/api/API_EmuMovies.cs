@@ -1,6 +1,7 @@
 ﻿using GamelistManager.classes.helpers;
 using System.Configuration;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -179,7 +180,8 @@ namespace GamelistManager.classes.api
             if (string.IsNullOrEmpty(fileFormat))
                 return null;
 
-            string downloadURL = $"{ApiUrl}/Media/Download?accessToken={parameters.UserAccessToken}&systemName={parameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={UrlHelper.UrlEncodeFileName(remoteFileName)}";
+            string encodedURL = WebUtility.UrlEncode(remoteFileName);
+            string downloadURL = $"{ApiUrl}/Media/Download?accessToken={parameters.UserAccessToken}&systemName={parameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={encodedURL}";
 
             return downloadURL;
         }

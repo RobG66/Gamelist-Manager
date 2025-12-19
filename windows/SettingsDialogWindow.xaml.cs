@@ -1,5 +1,6 @@
 ﻿using GamelistManager.classes.helpers;
 using Microsoft.Win32;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -329,17 +330,20 @@ namespace GamelistManager
 
         private void SetTextBoxDefaults()
         {
-            string mediaPathsJsonString = SettingsHelper.GetDefaultSetting("MediaPaths")!;
-            Dictionary<string, string> mediaPaths;
+            string mediaPathsJsonString = GetDefaultSetting("MediaPaths")!;
+            Dictionary<string, string> mediaPaths = new();
 
-            try
-            {
-                mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
-                             ?? new Dictionary<string, string>();
-            }
-            catch
-            {
-                mediaPaths = new Dictionary<string, string>();
+            if (!string.IsNullOrEmpty(mediaPathsJsonString))
+            { 
+                try
+                {
+                    mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
+                                 ?? new Dictionary<string, string>();
+                }
+                catch
+                {
+                    // Ignore errors and use empty dictionary
+                }
             }
 
             var textBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<TextBox>(Paths);
@@ -351,6 +355,29 @@ namespace GamelistManager
                     textBox.Text = value;
                 }
             }
+        }
+
+        private static string? GetDefaultSetting(string propertyName)
+        {
+            // Get the property from the Settings class by its name
+            PropertyInfo? property = typeof(Properties.Settings).GetProperty(propertyName);
+
+            if (property != null)
+            {
+                // Get the DefaultSettingValue attribute if it exists
+                var defaultValueAttribute = (DefaultSettingValueAttribute?)property
+                    .GetCustomAttributes(typeof(DefaultSettingValueAttribute), false)
+                    .FirstOrDefault();
+
+                if (defaultValueAttribute != null)
+                {
+                    // Return the default Value as a string
+                    return defaultValueAttribute.Value;
+                }
+            }
+
+            // Return null if the property or default Value is not found
+            return null;
         }
 
         private void CheckBox_Click(object sender, RoutedEventArgs e)

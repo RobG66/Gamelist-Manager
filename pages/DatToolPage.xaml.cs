@@ -247,7 +247,7 @@ namespace GamelistManager.pages
                 var gamelistSummary = table.AsEnumerable()
                     .Select(row =>
                     {
-                        var romName = NameHelper.NormalizeRomName(row["Rom Path"].ToString()!);
+                        var romName = FilePathHelper.NormalizeRomName(row["Rom Path"].ToString()!);
 
                         if (datLookup.TryGetValue(romName, out var datItem))
                         {
@@ -368,8 +368,8 @@ namespace GamelistManager.pages
 
         private GameReportItem? ParseSingleMachine(XmlReader reader, string elementName)
         {
-            string name = NameHelper.NormalizeRomName(reader.GetAttribute("name") ?? "");
-            string cloneOf = NameHelper.NormalizeRomName(reader.GetAttribute("cloneof") ?? "");
+            string name = FilePathHelper.NormalizeRomName(reader.GetAttribute("name") ?? "");
+            string cloneOf = FilePathHelper.NormalizeRomName(reader.GetAttribute("cloneof") ?? "");
             string runnable = reader.GetAttribute("runnable") ?? "yes";
             string isBios = reader.GetAttribute("isbios") ?? "no";
             string isDevice = reader.GetAttribute("isdevice") ?? "no";
@@ -574,7 +574,7 @@ namespace GamelistManager.pages
                 hiddenSet = new HashSet<string>(
                     table.AsEnumerable()
                          .Where(row => row.Field<bool>("Hidden"))
-                         .Select(row => NameHelper.NormalizeRomName(row["Rom Path"].ToString()!)),
+                         .Select(row => FilePathHelper.NormalizeRomName(row["Rom Path"].ToString()!)),
                     StringComparer.OrdinalIgnoreCase
                 );
             }
@@ -718,7 +718,7 @@ namespace GamelistManager.pages
                     // Iterate through ALL rows in the table
                     foreach (DataRow row in table.Rows)
                     {
-                        string romName = NameHelper.NormalizeRomName(row["Rom Path"].ToString()!);
+                        string romName = FilePathHelper.NormalizeRomName(row["Rom Path"].ToString()!);
 
                         string newStatus = "";
 

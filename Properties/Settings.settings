@@ -45,7 +45,7 @@
       <Value Profile="(Default)">12</Value>
     </Setting>
     <Setting Name="VerifyDownloadedImages" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="ScrapeEnglishGenreOnly" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
@@ -136,6 +136,9 @@
     </Setting>
     <Setting Name="Scaling" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="EncryptedCredentials" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

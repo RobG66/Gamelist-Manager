@@ -250,7 +250,7 @@ namespace GamelistManager
 
                         string romPath = romTuple.RomPath!;
                         string romName = romTuple.Name!;
-                        string normalizedName = NameHelper.NormalizeRomName(romPath);
+                        string normalizedName = FilePathHelper.NormalizeRomName(romPath);
 
                         // Perform fuzzy matching
                         string? matchedFile = TextSearchHelper.FindTextMatch(normalizedName, mediaFileKeys)
@@ -383,7 +383,7 @@ namespace GamelistManager
                         {
                             string romPath = romTuple.RomPath!;
                             string romName = romTuple.Name!;
-                            string normalizedName = NameHelper.NormalizeRomName(romPath);
+                            string normalizedName = FilePathHelper.NormalizeRomName(romPath);
 
                             // First search
                             string searchPattern = $"{normalizedName}-{correctedMediaElementName}";
@@ -465,7 +465,7 @@ namespace GamelistManager
                 string matchedFile = item.MatchedFile;
 
                 // Convert the full path to a relative path
-                string relativePath = PathHelper.ConvertPathToRelativePath(matchedFile, _parentFolderPath);
+                string relativePath = FilePathHelper.ConvertPathToRelativePath(matchedFile, _parentFolderPath);
 
                 if (rowLookup.TryGetValue(item.RomPath, out DataRow? foundRow))
                 {
@@ -607,7 +607,7 @@ namespace GamelistManager
                 // Batocera naming standard
                 elementName = (elementName == "thumbnail" ? "thumb" : elementName);
 
-                string normalizedRomName = NameHelper.NormalizeRomName(romPath);
+                string normalizedRomName = FilePathHelper.NormalizeRomName(romPath);
                 string fileExtension = Path.GetExtension(filePath);
                 string newFileName = $"{normalizedRomName}-{elementName}{fileExtension}";
                 string destinationFile = Path.Combine(destinationFolder, newFileName);
@@ -1156,7 +1156,7 @@ namespace GamelistManager
             }
 
             var relativePaths = fileNames
-                .Select(f => PathHelper.ConvertPathToRelativePath(f, _parentFolderPath))
+                .Select(f => FilePathHelper.ConvertPathToRelativePath(f, _parentFolderPath))
                 .ToList();
 
             await ClearMediaPathsAsync(relativePaths);

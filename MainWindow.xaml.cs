@@ -1,11 +1,11 @@
 ﻿using GamelistManager.classes.core;
 using GamelistManager.classes.gamelist;
+using GamelistManager.classes.services;
 using GamelistManager.classes.helpers;
 using GamelistManager.classes.io;
 using GamelistManager.controls;
 using GamelistManager.pages;
 using Microsoft.Win32;
-using Renci.SshNet;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
@@ -48,7 +48,7 @@ namespace GamelistManager
             // In case of fast scrolling
             _dataGridSelectionChangedTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(300) // Set the delay interval
+                Interval = TimeSpan.FromMilliseconds(500) // Set the delay interval
             };
 
             _dataGridSelectionChangedTimer.Tick += DataGridSelectionChangedTimer_Tick;
@@ -221,7 +221,7 @@ namespace GamelistManager
             menuItem_Restore.IsEnabled = true;
             ribbonMenu_Restore.IsEnabled = true;
             menuItem_Export.IsEnabled = true;
-            ribbonMenu_ExportToCSV .IsEnabled = true;
+            ribbonMenu_ExportToCSV.IsEnabled = true;
             menuItem_Columns.IsEnabled = true;
             ribbonTab_Columns.IsEnabled = true;
             menuItem_Edit.IsEnabled = true;
@@ -489,7 +489,7 @@ namespace GamelistManager
         private void SaveGamelist()
         {
 
-            string currentSystem =  char.ToUpper(SharedData.CurrentSystem[0]) + SharedData.CurrentSystem.Substring(1); 
+            string currentSystem = char.ToUpper(SharedData.CurrentSystem[0]) + SharedData.CurrentSystem.Substring(1);
             var result = MessageBox.Show($"Do you want to save the '{currentSystem}' gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
@@ -646,13 +646,13 @@ namespace GamelistManager
 
         private async void OpenFile_Click(object sender, RoutedEventArgs e)
         {
-            
+
             string fileName = SelectXMLFile();
             if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
-                    
+
             await OpenFileAsync(fileName);
         }
 
@@ -674,7 +674,7 @@ namespace GamelistManager
 
             if (_scraper != null)
                 LogHelper.Instance.ClearLog();
-                     
+
             Mouse.OverrideCursor = Cursors.Wait;
             this.IsEnabled = false;
 
@@ -739,7 +739,7 @@ namespace GamelistManager
 
 
         private async void RecentFilemenuItem_Click(object sender, RoutedEventArgs e)
-        {            
+        {
             if (sender is MenuItem menuItem && menuItem.Tag is string fileName && !string.IsNullOrEmpty(fileName))
             {
                 await OpenFileAsync(fileName);
@@ -1127,7 +1127,7 @@ namespace GamelistManager
         }
 
         private void FontSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {        
+        {
             if (MainDataGrid.ItemsSource == null)
             {
                 return;
@@ -1149,14 +1149,14 @@ namespace GamelistManager
 
             // Update the font size for DataGrid
             MainDataGrid.FontSize = size;
-          
+
             // Update font size for DataGrid headers and cells
             UpdateDataGridFontSize(MainDataGrid, size);
 
             // Adjust column widths
             AdjustDataGridColumnWidths(MainDataGrid);
 
-       }
+        }
 
         private static void UpdateDataGridFontSize(DataGrid dg, double fontSize)
         {
@@ -1393,45 +1393,7 @@ namespace GamelistManager
             Properties.Settings.Default.VisibleGridColumns = jsonString;
             Properties.Settings.Default.Save();
         }
-
-
-        private static void ApplyFilters(string[] filters)
-        {
-            string mergedFilter = string.Empty;
-
-            if (SharedData.DataSet.Tables.Count == 0)
-            {
-                return;
-            }
-
-            if (filters == null || filters.Length == 0)
-            {
-                SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
-                return;
-            }
-
-            try
-            {
-                mergedFilter = string.Join(" AND ", filters.Where(f => !string.IsNullOrEmpty(f)));
-
-                DataView dataView = SharedData.DataSet.Tables[0].AsDataView();
-
-                if (!string.IsNullOrEmpty(mergedFilter))
-                {
-                    SharedData.DataSet.Tables[0].DefaultView.RowFilter = mergedFilter;
-                }
-                else
-                {
-                    SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"The filter \"{mergedFilter}\" has an error!\n{ex.Message}", "Filter Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-            }
-
-        }
-
+        
 
         private void ShowAll_Click(object sender, RoutedEventArgs e)
         {
@@ -1452,7 +1414,7 @@ namespace GamelistManager
             toggleButton_VisibleOnly.IsChecked = false;
 
             _visibilityFilter = string.Empty;
-            ApplyFilters([_visibilityFilter, _genreFilter, _customFilter]);
+            FilterService.ApplyFilters([_visibilityFilter, _genreFilter, _customFilter]);
             UpdateCounters();
         }
 
@@ -1468,14 +1430,14 @@ namespace GamelistManager
         private void ShowVisible()
         {
             menuItem_ShowAll.IsChecked = false;
-            toggleButton_ShowAll.IsChecked= false;
+            toggleButton_ShowAll.IsChecked = false;
             menuItem_ShowHidden.IsChecked = false;
             toggleButton_HiddenOnly.IsChecked = false;
             menuItem_ShowVisible.IsChecked = true;
             toggleButton_VisibleOnly.IsChecked = true;
 
             _visibilityFilter = "(hidden = false OR hidden IS NULL)";
-            ApplyFilters(new string[] { _visibilityFilter, _genreFilter, _customFilter });
+            FilterService.ApplyFilters(new string[] { _visibilityFilter, _genreFilter, _customFilter });
             UpdateCounters();
         }
 
@@ -1498,7 +1460,7 @@ namespace GamelistManager
             toggleButton_VisibleOnly.IsChecked = false;
 
             _visibilityFilter = "(hidden = true)";
-            ApplyFilters([_visibilityFilter, _genreFilter, _customFilter]);
+            FilterService.ApplyFilters([_visibilityFilter, _genreFilter, _customFilter]);
             UpdateCounters();
 
         }
@@ -1513,7 +1475,7 @@ namespace GamelistManager
         }
 
         private void ShowGenreOnly_Click(object sender, RoutedEventArgs e)
-        {            
+        {
             menuItem_ShowAllGenre.IsChecked = false;
             toggleButton_AllGenres.IsChecked = false;
             menuItem_ShowOneGenre.IsChecked = true;
@@ -1569,19 +1531,19 @@ namespace GamelistManager
             // Reset checkmarks
             menuItem_ShowOneGenre.IsChecked = false;
             toggleButton_SelectedGenre.IsChecked = false;
-            
+
             menuItem_ShowAllGenre.IsChecked = true;
             toggleButton_AllGenres.IsChecked = true;
-            
+
             menuItem_ShowAll.IsChecked = true;
             toggleButton_ShowAll.IsChecked = true;
-            
+
             menuItem_ShowHidden.IsChecked = false;
             toggleButton_HiddenOnly.IsChecked = false;
-            
+
             menuItem_ShowVisible.IsChecked = false;
             toggleButton_VisibleOnly.IsChecked = false;
-            
+
             menuItem_MediaPaths.IsChecked = false;
 
             // Clear filters
@@ -1621,7 +1583,7 @@ namespace GamelistManager
                 menuItem_ColumnAutoSize.IsChecked = true;
                 _autosizeColumns = true;
             }
-                                
+
             // Reset column view
             SetDefaultColumnVisibility(MainDataGrid);
 
@@ -1633,209 +1595,14 @@ namespace GamelistManager
         }
 
 
-        private async void MenuItem_MapDrive_Click(object sender, RoutedEventArgs e)
-        {
-
-            string hostName = Properties.Settings.Default.BatoceraHostName;
-
-            if (string.IsNullOrEmpty(hostName))
-            {
-                MessageBox.Show("The Batocera hostname is not set.\nPlease use the Settings menu to configure this.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
-            {
-                MessageBox.Show("The Batocera credentials are missing.\nPlease use the Settings menu to configure this.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            string networkShareToCheck = $"\\\\{hostName}\\share";
-
-            bool isMapped = DriveMappingHelper.IsShareMapped(networkShareToCheck);
-
-            if (isMapped == true)
-            {
-                MessageBox.Show($"There already is a drive mapping: {networkShareToCheck}", "Map Network Drive", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            char driveLetter = '\0';
-
-            // Get first letter starting at z: working backward
-            for (char drive = 'Z'; drive >= 'D'; drive--)
-            {
-                if (!DriveInfo.GetDrives().Any(d => d.Name[0] == drive))
-                {
-                    driveLetter = drive;
-                    break;
-                }
-            }
-
-            string networkSharePath = $"\\\\{hostName}\\share";
-            string exePath = "net";
-            string command = $" use {driveLetter}: {networkSharePath} /user:{userName} {userPassword}";
-
-            // Execute the net use command
-            string output = await CommandHelper.ExecuteCommandAsync(exePath, command);
-
-            if (output != null && output != string.Empty)
-            {
-                MessageBox.Show(output, "Map Network Drive", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
-        private void MenuItem_OpenTerminal_Click(object sender, RoutedEventArgs e)
-        {
-            string hostName = Properties.Settings.Default.BatoceraHostName;
-
-            if (hostName == null || hostName == string.Empty)
-            {
-                MessageBox.Show("The batocera hostname is not set.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
-
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
-            {
-                MessageBox.Show("The batocera credentials are missing.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                return;
-            }
-
-            string sshPath = "C:\\Windows\\System32\\OpenSSH\\ssh.exe"; // path to ssh.exe on Windows
-
-            try
-            {
-                ProcessStartInfo psi = new(sshPath)
-                {
-                    Arguments = $"-t {userName}@{hostName}",
-                    UseShellExecute = true,
-                    //RedirectStandardOutput = true,
-                    //RedirectStandardError = true,
-                    CreateNoWindow = false // Set this to false to see the terminal window
-                };
-
-                Process process = new() { StartInfo = psi };
-                process.Start();
-
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Could not start OpenSSH.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void MenuItem_GetVersion_Click(object sender, RoutedEventArgs e)
-        {
-            string command = "batocera-es-swissknife --version";
-            string output = ExecuteSshCommand(command) as string;
-
-            if (string.IsNullOrEmpty(output))
-            {
-                return;
-            }
-
-            MessageBox.Show($"Your Batocera is version {output}.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-
-        }
-
-        private void MenuItem_ShowUpdates_Click(object sender, RoutedEventArgs e)
-        {
-            string command = "batocera-es-swissknife --update";
-            string output = ExecuteSshCommand(command) as string;
-
-            if (string.IsNullOrEmpty(output))
-            {
-                return;
-            }
-
-            MessageBox.Show($"{output}", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-
-        }
-
-        private void MenuItem_StopEmulators_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Are you sure you want to stop any running emulators?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            string command = "/etc/init.d/S31emulationstation stop;reboot";
-            string output = ExecuteSshCommand(command) as string;
-
-            MessageBox.Show("Running emulators should now be stopped.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void MenuItem_StopEmulationstation_Click(object sender, RoutedEventArgs e)
-        {
-
-            var result = MessageBox.Show("Are you sure you want to stop EmulationStation?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            string command = "/etc/init.d/S31emulationstation stop ; batocera-es-swissknife --espid";
-            string output = ExecuteSshCommand(command) as string;
-
-            if (!string.IsNullOrEmpty(output) && output.Contains('0'))
-            {
-                MessageBox.Show("EmulationStation is stopped.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                Debug.WriteLine(output);
-                MessageBox.Show("An unknown error has occurred.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-
-        }
-
-        private void MenuItem_RebootHost_Click(object sender, RoutedEventArgs e)
-        {
-
-            var result = MessageBox.Show("Are you sure you want to reboot your Batocera host?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            string command = "/etc/init.d/S31emulationstation stop;reboot";
-            string output = ExecuteSshCommand(command) as string;
-
-            MessageBox.Show("A reboot command has been sent to the host.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private void MenuItem_ShutdownHost_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Are you sure you want to shutdown your Batocera host?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
-
-            string command = "/etc/init.d/S31emulationstation stop;sleep 3;shutdown -h now";
-            string output = ExecuteSshCommand(command) as string;
-
-            MessageBox.Show("A shutdown command has been sent to the host.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-
-        }
-
 
         private void MainDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (MainDataGrid.Items.Count == 0)
                 return;
 
-            _isUpdatingSelection = true;
+            if (_isUpdatingSelection)
+                return; // Don't process if we're programmatically updating
 
             // Always restart the timer to handle null-selection edge case
             _dataGridSelectionChangedTimer.Stop();
@@ -1848,13 +1615,10 @@ namespace GamelistManager
                 _currentSelectedRow = selectedRow;
                 _currentSelectedRowIndex = MainDataGrid.SelectedIndex;
             }
-
-            _isUpdatingSelection = false;
         }
 
         private void DataGridSelectionChangedTimer_Tick(object? sender, EventArgs e)
         {
-            if (_isUpdatingSelection) return;
             _dataGridSelectionChangedTimer.Stop();
 
             if (MainDataGrid.Items.Count == 0)
@@ -1881,22 +1645,30 @@ namespace GamelistManager
 
                 if (nextRow != null)
                 {
+                    _isUpdatingSelection = true; // Set flag before modifying selection
+
                     _currentSelectedRow = nextRow;
                     _currentSelectedRowIndex = nextIndex;
                     MainDataGrid.SelectedItem = nextRow;
                     MainDataGrid.ScrollIntoView(nextRow);
+
+                    _isUpdatingSelection = false; // Clear flag after
                 }
             }
             else
             {
+                _isUpdatingSelection = true; // Set flag before modifying selection
+
                 // Keep only the visible rows selected
                 MainDataGrid.SelectedItems.Clear();
                 foreach (var row in visibleSelectedRows)
                     MainDataGrid.SelectedItems.Add(row);
 
-                // Update the “current” row to the first visible selected row
+                // Update the "current" row to the first visible selected row
                 _currentSelectedRow = visibleSelectedRows.First();
                 _currentSelectedRowIndex = MainDataGrid.Items.IndexOf(_currentSelectedRow);
+
+                _isUpdatingSelection = false; // Clear flag after
             }
 
             // Update description and media for the current row
@@ -1913,8 +1685,6 @@ namespace GamelistManager
                 }
             }
         }
-
-
         private void Export_Click(object sender, RoutedEventArgs e)
         {
             string csvFileName = Directory.GetCurrentDirectory() + "\\" + $"{SharedData.CurrentSystem}_export.csv";
@@ -1995,44 +1765,6 @@ namespace GamelistManager
             return field;
         }
 
-        static string ExecuteSshCommand(string command)
-        {
-            string hostName = Properties.Settings.Default.BatoceraHostName;
-
-            if (string.IsNullOrEmpty(hostName))
-            {
-                MessageBox.Show("The batocera hostname is not configured.\nPlease use the Settings menu to configure this.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null!;
-            }
-
-            (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
-
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(userPassword))
-            {
-                MessageBox.Show("The batocera credentials are missing.\nPlease use the Settings menu to configure this", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null!;
-            }
-
-            string output = string.Empty;
-            using var client = new SshClient(hostName, userName, userPassword);
-            try
-            {
-                client.Connect();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"There was an error connecting to the host: {ex.Message}", "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null!;
-            }
-            using (var commandRunner = client.RunCommand(command))
-            {
-                output = commandRunner.Result;
-            }
-            client.Disconnect();
-            userPassword = null!;
-            return output;
-        }
-
         private void MenuItem_View_SubmenuOpened(object sender, RoutedEventArgs e)
         {
 
@@ -2102,7 +1834,7 @@ namespace GamelistManager
             if (selectedIndex > 1)
             {
                 selectedText = comboBox.Items[selectedIndex].ToString()!;
-                selectedText = FilterHelper.EscapeSpecialCharacters(selectedText);
+                selectedText = FilterService.EscapeSpecialCharacters(selectedText);
                 _genreFilter = $"Genre = '{selectedText}'";
                 menuItem_ShowAllGenre.IsChecked = false;
                 menuItem_ShowOneGenre.IsChecked = true;
@@ -2125,7 +1857,7 @@ namespace GamelistManager
                 button_ClearGenreSelection.Visibility = Visibility.Visible;
             }
 
-            ApplyFilters(new string[] { _visibilityFilter!, _genreFilter, _customFilter });
+            FilterService.ApplyFilters(new string[] { _visibilityFilter!, _genreFilter, _customFilter });
             UpdateCounters();
 
         }
@@ -2137,10 +1869,9 @@ namespace GamelistManager
                 return;
             }
 
-
             string filterText = textBox_CustomFilter.Text;
-            string filterItem = GetComboBoxDisplayText(comboBox_CustomFilter);
-            string selectedMode = GetComboBoxDisplayText(comboBox_FilterMode);
+            string filterItem = comboBox_CustomFilter.Text;
+            string selectedMode = comboBox_FilterMode.Text;
 
 
             if (!string.IsNullOrEmpty(filterText))
@@ -2160,32 +1891,14 @@ namespace GamelistManager
                 button_ClearCustomFilter.Visibility = Visibility.Hidden;
             }
 
-            _customFilter = MakeFilter(filterItem, filterText, selectedMode);
+            _customFilter = FilterService.MakeFilter(filterItem, filterText, selectedMode);
 
-            ApplyFilters(new string[] { _visibilityFilter, _genreFilter, _customFilter });
+            FilterService.ApplyFilters(new string[] { _visibilityFilter, _genreFilter, _customFilter });
             UpdateCounters();
 
         }
 
-        private static string GetComboBoxDisplayText(ComboBox comboBox)
-        {
-            // If something is selected
-            if (comboBox.SelectedItem != null)
-            {
-                // If it's a ComboBoxItem (manually added in XAML)
-                if (comboBox.SelectedItem is ComboBoxItem cbi)
-                {
-                    return cbi.Content.ToString()!;
-                }
-                // If it's a bound object or plain string
-                {
-                    return comboBox.SelectedItem.ToString()!;
-                }
-            }
-
-            // If nothing is selected, fallback to whatever is displayed
-            return comboBox.Text;
-        }
+        
 
         private void FilterModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -2198,7 +1911,7 @@ namespace GamelistManager
             textBox_CustomFilter.IsEnabled = true;
 
             // Determine the selected filter mode
-            string selectedMode = GetComboBoxDisplayText(comboBox_FilterMode);
+            string selectedMode = comboBox_FilterMode.Text;
 
             switch (selectedMode)
             {
@@ -2214,85 +1927,16 @@ namespace GamelistManager
             }
 
             string filterText = textBox_CustomFilter.Text;
-            string filterItem = GetComboBoxDisplayText(comboBox_CustomFilter);
+            string filterItem = comboBox_CustomFilter.Text;
 
-            _customFilter = MakeFilter(filterItem, filterText, selectedMode);
+            _customFilter = FilterService.MakeFilter(filterItem, filterText, selectedMode);
 
-            ApplyFilters(new string[] { _visibilityFilter, _genreFilter, _customFilter });
+            FilterService.ApplyFilters(new string[] { _visibilityFilter, _genreFilter, _customFilter });
             UpdateCounters();
 
         }
 
-        private static string MakeFilter(string filterItem, string filterText, string selectedMode)
-        {
-            string filterExpression = string.Empty;
-
-            if (filterItem.Contains(' '))
-            {
-                filterItem = $"[{filterItem}]";
-            }
-
-            switch (selectedMode)
-            {
-                case "Is":
-                    if (!string.IsNullOrEmpty(filterText))
-                    {
-                        filterText = FilterHelper.EscapeSpecialCharacters(filterText);
-                        filterExpression = $"{filterItem} = '{filterText}'";
-                    }
-                    break;
-
-                case "Is Like":
-                    if (!string.IsNullOrEmpty(filterText))
-                    {
-                        string likePattern = filterText.Replace("*", "%");
-                        likePattern = FilterHelper.EscapeSpecialCharacters(likePattern);
-                        likePattern = $"%{likePattern}%";
-                        filterExpression = $"{filterItem} LIKE '{likePattern}'";
-                    }
-                    break;
-
-                case "Is Not Like":
-                    if (!string.IsNullOrEmpty(filterText))
-                    {
-                        string likePattern = filterText.Replace("*", "%");
-                        likePattern = FilterHelper.EscapeSpecialCharacters(likePattern);
-                        likePattern = $"%{likePattern}%";
-                        filterExpression = $"{filterItem} NOT LIKE '{likePattern}'";
-                    }
-                    break;
-
-                case "Starts With":
-                    if (!string.IsNullOrEmpty(filterText))
-                    {
-                        filterText = FilterHelper.EscapeSpecialCharacters(filterText);
-                        filterText = $"{filterText}%";
-                        filterExpression = $"{filterItem} LIKE '{filterText}'";
-                    }
-                    break;
-
-                case "Ends With":
-                    if (!string.IsNullOrEmpty(filterText))
-                    {
-                        filterText = FilterHelper.EscapeSpecialCharacters(filterText);
-                        filterText = $"%{filterText}";
-                        filterExpression = $"{filterItem} LIKE '{filterText}'";
-                    }
-                    break;
-
-                case "Is Empty":
-                    filterExpression = $"{filterItem} IS NULL OR {filterItem} = ''";
-                    break;
-
-                case "Is Not Empty":
-                    filterExpression = $"{filterItem} IS NOT NULL AND {filterItem} <> ''";
-                    break;
-            }
-
-            return filterExpression;
-        }
-
-
+        
         private void MenuItem_Settings_Click(object sender, RoutedEventArgs e)
         {
             int originalMaxUndo = Properties.Settings.Default.MaxUndo;
@@ -2328,7 +1972,7 @@ namespace GamelistManager
 
         private void MenuItem_Edit_SubmenuOpened(object sender, RoutedEventArgs e)
         {
-                                  
+
             bool filtered = false;
 
             DataView dataView = (DataView)MainDataGrid.ItemsSource;
@@ -2498,7 +2142,7 @@ namespace GamelistManager
 
             var selectedItems = MainDataGrid.SelectedItems.Cast<DataRowView>().ToList();
             int itemCount = selectedItems.Count;
-            
+
             var result = MessageBoxWithCheckbox.Show(
                 owner: this,
                 message: $"Are you sure you want to delete {itemCount} item{(itemCount > 1 ? "s" : "")} from the gamelist?",
@@ -2582,7 +2226,7 @@ namespace GamelistManager
                     string romPath = row["Rom Path"]?.ToString() ?? string.Empty;
                     if (!string.IsNullOrEmpty(romPath))
                     {
-                        string filename = PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath);
+                        string filename = FilePathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath);
 
                         // Delete the ROM file
                         try
@@ -2639,7 +2283,7 @@ namespace GamelistManager
                                     string? mediaPath = row[column]?.ToString();
                                     if (!string.IsNullOrEmpty(mediaPath))
                                     {
-                                        string fullMediaPath = PathHelper.ConvertGamelistPathToFullPath(mediaPath, _parentFolderPath);
+                                        string fullMediaPath = FilePathHelper.ConvertGamelistPathToFullPath(mediaPath, _parentFolderPath);
                                         if (File.Exists(fullMediaPath))
                                         {
                                             File.Delete(fullMediaPath);
@@ -2768,7 +2412,7 @@ namespace GamelistManager
             toggleButton_EditData.IsChecked = editMode;
             toggleButton_EditData.Label = editMode ? "Edit Stop" : "Edit Data";
             menuItem_EditData.Header = editMode ? "Stop Editing" : "Edit Data";
-            
+
             //if (button_Media.Content.ToString() == "Hide Media")
             //{
             //    if (MainDataGrid.SelectedItems.Count == 0 && MainDataGrid.Items.Count > 0)
@@ -2825,7 +2469,7 @@ namespace GamelistManager
             // Handle TextBox foreground color
 
             if (editMode)
-            {                
+            {
                 textBox_Description.Foreground = Brushes.Blue;
                 textBox_Description.IsReadOnly = false;
             }
@@ -2836,7 +2480,7 @@ namespace GamelistManager
                 textBox_Description.Foreground = brush;
                 textBox_Description.IsReadOnly = true;
             }
-              
+
         }
 
 
@@ -2957,7 +2601,7 @@ namespace GamelistManager
                 if (nameColumn != null && romPathColumn != null)
                 {
                     string romPath = row[romPathColumn]?.ToString() ?? string.Empty;
-                    string newName = NameHelper.NormalizeRomName(romPath);
+                    string newName = FilePathHelper.NormalizeRomName(romPath);
 
                     if (useMameNames && MameNamesHelper.Names.TryGetValue(newName, out string? value) && !string.IsNullOrEmpty(value))
                     {
@@ -3022,10 +2666,10 @@ namespace GamelistManager
         {
             textBox_CustomFilter.Text = "";
             button_ClearCustomFilter.Visibility = Visibility.Hidden;
-            ApplyFilters(new string[] { _visibilityFilter, _genreFilter });
+            FilterService.ApplyFilters(new string[] { _visibilityFilter, _genreFilter });
             UpdateCounters();
         }
-        
+
         private void Button_ClearAllFilters_Click(object sender, RoutedEventArgs e)
         {
             ResetAllFilters();
@@ -3046,7 +2690,7 @@ namespace GamelistManager
             ? mediaPaths["video"]
             : mediaPaths["music"];
 
-            string fullPath = PathHelper.ConvertGamelistPathToFullPath(filePath, _parentFolderPath!);
+            string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(filePath, _parentFolderPath!);
 
             if (!Directory.Exists(fullPath))
             {
@@ -3063,9 +2707,9 @@ namespace GamelistManager
             }
 
             MediaPlayerWindow mediaPlayerWindow = new(files);
-            
+
             mediaPlayerWindow.Show();
-            
+
         }
 
 
@@ -3345,10 +2989,10 @@ namespace GamelistManager
                 if (statusColumn != null)
                 {
                     statusColumn.Visibility = Visibility.Visible;
-             
+
                     if (!comboBox_CustomFilter.Items.Contains("Status"))
                         comboBox_CustomFilter.Items.Add("Status");
-            }
+                }
 
                 MessageBox.Show($"{totalNewItems} items were found and added to the gamelist", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -3556,7 +3200,7 @@ namespace GamelistManager
                         continue;
 
                     string fullPath = Path.GetFullPath(
-                        PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!)
+                        FilePathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!)
                     );
 
                     if (!existingPaths.Contains(fullPath))
@@ -3589,7 +3233,7 @@ namespace GamelistManager
             if (statusColumn != null)
             {
                 statusColumn.Visibility = Visibility.Visible;
-               
+
                 if (!comboBox_CustomFilter.Items.Contains("Status"))
                     comboBox_CustomFilter.Items.Add("Status");
 
@@ -3892,7 +3536,7 @@ namespace GamelistManager
         {
             dockPanel_SearchAndReplace.Visibility = Visibility.Collapsed;
         }
-                
+
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
             string url = "https://github.com/RobG66/Gamelist-Manager/issues";
@@ -3937,7 +3581,7 @@ namespace GamelistManager
             rows = dataTable.AsEnumerable()
                  .Where(row => selectedPaths.Contains(row.Field<string>("Rom Path")));
 
-            ClearMediaPaths(rows,"selected");
+            ClearMediaPaths(rows, "selected");
 
         }
 
@@ -3947,7 +3591,7 @@ namespace GamelistManager
             IEnumerable<DataRow> rows;
             rows = dataTable.AsEnumerable();
 
-            ClearMediaPaths(rows,"all");
+            ClearMediaPaths(rows, "all");
         }
 
 
@@ -4000,7 +3644,6 @@ namespace GamelistManager
             }
         }
 
-
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (_scraper._isScraping)
@@ -4010,11 +3653,41 @@ namespace GamelistManager
                 return;
             }
 
-            // Last chance to save, always ask!
+            // Last chance to save, with cancel option
             if (SharedData.IsDataChanged)
             {
-                SaveGamelist();
+                var result = MessageBox.Show(
+                    "You have unsaved changes. Do you want to save before exiting?",
+                    "Unsaved Changes",
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Cancel)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    SaveGamelist();
+                }
+                // If No, continue with closing without saving
             }
+
+            // Unsubscribe from event handlers to prevent memory leaks
+            if (_dataGridSelectionChangedTimer != null)
+            {
+                _dataGridSelectionChangedTimer.Tick -= DataGridSelectionChangedTimer_Tick;
+                _dataGridSelectionChangedTimer.Stop();
+            }
+
+            if (SharedData.ChangeTracker != null)
+            {
+                SharedData.ChangeTracker.UndoRedoStateChanged -= ChangeTracker_UndoRedoStateChanged;
+            }
+
+
 
             // Unsubscribe from event handlers to prevent memory leaks
             if (_dataGridSelectionChangedTimer != null)
@@ -4083,7 +3756,7 @@ namespace GamelistManager
             {
                 if (item is DataRowView row && row["Rom Path"] is string path && !string.IsNullOrEmpty(path))
                 {
-                    string newName = NameHelper.NormalizeRomName(path);
+                    string newName = FilePathHelper.NormalizeRomName(path);
                     if (SharedData.CurrentSystem == "mame")
                     {
                         newName = MameNamesHelper.Names.ContainsKey(newName) ? MameNamesHelper.Names[newName] : newName;
@@ -4097,7 +3770,7 @@ namespace GamelistManager
 
         private void MenuItem_ResetAllSettings_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = MessageBox.Show($"Do you want to reset all settings?\n\nSaved passwords will not be affected", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult result = MessageBox.Show($"Do you want to reset all settings?\n\nSaved passwords will also be reset.", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)
             {
                 return;
@@ -4180,30 +3853,6 @@ namespace GamelistManager
             table.EndLoadData();
             SharedData.ChangeTracker?.EndBulkOperation();
         }
-        private void MenuItem_RemoveSshKey_Click(object sender, RoutedEventArgs e)
-        {
-            string hostname = Properties.Settings.Default.BatoceraHostName;
-
-            // Check if the hostname is set
-            if (string.IsNullOrEmpty(hostname))
-            {
-                MessageBox.Show("The Batocera hostname is not set.");
-                return;
-            }
-
-            // Ask the user if they want to reset the key
-            var result = MessageBox.Show($"Do you want to reset the local SSH key for '{hostname}'?",
-                                         "Reset Confirmation",
-                                         MessageBoxButton.YesNo,
-                                         MessageBoxImage.Question);
-
-            // Proceed based on the user's choice
-            if (result == MessageBoxResult.Yes)
-            {
-                string response = SshKeyHelper.RemoveBatoceraKey(hostname);
-                MessageBox.Show(response, "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
 
         private void ToggleFilterModeButton_Click(object sender, RoutedEventArgs e)
         {
@@ -4222,7 +3871,7 @@ namespace GamelistManager
                 button_ClearCustomFilter.Visibility = Visibility.Hidden;
                 comboBox_Genre.SelectedIndex = 0;
                 _customFilter = string.Empty;
-                ApplyFilters([_visibilityFilter!]);
+                FilterService.ApplyFilters([_visibilityFilter!]);
             }
         }
 
@@ -4260,14 +3909,14 @@ namespace GamelistManager
             Properties.Settings.Default.Save();
             ResetView();
         }
-              
+
         private void ToggleMenuStyle_Click(object sender, RoutedEventArgs e)
         {
             SetMenuStyle(!Properties.Settings.Default.UseRibbonMenu);
         }
 
         private void SetMenuStyle(bool useRibbon)
-        { 
+        {
             if (!useRibbon)
             {
                 // Switch to Classic Menu
@@ -4284,7 +3933,7 @@ namespace GamelistManager
                 // Remove event handlers
                 RibbonHotZone.MouseEnter -= RibbonHotZone_MouseEnter;
                 RibbonMenu.MouseLeave -= RibbonMenu_MouseLeave;
-                             
+
                 // Sync enabled states
                 menuItem_View.IsEnabled = ribbonTab_Home.IsEnabled;
                 menuItem_Edit.IsEnabled = ribbonTab_Edit.IsEnabled;
@@ -4404,7 +4053,7 @@ namespace GamelistManager
             ResetAllFilters();
         }
 
-  
+
         private void menuItem_FindDuplicate_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("This will quickly identify any duplicate items in this gamelist, regardless of text case.\n\nDo you want to continue?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -4437,7 +4086,7 @@ namespace GamelistManager
                 {
                     if (row["Rom Path"] is string romPath && !string.IsNullOrWhiteSpace(romPath))
                     {
-                        string fullPath = PathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!);
+                        string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!);
 
                         // Check for duplicates - if already seen, it's a duplicate
                         if (seenPaths.Contains(fullPath))
@@ -4469,7 +4118,7 @@ namespace GamelistManager
             if (statusColumn != null)
             {
                 statusColumn.Visibility = Visibility.Visible;
-      
+
                 if (!comboBox_CustomFilter.Items.Contains("Status"))
                     comboBox_CustomFilter.Items.Add("Status");
 
@@ -4563,5 +4212,50 @@ namespace GamelistManager
             }), DispatcherPriority.Background);
         }
 
+
+        private void MenuItem_OpenTerminal_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.OpenTerminal();
+        }
+
+        private void MenuItem_GetVersion_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.GetVersion();
+        }
+
+        private void MenuItem_ShowUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.ShowUpdates();
+        }
+
+        private void MenuItem_MapDrive_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.MapNetworkDrive();
+        }
+
+        private void MenuItem_StopEmulators_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.StopEmulators();
+        }
+
+        private void MenuItem_StopEmulationstation_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.StopEmulationStation();
+        }
+
+        private void MenuItem_RebootHost_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.RebootHost();
+        }
+
+        private void MenuItem_ShutdownHost_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.ShutdownHost();
+        }
+
+        private void MenuItem_RemoveSshKey_Click(object sender, RoutedEventArgs e)
+        {
+            BatoceraService.RemoveSshKey();
+        }
     }
 }

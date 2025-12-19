@@ -115,7 +115,7 @@ namespace GamelistManager.classes.gamelist
 
                 // Duplicate ROM-path detection
                 string? normalizedFilePath =
-                    PathHelper.ConvertGamelistPathToFullPath(destinationRow["Rom Path"].ToString()!, parentFolderPath!);
+                    FilePathHelper.ConvertGamelistPathToFullPath(destinationRow["Rom Path"].ToString()!, parentFolderPath!);
 
                 if (!string.IsNullOrEmpty(normalizedFilePath))
                 {

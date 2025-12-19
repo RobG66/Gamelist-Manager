@@ -6,7 +6,7 @@ using System.Windows.Controls;
 
 namespace GamelistManager.classes.helpers
 {
-    public static class ContextMenuHelper
+    public static class UIHelper
     {
         // Creates a reusable context menu for a given file path
         public static ContextMenu CreateContextMenu(string filePath)
@@ -48,8 +48,6 @@ namespace GamelistManager.classes.helpers
 
             return contextMenu;
         }
-
-        // Generic click handler for all menu items
         private static void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not MenuItem menuItem) return;
@@ -159,3 +157,4 @@ namespace GamelistManager.classes.helpers
         }
     }
 }
+

@@ -1,65 +1,45 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace GamelistManager.classes.helpers
 {
     public static class CredentialHelper
     {
-        // Struct to represent a credential in memory
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        private struct CREDENTIAL
+        // Class to store credential data
+        private class CredentialData
         {
-            public uint Flags;
-            public uint Type;
-            public string TargetName;
-            public string Comment;
-            public ulong LastWritten;
-            public uint CredentialBlobSize;
-            public IntPtr CredentialBlob;
-            public uint Persist;
-            public uint AttributeCount;
-            public IntPtr Attributes;
-            public string TargetAlias;
-            public string UserName;
+            public string UserName { get; set; } = string.Empty;
+            public string Password { get; set; } = string.Empty;
         }
 
-        // Import the CredWrite function
-        [DllImport("Advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredWrite(ref CREDENTIAL credential, uint flags);
-
-        // Import the CredRead function
-        [DllImport("Advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredRead(string target, uint type, uint reservedFlag, out IntPtr credentialPtr);
-
-        // Import the CredDelete function
-        [DllImport("Advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern bool CredDelete(string target, uint type, uint flags);
-
-        // Import the CredFree function
-        [DllImport("Advapi32.dll", SetLastError = true)]
-        private static extern void CredFree(IntPtr buffer);
-
-        // Make methods public for external access
         public static bool SaveCredentials(string targetName, string userName, string userPassword)
         {
+            if (string.IsNullOrWhiteSpace(targetName))
+            {
+                return false;
+            }
+
             try
             {
-                var credential = new CREDENTIAL
+                // Get existing credentials dictionary
+                var allCredentials = GetAllCredentials();
+
+                // Update or add the credential
+                allCredentials[targetName] = new CredentialData
                 {
-                    Flags = 0,
-                    Type = 1, // CRED_TYPE_GENERIC
-                    TargetName = targetName,
-                    CredentialBlobSize = (uint)(userPassword.Length * 2),
-                    CredentialBlob = Marshal.StringToCoTaskMemUni(userPassword),
-                    Persist = 2, // CRED_PERSIST_LOCAL_MACHINE
-                    UserName = userName
+                    UserName = userName ?? string.Empty,
+                    Password = userPassword ?? string.Empty
                 };
 
-                if (!CredWrite(ref credential, 0))
-                {
-                    throw new Exception("Failed to save credentials. Error: " + Marshal.GetLastWin32Error());
-                }
+                // Serialize and encrypt
+                string json = JsonSerializer.Serialize(allCredentials);
+                string encrypted = EncryptString(json);
 
-                Marshal.FreeCoTaskMem(credential.CredentialBlob);
+                // Save to settings
+                Properties.Settings.Default.EncryptedCredentials = encrypted;
+                Properties.Settings.Default.Save();
+
                 return true;
             }
             catch
@@ -70,21 +50,145 @@ namespace GamelistManager.classes.helpers
 
         public static (string UserName, string Password) GetCredentials(string targetName)
         {
-            IntPtr credentialPtr;
-
-            if (CredRead(targetName, 1, 0, out credentialPtr)) // CRED_TYPE_GENERIC
-            {
-                var credential = Marshal.PtrToStructure<CREDENTIAL>(credentialPtr);
-
-                string userName = credential.UserName;
-                string password = Marshal.PtrToStringUni(credential.CredentialBlob, (int)credential.CredentialBlobSize / 2);
-
-                CredFree(credentialPtr);
-                return (userName, password);
-            }
-            else
+            if (string.IsNullOrWhiteSpace(targetName))
             {
                 return (null!, null!);
+            }
+
+            try
+            {
+                var allCredentials = GetAllCredentials();
+
+                if (allCredentials.TryGetValue(targetName, out var credential))
+                {
+                    return (credential.UserName, credential.Password);
+                }
+
+                return (null!, null!);
+            }
+            catch
+            {
+                return (null!, null!);
+            }
+        }
+
+        public static bool DeleteCredentials(string targetName)
+        {
+            if (string.IsNullOrWhiteSpace(targetName))
+            {
+                return false;
+            }
+
+            try
+            {
+                var allCredentials = GetAllCredentials();
+
+                if (!allCredentials.ContainsKey(targetName))
+                {
+                    return true; // Already doesn't exist
+                }
+
+                allCredentials.Remove(targetName);
+
+                // Serialize and encrypt
+                string json = JsonSerializer.Serialize(allCredentials);
+                string encrypted = EncryptString(json);
+
+                // Save to settings
+                Properties.Settings.Default.EncryptedCredentials = encrypted;
+                Properties.Settings.Default.Save();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static Dictionary<string, CredentialData> GetAllCredentials()
+        {
+            try
+            {
+                string? encrypted = Properties.Settings.Default.EncryptedCredentials;
+
+                if (string.IsNullOrEmpty(encrypted))
+                {
+                    return new Dictionary<string, CredentialData>();
+                }
+
+                string json = DecryptString(encrypted);
+
+                if (string.IsNullOrEmpty(json))
+                {
+                    return new Dictionary<string, CredentialData>();
+                }
+
+                var credentials = JsonSerializer.Deserialize<Dictionary<string, CredentialData>>(json);
+                return credentials ?? new Dictionary<string, CredentialData>();
+            }
+            catch
+            {
+                return new Dictionary<string, CredentialData>();
+            }
+        }
+
+        private static string EncryptString(string plainText)
+        {
+            if (string.IsNullOrEmpty(plainText))
+                return string.Empty;
+
+            try
+            {
+                byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+                byte[] encryptedBytes;
+
+                // Use DPAPI on Windows, fallback to base64 elsewhere
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    encryptedBytes = ProtectedData.Protect(plainBytes, null, DataProtectionScope.CurrentUser);
+                }
+                else
+                {
+                    // For non-Windows platforms, just use Base64 encoding
+                    // Note: This is not secure encryption, just obfuscation
+                    // For true cross-platform encryption, use a library like libsodium
+                    encryptedBytes = plainBytes;
+                }
+
+                return Convert.ToBase64String(encryptedBytes);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private static string DecryptString(string encryptedText)
+        {
+            if (string.IsNullOrEmpty(encryptedText))
+                return string.Empty;
+
+            try
+            {
+                byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
+                byte[] plainBytes;
+
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    plainBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
+                }
+                else
+                {
+                    // For non-Windows platforms
+                    plainBytes = encryptedBytes;
+                }
+
+                return Encoding.UTF8.GetString(plainBytes);
+            }
+            catch
+            {
+                return string.Empty;
             }
         }
     }

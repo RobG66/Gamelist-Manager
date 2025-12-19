@@ -102,7 +102,7 @@ namespace GamelistManager.pages
 
                     if (!string.IsNullOrEmpty(videoPath))
                     {
-                        string fullPath = PathHelper.ConvertGamelistPathToFullPath(videoPath, parentFolderPath);
+                        string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(videoPath, parentFolderPath);
                         column.Width = new GridLength(1, GridUnitType.Star);
                         PlayFile(fullPath);
                         nomedia = false;
@@ -119,7 +119,7 @@ namespace GamelistManager.pages
 
                 if (!string.IsNullOrEmpty(imagePath))
                 {
-                    string fullPath = PathHelper.ConvertGamelistPathToFullPath(imagePath, parentFolderPath);
+                    string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(imagePath, parentFolderPath);
                     column.Width = new GridLength(1, GridUnitType.Star);
                     DisplayItem(fullPath, columnName);
                     nomedia = false;
@@ -383,7 +383,7 @@ namespace GamelistManager.pages
         {
             if (sender is not Button btn || btn.Tag is not string path || string.IsNullOrEmpty(path)) return;
 
-            var contextMenu = ContextMenuHelper.CreateContextMenu(path);
+            var contextMenu = UIHelper.CreateContextMenu(path);
             contextMenu.PlacementTarget = btn;
             contextMenu.IsOpen = true;
         }
