@@ -11,6 +11,11 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+December 19th 2025
+
+ Another small update posted tonight.  Credentials were being stored in windows credential manager and I have changed that to use an encrypted json string that is saved with all the other settings.  It's more consistent and simpler design.  I did a bit more cleanup too, it's ongoing WIP.   
+
+---
 December 15th, 2025
 
  Update:  Emumovies is now back in business!  You can try downloading their videos with "High Definition" as the source.  The quality of these videos is excellent!  Although I think you need an Emumovies subscription to download videos.
