@@ -12,7 +12,7 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 
 ---
 
- Scraping single media items is soon going to get a whole lot easier...!
+ Scraping single media items is soon going to get a whole lot easier...!  Not only that, but media drag/drop is now added as well.  Oh and more media options like directly deleting/removing what you don't like from the media page.  This will be in the next version 8.5......  And if you're reading this, let me know and post something in the comments section!  Your participation is greatly appreciated!  
 
  <img width="3839" height="2020" alt="image" src="https://github.com/user-attachments/assets/25ddcb0e-bb0a-4576-b983-28f071c30447" />
 
