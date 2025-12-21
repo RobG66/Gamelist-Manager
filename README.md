@@ -11,6 +11,12 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+
+ Scraping single media items is soon going to get a whole lot easier...!
+
+ <img width="3839" height="2020" alt="image" src="https://github.com/user-attachments/assets/25ddcb0e-bb0a-4576-b983-28f071c30447" />
+
+---
  December 20th
 
  8.43 now released with some important fixes!  I'm hoping nothing else turns up so I can sit back on this version for a bit.    
