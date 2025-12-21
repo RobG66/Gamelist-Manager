@@ -79,8 +79,7 @@
                                   IsChecked="True"
                                   Content="Scrape from cache first (if available)"
                                   Style="{DynamicResource CustomCheckBox}"
-                                  Checked="CheckBox_ScrapeFromCache_Checked"
-                                  Unchecked="CheckBox_ScrapeFromCache_Unchecked"/>
+                                  Click="CheckBox_ScrapeFromCache_Clicked"/>
 
                         <CheckBox x:Name="checkBox_ScrapeHidden"
                                   Margin="3,0,3,3"

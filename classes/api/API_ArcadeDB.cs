@@ -1,6 +1,4 @@
-﻿using GamelistManager.pages;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 
@@ -82,15 +80,43 @@ namespace GamelistManager.classes.api
             }
         }
 
+        private static JsonElement MergeJsonElements(JsonElement? metadata, JsonElement? media)
+        {
+            var merged = new Dictionary<string, JsonElement>();
+
+            // Add all properties from metadata first
+            if (metadata.HasValue)
+            {
+                foreach (var prop in metadata.Value.EnumerateObject())
+                {
+                    merged[prop.Name] = prop.Value.Clone();
+                }
+            }
+
+            // Overlay properties from media (overwrites duplicates)
+            if (media.HasValue)
+            {
+                foreach (var prop in media.Value.EnumerateObject())
+                {
+                    merged[prop.Name] = prop.Value.Clone();
+                }
+            }
+
+            // Serialize to JSON and parse back to JsonElement
+            string mergedJson = JsonSerializer.Serialize(merged);
+            using var doc = JsonDocument.Parse(mergedJson);
+            return doc.RootElement.Clone();
+        }
+
         private static string GetFileExtension(string mediaName)
         {
             string extension = "png";
             if (mediaName == "video")
                 extension = "mp4";
-            
+
             if (mediaName == "manual")
                 extension = "pdf";
-            
+
             return extension;
         }
 
@@ -255,48 +281,84 @@ namespace GamelistManager.classes.api
                 }
             }
 
-            // Fetch from API
-            string url = $"{ApiUrl}?ajax=query_mame&game_name={romName}";
-            var (json, fetchError) = await FetchFromApi(url);
+            JsonElement? metadataElement = null;
+            JsonElement? mediaElement = null;
 
-            if (string.IsNullOrEmpty(json))
-            {
-                result.WasSuccessful = false;
-                result.Messages.Add(string.IsNullOrEmpty(fetchError)
-                    ? $"Failed to retrieve data from ArcadeDB for {romName}"
-                    : fetchError);
-                return result;
-            }
-
-            // Parse response
+            // Fetch from API - always fetch both metadata and media
             try
             {
-                using var doc = JsonDocument.Parse(json);
+                // Fetch metadata
+                string metadataUrl = $"{ApiUrl}?ajax=query_mame&game_name={romName}";
+                var (metadataJson, metadataError) = await FetchFromApi(metadataUrl);
 
-                if (!doc.RootElement.TryGetProperty("result", out var resultArray) ||
-                    resultArray.ValueKind != JsonValueKind.Array)
+                if (string.IsNullOrEmpty(metadataJson))
                 {
-                    result.WasSuccessful = false;
-                    result.Messages.Add($"Invalid response format from ArcadeDB for {romName}");
-                    return result;
+                    result.Messages.Add(string.IsNullOrEmpty(metadataError)
+                        ? $"Failed to retrieve metadata from ArcadeDB for {romName}"
+                        : metadataError);
+                }
+                else
+                {
+                    using var doc = JsonDocument.Parse(metadataJson);
+
+                    if (doc.RootElement.TryGetProperty("result", out var resultArray) &&
+                        resultArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var gameElement = resultArray.EnumerateArray().FirstOrDefault();
+
+                        if (gameElement.ValueKind != JsonValueKind.Undefined)
+                        {
+                            metadataElement = gameElement.Clone();
+                        }
+                    }
                 }
 
-                var gameElement = resultArray.EnumerateArray().FirstOrDefault();
+                // Fetch media
+                string mediaUrl = $"{ApiUrl}?ajax=query_mame_media&game_name={romName}";
+                var (mediaJson, mediaError) = await FetchFromApi(mediaUrl);
 
-                if (gameElement.ValueKind == JsonValueKind.Undefined)
+                if (string.IsNullOrEmpty(mediaJson))
+                {
+                    result.Messages.Add(string.IsNullOrEmpty(mediaError)
+                        ? $"Failed to retrieve media from ArcadeDB for {romName}"
+                        : mediaError);
+                }
+                else
+                {
+                    using var doc = JsonDocument.Parse(mediaJson);
+
+                    if (doc.RootElement.TryGetProperty("result", out var resultArray) &&
+                        resultArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var gameElement = resultArray.EnumerateArray().FirstOrDefault();
+
+                        if (gameElement.ValueKind != JsonValueKind.Undefined)
+                        {
+                            mediaElement = gameElement.Clone();
+                        }
+                    }
+                }
+
+                // Check if we got at least something
+                if (!metadataElement.HasValue && !mediaElement.HasValue)
                 {
                     result.WasSuccessful = false;
                     result.Messages.Add($"Game {romName} not found in ArcadeDB");
                     return result;
                 }
 
-                // Save to cache
+                // Merge both responses into one
+                var mergedElement = MergeJsonElements(metadataElement, mediaElement);
+
+                // Save merged result to cache
                 if (!string.IsNullOrEmpty(parameters.CacheFolder))
                 {
-                    SaveToCache(gameElement.GetRawText(), parameters.CacheFolder, romName);
+                    string mergedJson = JsonSerializer.Serialize(mergedElement);
+                    SaveToCache(mergedJson, parameters.CacheFolder, romName);
                 }
 
-                result = ParseGameElement(gameElement, parameters);
+                // Parse the merged element
+                result = ParseGameElement(mergedElement, parameters);
                 return result;
             }
             catch (JsonException ex)
@@ -330,59 +392,85 @@ namespace GamelistManager.classes.api
             if (romNames.Count == 0)
                 return results;
 
-            // Build API URL
-            string gameNameQuery = string.Join(";", romNames);
-            string url = $"{ApiUrl}?ajax=query_mame&game_name={gameNameQuery}";
+            // Storage for fetched data
+            var metadataElements = new Dictionary<string, JsonElement>();
+            var mediaElements = new Dictionary<string, JsonElement>();
 
-            var (json, fetchError) = await FetchFromApi(url);
-
-            if (string.IsNullOrEmpty(json))
-            {
-                string errorMsg = string.IsNullOrEmpty(fetchError)
-                    ? "Failed to retrieve data from ArcadeDB"
-                    : fetchError;
-
-                foreach (string name in romNames)
-                {
-                    var failResult = new ScrapedGameData { WasSuccessful = false };
-                    failResult.Messages.Add($"{errorMsg} for {name}");
-                    results[name] = failResult;
-                }
-                return results;
-            }
-
-            // Parse response
             try
             {
-                using var doc = JsonDocument.Parse(json);
+                string gameNameQuery = string.Join(";", romNames);
 
-                if (!doc.RootElement.TryGetProperty("result", out var resultArray) ||
-                    resultArray.ValueKind != JsonValueKind.Array)
+                // Fetch metadata
+                string metadataUrl = $"{ApiUrl}?ajax=query_mame&game_name={gameNameQuery}";
+                var (metadataJson, metadataError) = await FetchFromApi(metadataUrl);
+
+                if (!string.IsNullOrEmpty(metadataJson))
                 {
-                    foreach (string name in romNames)
+                    using var doc = JsonDocument.Parse(metadataJson);
+
+                    if (doc.RootElement.TryGetProperty("result", out var resultArray) &&
+                        resultArray.ValueKind == JsonValueKind.Array)
                     {
-                        var failResult = new ScrapedGameData { WasSuccessful = false };
-                        failResult.Messages.Add($"Invalid response format from ArcadeDB for {name}");
-                        results[name] = failResult;
+                        foreach (var gameElement in resultArray.EnumerateArray())
+                        {
+                            string gameName = GetPropertyValue(gameElement, "game_name");
+
+                            if (!string.IsNullOrEmpty(gameName))
+                            {
+                                metadataElements[gameName] = gameElement.Clone();
+                            }
+                        }
                     }
-                    return results;
                 }
 
-                // Process each game in response
-                foreach (var gameElement in resultArray.EnumerateArray())
+                // Fetch media
+                string mediaUrl = $"{ApiUrl}?ajax=query_mame_media&game_name={gameNameQuery}";
+                var (mediaJson, mediaError) = await FetchFromApi(mediaUrl);
+
+                if (!string.IsNullOrEmpty(mediaJson))
                 {
-                    string gameName = GetPropertyValue(gameElement, "game_name");
+                    using var doc = JsonDocument.Parse(mediaJson);
 
-                    if (string.IsNullOrEmpty(gameName))
-                        continue;
+                    if (doc.RootElement.TryGetProperty("result", out var resultArray) &&
+                        resultArray.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var gameElement in resultArray.EnumerateArray())
+                        {
+                            string gameName = GetPropertyValue(gameElement, "game_name");
 
-                    // Save to cache
+                            if (!string.IsNullOrEmpty(gameName))
+                            {
+                                mediaElements[gameName] = gameElement.Clone();
+                            }
+                        }
+                    }
+                }
+
+                // Merge and process results for each ROM
+                var allGameNames = new HashSet<string>(metadataElements.Keys);
+                allGameNames.UnionWith(mediaElements.Keys);
+
+                foreach (string gameName in allGameNames)
+                {
+                    JsonElement? metaElem = metadataElements.ContainsKey(gameName)
+                        ? metadataElements[gameName]
+                        : null;
+
+                    JsonElement? mediaElem = mediaElements.ContainsKey(gameName)
+                        ? mediaElements[gameName]
+                        : null;
+
+                    // Merge the two responses
+                    var mergedElement = MergeJsonElements(metaElem, mediaElem);
+
+                    // Save merged result to cache
                     if (!string.IsNullOrEmpty(parameters.CacheFolder))
                     {
-                        SaveToCache(gameElement.GetRawText(), parameters.CacheFolder, gameName);
+                        string mergedJson = JsonSerializer.Serialize(mergedElement);
+                        SaveToCache(mergedJson, parameters.CacheFolder, gameName);
                     }
 
-                    var gameData = ParseGameElement(gameElement, parameters);
+                    var gameData = ParseGameElement(mergedElement, parameters);
                     results[gameName] = gameData;
                 }
 

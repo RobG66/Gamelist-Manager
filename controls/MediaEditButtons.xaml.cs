@@ -8,7 +8,6 @@ namespace GamelistManager.controls
         public MediaEditButtons()
         {
             InitializeComponent();
-
         }
     }
 }

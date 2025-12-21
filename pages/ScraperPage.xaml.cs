@@ -3,6 +3,7 @@ using GamelistManager.classes.core;
 using GamelistManager.classes.gamelist;
 using GamelistManager.classes.helpers;
 using GamelistManager.classes.io;
+using GamelistManager.classes.services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Data;
@@ -36,12 +37,7 @@ namespace GamelistManager.pages
         private static SemaphoreSlim _scrapeSemaphore = new SemaphoreSlim(1, 1);
         private static SemaphoreSlim _downloadSemaphore = new SemaphoreSlim(1, 1);
         private static readonly Regex CountRegex = new Regex(@"\s*\(.*?\)", RegexOptions.Compiled);
-        private static IServiceProvider? serviceProvider;
-        private List<string> _mediaTypes = new List<string>();
-        private readonly Dictionary<string, int> _downloadStats = new();
-        private readonly object _downloadStatsLock = new();
-        private static readonly Dictionary<(string SystemId, string MediaType), List<string>> _mediaListCache = new();
-
+        private ScraperService scraperService = new ScraperService();
 
         // Property for CancellationToken
         private CancellationToken CancellationToken => _cancellationTokenSource.Token;
@@ -49,53 +45,13 @@ namespace GamelistManager.pages
         public Scraper(MainWindow window)
         {
             InitializeComponent();
-            _currentScraper = comboBox_SelectedScraper.Text; // Ensure comboBox_SelectedScraper is initialized
+            _currentScraper = comboBox_SelectedScraper.Text; 
             _mainWindow = window ?? throw new ArgumentNullException(nameof(window));
-            LogHelper.Instance.Initialize(LogListBox); // Ensure LogListBox is initialized before calling Initialize
+            LogHelper.Instance.Initialize(LogListBox);
             border_Card2Content.Loaded += (s, e) =>
             {
                 _card2OriginalWidth = border_Card2Content.ActualWidth;
             };
-
-            var serviceCollection = new ServiceCollection();
-            var startup = new Startup(new ConfigurationBuilder().Build());
-            startup.ConfigureServices(serviceCollection);
-            serviceProvider = serviceCollection.BuildServiceProvider();
-
-        }
-
-        private void RecordDownload(string mediaType)
-        {
-            lock (_downloadStatsLock)
-            {
-                if (!_downloadStats.ContainsKey(mediaType))
-                {
-                    _downloadStats[mediaType] = 0;
-                }
-                _downloadStats[mediaType]++;
-            }
-        }
-
-        private async Task LogDownloadSummaryAsync()
-        {
-            if (_downloadStats.Count == 0)
-            {
-                LogHelper.Instance.Log("No media files were downloaded", System.Windows.Media.Brushes.Orange);
-                return;
-            }
-
-            int totalDownloads = _downloadStats.Values.Sum();
-            LogHelper.Instance.Log($"Download Summary: {totalDownloads} file(s) downloaded", System.Windows.Media.Brushes.Teal);
-
-            // Sort by count descending, then by name
-            var sortedStats = _downloadStats
-                .OrderByDescending(kvp => kvp.Value)
-                .ThenBy(kvp => kvp.Key);
-
-            foreach (var stat in sortedStats)
-            {
-                LogHelper.Instance.Log($"  {stat.Key}: {stat.Value}", System.Windows.Media.Brushes.Teal);
-            }
         }
 
         private void SaveScraperSettings(string scraper, string system)
@@ -365,32 +321,34 @@ namespace GamelistManager.pages
         {
             if (sender is not ComboBox comboBox || comboBox.SelectedItem == null)
             {
-                // Should never be empty, but always check anyhow
                 return;
             }
 
             ComboBoxItem selectedItem = (ComboBoxItem)comboBox.Items[comboBox.SelectedIndex];
+            string newScraper = selectedItem.Content.ToString()!;
 
-            if (!string.IsNullOrEmpty(_lastScraper))
+            // Save the CURRENT scraper settings before switching (not _lastScraper)
+            if (!string.IsNullOrEmpty(_currentScraper))
             {
-                SaveScraperSettings(_lastScraper, SharedData.CurrentSystem);
+                SaveScraperSettings(_currentScraper, SharedData.CurrentSystem);
             }
 
+            // Now update to the new scraper
             _lastScraper = _currentScraper;
-            _currentScraper = selectedItem.Content.ToString()!;
+            _currentScraper = newScraper;
 
             LoadScraperSettings(_currentScraper);
             Properties.Settings.Default.LastScraper = _currentScraper;
             Properties.Settings.Default.Save();
 
             UpdateCacheCount(_currentScraper, SharedData.CurrentSystem);
-        
         }
+
 
         public void UpdateCacheCount(string scraper, string system)
         {
             string cachePath = Path.Combine(SharedData.ProgramDirectory, "cache", scraper, system);
-            
+
             if (scraper == "EmuMovies")
             {
                 stackPanel_CacheCount.Visibility = Visibility.Collapsed;
@@ -399,7 +357,7 @@ namespace GamelistManager.pages
             }
 
             stackPanel_CacheCount.Visibility = Visibility.Visible;
-                        
+
             if (!Directory.Exists(cachePath) || Directory.GetFiles(cachePath).Length == 0)
             {
                 textBlock_cacheNumber.Text = string.Empty;
@@ -475,7 +433,7 @@ namespace GamelistManager.pages
         private void PrepareUIForScraping()
         {
             LogHelper.Instance.ClearLog();
-        
+
             button_Start.IsEnabled = false;
             button_Stop.IsEnabled = false; // enabled again when the jobs start
             comboBox_SelectedScraper.IsEnabled = false;
@@ -544,137 +502,7 @@ namespace GamelistManager.pages
 
             return rowsArray;
         }
-
-        private string CreateCacheFolder()
-        {
-            // Create cache folder if it does not exist
-            string cacheFolder = $"{SharedData.ProgramDirectory}\\cache\\{_currentScraper}\\{SharedData.CurrentSystem}";
-            if (!Directory.Exists(cacheFolder))
-            {
-                Directory.CreateDirectory(cacheFolder);
-            }
-            return cacheFolder;
-        }
-
-        
-        private async Task<bool> AuthenticateEmuMoviesAsync(ScraperProperties scraperProperties)
-        {         
-            var creds = CredentialHelper.GetCredentials("EmuMovies");
-            if (string.IsNullOrEmpty(creds.UserName))
-            {
-                LogHelper.Instance.Log("EmuMovies credentials have not been configured yet.", System.Windows.Media.Brushes.Red);
-                return false;
-            }
-
-            scraperProperties.UserName = creds.UserName;
-            scraperProperties.Password = creds.Password;
-
-            var apiEmuMovies = serviceProvider.GetRequiredService<API_EmuMovies>();
-
-            LogHelper.Instance.Log("Verifying EmuMovies credentials...", System.Windows.Media.Brushes.Teal);
-            var (userAccessToken, errorMessage) = await apiEmuMovies.AuthenticateAsync(
-                scraperProperties.UserName,
-                scraperProperties.Password);
-
-            if (string.IsNullOrEmpty(userAccessToken))
-            {
-                LogHelper.Instance.Log(errorMessage, System.Windows.Media.Brushes.Red);
-                return false;
-            }
-        
-            scraperProperties.AccessToken = userAccessToken;
-            return true;
-        }
-
-        private async Task GetEmuMoviesMediaLists(ScraperProperties scraperProperties)
-        {
-            var apiEmuMovies = serviceProvider.GetRequiredService<API_EmuMovies>();
-
-            bool hasListsForSystem = _mediaTypes != null && _mediaTypes.Count > 0 &&
-                _mediaTypes.All(mt => _mediaListCache.ContainsKey((scraperProperties.SystemID, mt)));
-
-            if (hasListsForSystem)
-            {
-                // Populate scraperProperties from the existing cache (no API call needed)
-                foreach (string mediaType in _mediaTypes)
-                {
-                    var key = (scraperProperties.SystemID, mediaType);
-                    if (_mediaListCache.TryGetValue(key, out var cachedList))
-                    {
-                        scraperProperties.EmuMoviesMediaLists[mediaType] = cachedList;
-                    }
-                }
-                LogHelper.Instance.Log("Using cached media lists...", System.Windows.Media.Brushes.Teal);
-                return;
-            }
-
-            LogHelper.Instance.Log("Downloading media lists...", System.Windows.Media.Brushes.Teal);
-
-            var (mediaTypes, errorMessage) = await apiEmuMovies.GetMediaTypesAsync(scraperProperties.SystemID);
-
-            if (mediaTypes == null || mediaTypes.Count == 0)
-            {
-                LogHelper.Instance.Log(errorMessage, System.Windows.Media.Brushes.Red);
-                return;
-            }
-
-            _mediaTypes = mediaTypes;
-
-            foreach (string mediaType in _mediaTypes)
-            {
-                var key = (scraperProperties.SystemID, mediaType);
-
-                if (_mediaListCache.TryGetValue(key, out var cached))
-                {
-                    scraperProperties.EmuMoviesMediaLists[mediaType] = cached;
-                    continue;
-                }
-
-                var (mediaList, errorMessage3) = await apiEmuMovies.GetMediaListAsync(
-                    scraperProperties.SystemID,
-                    mediaType);
-
-                if (mediaList == null)
-                {
-                    mediaList = new List<string>();
-                }
-
-                scraperProperties.EmuMoviesMediaLists[mediaType] = mediaList;
-                _mediaListCache[key] = mediaList;
-            }
-        }
-
-
-        private async Task<bool> AuthenticateScreenScraperAsync(ScraperProperties scraperProperties)
-        {
-            var creds = CredentialHelper.GetCredentials("ScreenScraper");
-            if (string.IsNullOrEmpty(creds.UserName))
-            {
-                LogHelper.Instance.Log("ScreenScraper credentials have not been configured yet.", System.Windows.Media.Brushes.Red);
-                return false;
-            }
-
-            scraperProperties.UserName = creds.UserName;
-            scraperProperties.Password = creds.Password;
-
-            var apiScreenScraper = serviceProvider.GetRequiredService<API_ScreenScraper>();
-
-            LogHelper.Instance.Log("Verifying ScreenScraper credentials...", System.Windows.Media.Brushes.Teal);
-            var (maxThreads, errorMessage) = await apiScreenScraper.AuthenticateAsync(
-                scraperProperties.UserName,
-                scraperProperties.Password);
-
-            if (maxThreads < 0)
-            {
-                LogHelper.Instance.Log(errorMessage, System.Windows.Media.Brushes.Red);
-                return false;
-            }
-
-            scraperProperties.MaxConcurrency = maxThreads;
-
-            return true;
-        }
-
+                
         private string GetScreenScraperLanguage()
         {
             string language = Properties.Settings.Default.Language;
@@ -724,7 +552,6 @@ namespace GamelistManager.pages
             // Remove duplicates while preserving order
             return regions.Distinct().ToList();
         }
-
 
         private async void StartScraping()
         {
@@ -794,6 +621,8 @@ namespace GamelistManager.pages
             // From here on, failures will go through StopScraping since the gui is now disabled
             PrepareUIForScraping();
 
+            await scraperService.ClearDownloadStats();
+
             // Initialize file logger
             string currentDir = Environment.CurrentDirectory;
             string logPath = Path.Combine(currentDir, "logs");
@@ -816,31 +645,37 @@ namespace GamelistManager.pages
                     isAuthenticated = true;
                     break;
                 case "EmuMovies":
-                    isAuthenticated = await AuthenticateEmuMoviesAsync(scraperProperties);
-                    if (isAuthenticated)
                     {
-                        scraperProperties.MaxConcurrency = 2;
-                        await GetEmuMoviesMediaLists(scraperProperties);
-                        if (scraperProperties.EmuMoviesMediaLists.Count == 0)
+                        isAuthenticated = await scraperService.AuthenticateEmuMoviesAsync(scraperProperties);
+                        if (isAuthenticated)
                         {
-                            LogHelper.Instance.Log("No media lists were retrieved. Cannot start scraping.", System.Windows.Media.Brushes.Red);
-                            isAuthenticated = false;
+                            scraperProperties.MaxConcurrency = 2;
+                            await scraperService.GetEmuMoviesMediaLists(scraperProperties);
+                            if (scraperProperties.EmuMoviesMediaLists.Count == 0)
+                            {
+                                LogHelper.Instance.Log("No media lists were retrieved. Cannot start scraping.", System.Windows.Media.Brushes.Red);
+                                isAuthenticated = false;
+                            }
                         }
                     }
                     break;
-              
-                case "ScreenScraper":
-                    isAuthenticated = await AuthenticateScreenScraperAsync(scraperProperties);
-                    if (isAuthenticated)
-                    {
-                        var regions = GetScreenScraperRegions();
-                        string language = GetScreenScraperLanguage();
-                        scraperProperties.Language = language;
-                        scraperProperties.Regions = regions;
 
-                        LogHelper.Instance.Log($"Region: {scraperProperties.Regions[0]}", System.Windows.Media.Brushes.Teal);
-                        LogHelper.Instance.Log($"Region Fallback: {string.Join(", ", scraperProperties.Regions.Skip(1))}", System.Windows.Media.Brushes.Teal);
-                        LogHelper.Instance.Log($"Language: {scraperProperties.Language}", System.Windows.Media.Brushes.Teal);
+                case "ScreenScraper":
+                    {
+                        isAuthenticated = await scraperService.AuthenticateScreenScraperAsync(scraperProperties);
+                        if (isAuthenticated)
+                        {
+                            
+
+                            var regions = GetScreenScraperRegions();
+                            string language = GetScreenScraperLanguage();
+                            scraperProperties.Language = language;
+                            scraperProperties.Regions = regions;
+
+                            LogHelper.Instance.Log($"Region: {scraperProperties.Regions[0]}", System.Windows.Media.Brushes.Teal);
+                            LogHelper.Instance.Log($"Region Fallback: {string.Join(", ", scraperProperties.Regions.Skip(1))}", System.Windows.Media.Brushes.Teal);
+                            LogHelper.Instance.Log($"Language: {scraperProperties.Language}", System.Windows.Media.Brushes.Teal);
+                        }
                     }
                     break;
             }
@@ -851,7 +686,7 @@ namespace GamelistManager.pages
                 return;
             }
 
-            scraperProperties.CacheFolder = CreateCacheFolder();
+            scraperProperties.CacheFolder = scraperService.CreateCacheFolder(_currentScraper);
 
             // Configure cache thread counts
             int maxConcurrency = scraperProperties.MaxConcurrency;
@@ -943,17 +778,12 @@ namespace GamelistManager.pages
             {
                 batchProcessingMaximum = Properties.Settings.Default.BatchProcessingMaximum;
             }
-                        
 
             // Reset counters
             _scrapeLimitMax = 0;
             _scrapeLimitProgress = 0;
             int totalCount = rowsToScrape.Length;
-            lock (_downloadStatsLock)
-            {
-                _downloadStats.Clear();
-            }
-                      
+
             // Stop button is now enabled since scraping will begin
             button_Stop.IsEnabled = true;
 
@@ -993,17 +823,16 @@ namespace GamelistManager.pages
             {
                 await GetItemsInBatchMode(baseScraperParameters, batchProcessingMaximum, rowsToScrape, scraperProperties);
             }
-                      
+
             LogHelper.Instance.Log("Starting main scraping phase...", System.Windows.Media.Brushes.Teal);
 
             // Log the semaphore settings
             LogHelper.Instance.Log(
                 $"API/Download threads: {maxConcurrency}",
                 System.Windows.Media.Brushes.Teal);
-            
+
             try
-            {                          
-                              
+            {
                 foreach (DataRow row in rowsToScrape)
                 {
                     await _scrapeSemaphore.WaitAsync(CancellationToken);
@@ -1011,14 +840,12 @@ namespace GamelistManager.pages
                     // Capture current count for this task
                     int currentCount = Interlocked.Increment(ref scraperCount);
                     string currentRomName = row["Name"].ToString() ?? "Unknown";
-                                   
+
                     UpdateProgress(
                         currentRomName,
                         startTime,
                         currentCount,
-                        totalCount,
-                        _scrapeLimitProgress,
-                        _scrapeLimitMax);
+                        totalCount);
 
                     var task = Task.Run(async () =>
                     {
@@ -1079,437 +906,78 @@ namespace GamelistManager.pages
                     }
                 }
 
-                // Log download summary
-                await LogDownloadSummaryAsync();
-
                 // Ensure StopScraping is always executed after all tasks finish.
                 LogHelper.Instance.Log($"Total time: {FormatElapsedTime(_globalStopwatch.Elapsed)}", System.Windows.Media.Brushes.Green);
 
                 // Empty message means it was ok.
                 await StopScraping(string.Empty);
             }
+
+            await scraperService.LogDownloadSummaryAsync();
         }
 
-        private async Task DownloadMediaFilesAsync(
-            ScrapedGameData scrapedData,
-            ScraperParameters parameters)
-            {
-
-            if (scrapedData.Media == null || scrapedData.Media.Count == 0)
-            {
-                return; // Nothing to download
-            }
-            
-            var fileTransfer = serviceProvider!.GetRequiredService<FileTransfer>();
-
-            foreach (var mediaResult in scrapedData.Media)
-            {
-                string mediaType = mediaResult.MediaType;
-                string url = mediaResult.Url;
-                string extension = mediaResult.FileExtension;
-
-                try
+        private async Task ScrapeGameAsync(
+             DataRow row,
+             ScraperParameters baseParameters,
+             ScraperProperties scraperProperties)
                 {
-                    CancellationToken.ThrowIfCancellationRequested();
+            var scrapedGameData = await scraperService.ScrapeGameAsync(
+                row,
+                baseParameters,
+                scraperProperties,
+                _currentScraper,
+                (progress, max) =>
+                {
+                    // Update limits
+                    Interlocked.Exchange(ref _scrapeLimitProgress, progress);
+                    Interlocked.Exchange(ref _scrapeLimitMax, max);
 
-                    // Get the destination folder for this media type
-                    if (!parameters.MediaPaths.TryGetValue(mediaType, out string? mediaFolder))
+                    // Check if we've hit the limit
+                    if (progress >= max && max > 0)
                     {
-                        LogHelper.Instance.Log(
-                            $"No media path configured for {mediaType}",
-                            System.Windows.Media.Brushes.Orange);
-                        continue;
+                        LogHelper.Instance.Log("Daily scrape limit reached!", System.Windows.Media.Brushes.Red);
+                        _cancellationTokenSource.Cancel();
                     }
+                },
+                CancellationToken
+            );
 
-                    // Ensure extension has a dot prefix
-                    if (!string.IsNullOrEmpty(extension) && !extension.StartsWith("."))
-                    {
-                        extension = "." + extension;
-                    }
-
-                    // Generate filename based on media type
-                    string fileNamePrefix = Path.GetFileNameWithoutExtension(parameters.RomFileName);
-
-                    // Some media types need special naming (like thumbnail -> thumb)
-                    string mediaSuffix = mediaType == "thumbnail" ? "thumb" : mediaType;
-
-                    string fileName = $"{fileNamePrefix}-{mediaSuffix}{extension}";
-
-                    string fullPath = Path.Combine(parameters.ParentFolderPath, mediaFolder, fileName);
-
-                    // Log download attempt
-                    string regionDisplay = !string.IsNullOrEmpty(mediaResult.Region)
-                        ? $" ({mediaResult.Region})"
-                        : string.Empty;
-                    LogHelper.Instance.Log(
-                        $"Downloading {mediaType}{regionDisplay}: {fileName}",
-                        System.Windows.Media.Brushes.Blue);
-
-                    // Get bearer token from parameters (if needed for authenticated downloads)
-                    string bearerToken = parameters.UserAccessToken ?? string.Empty;
-
-                    // Wait for download semaphore
-                    await _downloadSemaphore.WaitAsync(CancellationToken);
-
-                    try
-                    {
-                        // Use the FileTransfer.DownloadFile method
-                        bool downloadSuccess = await fileTransfer.DownloadFile(
-                            verify: parameters.VerifyImageDownloads,
-                            fileDownloadPath: fullPath,
-                            url: url,
-                            bearerToken: bearerToken
-                        );
-
-                        if (downloadSuccess)
-                        {
-                            // Store the relative path in the scraped data
-                            // Use forward slashes for gamelist.xml consistency
-                            string relativePath = $"./{mediaFolder}/{fileName}";
-                            scrapedData.Data[mediaType] = relativePath;
-
-                            // Track successful download
-                            RecordDownload(mediaType);
-                        }
-                        else
-                        {
-                            // Determine if this was a verification failure or download failure
-                            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico", ".webp" };
-                            bool isImage = imageExtensions.Contains(extension.ToLowerInvariant());
-
-                            if (parameters.VerifyImageDownloads && isImage)
-                            {
-                                LogHelper.Instance.Log(
-                                    $"Discarding bad image '{fileName}' (single color or invalid)",
-                                    System.Windows.Media.Brushes.Red);
-                            }
-                            else
-                            {
-                                LogHelper.Instance.Log(
-                                    $"Failed to download {mediaType}: {fileName}",
-                                    System.Windows.Media.Brushes.Red);
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        // Release the semaphore.
-                        _downloadSemaphore.Release();
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    throw; // Re-throw to be caught by outer handler
-                }
-                catch (Exception ex)
-                {
-                    LogHelper.Instance.Log(
-                        $"Error downloading {mediaType}: {ex.Message}",
-                        System.Windows.Media.Brushes.Red);
-                }
-            }
-        }
-
-            private async Task ScrapeGameAsync(
-                DataRow row,
-                ScraperParameters baseParameters,
-                ScraperProperties scraperProperties
-            )
-
-            {
-            CancellationToken.ThrowIfCancellationRequested();
-
-            string romPath = row["Rom Path"].ToString()!;
-            string romFileName = Path.GetFileName(romPath);
-            string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romFileName);
-            string romName = row["Name"].ToString() ?? romFileName;
-            string gameID = row["Game Id"].ToString() ?? string.Empty;
-
-            // Filter elements based on existing data and overwrite settings
-            var itemsToScrape = FilterElementsToScrape(row, baseParameters);
-            
-            // Skip the scrape if there is nothing to get
-            if (itemsToScrape.Count == 0)
-            {
-                if (scraperProperties.LogVerbosity == 2)
-                {
-                    LogHelper.Instance.Log($"Skipping '{romFileName}', nothing to scrape", System.Windows.Media.Brushes.Orange);
-                }
-                return;
-            }
-
-            if (scraperProperties.LogVerbosity >= 1)
-            {
-                LogHelper.Instance.Log($"Scraping {romName}", System.Windows.Media.Brushes.Green);
-            }
-            
-            // Scraped data container 
-            ScrapedGameData scrapedGameData = new ScrapedGameData();
-
-            // Handle region/language
-            string? mameArcadeName = MameNamesHelper.Names.TryGetValue(romFileNameNoExtension, out string? arcadeName)
-                ? arcadeName : string.Empty;
-
-            string romRegion = string.Empty;
-            string romLanguage = string.Empty;
-
-            // Get Region
-            if (itemsToScrape.Contains("region"))
-            {
-                string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
-                romRegion = RegionLanguageHelper.GetRegion(nameValue);
-                itemsToScrape.Remove("region");
-            }
-
-            // Get Language
-            if (itemsToScrape.Contains("language"))
-            {
-                string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
-                romLanguage = RegionLanguageHelper.GetLanguage(nameValue);
-                itemsToScrape.Remove("language");
-            }
-
-            // Clone parameters for this game
-            var scraperParameters = baseParameters.Clone();
-            scraperParameters.GameID = gameID;
-            scraperParameters.RomName = romName;
-            scraperParameters.RomFileName = romFileName;
-
-            if (itemsToScrape.Count > 0)
-            {
-                scraperParameters.ElementsToScrape = itemsToScrape;
-
-                switch (_currentScraper)
-                {
-                    case "ArcadeDB":
-                        {
-                            var arcadedb_scraper = serviceProvider.GetRequiredService<API_ArcadeDB>();
-                            scrapedGameData = await arcadedb_scraper.ScrapeArcadeDBAsync(scraperParameters);
-                            break;
-                        }
-
-                    case "EmuMovies":
-                        {
-                            var emumovies_scraper = serviceProvider.GetRequiredService<API_EmuMovies>();
-                            scrapedGameData = await emumovies_scraper.ScrapeEmuMoviesAsync(scraperParameters, scraperProperties.EmuMoviesMediaLists);
-                            break;
-                        }
-
-                    case "ScreenScraper":
-                        {
-                            var screenscraper_scraper = serviceProvider.GetRequiredService<API_ScreenScraper>();
-                            var ssResult = await screenscraper_scraper.ScrapeScreenScraperAsync(scraperParameters);
-                            scrapedGameData = ssResult.GameData;
-
-                            Interlocked.Exchange(ref _scrapeLimitProgress, ssResult.ScrapeLimitProgress);
-                            Interlocked.Exchange(ref _scrapeLimitMax, ssResult.ScrapeLimitMax);
-
-                            if (_scrapeLimitProgress >= _scrapeLimitMax && _scrapeLimitMax > 0)
-                            {
-                                LogHelper.Instance.Log("Daily scrape limit reached!", System.Windows.Media.Brushes.Red);
-                                _cancellationTokenSource.Cancel();
-                            }
-                            break;
-                        }
-                }
-
-                // Download media files - if required
-                if (scrapedGameData != null && scrapedGameData.WasSuccessful && scrapedGameData.Media.Count > 0)
-                {
-                    await DownloadMediaFilesAsync(scrapedGameData, scraperParameters);
-                }
-            }
-
-            // Null avoidance just in case
-            if (scrapedGameData == null)
-            {
-                scrapedGameData = new ScrapedGameData();
-            }
-
-            if (!string.IsNullOrEmpty(romRegion))
-            {
-                scrapedGameData.Data["region"] = romRegion;
-            }
-
-            if (!string.IsNullOrEmpty(romLanguage))
-            {
-                scrapedGameData.Data["lang"] = romLanguage;
-            }
-
-            // Apply data to row
             if (scrapedGameData.WasSuccessful)
             {
-                await SaveScrapedData(row, scrapedGameData, scraperParameters);
-                
-                if (scraperProperties.LogVerbosity == 2)
-                {
-                    LogHelper.Instance.Log($"Successfully scraped '{scraperParameters.RomName}'", System.Windows.Media.Brushes.Green);
-                }
-
-                // Optional messaging hook, might remove later
-                if (scrapedGameData?.Messages != null)
-                {
-                    foreach (var msg in scrapedGameData.Messages)
-                    {
-                        if (scraperProperties.LogVerbosity == 2)
-                        {
-                            LogHelper.Instance.Log(msg, System.Windows.Media.Brushes.Red);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (scraperProperties.LogVerbosity >= 1)
-                {
-                    LogHelper.Instance.Log($"Could not scrape '{scraperParameters.RomName}'", System.Windows.Media.Brushes.Red);
-                }
-
-                if (scrapedGameData.Messages != null)
-                {
-                    foreach (var msg in scrapedGameData.Messages)
-                    {
-                        if (scraperProperties.LogVerbosity == 2)
-                        {
-                            LogHelper.Instance.Log(msg, System.Windows.Media.Brushes.Red);
-                        }
-                    }
-                }
+                await scraperService.SaveScrapedDataAsync(row, scrapedGameData, baseParameters);
             }
         }
 
-
-        private async Task GetItemsInBatchMode(ScraperParameters baseScraperParameters, int batchProcessingMaximum, DataRow[] rowsToScrape, ScraperProperties scraperProperties)
+        private async Task GetItemsInBatchMode(
+            ScraperParameters baseScraperParameters,
+            int batchProcessingMaximum,
+            DataRow[] rowsToScrape,
+            ScraperProperties scraperProperties)
         {
             try
             {
-                Dictionary<string, ScrapedGameData> batchCache = new();
-
-                LogHelper.Instance.Log("Starting batch API fetch...", System.Windows.Media.Brushes.Teal);
-
-                // Find ROMs that don't have cache files yet
-                var itemsToFetch = new List<string>();
-
-                string? cacheFolder = scraperProperties.CacheFolder;
-
-                // Initialize the set, case-insensitive
-                HashSet<string> cacheFilesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                if (!string.IsNullOrEmpty(cacheFolder) && Directory.Exists(cacheFolder))
-                {
-                    foreach (var file in Directory.EnumerateFiles(cacheFolder, "*.json"))
+         
+                await scraperService.GetItemsInBatchModeAsync(
+                    baseScraperParameters,
+                    batchProcessingMaximum,
+                    rowsToScrape,
+                    scraperProperties.CacheFolder!,
+                    (currentBatch, totalBatches, fetched, total) =>
                     {
-                        cacheFilesSet.Add(Path.GetFileName(file)); // Keep extension
-                    }
-                }
-
-                for (int i = 0; i < rowsToScrape.Length; i++)
-                {
-                    var row = rowsToScrape[i];
-                    string? romPath = row["Rom Path"].ToString();
-
-                    // Never empty, but just in case
-                    if (string.IsNullOrEmpty(romPath))
-                    {
-                        continue;
-                    }
-
-                    string romFileNameWithoutExtension = Path.GetFileNameWithoutExtension(romPath);
-                    string cacheFileName = romFileNameWithoutExtension + ".json";
-              
-                    if (!cacheFilesSet.Contains(cacheFileName)) 
-                    {
-                        itemsToFetch.Add(romFileNameWithoutExtension);
-                    }
-                }
-
-                int alreadyCached = rowsToScrape.Length - itemsToFetch.Count;
-                if (alreadyCached > 0)
-                {
-                    LogHelper.Instance.Log($"{alreadyCached} items already in cache", System.Windows.Media.Brushes.Teal);
-                }
-
-                if (itemsToFetch.Count > 0)
-                {
-                    LogHelper.Instance.Log(
-                        $"Fetching {itemsToFetch.Count} games from API in batches...",
-                        System.Windows.Media.Brushes.Teal);
-
-                    var arcadedb_scraper = serviceProvider.GetRequiredService<API_ArcadeDB>();
-                    int totalBatches = (int)Math.Ceiling((double)itemsToFetch.Count / batchProcessingMaximum);
-                    int currentBatch = 0;
-                    int totalFetched = 0;
-
-                    for (int i = 0; i < itemsToFetch.Count; i += batchProcessingMaximum)
-                    {
-                        CancellationToken.ThrowIfCancellationRequested();
-
-                        currentBatch++;
-                        int batchSize = Math.Min(batchProcessingMaximum, itemsToFetch.Count - i);
-                        var batch = itemsToFetch.GetRange(i, batchSize);
-
-                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             label_CurrentScrape.Content = $"Fetching batch {currentBatch}/{totalBatches}";
                             progressBar_ProgressBar.Value = currentBatch;
                             progressBar_ProgressBar.Maximum = totalBatches;
-                            label_ProgressBarCount.Content = $"{totalFetched}/{itemsToFetch.Count}";
+                            label_ProgressBarCount.Content = $"{fetched}/{total}";
                             double percentage = (double)currentBatch / totalBatches * 100;
                             label_Percentage.Content = $"{percentage:F0}%";
                         });
-
-                        try
-                        {
-                            // This downloads from API and saves raw JSON to cache files
-                            var batchResults = await arcadedb_scraper.ScrapeArcadeDBBatchAsync(
-                                batch,
-                                baseScraperParameters
-                            );
-
-                            int foundCount = batchResults.Count;
-                            int notFoundCount = batch.Count - foundCount;
-                            totalFetched += foundCount;
-
-                            await Application.Current.Dispatcher.InvokeAsync(() =>
-                            {
-                                label_ProgressBarCount.Content = $"{totalFetched}/{itemsToFetch.Count}";
-                            });
-
-                            string resultMsg = notFoundCount > 0
-                                ? $"Batch {currentBatch}/{totalBatches}: Fetched {foundCount}, not found {notFoundCount}"
-                                : $"Batch {currentBatch}/{totalBatches}: Fetched {foundCount}";
-
-                            LogHelper.Instance.Log(resultMsg, System.Windows.Media.Brushes.Teal);
-                        }
-                        catch (Exception ex) when (ex is not OperationCanceledException)
-                        {
-                            LogHelper.Instance.Log(
-                                $"Batch {currentBatch}/{totalBatches} error: {ex.Message}",
-                                System.Windows.Media.Brushes.Orange);
-                        }
-                    }
-
-                    LogHelper.Instance.Log(
-                        $"Batch fetch complete: {totalFetched} games downloaded to cache",
-                        System.Windows.Media.Brushes.Green);
-                }
-                else
-                {
-                    LogHelper.Instance.Log(
-                        "All games already cached!",
-                        System.Windows.Media.Brushes.Green);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                LogHelper.Instance.Log(
-                    "Batch processing cancelled by user",
-                    System.Windows.Media.Brushes.Orange);
-
+                    },
+                    CancellationToken);
             }
             finally
             {
-                // Reset progress bar for main scraping
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     progressBar_ProgressBar.Value = 0;
@@ -1518,113 +986,6 @@ namespace GamelistManager.pages
                     label_Percentage.Content = "0%";
                 });
             }
-
-        }
-
-        private async Task SaveScrapedData(DataRow row, ScrapedGameData scrapedData, ScraperParameters parameters)
-        {
-            if (parameters.ElementsToScrape == null || scrapedData?.Data == null)
-            {
-                return;
-            }
-
-            var rowUpdates = new Dictionary<string, string>();
-
-            foreach (string element in parameters.ElementsToScrape)
-            {
-                // Check if the scraped data contains the element key
-                if (!scrapedData.Data.TryGetValue(element, out var value))
-                {
-                    continue;
-                }
-
-                // Only add if value is not null or empty
-                if (!string.IsNullOrEmpty(value))
-                {
-                    // Use the existing MetaLookup to get the column name
-                    if (parameters.MetaLookup.TryGetValue(element, out var meta))
-                    {
-                        rowUpdates[meta.Column] = value;
-                    }
-                }
-            }
-
-            // Only invoke if there are updates to apply
-            if (rowUpdates.Count > 0)
-            {
-                // Safely update DataRow on the UI thread
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    foreach (var kvp in rowUpdates)
-                    {
-                        if (row.Table.Columns.Contains(kvp.Key))
-                        {
-                            row[kvp.Key] = kvp.Value;
-                        }
-                    }
-                });
-            }
-        }
-
-        private List<string> FilterElementsToScrape(DataRow row, ScraperParameters baseParameters)
-        {
-            var itemsToScrape = new List<string>();
-            var metaLookup = baseParameters.MetaLookup;
-
-            foreach (var item in baseParameters.ElementsToScrape!)
-            {
-                var (type, column) = metaLookup[item];
-                var rawValue = row[column];
-                string? value = rawValue == null || rawValue == DBNull.Value ? null : rawValue.ToString();
-                bool isMediaType = type == "Image" || type == "Document" || type == "Video";
-
-                // Always scrape if value is empty/missing
-                if (string.IsNullOrEmpty(value))
-                {
-                    itemsToScrape.Add(item);
-                    continue;
-                }
-
-                // Check file existence for media types
-                if (isMediaType &&
-                    baseParameters.MediaPaths != null &&
-                    baseParameters.MediaPaths.TryGetValue(item, out string? folder) &&
-                    !string.IsNullOrEmpty(folder))
-                {
-                    string actualFile = Path.Combine(
-                        baseParameters.ParentFolderPath,
-                        folder,
-                        Path.GetFileName(value)
-                    );
-
-                    if (!File.Exists(actualFile))
-                    {
-                        itemsToScrape.Add(item);
-                        continue;
-                    }
-                }
-
-                // Overwrite rules - only ADD if we SHOULD scrape
-                if (item == "name" && baseParameters.OverwriteName)
-                {
-                    itemsToScrape.Add(item);
-                    continue;
-                }
-
-                if (type == "String" && baseParameters.OverwriteMetadata)
-                {
-                    itemsToScrape.Add(item);
-                    continue;
-                }
-
-                if (isMediaType && baseParameters.OverwriteMedia)
-                {
-                    itemsToScrape.Add(item);
-                    continue;
-                }
-            }
-
-            return itemsToScrape;
         }
 
         private static string FormatElapsedTime(TimeSpan elapsed)
@@ -1643,15 +1004,15 @@ namespace GamelistManager.pages
             }
         }
 
-        public void UpdateProgress(string romLabel, DateTime startTime, int current, int total, int scrapeLimitProgress, int scrapeLimitMax)
-        {          
+        public void UpdateProgress(string romLabel, DateTime startTime, int current, int total)
+        {
             // Updates in UI thread:
             Dispatcher.BeginInvoke(() =>
             {
                 // Update scraper limits
-                if (scrapeLimitMax > 0)
+                if (_scrapeLimitMax > 0)
                 {
-                    label_ScrapeLimitCount.Content = $"{scrapeLimitProgress}/{scrapeLimitMax}";
+                    label_ScrapeLimitCount.Content = $"{_scrapeLimitProgress}/{_scrapeLimitMax}";
                 }
 
                 // Update progress bar counter
@@ -1704,11 +1065,6 @@ namespace GamelistManager.pages
             label_CurrentScrape.Content = "Waiting for task(s) to complete...";
         }
 
-        private void Button_Log_Click(object sender, RoutedEventArgs e)
-        {
-            // Not implemented - yet!
-        }
-
         private void Button_ClearCache_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_currentScraper) || string.IsNullOrEmpty(SharedData.CurrentSystem))
@@ -1752,7 +1108,7 @@ namespace GamelistManager.pages
             // Flip the setting
             bool showCounts = !Properties.Settings.Default.ShowCounts;
 
-           // Update and save the setting
+            // Update and save the setting
             Properties.Settings.Default.ShowCounts = showCounts;
             Properties.Settings.Default.Save();
 
@@ -1841,29 +1197,14 @@ namespace GamelistManager.pages
             {
                 combobox.SelectedIndex = 0;
             }
-
         }
 
-        private void CheckBox_ScrapeFromCache_Checked(object sender, RoutedEventArgs e)
+        private void CheckBox_ScrapeFromCache_Clicked(object sender, RoutedEventArgs e)
         {
             CheckBox checkBox = sender as CheckBox;
-            if (checkBox != null)
-            {
-                return;
-            }
-
-            checkBox_OnlyScrapeFromCache.IsEnabled = true;
+            checkBox_OnlyScrapeFromCache.IsEnabled = checkBox.IsChecked == true;
         }
-
-        private void CheckBox_ScrapeFromCache_Unchecked(object sender, RoutedEventArgs e)
-        {
-            CheckBox checkBox = sender as CheckBox;
-            if (checkBox != null)
-            {
-                return;
-            }
-            checkBox_OnlyScrapeFromCache.IsEnabled = false;
-        }
+               
 
         private void Button_ToggleCard2_Click(object sender, RoutedEventArgs e)
         {

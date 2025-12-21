@@ -312,12 +312,22 @@ namespace GamelistManager
             SetExistingMediaScanningState(true);
             label_Missing.Foreground = Brushes.Black;
 
-            // Reset cancellation token
-            ResetCancellationToken();
-
             // Clear results datagrid
             _mediaSearchCollection.Clear();
 
+            // Start the search
+            await FindExistingMedia();
+
+            // Reset GUI changes
+            SetExistingMediaScanningState(false);
+
+        }
+
+        private async Task FindExistingMedia()
+        { 
+            // Reset cancellation token
+            ResetCancellationToken();
+           
             // Setup bool values
             bool excludeHidden = checkBox_SkipHiddenItems.IsChecked == true;
             bool isCancelled = false;
@@ -446,7 +456,6 @@ namespace GamelistManager
             button_AddExistingMedia.IsEnabled = count > 0;
             contextMenu_DeleteItems.IsEnabled = count > 0;
 
-            SetExistingMediaScanningState(false);
         }
 
 
