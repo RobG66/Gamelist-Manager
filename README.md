@@ -17,6 +17,14 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
  <img width="3839" height="2020" alt="image" src="https://github.com/user-attachments/assets/25ddcb0e-bb0a-4576-b983-28f071c30447" />
 
 ---
+ December 21st, 2025
+
+  Wow, sometimes things just fall into place so easily, especially when code refactoring makes everything more 'modular'.  The next version is going to be really, really good because it will finally add media drag/drop.  Also, you will be able to re-scrape media items right in the media page.  Another nice edition is in the settings you can permantently disable media types you don't want in your way, like map - which I have yet to find any use for.  It's only in there because ES has it.  I don't even know if any scrapers provide that media?  Other questionable media items are mix, magazine and bezel.  Again, only in there because it's in ES.  I know you can scrape bezel and mix, but magazine?  Chances are these media items are leftovers that have just been left in place all this time and not cleaned up.     
+
+<img width="1921" height="1604" alt="image" src="https://github.com/user-attachments/assets/279e2328-c6a8-463b-a0e6-4262aa69ec02" />
+
+
+---
  December 20th
 
  8.43 now released with some important fixes!  I'm hoping nothing else turns up so I can sit back on this version for a bit.    
