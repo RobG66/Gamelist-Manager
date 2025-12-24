@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Gamelist Manager" 
         Height="490" MinHeight="490" 
-        Width="870" MinWidth="870" 
+        Width="890" MinWidth="890" 
         Loaded="Window_Loaded" 
         Closing="Window_Closing"
         Background="{DynamicResource WindowBackgroundBrush}">
@@ -335,14 +335,14 @@
                         <!-- Row 0, Col 0 -->
                         <RibbonButton Grid.Row="0" Grid.Column="0"
                   Style="{StaticResource RibbonButtonDisabledStyle}" 
-                  Label="Clear Selected Data"
+                  Label="Clear Selected Item Data"
                   SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
                   Click="MenuItem_ClearSelected_Click"/>
 
                         <!-- Row 1, Col 0 -->
                         <RibbonButton Grid.Row="1" Grid.Column="0"
                   Style="{StaticResource RibbonButtonDisabledStyle}" 
-                  Label="Clear All Data"
+                  Label="Clear All Item Data"
                   SmallImageSource="pack://application:,,,/resources/images/icons/eraser.png"
                   Click="MenuItem_ClearAllData_Click"/>
                         <!-- Row 0, Col 1 -->
@@ -558,11 +558,11 @@
                     <MenuItem x:Name="menuItem_Find" Header="Find" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_Find_Click"/>
                     <MenuItem x:Name="menuItem_SearchAndReplace" Header="Search And Replace" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_SearchAndReplace_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
-                    <MenuItem x:Name="menuItem_ClearSelected" Header="Clear Selected Item Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelected_Click"/>
-                    <MenuItem x:Name="menuItem_ClearAllData" Header="Clear All Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllData_Click"/>
+                    <MenuItem x:Name="menuItem_ClearSelected" Header="Clear Selected Items Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelected_Click"/>
+                    <MenuItem x:Name="menuItem_ClearAllData" Header="Clear All Items Data" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllData_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
-                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelectedMediaPaths_Click"/>
-                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllMediaPaths_Click"/>
+                    <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Items Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelectedMediaPaths_Click"/>
+                    <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Items Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllMediaPaths_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_DeleteSelectedItems" Header="Delete Item" Style="{DynamicResource MinimalMenuItem}" Click="ribbonButton_DeleteItem_Click"/>
                 </MenuItem>
@@ -969,7 +969,18 @@
                                 HorizontalAlignment="Center" 
                                 Content="Show Media" 
                                 Click="Button_Media_Click"/>
-                    </StackPanel>
+                        <Button x:Name="button_SnapToSelectedItem" 
+                    IsEnabled="False" 
+                    Style="{DynamicResource GreyRoundedButton}" 
+                    Margin="3,0,0,0" 
+                    HorizontalAlignment="Center" 
+                    Click="button_SnapToSelectedItem_Click">
+                     <Image Source="pack://application:,,,/resources/images/icons/focus.png" 
+                     Width="17" 
+                     Height="17" 
+                        ToolTip="Bring the current selected item into view"/>
+                     </Button>
+                       </StackPanel>
                 </StackPanel>
 
                 <Grid Background="Transparent">

@@ -109,11 +109,13 @@ namespace GamelistManager.classes.helpers
         private string? _filePath;
         private volatile bool _isActive;
 
-        public void StartLog(string folder, string systemName)
+        public void StartLog(string folder, string systemName, string scraper)
         {
-            Directory.CreateDirectory(folder);
+            if (!Directory.Exists(folder)) 
+                Directory.CreateDirectory(folder);
+
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            _filePath = Path.Combine(folder, $"{systemName}_scrape_log_{timestamp}.txt");
+            _filePath = Path.Combine(folder, $"{systemName}_{scraper}_scrape_log_{timestamp}.txt");
 
             _buffer.Clear();
             _buffer.Add("=".PadRight(80, '='));
@@ -203,9 +205,9 @@ namespace GamelistManager.classes.helpers
         }
 
         // Start file logging
-        public void StartFileLog(string folder)
+        public void StartFileLog(string folder, string currentSystem, string scraper)
         {
-            _fileSink.StartLog(folder, SharedData.CurrentSystem);
+            _fileSink.StartLog(folder, currentSystem, scraper);
         }
 
         // Flush file log

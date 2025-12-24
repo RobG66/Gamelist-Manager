@@ -385,7 +385,40 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"{""image"":""images"",""titleshot"":""images"",""marquee"":""images"",""wheel"":""images"",""thumbnail"":""images"",""cartridge"":""images"",""video"":""videos"",""music"":""music"",""map"":""images"",""bezel"":""images"",""manual"":""manuals"",""fanart"":""images"",""boxart"":""images"",""boxback"":""images"",""magazine"":""images"",""mix"":""images""}")]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"{
+  ""image"": ""images"",
+  ""image_enabled"": ""true"",
+  ""titleshot"": ""images"",
+  ""titleshot_enabled"": ""true"",
+  ""marquee"": ""images"",
+  ""marquee_enabled"": ""true"",
+  ""wheel"": ""images"",
+  ""wheel_enabled"": ""false"",
+  ""thumbnail"": ""images"",
+  ""thumbnail_enabled"": ""true"",
+  ""cartridge"": ""images"",
+  ""cartridge_enabled"": ""true"",
+  ""video"": ""videos"",
+  ""video_enabled"": ""true"",
+  ""music"": ""music"",
+  ""music_enabled"": ""true"",
+  ""map"": ""images"",
+  ""map_enabled"": ""false"",
+  ""bezel"": ""images"",
+  ""bezel_enabled"": ""true"",
+  ""manual"": ""manuals"",
+  ""manual_enabled"": ""true"",
+  ""fanart"": ""images"",
+  ""fanart_enabled"": ""true"",
+  ""boxart"": ""images"",
+  ""boxart_enabled"": ""true"",
+  ""boxback"": ""images"",
+  ""boxback_enabled"": ""true"",
+  ""magazine"": ""images"",
+  ""magazine_enabled"": ""false"",
+  ""mix"": ""images"",
+  ""mix_enabled"": ""true""
+}")]
         public string MediaPaths {
             get {
                 return ((string)(this["MediaPaths"]));
@@ -579,6 +612,18 @@ namespace GamelistManager.Properties {
             }
             set {
                 this["EncryptedCredentials"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DisableScrapeNotifications {
+            get {
+                return ((bool)(this["DisableScrapeNotifications"]));
+            }
+            set {
+                this["DisableScrapeNotifications"] = value;
             }
         }
     }

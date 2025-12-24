@@ -26,7 +26,7 @@ namespace GamelistManager
         {
             if (_mediaPlayerControl != null)
             {
-                _mediaPlayerControl.StopPlaying();
+                _mediaPlayerControl.StopPlayingAsync();
                 _mediaPlayerControl.MediaPlayerControlDispose();
                 grid_MainGrid.Children.Clear();
                 _mediaPlayerControl = null!;

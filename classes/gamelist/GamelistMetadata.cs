@@ -88,8 +88,8 @@
                 new() { Key = MetaDataKeys.releasedate, Type = "releasedate", Name = "Release Date", DataType = MetaDataType.String, Scrapers = ["ArcadeDB", "ScreenScraper"], Viewable = true, editible = true },
                 new() { Key = MetaDataKeys.players, Type = "players", Name = "Players", DataType = MetaDataType.String, Scrapers = ["ArcadeDB", "ScreenScraper"], Viewable = true, editible = true },
                 new() { Key = MetaDataKeys.rating, Type = "rating", Name = "Rating", DataType = MetaDataType.String, Scrapers = ["ArcadeDB", "ScreenScraper"], Viewable = true, editible = true },
-                new() { Key = MetaDataKeys.lang, Type = "Language", Name = "Language", DataType = MetaDataType.String, Scrapers = ["ScreenScraper", "ArcadeDB"], Viewable = true, editible = true },
-                new() { Key = MetaDataKeys.region, Type = "Region", Name = "Region", DataType = MetaDataType.String, Scrapers = ["ScreenScraper", "ArcadeDB"], Viewable = true, editible = true },
+                new() { Key = MetaDataKeys.lang, Type = "lang", Name = "Language", DataType = MetaDataType.String, Scrapers = ["ScreenScraper", "ArcadeDB"], Viewable = true, editible = true },
+                new() { Key = MetaDataKeys.region, Type = "region", Name = "Region", DataType = MetaDataType.String, Scrapers = ["ScreenScraper", "ArcadeDB"], Viewable = true, editible = true },
                 new() { Key = MetaDataKeys.publisher, Type = "publisher", Name = "Publisher", DataType = MetaDataType.String, Scrapers = ["ArcadeDB", "ScreenScraper"], Viewable = true, editible = true },
                 new() { Key = MetaDataKeys.developer, Type = "developer", Name = "Developer", DataType = MetaDataType.String, Scrapers = ["ScreenScraper"], Viewable = true, editible = true },
                 new() { Key = MetaDataKeys.playcount, Type = "playcount", Name = "Play Count", DataType = MetaDataType.String, Viewable = true, editible = false },
@@ -134,8 +134,8 @@
 
         public static Dictionary<string, string> NameToTypeMap => metaDataDictionary
            .ToDictionary(
-               kvp => kvp.Value.Type,  // Element name
-               kvp => kvp.Value.Name   // Dataset column name
+               kvp => kvp.Value.Type,  // Element type
+               kvp => kvp.Value.Name   // Dataset column type
            );
 
         public static List<string> GetScraperElements(string scraperName)
@@ -153,34 +153,34 @@
 
         // Conversion methods below
 
-        public static string GetMetadataDataTypeByName(string name)
+   
+        public static string GetMetadataNameByType(string type)
+        {
+            var metaDataDecl = metaDataDictionary
+                .Values
+                .FirstOrDefault(decl => decl.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
+
+            // Return the DataType (enum) type in lowercase
+            return metaDataDecl?.Name ?? string.Empty;
+        }
+
+        public static string GetMetadataDataTypeByType(string type)
+        {
+            var metaDataDecl = metaDataDictionary
+                .Values
+                .FirstOrDefault(decl => decl.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
+
+            // Return the DataType (enum) type in lowercase
+            return metaDataDecl?.DataType.ToString() ?? string.Empty;
+        }
+
+        public static string GetMetadataTypeByName(string name)
         {
             var metaDataDecl = metaDataDictionary
                 .Values
                 .FirstOrDefault(decl => decl.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
-            // Return the DataType (enum) name in lowercase
-            return metaDataDecl?.DataType.ToString() ?? string.Empty;
-        }
-
-        public static string GetMetadataNameByType(string name)
-        {
-            var metaDataDecl = metaDataDictionary
-                .Values
-                .FirstOrDefault(decl => decl.Type.Equals(name, StringComparison.OrdinalIgnoreCase));
-
-            // Return the DataType (enum) name in lowercase
-            return metaDataDecl?.Name ?? string.Empty;
-        }
-
-        public static string GetMetadataDataTypeByType(string name)
-        {
-            var metaDataDecl = metaDataDictionary
-                .Values
-                .FirstOrDefault(decl => decl.Type.Equals(name, StringComparison.OrdinalIgnoreCase));
-
-            // Return the DataType (enum) name in lowercase
-            return metaDataDecl?.DataType.ToString() ?? string.Empty;
+            return metaDataDecl?.Type ?? string.Empty;
         }
     }
 }

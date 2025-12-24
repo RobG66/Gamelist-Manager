@@ -1,0 +1,351 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================ -->
+    <!-- BASE COLORS -->
+    <!-- ============================================ -->
+
+    <!-- Window Colors -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F7FAF9"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#CBDDDB"/>
+
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="PrimaryTextBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#5A7A71"/>
+    <SolidColorBrush x:Key="DisabledTextBrush" Color="#A8BCB7"/>
+    <SolidColorBrush x:Key="InvertedTextBrush" Color="#F7FAF9"/>
+
+    <!-- Border Colors -->
+    <SolidColorBrush x:Key="PrimaryBorderBrush" Color="#B8D0C9"/>
+    <SolidColorBrush x:Key="HoverBorderBrush" Color="#94B7AD"/>
+    <SolidColorBrush x:Key="ActiveBorderBrush" Color="#719C91"/>
+    <SolidColorBrush x:Key="DisabledBorderBrush" Color="#E2EBE8"/>
+
+    <!-- Background Colors -->
+    <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="#F7FAF9"/>
+    <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="#EDF5F2"/>
+    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#E1EBE7"/>
+    <SolidColorBrush x:Key="PressedBackgroundBrush" Color="#D4E0DC"/>
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#ECF1F0"/>
+
+    <!-- Accent/Selection Colors -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#7FB3A4"/>
+    <SolidColorBrush x:Key="SelectedBrush" Color="#D9E6E2"/>
+
+    <!-- ============================================ -->
+    <!-- APPLICATION-SPECIFIC COLORS -->
+    <!-- ============================================ -->
+
+    <SolidColorBrush x:Key="MainGridBackgroundBrush" Color="Transparent"/>
+
+    <!-- Menu Colors -->
+    <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#F7FAF9"/>
+    <SolidColorBrush x:Key="MenuForegroundBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="Menu.Static.Background" Color="#EDF5F2"/>
+    <SolidColorBrush x:Key="Menu.Static.Border" Color="#CBDDDB"/>
+    <SolidColorBrush x:Key="Menu.Static.Foreground" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="Menu.Static.Separator" Color="#DDE7E4"/>
+    <SolidColorBrush x:Key="Menu.Disabled.Foreground" Color="#A8BCB7"/>
+    <SolidColorBrush x:Key="MenuItem.Selected.Background" Color="#CCE0DB"/>
+    <SolidColorBrush x:Key="MenuItem.Selected.Border" Color="#7FB3A4"/>
+    <SolidColorBrush x:Key="MenuItem.Highlight.Background" Color="#DDEAE6"/>
+    <SolidColorBrush x:Key="MenuItem.Highlight.Border" Color="#7FB3A4"/>
+    <SolidColorBrush x:Key="MenuItem.Highlight.Disabled.Background" Color="#0A000000"/>
+    <SolidColorBrush x:Key="MenuItem.Highlight.Disabled.Border" Color="#21000000"/>
+
+    <!-- Ribbon Colors -->
+    <SolidColorBrush x:Key="RibbonBackgroundBrush" Color="#F1F6F4"/>
+    <SolidColorBrush x:Key="RibbonForegroundBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="RibbonBorderBrush" Color="#CBDDDB"/>
+
+    <!-- Ribbon Tab Colors -->
+    <SolidColorBrush x:Key="RibbonTabHoverBackground" Color="#E5EDEB"/>
+    <SolidColorBrush x:Key="RibbonTabSelectedBackground" Color="#F7FAF9"/>
+    <SolidColorBrush x:Key="RibbonTabSelectedBorder" Color="#7FB3A4"/>
+
+    <!-- Ribbon Button Colors -->
+    <SolidColorBrush x:Key="RibbonButtonHoverBackground" Color="#DDEAE6"/>
+    <SolidColorBrush x:Key="RibbonButtonHoverBorder" Color="#94B7AD"/>
+    <SolidColorBrush x:Key="RibbonButtonPressedBackground" Color="#C7DAD3"/>
+    <SolidColorBrush x:Key="RibbonButtonPressedBorder" Color="#719C91"/>
+    <SolidColorBrush x:Key="RibbonButtonCheckedBackground" Color="#C7DAD3"/>
+    <SolidColorBrush x:Key="RibbonButtonCheckedBorder" Color="#719C91"/>
+
+    <!-- Ribbon Group Colors -->
+    <SolidColorBrush x:Key="RibbonGroupBorder" Color="#DDEAE6"/>
+    <SolidColorBrush x:Key="RibbonGroupLabelBackground" Color="#EDF5F2"/>
+
+    <!-- Ribbon Separator -->
+    <SolidColorBrush x:Key="RibbonSeparatorBrush" Color="#DDE7E4"/>
+
+    <!-- Application Menu Colors -->
+    <SolidColorBrush x:Key="RibbonApplicationMenuBackground" Color="#5A7A71"/>
+    <SolidColorBrush x:Key="RibbonApplicationMenuBorder" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="RibbonApplicationMenuForeground" Color="#F7FAF9"/>
+
+    <!-- DataGrid Colors -->
+    <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="#F7FAF9"/>
+    <SolidColorBrush x:Key="DataGridForegroundBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="DataGridNewItemBrush" Color="#5A9684"/>
+    <SolidColorBrush x:Key="DataGridMissingItemBrush" Color="#B87D7D"/>
+    <SolidColorBrush x:Key="DataGridRowHoverBrush" Color="#E1EBE7"/>
+
+    <!-- Status Bar Colors -->
+    <SolidColorBrush x:Key="StatusBarBackgroundBrush" Color="#E5EDEB"/>
+    <SolidColorBrush x:Key="StatusBarForegroundBrush" Color="#5A7A71"/>
+
+    <!-- Panel Colors -->
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#EDF5F2"/>
+    <SolidColorBrush x:Key="PanelForegroundBrush" Color="#3A4D48"/>
+
+    <!-- TextBox Colors -->
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="White"/>
+    <SolidColorBrush x:Key="TextBoxForegroundBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="TextBoxBorderBrush" Color="#CBDDDB"/>
+
+    <!-- Filter Panel -->
+    <SolidColorBrush x:Key="FilterPanelBackgroundBrush" Color="#E1EBE7"/>
+
+    <!-- Info Card Colors -->
+    <SolidColorBrush x:Key="TotalCardBackgroundBrush" Color="#6E8C84"/>
+    <SolidColorBrush x:Key="HiddenCardBackgroundBrush" Color="#A6937C"/>
+    <SolidColorBrush x:Key="ShowingCardBackgroundBrush" Color="#87A69C"/>
+    <SolidColorBrush x:Key="FavoriteCardBackgroundBrush" Color="#7BA195"/>
+    <SolidColorBrush x:Key="CardForegroundBrush" Color="White"/>
+
+    <!-- Dark Border -->
+    <SolidColorBrush x:Key="DarkBorderBrush" Color="Black"/>
+
+    <!-- ProgressBar -->
+    <SolidColorBrush x:Key="ProgressBarBackgroundBrush" Color="#EDF5F2"/>
+    <SolidColorBrush x:Key="ProgressBarBorderBrush" Color="#CBDDDB"/>
+    <SolidColorBrush x:Key="ProgressBarForegroundBrush" Color="#7FB3A4"/>
+    <SolidColorBrush x:Key="ProgressBarIndicatorBrush" Color="#A3C6BC"/>
+    <SolidColorBrush x:Key="ProgressBarSuccessBrush" Color="#7FB3A4"/>
+    <SolidColorBrush x:Key="ProgressBarWarningBrush" Color="#F0C27A"/>
+    <SolidColorBrush x:Key="ProgressBarErrorBrush" Color="#E07A7A"/>
+
+    <!-- ComboBox -->
+    <SolidColorBrush x:Key="ComboBoxBackgroundBrush" Color="White"/>
+    <SolidColorBrush x:Key="ComboBoxForegroundBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#CBDDDB"/>
+    <SolidColorBrush x:Key="ComboBoxArrowBrush" Color="#3A4D48"/>
+    <SolidColorBrush x:Key="ComboBoxItemHighlightBrush" Color="#E1EBE7"/>
+    <SolidColorBrush x:Key="ComboBoxItemSelectedBrush" Color="#D9E6E2"/>
+
+    <!-- CheckBox -->
+    <SolidColorBrush x:Key="CheckBoxBorderBrush" Color="#94B7AD"/>
+    <SolidColorBrush x:Key="CheckBoxCheckedBrush" Color="#E5EDEB"/>
+    <SolidColorBrush x:Key="CheckMarkBrush" Color="#3A4D48"/>
+
+    <!-- RadioButton -->
+    <SolidColorBrush x:Key="RadioButtonBorderBrush" Color="#B8D0C9"/>
+    <SolidColorBrush x:Key="RadioButtonDotBrush" Color="#3A4D48"/>
+
+    <!-- Splitters -->
+    <SolidColorBrush x:Key="SplitterGripBrush" Color="#CBDDDB"/>
+
+    <!-- Slider -->
+    <SolidColorBrush x:Key="SliderTrackBrush" Color="#E1EBE7"/>
+    <SolidColorBrush x:Key="SliderThumbBrush" Color="#7FB3A4"/>
+
+    <!-- ============================================ -->
+    <!-- CONTROL STYLES -->
+    <!-- ============================================ -->
+
+    <Style TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+    </Style>
+
+    <Style TargetType="Label">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+    </Style>
+
+    <Style TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBoxForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="Background" Value="{StaticResource ComboBoxBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ComboBoxForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ComboBoxBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+    </Style>
+
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+    </Style>
+
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="{StaticResource DataGridBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource DataGridForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="RowBackground" Value="{StaticResource DataGridBackgroundBrush}"/>
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource SecondaryBackgroundBrush}"/>
+        <Setter Property="GridLinesVisibility" Value="All"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+    </Style>
+
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- MINT BUTTONS (EXISTING NAMES) -->
+    <!-- ============================================ -->
+
+    <Style x:Key="GreyRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#EDF5F2" Offset="0"/>
+                    <GradientStop Color="#D9E6E2" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Foreground" Value="#3A4D48"/>
+        <Setter Property="BorderBrush" Value="#94B7AD"/>
+    </Style>
+
+    <Style x:Key="GreenRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#A3C6BC" Offset="0"/>
+                    <GradientStop Color="#7FB3A4" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#5A9684"/>
+    </Style>
+
+    <Style x:Key="BlueRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#B3D6D1" Offset="0"/>
+                    <GradientStop Color="#7FB3A4" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#5A9684"/>
+    </Style>
+
+    <Style x:Key="OrangeRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#F0D9B7" Offset="0"/>
+                    <GradientStop Color="#D4BFA3" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#A6937C"/>
+    </Style>
+
+    <Style x:Key="YellowRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E6F0E9" Offset="0"/>
+                    <GradientStop Color="#CCE0DB" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#7FB3A4"/>
+    </Style>
+
+    <Style x:Key="RedRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E07A7A" Offset="0"/>
+                    <GradientStop Color="#C96A6A" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#A05A5A"/>
+    </Style>
+
+    <Style x:Key="PurpleRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#B3A3C6" Offset="0"/>
+                    <GradientStop Color="#7BA195" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#5A7A71"/>
+    </Style>
+
+    <Style x:Key="TealRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#A3C6BC" Offset="0"/>
+                    <GradientStop Color="#7FB3A4" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#5A9684"/>
+    </Style>
+
+    <Style x:Key="PinkRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E6C8C8" Offset="0"/>
+                    <GradientStop Color="#D4A3A3" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#A67373"/>
+    </Style>
+
+    <Style x:Key="BrownRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#D4C4B7" Offset="0"/>
+                    <GradientStop Color="#A6937C" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#7B6654"/>
+    </Style>
+
+    <Style x:Key="CyanRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#B2E2DE" Offset="0"/>
+                    <GradientStop Color="#7FB3A4" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#5A9684"/>
+    </Style>
+
+    <Style x:Key="LimeRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#D9F2E7" Offset="0"/>
+                    <GradientStop Color="#A3C6BC" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#5A9684"/>
+    </Style>
+
+</ResourceDictionary>

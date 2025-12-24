@@ -29,7 +29,9 @@ namespace GamelistManager
         private ObservableCollection<MediaSearchItem> _mediaSearchCollection = [];
         private ObservableCollection<MediaCleanupItem> _mediaCleanupCollection = [];
         string _parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename)!;
-
+        private int _missingMediaCount = 0;
+        private int _unusedMediaCount = 0;
+        private int _badMediaCount = 0;
 
         public class MediaSearchItem
         {
@@ -197,8 +199,7 @@ namespace GamelistManager
             ResetCancellationToken();
 
             bool excludeHidden = checkBox_SkipHiddenItems.IsChecked == true;
-            bool recurse = checkBox_IncludeSubFolders.IsChecked == true;
-            var searchOption = recurse ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly;
+            var searchOption = System.IO.SearchOption.TopDirectoryOnly;
 
             var romQuery = SharedData.DataSet.Tables[0].AsEnumerable();
 
@@ -680,19 +681,60 @@ namespace GamelistManager
 
         private async void Button_ScanExistingMedia_Click(object sender, RoutedEventArgs e)
         {
-            SetMediaCleanupScanningState(true);
-
             // Reset cancellation token
             ResetCancellationToken();
+
+            bool isScanning = true;
+            SetScanningState(isScanning);
+
+            // Clear datagrid and counters
+            _mediaCleanupCollection.Clear();
+            _unusedMediaCount = 0;
+            _missingMediaCount = 0;
+            _badMediaCount = 0;
 
             // Reset labels            
             label_Missing.Content = string.Empty;
             label_SingleColor.Content = string.Empty;
             label_Unused.Content = string.Empty;
 
-            // Clear datagrid
-            _mediaCleanupCollection.Clear();
+            await FindExistingMediaCleanupItems();
 
+            isScanning = false;
+            SetScanningState(isScanning);
+
+            // Enable/disable context menu based on results
+            contextMenu_DeleteItems2.IsEnabled = _mediaCleanupCollection.Count > 0;
+        }
+
+        private void SetScanningState(bool isScanning)
+        {
+            progressBar_ProgressBar2.IsIndeterminate = isScanning;
+            button_ScanExistingMediaStart.IsEnabled = !isScanning;
+            button_ScanExistingMediaCancel.IsEnabled = isScanning;
+
+            // Disable checkboxes during scan
+            checkBox_MissingMedia.IsEnabled = !isScanning;
+            checkBox_UnusedMedia.IsEnabled = !isScanning;
+            checkBox_SingleColor.IsEnabled = !isScanning;
+
+            // Disable datagrid context menu
+            contextMenu_DeleteItems2.IsEnabled = !isScanning;
+
+            // Hide and disable all fix buttons during scan
+            if (isScanning)
+            {
+                button_FixMissing.Visibility = Visibility.Hidden;
+                button_FixMissing.IsEnabled = false;
+                button_FixUnused.Visibility = Visibility.Hidden;
+                button_FixUnused.IsEnabled = false;
+                button_FixBad.Visibility = Visibility.Hidden;
+                button_FixBad.IsEnabled = false;
+            }
+        }
+
+        private async Task FindExistingMediaCleanupItems()
+        {
             // Get a list of media paths as defined in the gamelist
             var gamelistMediaPaths = await GetGamelistMediaPathsAsync();
 
@@ -704,266 +746,291 @@ namespace GamelistManager
             // Check for missing media
             if (checkBox_MissingMedia.IsChecked == true)
             {
-                label_Missing.Foreground = Brushes.Blue;
-                label_Missing.Content = "Running scan...";
-                int missingCount = 0;
-
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        var uniqueDirectories = gamelistMediaPaths
-                            .Select(kvp => Path.GetDirectoryName(Path.Combine(_parentFolderPath, kvp.Value)))
-                            .Where(dir => !string.IsNullOrEmpty(dir))
-                            .Distinct(StringComparer.OrdinalIgnoreCase)
-                            .ToList();
-
-                        var allMediaFromGamelistDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                        foreach (var directory in uniqueDirectories)
-                        {
-                            if (Directory.Exists(directory))
-                            {
-                                var filesInDir = Directory.GetFiles(directory, "*.*", System.IO.SearchOption.TopDirectoryOnly)
-                                    .Select(f => Path.GetFullPath(f));
-
-                                foreach (var file in filesInDir)
-                                {
-                                    allMediaFromGamelistDirs.Add(file);
-                                }
-                            }
-                        }
-
-                        var missingItems = new ConcurrentBag<MediaCleanupItem>();
-
-                        var parallelOptions = new ParallelOptions
-                        {
-                            CancellationToken = CancellationToken
-                        };
-
-                        Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
-                        {
-                            string itemType = item.Key;
-                            string itemPath = item.Value;
-
-                            string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, itemPath));
-
-                            if (!allMediaFromGamelistDirs.Contains(fullPath))
-                            {
-                                missingItems.Add(new MediaCleanupItem
-                                {
-                                    Status = "Missing",
-                                    MediaType = itemType,
-                                    FileName = itemPath
-                                });
-
-                                Interlocked.Increment(ref missingCount);
-                            }
-                        });
-
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            foreach (var missingItem in missingItems)
-                            {
-                                _mediaCleanupCollection.Add(missingItem);
-                            }
-                        });
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        isCancelled = true;
-                    }
-                }, CancellationToken);
-
-                if (isCancelled == true)
-                {
-                    label_Missing.Content = "Cancelled!";
-                    label_Missing.Foreground = Brushes.Red;
-                }
-                else
-                {
-                    label_Missing.Content = $"[{missingCount} missing media items]";
-                    if (missingCount == 0)
-                    {
-                        label_Missing.Foreground = Brushes.Green;
-                    }
-                    else
-                    {
-                        button_FixMissing.Visibility = Visibility.Visible;
-                        label_Missing.Foreground = Brushes.Red;
-                    }
-                }
+                isCancelled = await ScanForMissingMedia(gamelistMediaPaths);
+                if (isCancelled) return;
             }
 
-
-            if (!isCancelled && checkBox_UnusedMedia.IsChecked == true)
+            // Check for unused media
+            if (checkBox_UnusedMedia.IsChecked == true)
             {
-                label_Unused.Foreground = Brushes.Blue;
-                label_Unused.Content = "Running scan...";
-                int unusedCount = 0;
-
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        var gamelistPathsLookup = gamelistMediaPaths
-                            .ToLookup(
-                                kvp => Path.GetFullPath(Path.Combine(_parentFolderPath, kvp.Value)),
-                                kvp => kvp.Key,
-                                StringComparer.OrdinalIgnoreCase);
-
-                        var missingItems = new ConcurrentBag<MediaCleanupItem>();
-
-                        var parallelOptions = new ParallelOptions
-                        {
-                            CancellationToken = CancellationToken
-                        };
-
-                        Parallel.ForEach(allMedia, parallelOptions, (mediaItem) =>
-                        {
-                            var matchingItems = gamelistPathsLookup[mediaItem];
-
-                            if (!matchingItems.Any())
-                            {
-                                missingItems.Add(new MediaCleanupItem
-                                {
-                                    Status = "Unused",
-                                    MediaType = string.Empty,
-                                    FileName = mediaItem
-                                });
-
-                                Interlocked.Increment(ref unusedCount);
-                            }
-                        });
-
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            foreach (var missingItem in missingItems)
-                            {
-                                _mediaCleanupCollection.Add(missingItem);
-                            }
-                        });
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        isCancelled = true;
-                    }
-                }, CancellationToken);
-
-                if (isCancelled == true)
-                {
-                    label_Unused.Content = "Cancelled!";
-                    label_Unused.Foreground = Brushes.Red;
-                }
-                else
-                {
-                    label_Unused.Content = $"[{unusedCount} unused media items]";
-                    if (unusedCount == 0)
-                    {
-                        label_Unused.Foreground = Brushes.Green;
-                        button_FixBad.Visibility = Visibility.Collapsed;
-                    }
-                    else
-                    {
-                        button_FixUnused.Visibility = Visibility.Visible;
-                        label_Unused.Foreground = Brushes.Red;
-                    }
-                }
+                isCancelled = await ScanForUnusedMedia(gamelistMediaPaths, allMedia);
+                if (isCancelled) return;
             }
 
-            if (!isCancelled && checkBox_SingleColor.IsChecked == true)
+            // Check for bad media (corrupt/single color)
+            if (checkBox_SingleColor.IsChecked == true)
             {
-                label_SingleColor.Foreground = Brushes.Blue;
-                label_SingleColor.Content = "Running scan...";
-                int badCount = 0;
-
-                await Task.Run(() =>
-                {
-                    var badItems = new ConcurrentBag<MediaCleanupItem>();
-
-                    try
-                    {
-                        var parallelOptions = new ParallelOptions
-                        {
-                            CancellationToken = CancellationToken
-                        };
-
-                        Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
-                        {
-                            string mediaPath = item.Value;
-                            string mediaType = item.Key;
-
-                            string fileExtension = Path.GetExtension(mediaPath).ToLowerInvariant();
-                            string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, mediaPath));
-
-                            // Filter by file extensions (case-insensitive)
-                            if (fileExtension is not (".jpg" or ".png"))
-                            {
-                                return;
-                            }
-
-                            string result = ImageHelper.CheckImage(fullPath);
-
-                            if (result is ("Corrupt" or "Single Color"))
-                            {
-                                badItems.Add(new MediaCleanupItem
-                                {
-                                    Status = result,
-                                    MediaType = mediaType,
-                                    FileName = fullPath
-                                });
-                                Interlocked.Increment(ref badCount);
-                            }
-                        });
-
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            foreach (var badItem in badItems)
-                            {
-                                _mediaCleanupCollection.Add(badItem);
-                            }
-                        });
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        isCancelled = true;
-                    }
-                }, CancellationToken);
-
-                if (isCancelled == true)
-                {
-                    label_SingleColor.Content = "Cancelled!";
-                    label_SingleColor.Foreground = Brushes.Red;
-                }
-                else
-                {
-                    label_SingleColor.Content = $"[{badCount} bad media items]";
-                    if (badCount == 0)
-                    {
-                        label_SingleColor.Foreground = Brushes.Green;
-                    }
-                    else
-                    {
-                        label_SingleColor.Foreground = Brushes.Red;
-                        button_FixBad.Visibility = Visibility.Visible;
-                    }
-                }
+                isCancelled = await ScanForBadMedia(gamelistMediaPaths);
+                if (isCancelled) return;
             }
-
-            progressBar_ProgressBar2.IsIndeterminate = false;
-            button_ScanExistingMediaStart.IsEnabled = true;
-            button_ScanExistingMediaCancel.IsEnabled = false;
-
-            // Fix buttons enabled now that scanning is done
-            button_FixMissing.IsEnabled = button_FixMissing.IsVisible;
-            button_FixUnused.IsEnabled = button_FixUnused.IsVisible;
-            button_FixBad.IsEnabled = button_FixBad.IsVisible;
-
-            int count = _mediaCleanupCollection.Count;
-            contextMenu_DeleteItems2.IsEnabled = count > 0;
-                  
         }
 
+        private async Task<bool> ScanForMissingMedia(ConcurrentBag<KeyValuePair<string, string>> gamelistMediaPaths)
+        {
+            label_Missing.Foreground = Brushes.Blue;
+            label_Missing.Content = "Running scan...";
+            _missingMediaCount = 0;
+            bool isCancelled = false;
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var uniqueDirectories = gamelistMediaPaths
+                        .Select(kvp => Path.GetDirectoryName(Path.Combine(_parentFolderPath, kvp.Value)))
+                        .Where(dir => !string.IsNullOrEmpty(dir))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    var allMediaFromGamelistDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var directory in uniqueDirectories)
+                    {
+                        if (Directory.Exists(directory))
+                        {
+                            var filesInDir = Directory.GetFiles(directory, "*.*", System.IO.SearchOption.TopDirectoryOnly)
+                                .Select(f => Path.GetFullPath(f));
+
+                            foreach (var file in filesInDir)
+                            {
+                                allMediaFromGamelistDirs.Add(file);
+                            }
+                        }
+                    }
+
+                    var missingItems = new ConcurrentBag<MediaCleanupItem>();
+
+                    var parallelOptions = new ParallelOptions
+                    {
+                        CancellationToken = CancellationToken
+                    };
+
+                    Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
+                    {
+                        string itemType = item.Key;
+                        string itemPath = item.Value;
+
+                        string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, itemPath));
+
+                        if (!allMediaFromGamelistDirs.Contains(fullPath))
+                        {
+                            missingItems.Add(new MediaCleanupItem
+                            {
+                                Status = "Missing",
+                                MediaType = itemType,
+                                FileName = itemPath
+                            });
+
+                            Interlocked.Increment(ref _missingMediaCount);
+                        }
+                    });
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        foreach (var missingItem in missingItems)
+                        {
+                            _mediaCleanupCollection.Add(missingItem);
+                        }
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+                    isCancelled = true;
+                }
+            }, CancellationToken);
+
+            // Update UI
+            if (isCancelled)
+            {
+                label_Missing.Content = "Cancelled!";
+                label_Missing.Foreground = Brushes.Red;
+            }
+            else
+            {
+                label_Missing.Content = $"[{_missingMediaCount} missing media items]";
+                if (_missingMediaCount == 0)
+                {
+                    label_Missing.Foreground = Brushes.Green;
+                    button_FixMissing.Visibility = Visibility.Collapsed;
+                    button_FixMissing.IsEnabled = false;
+                }
+                else
+                {
+                    label_Missing.Foreground = Brushes.Red;
+                    button_FixMissing.Visibility = Visibility.Visible;
+                    button_FixMissing.IsEnabled = true;
+                }
+            }
+
+            return isCancelled;
+        }
+
+        private async Task<bool> ScanForUnusedMedia(ConcurrentBag<KeyValuePair<string, string>> gamelistMediaPaths, List<string> allMedia)
+        {
+            label_Unused.Foreground = Brushes.Blue;
+            label_Unused.Content = "Running scan...";
+            _unusedMediaCount = 0;
+            bool isCancelled = false;
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var gamelistPathsLookup = gamelistMediaPaths
+                        .ToLookup(
+                            kvp => Path.GetFullPath(Path.Combine(_parentFolderPath, kvp.Value)),
+                            kvp => kvp.Key,
+                            StringComparer.OrdinalIgnoreCase);
+
+                    var unusedItems = new ConcurrentBag<MediaCleanupItem>();
+
+                    var parallelOptions = new ParallelOptions
+                    {
+                        CancellationToken = CancellationToken
+                    };
+
+                    Parallel.ForEach(allMedia, parallelOptions, (mediaItem) =>
+                    {
+                        var matchingItems = gamelistPathsLookup[mediaItem];
+
+                        if (!matchingItems.Any())
+                        {
+                            unusedItems.Add(new MediaCleanupItem
+                            {
+                                Status = "Unused",
+                                MediaType = string.Empty,
+                                FileName = mediaItem
+                            });
+
+                            Interlocked.Increment(ref _unusedMediaCount);
+                        }
+                    });
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        foreach (var unusedItem in unusedItems)
+                        {
+                            _mediaCleanupCollection.Add(unusedItem);
+                        }
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+                    isCancelled = true;
+                }
+            }, CancellationToken);
+
+            // Update UI
+            if (isCancelled)
+            {
+                label_Unused.Content = "Cancelled!";
+                label_Unused.Foreground = Brushes.Red;
+            }
+            else
+            {
+                label_Unused.Content = $"[{_unusedMediaCount} unused media items]";
+                if (_unusedMediaCount == 0)
+                {
+                    label_Unused.Foreground = Brushes.Green;
+                    button_FixUnused.Visibility = Visibility.Collapsed;
+                    button_FixUnused.IsEnabled = false;
+                }
+                else
+                {
+                    label_Unused.Foreground = Brushes.Red;
+                    button_FixUnused.Visibility = Visibility.Visible;
+                    button_FixUnused.IsEnabled = true;
+                }
+            }
+
+            return isCancelled;
+        }
+
+        private async Task<bool> ScanForBadMedia(ConcurrentBag<KeyValuePair<string, string>> gamelistMediaPaths)
+        {
+            label_SingleColor.Foreground = Brushes.Blue;
+            label_SingleColor.Content = "Running scan...";
+            _badMediaCount = 0;
+            bool isCancelled = false;
+
+            await Task.Run(() =>
+            {
+                var badItems = new ConcurrentBag<MediaCleanupItem>();
+
+                try
+                {
+                    var parallelOptions = new ParallelOptions
+                    {
+                        CancellationToken = CancellationToken
+                    };
+
+                    Parallel.ForEach(gamelistMediaPaths, parallelOptions, (item) =>
+                    {
+                        string mediaPath = item.Value;
+                        string mediaType = item.Key;
+
+                        string fileExtension = Path.GetExtension(mediaPath).ToLowerInvariant();
+                        string fullPath = Path.GetFullPath(Path.Combine(_parentFolderPath, mediaPath));
+
+                        // Filter by file extensions (case-insensitive)
+                        if (fileExtension is not (".jpg" or ".png"))
+                        {
+                            return;
+                        }
+
+                        string result = ImageHelper.CheckImage(fullPath);
+
+                        if (result is ("Corrupt" or "Single Color"))
+                        {
+                            badItems.Add(new MediaCleanupItem
+                            {
+                                Status = result,
+                                MediaType = mediaType,
+                                FileName = fullPath
+                            });
+                            Interlocked.Increment(ref _badMediaCount);
+                        }
+                    });
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        foreach (var badItem in badItems)
+                        {
+                            _mediaCleanupCollection.Add(badItem);
+                        }
+                    });
+                }
+                catch (OperationCanceledException)
+                {
+                    isCancelled = true;
+                }
+            }, CancellationToken);
+
+            // Update UI
+            if (isCancelled)
+            {
+                label_SingleColor.Content = "Cancelled!";
+                label_SingleColor.Foreground = Brushes.Red;
+            }
+            else
+            {
+                label_SingleColor.Content = $"[{_badMediaCount} bad media items]";
+                if (_badMediaCount == 0)
+                {
+                    label_SingleColor.Foreground = Brushes.Green;
+                    button_FixBad.Visibility = Visibility.Collapsed;
+                    button_FixBad.IsEnabled = false;
+                }
+                else
+                {
+                    label_SingleColor.Foreground = Brushes.Red;
+                    button_FixBad.Visibility = Visibility.Visible;
+                    button_FixBad.IsEnabled = true;
+                }
+            }
+
+            return isCancelled;
+        }
         private async Task<ConcurrentBag<KeyValuePair<string, string>>> GetGamelistMediaPathsAsync()
         {
             var media = new ConcurrentBag<KeyValuePair<string, string>>();
@@ -1281,32 +1348,7 @@ namespace GamelistManager
             }
         }
 
-        private void SetMediaCleanupScanningState(bool isScanning)
-        {
-            progressBar_ProgressBar2.IsIndeterminate = isScanning;
-            button_ScanExistingMediaStart.IsEnabled = !isScanning;
-            button_ScanExistingMediaCancel.IsEnabled = isScanning;
-
-            // Disable checkboxes during scan
-            checkBox_MissingMedia.IsEnabled = !isScanning;
-            checkBox_UnusedMedia.IsEnabled = !isScanning;
-            checkBox_SingleColor.IsEnabled = !isScanning;
-
-            // Disable datagrid context menu
-            contextMenu_DeleteItems2.IsEnabled = !isScanning;
-
-            if (isScanning)
-            {
-                // Hide and disable all fix buttons during scan
-                button_FixMissing.Visibility = Visibility.Hidden;
-                button_FixMissing.IsEnabled = false;
-                button_FixUnused.Visibility = Visibility.Hidden;
-                button_FixUnused.IsEnabled = false;
-                button_FixBad.Visibility = Visibility.Hidden;
-                button_FixBad.IsEnabled = false;
-            }
-        }
-
+        
         private void contextMenu_DeleteItems2_Click(object sender, RoutedEventArgs e)
         {
             var selectedItems = dataGrid_BadMedia.SelectedItems.Cast<MediaCleanupItem>().ToList();

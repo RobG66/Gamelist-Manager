@@ -230,6 +230,7 @@ namespace GamelistManager
             ribbonTab_Tools.IsEnabled = true;
             menuItem_View.IsEnabled = true;
             button_Media.IsEnabled = true;
+            button_SnapToSelectedItem.IsEnabled = true;
             button_Scraper.IsEnabled = true;
             ribbonTab_Home.IsEnabled = true;
 
@@ -396,6 +397,7 @@ namespace GamelistManager
             {
                 column.Visibility = Visibility.Collapsed;
             }
+
             textBox_Description.Visibility = Visibility.Collapsed;
             column_Description.Width = new GridLength(0);
             gridSplitter_Vertical.Visibility = Visibility.Collapsed;
@@ -440,10 +442,14 @@ namespace GamelistManager
 
             if (visibleColumns.Contains("Media Paths") && rememberColumns == true)
             {
+                menuItem_MediaPaths.IsChecked = true;
+                ribbon_MediaPaths.IsChecked = true;
                 ShowMediaPaths(true);
             }
             else
             {
+                menuItem_MediaPaths.IsChecked = false;
+                ribbon_MediaPaths.IsChecked = false;
                 ShowMediaPaths(false);
             }
 
@@ -1383,7 +1389,7 @@ namespace GamelistManager
             }
 
             bool isMediaVisible = false;
-            if (menuItem_MediaPaths.IsChecked)
+            if (menuItem_MediaPaths.IsChecked == true || ribbon_MediaPaths.IsChecked == true)
             {
                 isMediaVisible = true;
             }
@@ -1598,7 +1604,10 @@ namespace GamelistManager
 
         private void MainDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (MainDataGrid.Items.Count == 0)
+            if (MainDataGrid.ItemsSource == null || MainDataGrid.Items.Count == 0)
+                return;
+
+            if (MainDataGrid.SelectedItems.Count > 1) 
                 return;
 
             if (_isUpdatingSelection)
@@ -2486,11 +2495,11 @@ namespace GamelistManager
 
 
 
-        private void MenuItem_VideoJukebox_Click(object sender, RoutedEventArgs e)
+        private async void MenuItem_VideoJukebox_Click(object sender, RoutedEventArgs e)
         {
             if (_mediaPage != null && MainContentFrame.Content == _mediaPage)
             {
-                _mediaPage.StopPlaying();
+                await _mediaPage.StopPlayingAsync();
             }
             
             PlayJukeBox("video");
@@ -2685,11 +2694,11 @@ namespace GamelistManager
             UpdateCounters();
         }
 
-        private void MenuItem_MusicJukebox_Click(object sender, RoutedEventArgs e)
+        private async void MenuItem_MusicJukebox_Click(object sender, RoutedEventArgs e)
         {
             if (_mediaPage != null && MainContentFrame.Content == _mediaPage)
             {
-                _mediaPage.StopPlaying();
+                await _mediaPage.StopPlayingAsync();
             }
             PlayJukeBox("music");
         }
@@ -2818,12 +2827,12 @@ namespace GamelistManager
             await OpenFileAsync(SharedData.XMLFilename);
         }
 
-        private void Button_Scraper_Click(object sender, RoutedEventArgs e)
+        private async void Button_Scraper_Click(object sender, RoutedEventArgs e)
         {
 
             if (_mediaPage != null && MainContentFrame.Content == _mediaPage)
             {
-                _mediaPage.StopPlaying();
+                await _mediaPage.StopPlayingAsync();
             }
 
             button_Media.Content = "Show Media";
@@ -2871,7 +2880,7 @@ namespace GamelistManager
         }
 
 
-        public void ShowMediaPage(bool show)
+        public async void ShowMediaPage(bool show)
         {
             if (_mediaPage == null)
             {
@@ -2910,7 +2919,7 @@ namespace GamelistManager
                 if (_mediaPage != null)
                 {
                     _mediaPage.ClearAllImages();
-                    _mediaPage.StopPlaying();
+                    await _mediaPage.StopPlayingAsync();
                 }
             }
         }
@@ -3676,7 +3685,7 @@ namespace GamelistManager
             }
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private async void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (_scraper._isScraping)
             {
@@ -3750,7 +3759,7 @@ namespace GamelistManager
             // Stop media playback if active
             if (_mediaPage != null)
             {
-                _mediaPage.StopPlaying();
+                await _mediaPage.StopPlayingAsync();
                 _mediaPage.ClearAllImages();
             }
 
@@ -4292,6 +4301,19 @@ namespace GamelistManager
         private void MenuItem_RemoveSshKey_Click(object sender, RoutedEventArgs e)
         {
             BatoceraService.RemoveSshKey();
+        }
+
+        private void button_SnapToSelectedItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (MainDataGrid.ItemsSource == null)
+                return;
+
+            if (MainDataGrid.SelectedItems.Count > 0)
+            {
+                var firstSelectedItem = MainDataGrid.SelectedItems[0];
+                MainDataGrid.CurrentItem = firstSelectedItem;
+                MainDataGrid.ScrollIntoView(firstSelectedItem);
+            }
         }
     }
 }

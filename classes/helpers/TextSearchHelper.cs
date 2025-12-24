@@ -1,8 +1,14 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GamelistManager.classes.helpers
 {
@@ -13,6 +19,7 @@ namespace GamelistManager.classes.helpers
         private static readonly Dictionary<int, Dictionary<string, string>> CachedNormalizedLists
             = new Dictionary<int, Dictionary<string, string>>();
 
+        private static readonly LinkedList<int> CacheUsageOrder = new LinkedList<int>();
         private static readonly object cacheLock = new object();
 
         private static readonly HashSet<string> StopWordsSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -21,7 +28,6 @@ namespace GamelistManager.classes.helpers
         private static readonly Regex BracketRegex = new Regex(@"\([^)]*\)|\[.*?\]", RegexOptions.Compiled);
         private static readonly Regex NonWordRegex = new Regex(@"[\W_]+", RegexOptions.Compiled);
 
-        // Ordered – longest first (critical!)
         private static readonly (Regex Pattern, string Replacement)[] RomanNumeralRules =
         {
             (new Regex(@"\bVII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "7"),
@@ -33,31 +39,26 @@ namespace GamelistManager.classes.helpers
             (new Regex(@"\bI\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "1")
         };
 
-        private static string NormalizeText(string text)
+        public static string NormalizeText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
 
             text = text.Normalize(NormalizationForm.FormC);
 
-            // Only remove underscore suffix if this looks like a ROM dump filename
             if (text.Contains('_') && text.IndexOf('_') is int underscoreIndex && underscoreIndex > 0)
             {
-                // Do not apply to natural names like "Metal_Gear_Solid"
                 if (Path.HasExtension(text) || text.Any(char.IsDigit))
                     text = text[..underscoreIndex];
             }
 
             text = BracketRegex.Replace(text, string.Empty);
-
             text = RemoveDiacritics(text);
 
-            // Only remove extension if string seems like a file
             if (text.Contains('.') && Path.GetExtension(text).Length > 1)
                 text = Path.GetFileNameWithoutExtension(text);
 
             text = NonWordRegex.Replace(text, " ");
-
             text = ConvertRomanNumerals(text);
 
             if (text.Length > 7)
@@ -121,14 +122,20 @@ namespace GamelistManager.classes.helpers
             lock (cacheLock)
             {
                 if (CachedNormalizedLists.ContainsKey(key))
+                {
+                    CacheUsageOrder.Remove(key);
+                    CacheUsageOrder.AddLast(key);
                     return key;
+                }
 
-                // Evict cache if too large
                 if (CachedNormalizedLists.Count >= MaxCacheEntries)
-                    CachedNormalizedLists.Clear();
+                {
+                    int oldestKey = CacheUsageOrder.First.Value;
+                    CacheUsageOrder.RemoveFirst();
+                    CachedNormalizedLists.Remove(oldestKey);
+                }
 
                 Dictionary<string, string> normalizedNames;
-
                 if (names.Count > 2000)
                 {
                     normalizedNames = names
@@ -147,12 +154,13 @@ namespace GamelistManager.classes.helpers
                 }
 
                 CachedNormalizedLists[key] = normalizedNames;
+                CacheUsageOrder.AddLast(key);
             }
 
             return key;
         }
 
-        public static string FindTextMatch(string searchName, List<string> names)
+        public static string? FindTextMatch(string searchName, List<string> names)
         {
             int key = CacheNormalizedNames(names);
             string normalized = NormalizeText(searchName);
@@ -161,8 +169,21 @@ namespace GamelistManager.classes.helpers
             {
                 return CachedNormalizedLists.TryGetValue(key, out var dict) && dict.TryGetValue(normalized, out var original)
                     ? original
-                    : string.Empty;
+                    : null;
             }
+        }
+
+        public static string? FindTextMatchSingle(string searchName, string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                return null;
+
+            string normalizedSearch = NormalizeText(searchName);
+            string normalizedFile = NormalizeText(fileName);
+
+            return string.Equals(normalizedSearch, normalizedFile, StringComparison.OrdinalIgnoreCase)
+                ? fileName
+                : null;
         }
 
         public static void ClearCache()
@@ -170,6 +191,7 @@ namespace GamelistManager.classes.helpers
             lock (cacheLock)
             {
                 CachedNormalizedLists.Clear();
+                CacheUsageOrder.Clear();
             }
         }
 
@@ -179,7 +201,79 @@ namespace GamelistManager.classes.helpers
             lock (cacheLock)
             {
                 CachedNormalizedLists.Remove(key);
+                CacheUsageOrder.Remove(key);
             }
         }
+    }
+
+    public static class MediaScannerHelper
+    {
+        public static async Task<List<MediaSearchItem>> ScanMediaAsync(
+            string folderToScan,
+            List<(string RomPath, string Name)> romList,
+            string mediaType,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(folderToScan) || !Directory.Exists(folderToScan))
+                throw new DirectoryNotFoundException($"Folder not found: {folderToScan}");
+
+            // Precompute normalized media dictionary in parallel
+            var mediaFiles = Directory.GetFiles(folderToScan, "*.*", SearchOption.TopDirectoryOnly)
+                .Select(f => new { FileName = Path.GetFileName(f), FullPath = f })
+                .ToList();
+
+            var normalizedMediaDict = mediaFiles
+                .AsParallel()
+                .WithCancellation(cancellationToken)
+                .ToDictionary(
+                    m => TextSearchHelper.NormalizeText(m.FileName),
+                    m => m.FullPath,
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+            var foundMedia = new ConcurrentBag<MediaSearchItem>();
+
+            // Process ROMs in parallel
+            await Task.Run(() =>
+            {
+                Parallel.ForEach(romList, new ParallelOptions { CancellationToken = cancellationToken }, romTuple =>
+                {
+                    string romPath = romTuple.RomPath!;
+                    string romName = romTuple.Name!;
+                    string normalizedRomName = FilePathHelper.NormalizeRomName(romPath);
+
+                    string? matchedFile = null;
+
+                    // Try normalized ROM path first
+                    if (normalizedMediaDict.TryGetValue(normalizedRomName, out var match))
+                        matchedFile = match;
+                    else
+                    {
+                        // Try ROM display name
+                        string normalizedDisplayName = TextSearchHelper.NormalizeText(romName);
+                        normalizedMediaDict.TryGetValue(normalizedDisplayName, out matchedFile);
+                    }
+
+                    if (!string.IsNullOrEmpty(matchedFile))
+                    {
+                        foundMedia.Add(new MediaSearchItem
+                        {
+                            RomPath = romPath,
+                            MediaType = mediaType,
+                            MatchedFile = matchedFile
+                        });
+                    }
+                });
+            }, cancellationToken);
+
+            return foundMedia.ToList();
+        }
+    }
+
+    public class MediaSearchItem
+    {
+        public string RomPath { get; set; } = string.Empty;
+        public string MediaType { get; set; } = string.Empty;
+        public string MatchedFile { get; set; } = string.Empty;
     }
 }

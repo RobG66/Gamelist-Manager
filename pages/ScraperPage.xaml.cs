@@ -5,7 +5,6 @@ using GamelistManager.classes.helpers;
 using GamelistManager.classes.io;
 using GamelistManager.classes.services;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -140,12 +139,21 @@ namespace GamelistManager.pages
 
             UpdateCacheCount(_currentScraper, currentSystem);
 
+            string mediaPathsJsonString = Properties.Settings.Default.MediaPaths;
+            Dictionary<string, string> mediaPaths = new Dictionary<string, string>();
+            try
+            {
+                mediaPaths = JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
+                             ?? new Dictionary<string, string>();
+            }
+            catch
+            {
+                // Ignore errors and use empty dictionary
+            }
 
             // --- Load checkboxes ---
             var allCheckBoxes = TreeHelper.GetAllVisualChildren<CheckBox>(grid_MetaAndMediaControls);
-
             var availableElements = GamelistMetaData.GetScraperElements(scraper);
-
             var propertyName = $"{scraper}_Checkboxes";
             var property = typeof(Properties.Settings).GetProperty(propertyName);
             var checkboxJson = property?.GetValue(Properties.Settings.Default) as string ?? "[]";
@@ -158,7 +166,6 @@ namespace GamelistManager.pages
             {
                 checkedTags = [];
             }
-
             foreach (var checkBox in allCheckBoxes)
             {
                 var tag = checkBox.Tag.ToString();
@@ -171,6 +178,20 @@ namespace GamelistManager.pages
                 {
                     checkBox.IsEnabled = false;
                     checkBox.IsChecked = false;
+                }
+
+                if (!mediaPaths.ContainsKey(tag))
+                    continue;
+
+                // Additional check: disable if media is disabled in settings
+                if (!string.IsNullOrEmpty(tag))
+                {
+                    string enabledKey = $"{tag}_enabled";
+                    if (mediaPaths.TryGetValue(enabledKey, out string? value) && value == "false")
+                    {
+                        checkBox.IsEnabled = false;
+                        checkBox.IsChecked = false;
+                    }
                 }
             }
 
@@ -626,7 +647,7 @@ namespace GamelistManager.pages
             // Initialize file logger
             string currentDir = Environment.CurrentDirectory;
             string logPath = Path.Combine(currentDir, "logs");
-            LogHelper.Instance.StartFileLog(logPath);
+            LogHelper.Instance.StartFileLog(logPath,SharedData.CurrentSystem, _currentScraper);
 
             // ScraperProperties holds specific scraper configuration information
             // Which varies between scrapers.
@@ -665,8 +686,6 @@ namespace GamelistManager.pages
                         isAuthenticated = await scraperService.AuthenticateScreenScraperAsync(scraperProperties);
                         if (isAuthenticated)
                         {
-                            
-
                             var regions = GetScreenScraperRegions();
                             string language = GetScreenScraperLanguage();
                             scraperProperties.Language = language;
@@ -942,7 +961,7 @@ namespace GamelistManager.pages
                 CancellationToken
             );
 
-            if (scrapedGameData.WasSuccessful)
+            if (scrapedGameData.WasSuccessful || scrapedGameData.Data.ContainsKey("region") || scrapedGameData.Data.ContainsKey("lang"))
             {
                 await scraperService.SaveScrapedDataAsync(row, scrapedGameData, baseParameters);
             }
@@ -1262,6 +1281,7 @@ namespace GamelistManager.pages
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
+            SaveScraperSettings(_currentScraper, SharedData.CurrentSystem);
             _cancellationTokenSource.Dispose();
             _scrapeSemaphore?.Dispose();
         }

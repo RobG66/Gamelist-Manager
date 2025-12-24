@@ -72,7 +72,8 @@ namespace GamelistManager
             Properties.Settings.Default.AutoExpandLogger = (bool)checkBox_AutoExpandLogger.IsChecked!;
             Properties.Settings.Default.IgnoreDuplicates = (bool)checkBox_IgnoreDuplicates.IsChecked!;
             Properties.Settings.Default.BatchProcessing = (bool)checkBox_BatchProcessing.IsChecked!;
-         
+            Properties.Settings.Default.DisableScrapeNotifications = (bool)checkBox_DisableScrapeNotifications.IsChecked!;
+
             // Search Depth validation
             string searchDepth = textBox_SearchDepth.Text;
             if (!int.TryParse(searchDepth, out int searchDepthInt) || searchDepthInt < MIN_SEARCH_DEPTH || searchDepthInt > MAX_SEARCH_DEPTH)
@@ -149,17 +150,27 @@ namespace GamelistManager
                 }
             }
 
+            var checkBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<CheckBox>(Paths);
+                        
+            foreach (CheckBox checkBox in checkBoxes)
+            {
+                string? name = checkBox.Name; // Use checkbox name, not tag
+                if (!string.IsNullOrEmpty(name) && name.StartsWith("checkBox_Disable"))
+                {
+                    // Extract media type from checkbox name (e.g., "checkBox_DisableImage" -> "image")
+                    string mediaType = name.Replace("checkBox_Disable", "").ToLower();
+                    string key = $"{mediaType}_enabled";
+                    // Store as "enabled" or "disabled"
+                    mediaPaths[key] = checkBox.IsChecked == true ? "true" : "false";
+                }
+            }
+
             string jsonString = JsonSerializer.Serialize(mediaPaths);
             Properties.Settings.Default.MediaPaths = jsonString;
 
-
-            if (comboBox_AlternatingRowColor.SelectedItem is ComboBoxItem selectedItem)
-            {
-                var colorName = selectedItem.Content.ToString();
-                var color = (Color)ColorConverter.ConvertFromString(colorName);
-                _mainDataGrid.AlternatingRowBackground = new SolidColorBrush(color);
-                Properties.Settings.Default.AlternatingRowColor = colorName;
-            }
+            var colorName = comboBox_AlternatingRowColor.Text;
+            var color = (Color)ColorConverter.ConvertFromString(colorName);
+            Properties.Settings.Default.AlternatingRowColor = colorName;
 
             statusBar.Visibility = Properties.Settings.Default.ShowFileStatusBar ? Visibility.Visible : Visibility.Collapsed;
 
@@ -208,6 +219,28 @@ namespace GamelistManager
                 }
             }
 
+            // Load checkbox states
+            var checkBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<CheckBox>(Paths);
+            foreach (CheckBox checkBox in checkBoxes)
+            {
+                string? name = checkBox.Name;
+                if (!string.IsNullOrEmpty(name) && name.StartsWith("checkBox_Disable"))
+                {
+                    // Extract media type from checkbox name
+                    string mediaType = name.Replace("checkBox_Disable", "").ToLower();
+                    string key = $"{mediaType}_enabled";
+
+                    if (mediaPaths.TryGetValue(key, out string? value))
+                    {
+                        checkBox.IsChecked = value == "true";
+                    }
+                    else
+                    {
+                        checkBox.IsChecked = true; // Default to enabled
+                    }
+                }
+            }
+
             string currentColorName = Properties.Settings.Default.AlternatingRowColor;
 
             var colors = typeof(Colors).GetProperties(BindingFlags.Public | BindingFlags.Static)
@@ -225,7 +258,7 @@ namespace GamelistManager
                 comboBox_AlternatingRowColor.Items.Add(item);
             }
 
-            comboBox_AlternatingRowColor.SelectedIndex = 0;
+            //comboBox_AlternatingRowColor.SelectedIndex = 0;
 
             var item2 = comboBox_AlternatingRowColor.Items.Cast<ComboBoxItem>()
             .FirstOrDefault(i => i.Content.ToString() == currentColorName);
@@ -255,6 +288,9 @@ namespace GamelistManager
 
             bool rememberAutoSize = Properties.Settings.Default.RememberAutoSize;
             checkBox_RememberAutosize.IsChecked = rememberAutoSize;
+
+            bool disableNotifications = Properties.Settings.Default.DisableScrapeNotifications;
+            checkBox_DisableScrapeNotifications.IsChecked = disableNotifications;
 
             bool showFileStatusBar = Properties.Settings.Default.ShowFileStatusBar;
             checkBox_ShowFileStatusBar.IsChecked = showFileStatusBar;
@@ -326,6 +362,11 @@ namespace GamelistManager
             int logVerbosity = Properties.Settings.Default.LogVerbosity;    
             comboBox_LogVerbosity.SelectedIndex = logVerbosity;
 
+            // Hook up event handlers for comboboxes
+            comboBox_AlternatingRowColor.SelectionChanged += ComboBox_AlternatingRowColor_SelectionChanged;
+            comboBox_GridLinesVisibility.SelectionChanged += ComboBox_GridLinesSelectionChanged;
+            comboBox_Theme.SelectionChanged += ComboBox_Theme_SelectionChanged;
+
         }
 
         private void SetTextBoxDefaults()
@@ -355,6 +396,28 @@ namespace GamelistManager
                     textBox.Text = value;
                 }
             }
+
+            // Reset checkboxes to default (all enabled)
+            var checkBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<CheckBox>(Paths);
+            foreach (CheckBox checkBox in checkBoxes)
+            {
+                string? name = checkBox.Name;
+                if (!string.IsNullOrEmpty(name) && name.StartsWith("checkBox_Disable"))
+                {
+                    string mediaType = name.Replace("checkBox_Disable", "").ToLower();
+                    string key = $"{mediaType}_enabled";
+
+                    if (mediaPaths.TryGetValue(key, out string? value))
+                    {
+                        checkBox.IsChecked = value == "true";
+                    }
+                    else
+                    {
+                        checkBox.IsChecked = true; // Default to enabled
+                    }
+                }
+            }
+
         }
 
         private static string? GetDefaultSetting(string propertyName)
@@ -465,7 +528,7 @@ namespace GamelistManager
             }
         }
 
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_GridLinesSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is not ComboBox comboBox || comboBox.SelectedItem == null || _mainDataGrid == null)
             {
@@ -562,6 +625,15 @@ namespace GamelistManager
             {
                 textBox_MamePath.Text = openFileDialog.FileName;
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Unhook event handlers to prevent memory leaks
+            comboBox_AlternatingRowColor.SelectionChanged -= ComboBox_AlternatingRowColor_SelectionChanged;
+            comboBox_GridLinesVisibility.SelectionChanged -= ComboBox_GridLinesSelectionChanged;
+            comboBox_Theme.SelectionChanged -= ComboBox_Theme_SelectionChanged;
+
         }
     }
 }

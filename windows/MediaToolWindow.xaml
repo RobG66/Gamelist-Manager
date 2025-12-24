@@ -43,7 +43,6 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="button_ScanFolder" ToolTip="Select a folder to scan for new media" Style="{DynamicResource GreyRoundedButton}" Height="20" Width="90" Margin="0,0,8,0" Content="Select Folder" Click="Button_ScanFolder_Click" />
                                     <TextBox x:Name="textBox_SourceFolder" Style="{DynamicResource CustomTextBox}" MaxLines="1" MaxLength="400" IsReadOnly="True" Height="20" Width="400" Margin="0,0,8,0" />
-                                    <CheckBox x:Name="checkBox_IncludeSubFolders" Style="{DynamicResource CustomCheckBox}" Content="Include Subfolders" VerticalAlignment="Center" />
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                     <Label Content="Media Type:" FontWeight="SemiBold" Padding="0" VerticalAlignment="Center" Margin="0,0,8,0" />

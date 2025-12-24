@@ -12,7 +12,7 @@
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>8.43</FileVersion>
+    <FileVersion>8.5</FileVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Title>Gamelist Manager</Title>
@@ -43,6 +43,10 @@
   <ItemGroup>
     <Page Remove="resources\resource dictionaries\controls\CustomRibbonStyle.xaml" />
     <Page Remove="resources\resource dictionaries\themes\GrayTheme.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\MintTheme.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\SandyTheme.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\SunsetTheme.xaml" />
+	<Page Remove="resources\resource dictionaries\themes\MintTheme.xaml" />
   </ItemGroup>
 
   <!-- NuGet packages -->
@@ -77,6 +81,15 @@
   <ItemGroup>
     <Resource Update="resources\resource dictionaries\controls\CustomRibbonStyle.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\SandyTheme.xaml">
+      <Generator></Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\MintTheme.xaml">
+      <Generator></Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\SunsetTheme.xaml">
+      <Generator></Generator>
     </Resource>
     <Resource Update="resources\resource dictionaries\themes\GrayTheme.xaml">
       <Generator></Generator>

@@ -1,78 +1,79 @@
-﻿<!-- MessageBoxWithCheckbox.xaml -->
-<Window x:Class="GamelistManager.controls.MessageBoxWithCheckbox"
+﻿<Window x:Class="GamelistManager.controls.MessageBoxWithCheckbox"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Message"
-        Width="450" 
-        MinHeight="200"
+        Width="420"
+        MinHeight="160"
         MaxHeight="600"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        WindowStyle="ToolWindow"
+        WindowStyle="SingleBorderWindow"
         Background="{DynamicResource WindowBackgroundBrush}"
-        SizeToContent="Height">
-    <Border Background="{DynamicResource PrimaryBackgroundBrush}"
-            CornerRadius="8"
-            BorderBrush="{DynamicResource AccentBrush}"
-            BorderThickness="1"
-            Margin="10"
-            Padding="20">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <!-- Icon and Message -->
-            <Grid Grid.Row="0" Margin="0,0,0,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="IconText" 
-                          Grid.Column="0"
-                          FontSize="32" 
-                          Margin="0,0,15,0" 
-                          VerticalAlignment="Top"
-                          Visibility="Collapsed"/>
-                <TextBlock x:Name="MessageText"
-                          Grid.Column="1"
-                          TextWrapping="Wrap"
-                          FontSize="13"
-                          Foreground="{DynamicResource PrimaryTextBrush}"
-                          VerticalAlignment="Center"/>
-            </Grid>
-            <!-- Additional Info Text (Optional) -->
-            <TextBlock Grid.Row="1"
-                      x:Name="InfoText"
-                      TextWrapping="Wrap"
-                      FontStyle="Italic"
-                      Foreground="{DynamicResource SecondaryTextBrush}"
-                      Margin="0,0,0,10"
-                      Visibility="Collapsed"/>
-            <!-- Warning Text (Optional) -->
-            <TextBlock Grid.Row="2"
-                      x:Name="WarningText"
-                      TextWrapping="Wrap"
-                      Foreground="OrangeRed"
-                      FontWeight="Bold"
-                      Margin="0,0,0,15"
-                      Visibility="Collapsed"/>
-            <!-- Checkbox (Optional) -->
-            <CheckBox Grid.Row="3"
-                     x:Name="OptionCheckBox"
-                     Style="{DynamicResource CustomCheckBox}"
-                     Foreground="{DynamicResource PrimaryTextBrush}"
-                     VerticalAlignment="Center"
-                     Margin="0,0,0,20"
-                     Visibility="Collapsed"/>
-            <!-- Buttons -->
-            <StackPanel Grid.Row="4" 
-                       x:Name="ButtonPanel"
-                       Orientation="Horizontal" 
-                       HorizontalAlignment="Right"/>
+        SizeToContent="Height"
+        ShowInTaskbar="False">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Icon + Message -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="IconText"
+                       Grid.Column="0"
+                       FontSize="28"
+                       Margin="0,0,12,0"
+                       VerticalAlignment="Top"
+                       Visibility="Collapsed"/>
+
+            <TextBlock x:Name="MessageText"
+                       Grid.Column="1"
+                       TextWrapping="Wrap"
+                       FontSize="13"
+                       Foreground="{DynamicResource PrimaryTextBrush}"
+                       VerticalAlignment="Center"/>
         </Grid>
-    </Border>
+
+        <!-- Info -->
+        <TextBlock Grid.Row="1"
+                   x:Name="InfoText"
+                   TextWrapping="Wrap"
+                   FontStyle="Italic"
+                   Foreground="{DynamicResource SecondaryTextBrush}"
+                   Margin="0,0,0,8"
+                   Visibility="Collapsed"/>
+
+        <!-- Warning -->
+        <TextBlock Grid.Row="2"
+                   x:Name="WarningText"
+                   TextWrapping="Wrap"
+                   Foreground="OrangeRed"
+                   FontWeight="Bold"
+                   Margin="0,0,0,10"
+                   Visibility="Collapsed"/>
+
+        <!-- Checkbox -->
+        <CheckBox Grid.Row="3"
+                  x:Name="OptionCheckBox"
+                  Style="{DynamicResource CustomCheckBox}"
+                  Foreground="{DynamicResource PrimaryTextBrush}"
+                  Margin="0,0,0,12"
+                  Visibility="Collapsed"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="4"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,4,0,0"
+                    x:Name="ButtonPanel"/>
+    </Grid>
 </Window>

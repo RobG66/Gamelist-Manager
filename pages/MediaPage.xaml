@@ -2,7 +2,6 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource SecondaryBackgroundBrush}">
-
     <Grid>
         <!-- Layer 0: Border + content containers -->
         <Border Background="{DynamicResource SecondaryBackgroundBrush}"
@@ -10,14 +9,13 @@
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="5">
-            <Grid Margin="0,5,0,0">
+            <Grid Margin="0,12,0,0">
                 <!-- SCALED MODE: Viewbox only -->
                 <Viewbox x:Name="ScaledModeViewbox"
                          Stretch="Uniform"
                          Visibility="Collapsed">
                     <Grid x:Name="ScaledContentHost"/>
                 </Viewbox>
-
                 <!-- SCROLL MODE: ScrollViewer -> Viewbox -> Content -->
                 <ScrollViewer x:Name="ScrollModeScrollViewer"
                               HorizontalScrollBarVisibility="Auto"
@@ -31,14 +29,71 @@
             </Grid>
         </Border>
 
-        <!-- Layer 1: toggle button overlay -->
-        <Button x:Name="Button_ToggleMode"
-                Style="{DynamicResource GreyRoundedButton}"
-                Content="Fit To View: On"
-                HorizontalAlignment="Center"
+        <!-- Layer 1: Clean hanging tab -->
+        <Border HorizontalAlignment="Center"
                 VerticalAlignment="Top"
-                Padding="10,4"
-                Click="Button_ToggleMode_Click"
-                Panel.ZIndex="100"/>
+                Margin="0,1,0,0"
+                Panel.ZIndex="100"
+                BorderBrush="{DynamicResource PrimaryBorderBrush}"
+                BorderThickness="1,0,1,1"
+                CornerRadius="0,0,6,6"
+                Padding="6,2,6,3">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="{DynamicResource PrimaryBackgroundColor}" Offset="0"/>
+                    <GradientStop Color="{DynamicResource SecondaryBackgroundColor}" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <StackPanel Orientation="Horizontal">
+                <!-- Show All / Hide Empty button -->
+                <Button x:Name="Button_ToggleAll"
+                        Style="{DynamicResource GreyRoundedButton}"
+                        Content="Show All"
+                        BorderThickness="1"
+                        Padding="7,2"
+                        Margin="0,0,3,0"
+                        FontSize="9"
+                        FontWeight="SemiBold"
+                        Click="ToggleAllButton_Click"/>
+
+                <!-- Separator -->
+                <Border Width="1" 
+                        Height="12"
+                        Background="{DynamicResource PrimaryBorderBrush}"
+                        Margin="3,0"
+                        VerticalAlignment="Center"
+                        Opacity="0.5"/>
+
+                <!-- Fit To View toggle button -->
+                <Button x:Name="Button_ToggleMode"
+                        Style="{DynamicResource GreyRoundedButton}"
+                        Content="Fit To View: Off"
+                        BorderThickness="1"
+                        Padding="7,2"
+                        Margin="0,0,3,0"
+                        FontSize="9"
+                        FontWeight="SemiBold"
+                        Click="Button_ToggleMode_Click"/>
+
+                <!-- Separator -->
+                <Border Width="1" 
+                        Height="12"
+                        Background="{DynamicResource PrimaryBorderBrush}"
+                        Margin="3,0"
+                        VerticalAlignment="Center"
+                        Opacity="0.5"/>
+
+                <!-- Re-scrape menu button -->
+                <Button x:Name="Button_Rescrape"
+                        Style="{DynamicResource GreyRoundedButton}"
+                        Content="Re-Scrape ▼"
+                        Padding="7,2"
+                        BorderThickness="1"
+                        FontSize="9"
+                        FontWeight="SemiBold"
+                        Click="Button_Rescrape_Click"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

@@ -15,7 +15,7 @@ namespace GamelistManager.classes.services
         private readonly IServiceProvider _serviceProvider;
         private readonly Dictionary<string, int> _downloadStats = new();
         private readonly object _downloadStatsLock = new();
-        private List<string> _mediaTypes = new List<string>();
+        private static List<string> _mediaTypes = new List<string>();
         private static readonly Dictionary<(string SystemId, string MediaType), List<string>> _mediaListCache = new();
 
 
@@ -115,7 +115,7 @@ namespace GamelistManager.classes.services
 
             // Filter elements based on existing data and overwrite settings
             var itemsToScrape = FilterElementsToScrape(row, baseParameters);
-
+                        
             // Skip the scrape if there is nothing to get
             if (itemsToScrape.Count == 0)
             {
@@ -220,7 +220,7 @@ namespace GamelistManager.classes.services
             {
                 scrapedGameData.Data["lang"] = romLanguage;
             }
-
+            
             // Log results
             if (scrapedGameData.WasSuccessful)
             {
@@ -375,47 +375,52 @@ namespace GamelistManager.classes.services
 
         // Saves scraped data to a DataRow
         public async Task SaveScrapedDataAsync(
-            DataRow row,
-            ScrapedGameData scrapedData,
-            ScraperParameters parameters)
+    DataRow row,
+    ScrapedGameData scrapedData,
+    ScraperParameters parameters)
         {
             if (parameters.ElementsToScrape == null || scrapedData?.Data == null)
-            {
                 return;
-            }
 
             var rowUpdates = new Dictionary<string, string>();
 
             foreach (string element in parameters.ElementsToScrape)
             {
                 if (!scrapedData.Data.TryGetValue(element, out var value))
-                {
                     continue;
-                }
 
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (parameters.MetaLookup.TryGetValue(element, out var meta))
-                    {
-                        rowUpdates[meta.Column] = value;
-                    }
-                }
+                if (string.IsNullOrWhiteSpace(value))
+                    continue;
+
+                value = value.Trim();
+
+                if (!parameters.MetaLookup.TryGetValue(element, out var meta))
+                    continue;
+
+                rowUpdates[meta.Column] = value;
             }
 
-            if (rowUpdates.Count > 0)
+            if (rowUpdates.Count == 0)
+                return;
+
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                foreach (var kvp in rowUpdates)
                 {
-                    foreach (var kvp in rowUpdates)
-                    {
-                        if (row.Table.Columns.Contains(kvp.Key))
-                        {
-                            row[kvp.Key] = kvp.Value;
-                        }
-                    }
-                });
-            }
+                    if (!row.Table.Columns.Contains(kvp.Key))
+                        continue;
+
+                    var existing = row[kvp.Key]?.ToString();
+
+                    // Prevent overwriting with the same value
+                    if (string.Equals(existing, kvp.Value, StringComparison.Ordinal))
+                        continue;
+
+                    row[kvp.Key] = kvp.Value;
+                }
+            });
         }
+
 
         // Gets download statistics summary
         public async Task LogDownloadSummaryAsync()

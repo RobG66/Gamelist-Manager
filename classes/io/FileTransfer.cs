@@ -13,10 +13,19 @@ namespace GamelistManager.classes.io
             _httpClientService = httpClientService;
         }
 
-        public async Task<bool> DownloadFile(bool verify, string fileDownloadPath, string url, string bearerToken)
+        public async Task<bool> DownloadFile(
+            bool verify,
+            string fileDownloadPath,
+            string url,
+            string bearerToken)
         {
             string fileExtension = Path.GetExtension(fileDownloadPath).ToLowerInvariant();
-            string parentFolder = Path.GetDirectoryName(fileDownloadPath)!;
+            string? parentFolder = Path.GetDirectoryName(fileDownloadPath);
+
+            if (string.IsNullOrEmpty(parentFolder))
+                return false;
+
+            string tempFilePath = fileDownloadPath + ".tmp";
 
             try
             {
@@ -26,62 +35,122 @@ namespace GamelistManager.classes.io
                     Directory.CreateDirectory(parentFolder);
                 }
 
-                // If we are this far, always overwrite
+                // Remove stale temp file if it exists
+                if (File.Exists(tempFilePath))
+                {
+                    try
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                    catch
+                    {
+                        // If we can't delete it, try with a unique name
+                        tempFilePath = $"{fileDownloadPath}.{Guid.NewGuid():N}.tmp";
+                    }
+                }
+
+                using HttpRequestMessage request = new(HttpMethod.Get, url);
+
+                if (!string.IsNullOrEmpty(bearerToken))
+                {
+                    request.Headers.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+                }
+
+                using HttpResponseMessage response =
+                    await _httpClientService.SendAsync(
+                        request,
+                        HttpCompletionOption.ResponseHeadersRead);
+
+                response.EnsureSuccessStatusCode();
+
+                // Download to TEMP file with optimized buffer
+                await using (Stream contentStream = await response.Content.ReadAsStreamAsync())
+                await using (FileStream fileStream = new(
+                    tempFilePath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 81920, // 80KB buffer for better performance
+                    useAsync: true))
+                {
+                    await contentStream.CopyToAsync(fileStream);
+                    await fileStream.FlushAsync(); // Ensure data is written
+                }
+            }
+            catch
+            {
+                // Clean up temp file on download failure
+                CleanupTempFile(tempFilePath);
+                return false;
+            }
+
+            // Verify image if requested (only for image files)
+            if (verify && IsImageExtension(fileExtension))
+            {
+                // Check if file exists and has content before verifying
+                if (!File.Exists(tempFilePath))
+                {
+                    return false;
+                }
+
+                FileInfo fileInfo = new(tempFilePath);
+                if (fileInfo.Length == 0)
+                {
+                    CleanupTempFile(tempFilePath);
+                    return false;
+                }
+
+                // Verify the image
+                string verifyResult = ImageHelper.CheckImage(tempFilePath);
+                if (verifyResult != "OK")
+                {
+                    CleanupTempFile(tempFilePath);
+                    return false;
+                }
+            }
+
+            // Replace existing file atomically
+            try
+            {
+                // Delete target file if it exists (faster than File.Move overwrite on some systems)
                 if (File.Exists(fileDownloadPath))
                 {
                     File.Delete(fileDownloadPath);
                 }
 
-                // Download the file using HttpClient
-                using (HttpRequestMessage request = new(HttpMethod.Get, url))
+                // Move temp file to final location
+                File.Move(tempFilePath, fileDownloadPath);
+            }
+            catch
+            {
+                CleanupTempFile(tempFilePath);
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void CleanupTempFile(string tempFilePath)
+        {
+            try
+            {
+                if (File.Exists(tempFilePath))
                 {
-                    // Check if the bearer token is not empty or null before adding it to the request headers
-                    if (!string.IsNullOrEmpty(bearerToken))
-                    {
-                        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
-                    }
-
-                    using (HttpResponseMessage response = await _httpClientService.SendAsync(request))
-                    {
-                        response.EnsureSuccessStatusCode(); // Throw if the status code is not success
-
-                        // Read the response content as a stream
-                        using (Stream contentStream = await response.Content.ReadAsStreamAsync())
-                        {
-                            // Open the file stream for writing
-                            using (FileStream fileStream = new(fileDownloadPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                            {
-                                // Copy the content stream to the file stream
-                                await contentStream.CopyToAsync(fileStream);
-                            }
-                        }
-                    }
+                    File.Delete(tempFilePath);
                 }
             }
             catch
             {
-                // Handle any exceptions that occur during the download
-                if (File.Exists(fileDownloadPath))
-                {
-                    File.Delete(fileDownloadPath); // Clean up the file if an error occurred
-                }
-
-                return false;
+                // Ignore cleanup failures
             }
+        }
 
-            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".tif", ".ico", ".webp" };
-
-            if (verify && imageExtensions.Contains(fileExtension))
-            {
-                string verifyResult = ImageHelper.CheckImage(fileDownloadPath);
-                if (verifyResult != "OK")
-                {
-                    File.Delete(fileDownloadPath); // Delete invalid image file
-                    return false; // Treat as a failed download
-                }
-            }
-
-            return true;
+        private static bool IsImageExtension(string extension)
+        {
+            return extension is
+                ".jpg" or ".jpeg" or ".png" or ".bmp" or
+                ".gif" or ".tiff" or ".tif" or ".ico" or ".webp";
         }
     }
 }

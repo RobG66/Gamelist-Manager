@@ -54,6 +54,8 @@ namespace GamelistManager.pages
             _datSummary.Clear();
             _gamelistSummary.Clear();
             _datHeader = null;
+            comboBox_ReportView.SelectedIndex = 0;
+            button_FindMissing.IsEnabled = false;
 
             if (SharedData.CurrentSystem == "mame" &&
               !string.IsNullOrWhiteSpace(Properties.Settings.Default.MamePath) &&
@@ -452,11 +454,12 @@ namespace GamelistManager.pages
                 nonPlayable.Add("Software list");
             }
 
+            //  This does not work for FBNEO dat.  What a PITA!!
             // Check if no screen tag found - indicates not a game
-            if (!hasScreen && nonPlayable.Count == 0)
-            {
-                nonPlayable.Add("Not a game");
-            }
+            //if (!hasScreen && nonPlayable.Count == 0)
+            //{
+            //    nonPlayable.Add("Not a game");
+            //}
 
             return new GameReportItem
             {

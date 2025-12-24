@@ -10,10 +10,13 @@ namespace GamelistManager.classes.helpers
         {
             Default,
             Blue,
+            Cool,
             Dark,
-            Warm,
             Gray,
-            Cool
+            Sandy,
+            Sunset,
+            Mint,
+            Warm
         }
         public void ApplyTheme(Theme theme)
         {
@@ -26,7 +29,10 @@ namespace GamelistManager.classes.helpers
                                 d.Source.OriginalString.Contains("WarmTheme") ||
                                 d.Source.OriginalString.Contains("CoolTheme") ||
                                 d.Source.OriginalString.Contains("GrayTheme") ||
-                                d.Source.OriginalString.Contains("DarkTheme")));
+                                d.Source.OriginalString.Contains("MintTheme") ||
+                                d.Source.OriginalString.Contains("SandyTheme") ||
+                                d.Source.OriginalString.Contains("DarkTheme") ||
+                                d.Source.OriginalString.Contains("SunsetTheme")));
 
             if (existingTheme != null)
                 app.Resources.MergedDictionaries.Remove(existingTheme);
@@ -38,6 +44,9 @@ namespace GamelistManager.classes.helpers
                 Theme.Warm => "WarmTheme.xaml",
                 Theme.Cool => "CoolTheme.xaml",
                 Theme.Gray => "GrayTheme.xaml",
+                Theme.Mint => "MintTheme.xaml",
+                Theme.Sandy => "SandyTheme.xaml",
+                Theme.Sunset => "SunsetTheme.xaml",
                 Theme.Blue => "BlueTheme.xaml",
                 _ => "DefaultTheme.xaml"
             };

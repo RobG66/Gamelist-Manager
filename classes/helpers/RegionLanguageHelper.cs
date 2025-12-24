@@ -1,7 +1,7 @@
 ﻿using GamelistManager.classes.core;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows;
 
 namespace GamelistManager.classes.helpers
 {
@@ -15,7 +15,7 @@ namespace GamelistManager.classes.helpers
         static RegionLanguageHelper()
         {
             // Load ArcadeSystems
-            ArcadeSystems = [];
+            ArcadeSystems = new HashSet<string>();
             string arcadeIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "arcadesystems.ini");
             if (File.Exists(arcadeIniPath))
             {
@@ -25,18 +25,12 @@ namespace GamelistManager.classes.helpers
                     if (trimmed.StartsWith("[") || string.IsNullOrWhiteSpace(trimmed)) continue;
                     var parts = trimmed.Split('=');
                     if (parts.Length == 2)
-                    {
                         ArcadeSystems.Add(parts[1].Trim().ToLowerInvariant());
-                    }
                 }
-            }
-            else
-            {
-                MessageBox.Show("arcadesystems.ini could not be loaded. Arcade system detection will be disabled.", "Configuration Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             // Load JapanDefaults
-            JapanDefaults = [];
+            JapanDefaults = new HashSet<string>();
             string japanIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "japan_systems.ini");
             if (File.Exists(japanIniPath))
             {
@@ -47,38 +41,29 @@ namespace GamelistManager.classes.helpers
                     JapanDefaults.Add(trimmed.ToLowerInvariant());
                 }
             }
-            else
-            {
-                MessageBox.Show("japan_systems.ini could not be loaded. Japanese system detection will be disabled.", "Configuration Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
 
-            // Load LanguageData from INI file
-            languages = [];
+            // Load language data
+            languages = new List<LanguageData>();
             string languageDataIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "language_data.ini");
             if (File.Exists(languageDataIniPath))
             {
                 languages.AddRange(ParseLangDataIni(languageDataIniPath));
             }
-            else
-            {
-                MessageBox.Show("language_data.ini could not be loaded. Language/Region detection will be disabled.", "Configuration Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
 
-            // Build LanguageLookup as before
+            // Build a lookup dictionary: token (lowercase) => LanguageData
             LanguageLookup = languages
-                .SelectMany(ld => ld.Value.Select(v => (v, ld)))
-                .ToDictionary(x => x.v, x => x.ld);
+                .SelectMany(ld => ld.Value.Select(v => (v: v.ToLowerInvariant(), ld)))
+                .OrderByDescending(x => x.v.Length) // longest tokens first
+                .ToDictionary(x => x.v, x => x.ld, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public class LanguageData
         {
-            public List<string> Value { get; set; } = [];
+            public List<string> Value { get; set; } = new();
             public string Language { get; set; } = string.Empty;
             public string Region { get; set; } = string.Empty;
         }
 
-
-        // INI parser for language_data.ini
         private static IEnumerable<LanguageData> ParseLangDataIni(string path)
         {
             var result = new List<LanguageData>();
@@ -91,8 +76,7 @@ namespace GamelistManager.classes.helpers
 
                 if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
                 {
-                    if (current != null)
-                        result.Add(current);
+                    if (current != null) result.Add(current);
                     current = new LanguageData();
                 }
                 else if (current != null)
@@ -104,21 +88,20 @@ namespace GamelistManager.classes.helpers
                         var val = trimmed.Substring(idx + 1).Trim();
                         switch (key)
                         {
-                            case "Value":
-                                current.Value = new List<string>(val.Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries));
+                            case "value":
+                                current.Value = val.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
                                 break;
-                            case "Language":
+                            case "lang":
                                 current.Language = val;
                                 break;
-                            case "Region":
+                            case "region":
                                 current.Region = val;
                                 break;
                         }
                     }
                 }
             }
-            if (current != null)
-                result.Add(current);
+            if (current != null) result.Add(current);
             return result;
         }
 
@@ -127,86 +110,79 @@ namespace GamelistManager.classes.helpers
             string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
             string lowerFileName = romName.ToLowerInvariant();
 
+            // Japan default systems
             if (JapanDefaults.Contains(currentSystem))
-            {
                 return "jp";
-            }
 
+            // Special case for Thomson
             if (currentSystem == "thomson")
-            {
                 return "eu";
-            }
 
-            // Parse the file name
+            // Parse tokens in parentheses
             var matches = Regex.Matches(romName, @"\((.*?)\)");
             foreach (Match match in matches)
             {
                 string content = match.Groups[1].Value;
-                var parts = content.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
 
-                foreach (var part in parts)
+                var tokens = content
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(t => t.ToLowerInvariant())
+                    .OrderByDescending(t => t.Length) // longest tokens first
+                    .ToList();
+
+                foreach (var token in tokens)
                 {
-                    string trimmedPart = part.ToLowerInvariant().Trim();
-                    if (LanguageLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.Region))
+                    if (LanguageLookup.TryGetValue(token, out var data) && !string.IsNullOrWhiteSpace(data.Region))
                     {
-                        return langData.Region; // Return first valid Region found
+                        return data.Region;
                     }
                 }
             }
 
             // Arcade system fallback
             if (ArcadeSystems.Contains(currentSystem))
-            {
                 return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
-            }
 
+            // Default fallback
             return "us";
         }
 
         public static string GetLanguage(string fileName)
         {
             string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
-            string lowerFileName = fileName.ToLowerInvariant();
 
-            // Special case: if the file name contains (T) or (T-Eng), or [T-En] or [T-Eng], it's a translation (English)
+            // Special translation handling
             if (Regex.IsMatch(fileName, @"(\(T(-Eng)?\)|\[T-?En(g)?\])", RegexOptions.IgnoreCase))
-            {
                 return "en";
-            }
 
             if (JapanDefaults.Contains(currentSystem))
-            {
                 return "jp";
-            }
 
             if (currentSystem == "thomson")
-            {
                 return "fr";
-            }
 
-            // Fallback: parse file name
             var matchedLanguages = new HashSet<string>();
             var matches = Regex.Matches(fileName, @"\((.*?)\)");
 
             foreach (Match match in matches)
             {
                 string content = match.Groups[1].Value;
-                var parts = content.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
+                var tokens = content.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                    .Select(t => t.ToLowerInvariant())
+                                    .OrderByDescending(t => t.Length);
 
-                foreach (var part in parts)
+                foreach (var token in tokens)
                 {
-                    string trimmedPart = part.ToLowerInvariant().Trim();
-                    if (LanguageLookup.TryGetValue(trimmedPart, out var langData) && !string.IsNullOrWhiteSpace(langData.Language))
+                    if (LanguageLookup.TryGetValue(token, out var data) && !string.IsNullOrWhiteSpace(data.Language))
                     {
-                        matchedLanguages.Add(langData.Language);
+                        matchedLanguages.Add(data.Language);
                     }
                 }
             }
 
+            // Arcade fallback
             if (ArcadeSystems.Contains(currentSystem) && matchedLanguages.Count == 0)
-            {
-                return lowerFileName.EndsWith("j.zip") ? "jp" : "en";
-            }
+                return fileName.ToLowerInvariant().EndsWith("j.zip") ? "jp" : "en";
 
             return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";
         }

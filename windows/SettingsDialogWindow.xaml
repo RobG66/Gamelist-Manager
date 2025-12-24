@@ -5,6 +5,7 @@
         Width="650" Height="575"
         ResizeMode="NoResize"
         Loaded="Window_Loaded"
+        Closing="Window_Closing"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Grid Margin="0">
         <Grid.Background>
@@ -61,24 +62,24 @@
 
                     <Label Content="Theme:" Padding="0,0,0,2"/>
                     <ComboBox x:Name="comboBox_Theme" Height="20" 
-                              Style="{DynamicResource CustomComboBox}" 
-                              SelectionChanged="ComboBox_Theme_SelectionChanged">
+                              Style="{DynamicResource CustomComboBox}">
                         <ComboBoxItem Content="Default" Tag="Silver"/>
                         <ComboBoxItem Content="Blue" Tag="Azure"/>
                         <ComboBoxItem Content="Cool" Tag="AliceBlue"/>
-                        <ComboBoxItem Content="Warm" Tag="WhiteSmoke"/>
                         <ComboBoxItem Content="Gray" Tag="LightGray"/>
+                        <ComboBoxItem Content="Mint" Tag="AliceBlue"/>
+                        <ComboBoxItem Content="Sandy" Tag="Tan"/>
+                        <ComboBoxItem Content="Sunset" Tag="SeaShell"/>
+                        <ComboBoxItem Content="Warm" Tag="WhiteSmoke"/>
                     </ComboBox>
 
                     <Label Content="Alternating Row Color:" Margin="0,8,0,2" Padding="0,0,0,2"/>
                     <ComboBox x:Name="comboBox_AlternatingRowColor" Height="20" 
-                              Style="{DynamicResource CustomComboBox}" 
-                              SelectionChanged="ComboBox_AlternatingRowColor_SelectionChanged"/>
+                              Style="{DynamicResource CustomComboBox}"/>
 
                     <Label Content="Line Visibility:" Margin="0,8,0,2" Padding="0,0,0,2"/>
                     <ComboBox x:Name="comboBox_GridLinesVisibility" Height="20" 
-                              Style="{DynamicResource CustomComboBox}" 
-                              SelectionChanged="ComboBox_SelectionChanged">
+                              Style="{DynamicResource CustomComboBox}">
                         <ComboBoxItem Content="Horizontal" IsSelected="True" />
                         <ComboBoxItem Content="Vertical" />
                         <ComboBoxItem Content="All" />
@@ -276,7 +277,14 @@
                                    DataObject.Pasting="NumericTextBox_Pasting"/>
                                     </StackPanel>
 
-                     
+                            <CheckBox x:Name="checkBox_DisableScrapeNotifications" 
+                             Style="{DynamicResource CustomCheckBox}" 
+                             VerticalAlignment="Center" 
+                             ToolTip="Disables most notifications when scraping from the media page" 
+                             Content="Disable Media Scrape Notifications" 
+                             Click="CheckBox_Click"/>
+
+
                         </UniformGrid>
 
                         <StackPanel Orientation="Horizontal" Margin="0,10,0,8">
@@ -318,23 +326,25 @@
 
                 <!-- Folder Paths -->
                 <Border Background="{DynamicResource ControlBackgroundBrush}" 
-                        CornerRadius="8" 
-                        Padding="5" 
-                        Margin="0,0,0,10"
-                        BorderBrush="{DynamicResource AccentBrush}" 
-                        BorderThickness="1">
+        CornerRadius="8" 
+        Padding="5" 
+        Margin="0,0,0,10"
+        BorderBrush="{DynamicResource AccentBrush}" 
+        BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="Folder Paths" 
-                                   FontWeight="SemiBold" 
-                                   Foreground="{DynamicResource AccentBrush}" 
-                                   Margin="0,0,0,5"/>
+                   FontWeight="SemiBold" 
+                   Foreground="{DynamicResource AccentBrush}" 
+                   Margin="0,0,0,5"/>
 
                         <Grid x:Name="Paths">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -351,93 +361,206 @@
                             <!-- Column 1 -->
                             <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Content="Image:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBox_image" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="image" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="image" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="0" Grid.Column="2" x:Name="checkBox_DisableImage"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_image}"
+                      ToolTip="Disables Image media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Content="Titleshot:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBox_titleshot" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="titleshot" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="titleshot" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="1" Grid.Column="2" x:Name="checkBox_DisableTitleshot"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_titleshot}"
+                      ToolTip="Disables Titleshot media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Content="Marquee:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBox_marquee" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="marquee" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="marquee" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="2" Grid.Column="2" x:Name="checkBox_DisableMarquee"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_marquee}"
+                      ToolTip="Disables Marquee media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Content="Wheel:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="3" Grid.Column="1" x:Name="textBox_wheel" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="wheel" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="wheel" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="3" Grid.Column="2" x:Name="checkBox_DisableWheel"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_wheel}"
+                      ToolTip="Disables Wheel media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Content="Thumbnail:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="4" Grid.Column="1" x:Name="textBox_thumbnail" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="thumbnail" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="thumbnail" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="4" Grid.Column="2" x:Name="checkBox_DisableThumbnail"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_thumbnail}"
+                      ToolTip="Disables Thumbnail media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Content="Cartridge:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="5" Grid.Column="1" x:Name="textBox_cartridge" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="cartridge" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="cartridge" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="5" Grid.Column="2" x:Name="checkBox_DisableCartridge"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_cartridge}"
+                      ToolTip="Disables Cartridge media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="6" Grid.Column="0" VerticalAlignment="Center" Content="Video:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="6" Grid.Column="1" x:Name="textBox_video" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="video" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="video" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="6" Grid.Column="2" x:Name="checkBox_DisableVideo"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_video}"
+                      ToolTip="Disables Video media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="7" Grid.Column="0" VerticalAlignment="Center" Content="Music:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="7" Grid.Column="1" x:Name="textBox_music" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="music" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="music" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="7" Grid.Column="2" x:Name="checkBox_DisableMusic"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_music}"
+                      ToolTip="Disables Music media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <Label Grid.Row="8" Grid.Column="0" VerticalAlignment="Center" Content="Map:" Padding="0,0,5,0"/>
                             <TextBox Grid.Row="8" Grid.Column="1" x:Name="textBox_map" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="map" Margin="0,0,5,3"/>
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="map" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="8" Grid.Column="2" x:Name="checkBox_DisableMap"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                       Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_map}"
+                      ToolTip="Disables Map media if unchecked"
+                      Click="CheckBox_Click"/>
 
                             <!-- Column 2 -->
-                            <Label Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Content="Bezel:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="0" Grid.Column="3" x:Name="textBox_bezel" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="bezel" Margin="0,0,0,3"/>
+                            <Label Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" Content="Bezel:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="4" x:Name="textBox_bezel" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="bezel" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="0" Grid.Column="5" x:Name="checkBox_DisableBezel"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_bezel}"
+                      ToolTip="Disables Bezel media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Label Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Content="Manual:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="1" Grid.Column="3" x:Name="textBox_manual" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="manual" Margin="0,0,0,3"/>
+                            <Label Grid.Row="1" Grid.Column="3" VerticalAlignment="Center" Content="Manual:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="1" Grid.Column="4" x:Name="textBox_manual" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="manual" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="1" Grid.Column="5" x:Name="checkBox_DisableManual"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_manual}"
+                      ToolTip="Disables Manual media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Label Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Content="Fan Art:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="2" Grid.Column="3" x:Name="textBox_fanart" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="fanart" Margin="0,0,0,3"/>
+                            <Label Grid.Row="2" Grid.Column="3" VerticalAlignment="Center" Content="Fan Art:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="2" Grid.Column="4" x:Name="textBox_fanart" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="fanart" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="2" Grid.Column="5" x:Name="checkBox_DisableFanart"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_fanart}"
+                      ToolTip="Disables Fan Art media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Label Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Content="Box Art:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="3" Grid.Column="3" x:Name="textBox_boxart" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="boxart" Margin="0,0,0,3"/>
+                            <Label Grid.Row="3" Grid.Column="3" VerticalAlignment="Center" Content="Box Art:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="3" Grid.Column="4" x:Name="textBox_boxart" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="boxart" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="3" Grid.Column="5" x:Name="checkBox_DisableBoxart"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_boxart}"
+                      ToolTip="Disables Box Art media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Label Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Content="Box Back:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="4" Grid.Column="3" x:Name="textBox_boxback" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="boxback" Margin="0,0,0,3"/>
+                            <Label Grid.Row="4" Grid.Column="3" VerticalAlignment="Center" Content="Box Back:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="4" Grid.Column="4" x:Name="textBox_boxback" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="boxback" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="4" Grid.Column="5" x:Name="checkBox_DisableBoxback"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_boxback}"
+                      ToolTip="Disables Box Back media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Label Grid.Row="5" Grid.Column="2" VerticalAlignment="Center" Content="Magazine:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="5" Grid.Column="3" x:Name="textBox_magazine" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="magazine" Margin="0,0,0,3"/>
+                            <Label Grid.Row="5" Grid.Column="3" VerticalAlignment="Center" Content="Magazine:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="5" Grid.Column="4" x:Name="textBox_magazine" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="magazine" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="5" Grid.Column="5" x:Name="checkBox_DisableMagazine"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_magazine}"
+                      ToolTip="Disables Magazine media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Label Grid.Row="6" Grid.Column="2" VerticalAlignment="Center" Content="Mix:" Padding="5,0,5,0"/>
-                            <TextBox Grid.Row="6" Grid.Column="3" x:Name="textBox_mix" Height="20" 
-                                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
-                                     Tag="mix" Margin="0,0,0,3"/>
+                            <Label Grid.Row="6" Grid.Column="3" VerticalAlignment="Center" Content="Mix:" Padding="5,0,5,0"/>
+                            <TextBox Grid.Row="6" Grid.Column="4" x:Name="textBox_mix" Height="20" 
+                     Style="{DynamicResource CustomTextBox}" VerticalAlignment="Center" 
+                     Tag="mix" Margin="0,0,0,3"/>
+                            <CheckBox Grid.Row="6" Grid.Column="5" x:Name="checkBox_DisableMix"
+                      Style="{DynamicResource CustomCheckBox}"
+                      VerticalAlignment="Center"
+                      Margin="5,0,0,3"
+                      Tag="{Binding Tag, ElementName=textBox_mix}"
+                      ToolTip="Disables Mix media if unchecked"
+                      Click="CheckBox_Click"/>
 
-                            <Button Grid.Row="7" Grid.Column="3" VerticalAlignment="Center" Grid.ColumnSpan="2"
-                                    Content="Reset Folder Paths"
-                                    Style="{DynamicResource GreyRoundedButton}"
-                                    Width="120" Height="20" Click="Button_Reset_Click"
-                                    HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                            <Button Grid.Row="8" Grid.Column="4" VerticalAlignment="Center"
+                    Content="Reset Folder Paths"
+                    Style="{DynamicResource GreyRoundedButton}"
+                    Width="120" Height="20" Click="Button_Reset_Click"
+                    HorizontalAlignment="Center"/>
                         </Grid>
                     </StackPanel>
                 </Border>
+
 
             </StackPanel>
         </ScrollViewer>

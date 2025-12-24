@@ -189,31 +189,37 @@
                             <!-- Metadata Checkboxes -->
                             <CheckBox Grid.Row="1" Grid.Column="0" Tag="name" Content="Name"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            
                             <CheckBox Grid.Row="1" Grid.Column="1" Tag="desc" Content="Description"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
 
                             <CheckBox Grid.Row="2" Grid.Column="0" Tag="genre" Content="Genre"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            
                             <CheckBox Grid.Row="2" Grid.Column="1" Tag="players" Content="Players"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
 
                             <CheckBox Grid.Row="3" Grid.Column="0" Tag="rating" Content="Rating"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            
                             <CheckBox Grid.Row="3" Grid.Column="1" Tag="region" Content="Region"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
 
                             <CheckBox Grid.Row="4" Grid.Column="0" Tag="lang" Content="Language"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            
                             <CheckBox Grid.Row="4" Grid.Column="1" Tag="releasedate" Content="Release Date"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
 
                             <CheckBox Grid.Row="5" Grid.Column="0" Tag="developer" Content="Developer"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            
                             <CheckBox Grid.Row="5" Grid.Column="1" Tag="publisher" Content="Publisher"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
 
                             <CheckBox Grid.Row="6" Grid.Column="0" Tag="arcadesystemname" Content="Arcade Name"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
+                            
                             <CheckBox Grid.Row="6" Grid.Column="1" Tag="family" Content="Family"
                                       Margin="3,0,3,0" Style="{DynamicResource CustomCheckBox}"/>
 

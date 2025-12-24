@@ -46,7 +46,9 @@ namespace GamelistManager.controls
             if (sender is Button button && button.Tag is MessageBoxResult result)
             {
                 Result = result;
-                IsCheckboxChecked = OptionCheckBox.IsChecked == true;
+                IsCheckboxChecked =
+                OptionCheckBox.Visibility == Visibility.Visible &&
+                OptionCheckBox.IsChecked == true;
                 DialogResult = true;
                 Close();
             }
@@ -60,7 +62,9 @@ namespace GamelistManager.controls
             if (Result == MessageBoxResult.None)
             {
                 Result = MessageBoxResult.Cancel;
-                IsCheckboxChecked = OptionCheckBox.IsChecked == true;
+                IsCheckboxChecked =
+                OptionCheckBox.Visibility == Visibility.Visible &&
+                OptionCheckBox.IsChecked == true;
             }
         }
 

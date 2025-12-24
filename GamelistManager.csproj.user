@@ -73,6 +73,15 @@
     <Resource Update="resources\resource dictionaries\controls\CustomRibbonStyle.xaml">
       <SubType>Designer</SubType>
     </Resource>
+    <Resource Update="resources\resource dictionaries\themes\SandyTheme.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\MintTheme.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\SunsetTheme.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
     <Resource Update="resources\resource dictionaries\themes\GrayTheme.xaml">
       <SubType>Designer</SubType>
     </Resource>

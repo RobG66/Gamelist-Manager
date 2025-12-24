@@ -78,7 +78,7 @@ namespace GamelistManager.controls
             if (autoPlay) await PlayCurrentTrackAsync();
         }
 
-        public void ResumePlaying()
+        public async Task ResumePlayingAsync()
         {
             if (_mediaPlayer != null && _isPaused)
             {
@@ -88,11 +88,11 @@ namespace GamelistManager.controls
 
                 UpdatePlaybackButtons(playing: true, paused: false);
 
-                Dispatcher.InvokeAsync(() => _mediaPlayer?.Play());
+                await Dispatcher.InvokeAsync(() => _mediaPlayer?.Play());
             }
         }
 
-        public void PausePlaying()
+        public async Task PausePlayingAsync()
         {
             if (_mediaPlayer?.IsPlaying == true)
             {
@@ -101,11 +101,11 @@ namespace GamelistManager.controls
                 _isPlaying = false;
 
                 UpdatePlaybackButtons(playing: true, paused: true);
-                Dispatcher.InvokeAsync(() => _mediaPlayer?.Pause());
+                await Dispatcher.InvokeAsync(() => _mediaPlayer?.Pause());
             }
         }
 
-        public void StopPlaying()
+        public async Task StopPlayingAsync()
         {
             if (_mediaPlayer?.IsPlaying == true || _isPaused)
             {
@@ -115,7 +115,7 @@ namespace GamelistManager.controls
 
                 UpdatePlaybackButtons(playing: false, paused: false);
 
-                Dispatcher.InvokeAsync(() =>
+                await Dispatcher.InvokeAsync(() =>
                 {
                     _mediaPlayer?.Stop();
                     _currentMedia?.Dispose();
@@ -351,6 +351,31 @@ namespace GamelistManager.controls
             UpdatePlaybackButtons(playing: true, paused: false);
         }
 
+        public async Task DisposeMediaAsync()
+        {
+            // Stop playback if necessary
+            if (_isPlaying || _isPaused)
+            {
+                await StopPlayingAsync();
+            }
+
+            _currentMedia?.Dispose();
+            _mediaFiles = Array.Empty<string>();
+            _currentIndex = 0;
+            _isPaused = false;
+            _isStopped = true;
+            _isPlaying = false;
+            button_Play.IsEnabled = false;
+            await Dispatcher.InvokeAsync(() =>
+            {
+                comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
+                comboBox_CurrentTrack.ItemsSource = null;
+                if (_mediaPlayer != null)
+                   _mediaPlayer.EndReached -= MediaPlayer_EndReached!;
+            });
+
+        }
+
         private bool IsAudioFile(string fileName)
         {
             string[] audioExtensions = { ".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a" };
@@ -487,15 +512,15 @@ namespace GamelistManager.controls
             {
                 if (_mediaPlayer != null && _isPaused)
                 {
-                    ResumePlaying();
+                    ResumePlayingAsync();
                 }
                 else
                 {
                     _ = PlayCurrentTrackAsync();
                 }
             }
-            else if (button == button_Pause) PausePlaying();
-            else if (button == button_Stop) StopPlaying();
+            else if (button == button_Pause) PausePlayingAsync();
+            else if (button == button_Stop) StopPlayingAsync();
             else if (button == button_Previous) GotoPrevious();
             else if (button == button_Next) GotoNext();
         }
