@@ -11,6 +11,13 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+December 24th, 2025
+
+ I think I will be posting 8.5 sometime today, barring any last minute issue.  This is my present to everyone out there!  It's been a lot of work and I've had fun making this program.  ES-DE gamelist support is something I will look at in the new year since it seems worthwhile adding.  I've added 3 more themes in Gamelist Manager for the upcoming release.  Keep an eye out :)
+
+
+---
+ December 22nd, 2025
 
  Scraping single media items is soon going to get a whole lot easier...!  Not only that, but media drag/drop is now added as well.  Oh and more media options like directly deleting/removing what you don't like from the media page.  This will be in the next version 8.5......  And if you're reading this, let me know and post something in the comments section!  Your participation is greatly appreciated!  
 
