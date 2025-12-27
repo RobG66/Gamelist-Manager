@@ -10,6 +10,7 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 This program is not Wine compatible
+
 ---
 
 December 27th, 2025
