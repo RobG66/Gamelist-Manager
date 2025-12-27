@@ -1,7 +1,7 @@
 ![gamelistmanager](https://github.com/RobG66/Gamelist-Manager/assets/91415974/42f6a366-00f5-4f1f-bb43-76816006d47b)
 
 <img width="3840" height="2016" alt="image" src="https://github.com/user-attachments/assets/fa68ee19-06c4-4d7c-b468-8d8b63b4ac5f" />
-
+(not Wine Compatible)
 
 ### 💖 Support Development
 
@@ -11,6 +11,15 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
 ---
+
+December 27th, 2025
+
+ There is a slight chance of a hangup happening in the media player control which is related to ui threading.  So I have made some tweaks (again!) to this control and will release an update in the next few days.  It's very rare that the freeze happens and can only happen if you have the media page open and are moving between games.  I've also added an easier way to switch systems for which you already have gamelists for.  You can still use the menu or just quick pick a system:
+
+<img width="1380" height="984" alt="image" src="https://github.com/user-attachments/assets/1de3f71b-75f9-4366-860b-81ed416ba556" />
+
+---
+
 December 24th, 2025
 
  I think I will be posting 8.5 sometime today, barring any last minute issue.  This is my present to everyone out there!  It's been a lot of work and I've had fun making this program.  ES-DE gamelist support is something I will look at in the new year since it seems worthwhile adding.  I've added 3 more themes in Gamelist Manager for the upcoming release.  Keep an eye out :)
