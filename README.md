@@ -12,6 +12,12 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 This program is not Wine compatible
 
 ---
+December 31st, 2025
+
+ Known bugs fixed, and a few more features will round out 2025 with the release of Gamelist Manager 8.6.  Get it while it's hot! :)
+
+ And Happy New Year everyone!
+---
 
 December 27th, 2025
 
