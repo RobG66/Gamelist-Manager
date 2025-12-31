@@ -594,12 +594,12 @@ namespace GamelistManager.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool Scaling {
+        public bool ScaleToFit {
             get {
-                return ((bool)(this["Scaling"]));
+                return ((bool)(this["ScaleToFit"]));
             }
             set {
-                this["Scaling"] = value;
+                this["ScaleToFit"] = value;
             }
         }
         
@@ -617,13 +617,13 @@ namespace GamelistManager.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool DisableScrapeNotifications {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RomsFolder {
             get {
-                return ((bool)(this["DisableScrapeNotifications"]));
+                return ((string)(this["RomsFolder"]));
             }
             set {
-                this["DisableScrapeNotifications"] = value;
+                this["RomsFolder"] = value;
             }
         }
     }

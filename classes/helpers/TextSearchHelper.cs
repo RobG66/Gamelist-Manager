@@ -20,7 +20,7 @@ namespace GamelistManager.classes.helpers
             = new Dictionary<int, Dictionary<string, string>>();
 
         private static readonly LinkedList<int> CacheUsageOrder = new LinkedList<int>();
-        private static readonly object cacheLock = new object();
+        private static readonly Lock cacheLock = new Lock();
 
         private static readonly HashSet<string> StopWordsSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         { "the", "a", "an", "and", "in", "of", "on", "at", "for", "by", "to", "is", "it" };
@@ -110,8 +110,7 @@ namespace GamelistManager.classes.helpers
 
         private static int ComputeListHash(List<string> names)
         {
-            using SHA1 sha1 = SHA1.Create();
-            byte[] raw = sha1.ComputeHash(Encoding.UTF8.GetBytes(string.Join("|", names)));
+            byte[] raw = SHA1.HashData(Encoding.UTF8.GetBytes(string.Join("|", names)));
             return BitConverter.ToInt32(raw, 0);
         }
 

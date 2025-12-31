@@ -1,7 +1,6 @@
 ﻿using GamelistManager.classes.core;
 using GamelistManager.classes.gamelist;
 using GamelistManager.classes.helpers;
-using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
@@ -1139,9 +1138,7 @@ namespace GamelistManager
 
                 if (delete)
                 {
-                    FileSystem.DeleteFile(filePath,
-                    UIOption.OnlyErrorDialogs,
-                    RecycleOption.SendToRecycleBin);
+                   File.Delete(filePath);
                 }
                 else
                 {
@@ -1166,7 +1163,7 @@ namespace GamelistManager
 
         private void Button_FixUnused_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show("Do you want to backup the unused media first?  Selecting 'No' will send them straight to the windows recycle bin.  \n\nSelect Cancel to abort",
+            var result = MessageBox.Show("Do you want to backup the unused media first?  Selecting 'No' will permanently delete them.  \n\nSelect Cancel to abort",
             "Confirm",
             MessageBoxButton.YesNoCancel,
             MessageBoxImage.Question);
@@ -1349,7 +1346,7 @@ namespace GamelistManager
         }
 
         
-        private void contextMenu_DeleteItems2_Click(object sender, RoutedEventArgs e)
+        private void ContextMenu_DeleteItems2_Click(object sender, RoutedEventArgs e)
         {
             var selectedItems = dataGrid_BadMedia.SelectedItems.Cast<MediaCleanupItem>().ToList();
 

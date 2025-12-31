@@ -27,6 +27,8 @@ namespace GamelistManager.pages
         private string? _currentVideoPath;
         private bool _wasVideoPlaying;
         private bool _mediaGridSetupDone = false;
+        private readonly ScraperService _scraperService = new ScraperService();
+
 
         private const double PREVIEW_MAX_WIDTH_RATIO = 0.7;
         private const double PREVIEW_MAX_HEIGHT_RATIO = 0.7;
@@ -61,7 +63,7 @@ namespace GamelistManager.pages
             _mediaNames.Add("Manual");
             _mediaNames.Add("Video");
 
-            _scaledDisplay = Properties.Settings.Default.Scaling;
+            _scaledDisplay = Properties.Settings.Default.ScaleToFit;
 
             if (_scaledDisplay)
             {
@@ -242,7 +244,7 @@ namespace GamelistManager.pages
                 SetButtonTags(columnIndex, fileName);
             }
 
-            _mediaPlayerControl?.PlayMedia(fileName, Properties.Settings.Default.VideoAutoplay);
+            _mediaPlayerControl?.PlayMediaAsync(fileName, Properties.Settings.Default.VideoAutoplay);
         }
 
         public async Task StopPlayingAsync() => await _mediaPlayerControl?.StopPlayingAsync();
@@ -253,7 +255,7 @@ namespace GamelistManager.pages
         private void ToggleScaling()
         {
             _scaledDisplay = !_scaledDisplay;
-            Properties.Settings.Default.Scaling = _scaledDisplay;
+            Properties.Settings.Default.ScaleToFit = _scaledDisplay;
             Properties.Settings.Default.Save();
 
             _mediaPlayerControl?.StopPlayingAsync();
@@ -721,20 +723,11 @@ namespace GamelistManager.pages
 
                 // Refresh the display
                 ShowMedia(selectedRowView);
-
-                MessageBox.Show(
-                    $"Successfully added {columnName} for '{romName}'.",
-                    "Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                UpdateStatus($"Successfully added {columnName} for '{romName}'");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error adding image: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                UpdateStatusError($"Error adding image: {ex.Message}");
             }
             finally
             {
@@ -743,7 +736,7 @@ namespace GamelistManager.pages
         }
 
         // Helper method to check if file is an image
-        private bool IsImageFile(string filePath)
+        private static bool IsImageFile(string filePath)
         {
             string extension = Path.GetExtension(filePath).ToLowerInvariant();
             return extension is ".jpg" or ".jpeg" or ".png" or ".bmp" or
@@ -751,7 +744,7 @@ namespace GamelistManager.pages
         }
 
         // Helper methods for browser drops
-        private async Task<string> SaveStreamToTempFile(Stream stream, string extension)
+        private static async Task<string> SaveStreamToTempFile(Stream stream, string extension)
         {
             string tempPath = Path.Combine(Path.GetTempPath(), $"dropped_image_{Guid.NewGuid()}.{extension}");
 
@@ -763,14 +756,14 @@ namespace GamelistManager.pages
             return tempPath;
         }
 
-        private string SaveBitmapToTempFile(System.Drawing.Bitmap bitmap)
+        private static string SaveBitmapToTempFile(System.Drawing.Bitmap bitmap)
         {
             string tempPath = Path.Combine(Path.GetTempPath(), $"dropped_image_{Guid.NewGuid()}.png");
             bitmap.Save(tempPath, System.Drawing.Imaging.ImageFormat.Png);
             return tempPath;
         }
 
-        private async Task<string> DownloadImageFromUrl(string url)
+        private static async Task<string> DownloadImageFromUrl(string url)
         {
             try
             {
@@ -818,7 +811,7 @@ namespace GamelistManager.pages
             }
         }
 
-        private string ExtractImageUrlFromHtml(string html)
+        private static string ExtractImageUrlFromHtml(string html)
         {
             if (string.IsNullOrEmpty(html))
                 return null;
@@ -835,7 +828,7 @@ namespace GamelistManager.pages
             return null;
         }
 
-        private void MediaExpandButton_Click(object sender, RoutedEventArgs e)
+        private async void MediaExpandButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn || btn.Tag is not string path || string.IsNullOrEmpty(path))
                 return;
@@ -849,13 +842,13 @@ namespace GamelistManager.pages
             if (container == null) return;
 
             if (container.Child == _mediaPlayerControl)
-                ShowVideoPreviewWindow(path);
+                await ShowVideoPreviewWindow(path);
             else if (container.Child is Image img && img.Source != null)
-                ShowPreviewWindow(img.Source, path);
+                ShowImagePreviewWindow(img.Source, path);
         }
 
 
-        private void ShowPreviewWindow(ImageSource imageSource, string filePath)
+        private void ShowImagePreviewWindow(ImageSource imageSource, string filePath)
         {
             _previewWindow?.Close();
 
@@ -918,12 +911,14 @@ namespace GamelistManager.pages
             _previewWindow.Focus();
         }
 
-        private void ShowVideoPreviewWindow(string videoPath)
+        private async Task ShowVideoPreviewWindow(string videoPath)
         {
             _previewWindow?.Close();
 
             _wasVideoPlaying = _mediaPlayerControl.IsPlaying;
-            if (_wasVideoPlaying) _mediaPlayerControl.PausePlayingAsync();
+            
+            if (_wasVideoPlaying) 
+                await _mediaPlayerControl.PausePlayingAsync();
 
             _previewMediaPlayer = new MediaPlayerControl();
             _previewMediaPlayer.SetVolume((int)Properties.Settings.Default.Volume);
@@ -961,12 +956,14 @@ namespace GamelistManager.pages
             {
                 _previewMediaPlayer?.StopPlayingAsync();
                 var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(FADE_DURATION_MS));
-                fadeOut.Completed += (s, e) =>
+                fadeOut.Completed += async (s, e) =>
                 {
                     _previewWindow.Close();
                     _previewMediaPlayer = null;
-                    if (_wasVideoPlaying) _mediaPlayerControl.ResumePlayingAsync();
+                    if (_wasVideoPlaying)                   
+                        await _mediaPlayerControl.ResumePlayingAsync();       
                 };
+
                 _previewWindow.BeginAnimation(Window.OpacityProperty, fadeOut);
             }
 
@@ -976,11 +973,10 @@ namespace GamelistManager.pages
             _previewWindow.Show();
             _previewWindow.Focus();
 
-            _previewMediaPlayer.PlayMedia(videoPath, true);
+            await _previewMediaPlayer.PlayMediaAsync(videoPath, true);
         }
 
-        private readonly ScraperService _scraperService = new ScraperService();
-
+       
               
         private void ClearMediaPath(string columnName)
         {
@@ -990,7 +986,7 @@ namespace GamelistManager.pages
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
                 {
-                    MessageBox.Show("No item selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    UpdateStatusError("No item selected.");
                     return;
                 }
 
@@ -1006,20 +1002,12 @@ namespace GamelistManager.pages
                     // Refresh the display
                     ShowMedia(selectedRowView);
 
-                    MessageBox.Show(
-                        $"Cleared {columnName} path for '{romName}'.",
-                        "Success",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
+                    StatusText.Text = $"Cleared {columnName} path for '{romName}'";
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error clearing media path: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                UpdateStatusError($"Error clearing media path: {ex.Message}");
             }
         }
 
@@ -1030,7 +1018,7 @@ namespace GamelistManager.pages
                 // SAFETY CHECK: Ensure filePath is not null/empty
                 if (string.IsNullOrWhiteSpace(filePath))
                 {
-                    MessageBox.Show("Invalid file path.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    UpdateStatusError("Invalid file path.");
                     return;
                 }
 
@@ -1038,7 +1026,7 @@ namespace GamelistManager.pages
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
                 {
-                    MessageBox.Show("No item selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    UpdateStatusError("No item selected.");
                     return;
                 }
 
@@ -1055,14 +1043,14 @@ namespace GamelistManager.pages
                     fullPath == "\\" ||
                     fullPath.Length < 4) // Minimum like "C:\x"
                 {
-                    MessageBox.Show("Invalid resolved file path.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    UpdateStatusError("Invalid resolved file path.");
                     return;
                 }
 
                 // SAFETY CHECK: Verify file exists
                 if (!File.Exists(fullPath))
                 {
-                    MessageBox.Show("File not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    UpdateStatusError("File not found.");
                     return;
                 }
 
@@ -1086,11 +1074,7 @@ namespace GamelistManager.pages
 
                 if (!isInMediaFolder)
                 {
-                    MessageBox.Show(
-                        "Cannot delete file - it is not located in a configured media folder.",
-                        "Safety Check Failed",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                    UpdateStatusError("Cannot delete file - it is not located in a configured media folder.");
                     return;
                 }
 
@@ -1127,35 +1111,19 @@ namespace GamelistManager.pages
                 // Refresh the display
                 ShowMedia(selectedRowView);
 
-                MessageBox.Show(
-                    $"Successfully deleted {columnName} file for '{romName}'.",
-                    "Success",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                UpdateStatus($"Successfully deleted {columnName} file for '{romName}'");
             }
             catch (UnauthorizedAccessException)
             {
-                MessageBox.Show(
-                    "Access denied. The file may be in use or you don't have permission to delete it.",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                UpdateStatusError("Access denied. The file may be in use or you don't have permission to delete it.");
             }
             catch (IOException ex)
             {
-                MessageBox.Show(
-                    $"File operation error: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                UpdateStatusError($"File operation error: {ex.Message}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error deleting file: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                UpdateStatusError($"Error deleting file: {ex.Message}");
             }
         }
 
@@ -1211,8 +1179,7 @@ namespace GamelistManager.pages
                         var parts = data.Split('|');
                         string filePath = parts[0];
                         string scraperName = parts.Length > 1 ? parts[1] : "ArcadeDB";
-
-                        bool includeMetadata = false;
+                                              
                         await ScrapeImageForItem(filePath, mediaType, columnName, scraperName);
                     },
                     onClearRequested: () =>
@@ -1230,92 +1197,10 @@ namespace GamelistManager.pages
             }
         }
 
-        private async Task ScrapeImageForItem(string filePath, string mediaType, string columnName, string scraperName)
-        {
-            try
-            {
-                Mouse.OverrideCursor = Cursors.Wait;
-                               
-                // Get the selected row
-                var mainWindow = Application.Current.MainWindow as MainWindow;
-                if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
-                {
-                    MessageBox.Show("No item selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                DataRow row = selectedRowView.Row;
-                string romName = row["Name"].ToString() ?? (!string.IsNullOrEmpty(filePath) ? Path.GetFileName(filePath) : "Unknown");
-
-                bool disableScrapeNotifications = Properties.Settings.Default.DisableScrapeNotifications;
-
-                // Confirm with user (if enabled)
-                if (!disableScrapeNotifications)
-                {
-                    bool hasExistingMedia = !string.IsNullOrEmpty(filePath);
-                    string confirmMessage = hasExistingMedia
-                        ? $"Scrape {columnName} for '{romName}' using {scraperName}?\n\nThis will overwrite the existing media."
-                        : $"Scrape {columnName} for '{romName}' using {scraperName}?";
-
-                    var result = MessageBox.Show(confirmMessage, "Confirm Scrape", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (result != MessageBoxResult.Yes)
-                        return;
-                }
-
-                // Use the common scraping logic - just scrape this ONE media type
-                var mediaTypesToScrape = new List<string> { mediaType };
-
-                mainWindow.IsEnabled = false;
-                bool includeMetadata = false; // For single media scrape, do not include metadata   
-                var (success, scrapedCount, errorMessage) = await PerformScrape(row, scraperName, mediaTypesToScrape, includeMetadata);
-                mainWindow.IsEnabled = true;
-                
-                if (success)
-                {
-                    if (success)
-                    {
-                        ShowMedia(selectedRowView);
-
-                        if (scrapedCount > 0)
-                        {
-                            if (!disableScrapeNotifications)
-                            {
-                                string resultMessage = $"Successfully scraped {scrapedCount} media item(s) for '{romName}'";
-                                MessageBox.Show(resultMessage, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show($"Scrape completed but no media was found for '{romName}'",
-                                "No Media Found", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                    }
-                }
-                else
-                {
-                    MessageBox.Show(
-                        $"Failed to scrape {columnName}:\n\n{errorMessage}",
-                        "Scrape Failed",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Error scraping media: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            finally
-            {
-                Mouse.OverrideCursor = null;
-            }
-        }
+        
 
         // Helper to get the image source setting for the specific media type
-        private string? GetImageSourceForType(
+        private static string? GetImageSourceForType(
              Dictionary<string, Dictionary<string, string>> iniSections,
              string currentScraper,
              string mediaType)
@@ -1377,7 +1262,7 @@ namespace GamelistManager.pages
 
 
         // Helper methods from Scraper page
-        private string GetScreenScraperLanguage()
+        private static string GetScreenScraperLanguage()
         {
             string language = Properties.Settings.Default.Language;
             if (!string.IsNullOrEmpty(language))
@@ -1391,7 +1276,7 @@ namespace GamelistManager.pages
             return "en";
         }
 
-        private List<string> GetScreenScraperRegions()
+        private static List<string> GetScreenScraperRegions()
         {
             var regions = new List<string>();
 
@@ -1433,10 +1318,71 @@ namespace GamelistManager.pages
         }
 
 
+        private async Task ScrapeImageForItem(string filePath, string mediaType, string columnName, string scraperName)
+        {
+            try
+            {
+                Mouse.OverrideCursor = Cursors.Wait;
+                SetStatus($"Scraping {columnName}...");
+                // Get the selected row
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
+                {
+                    UpdateStatusError("No item selected.");
+                    return;
+                }
+
+                DataRow row = selectedRowView.Row;
+                string romName = row["Name"].ToString() ?? (!string.IsNullOrEmpty(filePath) ? Path.GetFileName(filePath) : "Unknown");
+                                
+                // Use the common scraping logic - just scrape this ONE media type
+                var mediaTypesToScrape = new List<string> { mediaType };
+
+                try
+                {
+                    Mouse.OverrideCursor = Cursors.Wait;
+
+                    mainWindow.IsEnabled = false;
+                    bool includeMetadata = false; // For single media scrape, do not include metadata   
+                    var (success, scrapedCount, errorMessage) = await PerformScrape(row, scraperName, mediaTypesToScrape, includeMetadata);
+
+                    if (success)
+                    {
+                        ShowMedia(selectedRowView);
+
+                        if (scrapedCount == 0)
+                        {
+                            UpdateStatus($"Scrape completed but no media was found for '{romName}'");
+                        }
+                        else
+                        {
+                            UpdateStatus($"Successfully scraped {scrapedCount} media item(s) for '{romName}'");
+                        }
+                    }
+                    else
+                    {
+                        UpdateStatusError($"Failed to scrape {columnName}: {errorMessage}");
+                    }
+                }
+                finally
+                {
+                    mainWindow.IsEnabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusError($"Error scraping media: {ex.Message}");
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
+        }
+
         private async Task RescrapeAllMedia(string scraperName)
         {
             try
-            {          
+            {
                 // Get the selected row
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
@@ -1460,11 +1406,10 @@ namespace GamelistManager.pages
                 bool defaultChecked = false; // or true if you want pre-checked
 
                 // Show the custom message box
-                bool includeMetadata;
                 var result = MessageBoxWithCheckbox.Show(
                     owner: mainWindow,
                     message: message,
-                    out includeMetadata,
+                    out bool includeMetadata,
                     title: "Confirm Re-Scrape",
                     buttons: MessageBoxButton.OKCancel,
                     icon: MessageBoxImage.Warning,
@@ -1481,6 +1426,12 @@ namespace GamelistManager.pages
 
                 Mouse.OverrideCursor = Cursors.Wait;
 
+                string scrapeMessage = includeMetadata
+                   ? $"Scraping all media and metadata for '{romName}'..."
+                   : $"Scraping all media for '{romName}'...";
+
+                SetStatus(scrapeMessage);
+
                 // Get all enabled media types
                 string jsonString = Properties.Settings.Default.MediaPaths;
                 var mediaPaths = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString) ?? new();
@@ -1493,52 +1444,44 @@ namespace GamelistManager.pages
                         return !mediaPaths.TryGetValue(enabledKey, out string? enabledValue) || enabledValue != "false";
                     })
                     .ToList();
-                               
-                mainWindow.IsEnabled = false;
 
-                // Use the common scraping logic - scrape ALL enabled media types
-                var (success, scrapedCount, errorMessage) = await PerformScrape(
-                    row, scraperName, enabledMediaTypes, includeMetadata);
-
-                mainWindow.IsEnabled = true;
-                bool disableScrapeNotifications = Properties.Settings.Default.DisableScrapeNotifications;   
-
-                if (success)
+                try
                 {
-                    ShowMedia(selectedRowView);
+                    mainWindow.IsEnabled = false;
 
-                    if (scrapedCount > 0)
+                    // Use the common scraping logic - scrape ALL enabled media types
+                    var (success, scrapedCount, errorMessage) = await PerformScrape(
+                        row, scraperName, enabledMediaTypes, includeMetadata);
+
+                    if (success)
                     {
-                        if (!disableScrapeNotifications)
+                        ShowMedia(selectedRowView);
+
+                        if (scrapedCount > 0)
                         {
                             string resultMessage = includeMetadata
-                                ? $"Successfully scraped {scrapedCount} media item(s) and metadata for '{romName}'"
-                                : $"Successfully scraped {scrapedCount} media item(s) for '{romName}'";
-                            MessageBox.Show(resultMessage, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                               ? $"Successfully scraped {scrapedCount} media item(s) and metadata for '{romName}'"
+                               : $"Successfully scraped {scrapedCount} media item(s) for '{romName}'";
+                            UpdateStatus(resultMessage);
+                        }
+                        else
+                        {
+                            UpdateStatus($"Scrape completed but no media was found for '{romName}'");
                         }
                     }
                     else
                     {
-                        MessageBox.Show($"Scrape completed but no media was found for '{romName}'",
-                            "No Media Found", MessageBoxButton.OK, MessageBoxImage.Information);
+                        UpdateStatusError($"Failed to scrape media: {errorMessage}");
                     }
                 }
-                else
+                finally
                 {
-                    MessageBox.Show(
-                        $"Failed to scrape media:\n\n{errorMessage}",
-                        "Scrape Failed",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                    mainWindow.IsEnabled = true;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Error scraping all media: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                UpdateStatusError($"Error scraping all media: {ex.Message}");
             }
             finally
             {
@@ -1739,6 +1682,31 @@ namespace GamelistManager.pages
             {
                 return (false, 0, ex.Message);
             }
+        }
+
+        public void SetStatus(string message)
+        {
+            StatusIcon.Visibility = Visibility.Collapsed;
+            StatusText.Text = message;
+            StatusText.Foreground = Brushes.Black;
+        }
+
+        public void UpdateStatus(string message)
+        {
+            StatusIcon.Visibility = Visibility.Visible;
+            StatusIcon.Text = "✓";
+            StatusIcon.Foreground = Brushes.Green;
+            StatusText.Text = message;
+            StatusText.Foreground = Brushes.Green;
+        }
+
+        public void UpdateStatusError(string message)
+        {
+            StatusIcon.Visibility = Visibility.Visible;
+            StatusIcon.Text = "✗";
+            StatusIcon.Foreground = Brushes.Red;
+            StatusText.Text = message;
+            StatusText.Foreground = Brushes.Red;
         }
     }
 }

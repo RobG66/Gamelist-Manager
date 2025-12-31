@@ -29,7 +29,7 @@
         </Grid.RowDefinitions>
 
         <Border x:Name="RibbonHotZone" Background="Transparent" Height="10" VerticalAlignment="Top"/>
-        
+
         <!-- Ribbon Control (Initially Visible) -->
         <Ribbon Grid.Row="0" x:Name="RibbonMenu" Visibility="Visible"
         Loaded="MainRibbon_Loaded"
@@ -66,7 +66,7 @@
                     ImageSource="pack://application:,,,/resources/images/icons/settings2.png"/>
                     <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Reset All Settings" Click="MenuItem_ResetAllSettings_Click"
                         ImageSource="pack://application:,,,/resources/images/icons/reset2.png"/>
-                    
+
                     <RibbonSeparator/>
                     <RibbonApplicationMenuItem Style="{StaticResource RibbonApplicationMenuItemDisabledStyle}" Header="Switch to Classic Menu" Click="ToggleMenuStyle_Click"
                     ImageSource="pack://application:,,,/resources/images/icons/menu.png"/>
@@ -123,7 +123,7 @@
 
             <!-- Home Tab -->
             <RibbonTab x:Name="ribbonTab_Home" Header="Home" Style="{StaticResource RibbonTabDisabledStyle}" IsEnabled="False">
-         
+
                 <!-- View Group -->
                 <RibbonGroup Header="View">
                     <Grid>
@@ -225,7 +225,7 @@
                         Grid.Row="2"
                         Label="Auto Hide Ribbon"
                         IsChecked="False"
-                        Click="ribbon_AutoHide_Click"/>
+                        Click="Ribbon_AutoHide_Click"/>
                         </Grid>
                     </Grid>
 
@@ -317,7 +317,7 @@
                   Click="MenuItem_RemoveItem_Click"/>
                     <RibbonButton x:Name="ribbonButton_DeleteItem" Style="{StaticResource RibbonButtonDisabledStyle}" Label="Delete Item" 
                     SmallImageSource="pack://application:,,,/resources/images/icons/delete.png"
-                    Click="ribbonButton_DeleteItem_Click"/>
+                    Click="RibbonButton_DeleteItem_Click"/>
                 </RibbonGroup>
 
                 <!-- Clear Group -->
@@ -364,35 +364,52 @@
             <!-- Columns Tab -->
             <RibbonTab Style="{StaticResource RibbonTabDisabledStyle}" Header="Columns" x:Name="ribbonTab_Columns" IsEnabled="False">
                 <RibbonGroup Header="Game Information">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Description" Label="Description" Tag="Description" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Genre" Label="Genre" Tag="Genre" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameId" Label="Game Id" Tag="Game Id" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Rating" Label="Rating" Tag="Rating" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ReleaseDate" Label="Release Date" Tag="Release Date" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Players" Label="Players" Tag="Players" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Favorite" Label="Favorite" Tag="Favorite" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Description" Label="Description" Tag="Description"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Description, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Genre" Label="Genre" Tag="Genre"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Genre, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameId" Label="Game Id" Tag="Game Id"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_GameId, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Rating" Label="Rating" Tag="Rating"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Rating, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ReleaseDate" Label="Release Date" Tag="Release Date"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_ReleaseDate, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Players" Label="Players" Tag="Players"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Players, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Favorite" Label="Favorite" Tag="Favorite"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Favorite, Mode=TwoWay}" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Publishers">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Developer" Label="Developer" Tag="Developer" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Publisher" Label="Publisher" Tag="Publisher" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Developer" Label="Developer" Tag="Developer"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Developer, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Publisher" Label="Publisher" Tag="Publisher"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Publisher, Mode=TwoWay}" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="System">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ArcadeSystemName" Label="Arcade System" Tag="Arcade System Name" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Family" Label="Family" Tag="Family" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Region" Label="Region" Tag="Region" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Language" Label="Language" Tag="Language" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_ArcadeSystemName" Label="Arcade System" Tag="Arcade System Name"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_ArcadeSystemName, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Family" Label="Family" Tag="Family"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Family, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Region" Label="Region" Tag="Region"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Region, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_Language" Label="Language" Tag="Language"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_Language, Mode=TwoWay}" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Usage">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_PlayCount" Label="Play Count" Tag="Play Count" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_LastPlayed" Label="Last Played" Tag="Last Played" Click="MenuItem_Clicked"/>
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameTime" Label="Game Time" Tag="Game Time" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_PlayCount" Label="Play Count" Tag="Play Count"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_PlayCount, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_LastPlayed" Label="Last Played" Tag="Last Played"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_LastPlayed, Mode=TwoWay}" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_GameTime" Label="Game Time" Tag="Game Time"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_GameTime, Mode=TwoWay}" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Media">
-                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_MediaPaths" Label="Media Paths" Tag="Media Paths" Click="MenuItem_Clicked"/>
+                    <RibbonCheckBox Style="{StaticResource RibbonCheckBoxDisabledStyle}" x:Name="ribbon_MediaPaths" Label="Media Paths" Tag="Media Paths"
+                    IsChecked="{Binding IsChecked, ElementName=menuItem_MediaPaths, Mode=TwoWay}" Click="MenuItem_Clicked"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="Actions">
@@ -418,13 +435,19 @@
                   Click="MenuItem_FindMissingItems_Click"/>
                     <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Identify Duplicates" 
                       LargeImageSource="pack://application:,,,/resources/images/icons/findduplicates.png" 
-                      Click="menuItem_FindDuplicate_Click"/>
+                      Click="MenuItem_FindDuplicate_Click"/>
                 </RibbonGroup>
 
                 <RibbonGroup Header="DAT">
                     <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="DAT Tools" 
                   LargeImageSource="pack://application:,,,/resources/images/icons/dat.png"
                   Click="MenuItem_DatTools_Click"/>
+                </RibbonGroup>
+
+                <RibbonGroup Header ="Reporting" x:Name="ribbonButton_Report">
+                    <RibbonButton Style="{StaticResource RibbonButtonDisabledStyle}" Label="Gamelist Report" 
+                     LargeImageSource="pack://application:,,,/resources/images/icons/report.png"
+                    Click="RibbonButton_Click"/>
                 </RibbonGroup>
             </RibbonTab>
 
@@ -472,7 +495,7 @@
             </RibbonTab>
 
         </Ribbon>
-            
+
         <!-- Traditional Menu (Initially Collapsed) -->
         <DockPanel Grid.Row="1" 
                    x:Name="ClassicMenu"
@@ -564,7 +587,7 @@
                     <MenuItem x:Name="menuItem_ClearSelectedMediaPaths" Header="Clear Selected Items Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearSelectedMediaPaths_Click"/>
                     <MenuItem x:Name="menuItem_ClearAllMediaPaths" Header="Clear All Items Media Paths" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_ClearAllMediaPaths_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
-                    <MenuItem x:Name="menuItem_DeleteSelectedItems" Header="Delete Item" Style="{DynamicResource MinimalMenuItem}" Click="ribbonButton_DeleteItem_Click"/>
+                    <MenuItem x:Name="menuItem_DeleteSelectedItems" Header="Delete Item" Style="{DynamicResource MinimalMenuItem}" Click="RibbonButton_DeleteItem_Click"/>
                 </MenuItem>
 
                 <MenuItem Style="{DynamicResource BaseMenuItem}" x:Name="menuItem_Columns" Header="Columns" IsEnabled="False">
@@ -585,7 +608,7 @@
                     <MenuItem x:Name="menuItem_Region" Header="Region" Tag="Region" Click="MenuItem_Clicked" IsCheckable="true"/>
                     <MenuItem x:Name="menuItem_ReleaseDate" Header="Release Date" Tag="Release Date" Click="MenuItem_Clicked" IsCheckable="true"/>
                     <Separator/>
-                    <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="MenuItem_Clicked" IsCheckable="true"/>
+                    <MenuItem x:Name="menuItem_MediaPaths" Header="Media Paths" Click="MenuItem_Clicked" Tag="Media Paths" IsCheckable="true"/>
                 </MenuItem>
 
                 <MenuItem x:Name="menuItem_Tools" Header="Tools" Style="{DynamicResource MinimalMenuItem}" IsEnabled="False">
@@ -593,10 +616,11 @@
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_FindNewItems" Header="Find New Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindNewItems_Click"/>
                     <MenuItem x:Name="menuItem_FindMissing" Header="Identify Missing Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindMissingItems_Click"/>
-                    <MenuItem x:Name="menuItem_FindDuplicate" Header="Identify Duplicate Items" Style="{DynamicResource MinimalMenuItem}" Click="menuItem_FindDuplicate_Click"/>
+                    <MenuItem x:Name="menuItem_FindDuplicate" Header="Identify Duplicate Items" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_FindDuplicate_Click"/>
                     <Separator Style="{DynamicResource MinimalSeparator}"/>
                     <MenuItem x:Name="menuItem_DatTools" Header="DAT Tools" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_DatTools_Click"/>
-                </MenuItem>
+                    <Separator Style="{DynamicResource MinimalSeparator}"/>
+                    <MenuItem x:Name="menuItem_Reporting" Header="Gamelist Reporting" Style="{DynamicResource MinimalMenuItem}" Click="RibbonButton_Click"/>                </MenuItem>
 
                 <MenuItem x:Name="menuItem_Remote" Header="Remote" Style="{DynamicResource MinimalMenuItem}">
                     <MenuItem Header="Map A Network Drive" Style="{DynamicResource MinimalMenuItem}" Click="MenuItem_MapDrive_Click" Name="menuItem_MapDrive"/>
@@ -913,254 +937,273 @@
                      LostFocus="TextBox_Description_LostFocus"/>
 
             <!-- Content under datagrid -->
-            <StackPanel Grid.Row="2" 
-                        x:Name="stackPanel_InfoBar" 
-                        Grid.ColumnSpan="3" 
-                        Orientation="Horizontal" 
-                        Margin="0,5,0,5" 
-                        VerticalAlignment="Bottom">
-                <StackPanel x:Name="stackPanel_UndoRedoButtons" 
-                            Orientation="Vertical" 
-                            VerticalAlignment="Center" 
-                            Background="Transparent">
+            <Grid Grid.Row="2" 
+              x:Name="grid_InfoBar" 
+              Grid.ColumnSpan="3" 
+              Margin="0,5,0,5" 
+              VerticalAlignment="Center">
+             <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Undo/Redo -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- System Selector -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Info Cards -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Filter Panel -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Spacer -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Undo/Redo Buttons -->
+                <StackPanel Grid.Column="0"
+                x:Name="stackPanel_UndoRedoButtons" 
+                Orientation="Vertical" 
+                VerticalAlignment="Center" 
+                Margin="0,0,5,0">
                     <Button x:Name="UndoButton" 
-                            Click="UndoButton_Click" 
-                            Margin="0,0,0,3" 
-                            Style="{DynamicResource CustomImageButton}" 
-                            IsEnabled="False" >
+                Click="UndoButton_Click" 
+                Margin="0,0,0,3" 
+                Style="{DynamicResource CustomImageButton}" 
+                IsEnabled="False">
                         <Image Source="pack://application:,,,/resources/images/buttons/undo-button.png" 
-                               Width="25" 
-                               Height="25" 
-                               ToolTip="Undo" />
+                   Width="25" 
+                   Height="25" 
+                   ToolTip="Undo" />
                     </Button>
                     <Button x:Name="RedoButton" 
-                            Click="RedoButton_Click" 
-                            Style="{DynamicResource CustomImageButton}" 
-                            IsEnabled="false">
+                Click="RedoButton_Click" 
+                Style="{DynamicResource CustomImageButton}" 
+                IsEnabled="False">
                         <Image Source="pack://application:,,,/resources/images/buttons/redo-button.png" 
-                               Width="25" 
-                               Height="25" 
-                               ToolTip="Redo" />
+                   Width="25" 
+                   Height="25" 
+                   ToolTip="Redo" />
                     </Button>
                 </StackPanel>
 
-                <StackPanel Orientation="Vertical" Margin="5,0,4,0">
-                    <Image x:Name="PlatformLogo" 
-                           Height="30" 
-                           Width="150" 
-                           Source="pack://application:,,,/resources/images/logos/gamelistmanager.png"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0" HorizontalAlignment="Center">
+                <!-- System Selector & Buttons -->
+                <StackPanel Grid.Column="1" 
+                Orientation="Vertical" 
+                VerticalAlignment="Center"
+                Margin="0,0">
+                    <ComboBox x:Name="comboBox_Systems"
+                  Height="30"
+                  Margin="0"
+                  IsEditable="False"
+                  ToolTip="Select system"
+                  Style="{DynamicResource CustomImageComboBox}"/>
+
+                    <StackPanel Orientation="Horizontal" 
+                    Margin="0,3,0,0"
+                    HorizontalAlignment="Center">
                         <Button x:Name="button_Scraper" 
-                                IsEnabled="False" 
-                                ToolTip="Scraper Display" 
-                                Style="{DynamicResource GreyRoundedButton}" 
-                                Height="20" 
-                                Width="70" 
-                                Margin="0,0,3,0" 
-                                Content="Show Scraper" 
-                                Click="Button_Scraper_Click"/>
-                        <Button x:Name="button_Media" 
-                                IsEnabled="False" 
-                                ToolTip="Media Display" 
-                                Style="{DynamicResource GreyRoundedButton}" 
-                                Height="20" 
-                                Width="70" 
-                                Margin="3,0,0,0" 
-                                HorizontalAlignment="Center" 
-                                Content="Show Media" 
-                                Click="Button_Media_Click"/>
-                        <Button x:Name="button_SnapToSelectedItem" 
-                    IsEnabled="False" 
+                    IsEnabled="False"
+                    HorizontalAlignment="Center"
+                    ToolTip="Scraper Display" 
                     Style="{DynamicResource GreyRoundedButton}" 
-                    Margin="3,0,0,0" 
-                    HorizontalAlignment="Center" 
-                    Click="button_SnapToSelectedItem_Click">
-                     <Image Source="pack://application:,,,/resources/images/icons/focus.png" 
-                     Width="17" 
-                     Height="17" 
-                        ToolTip="Bring the current selected item into view"/>
-                     </Button>
-                       </StackPanel>
+                    Height="20" 
+                    Width="70" 
+                    Margin="0,0,3,0" 
+                    Content="Show Scraper" 
+                    Click="Button_Scraper_Click"/>
+                        <Button x:Name="button_Media" 
+                    IsEnabled="False" 
+                    ToolTip="Media Display" 
+                    Style="{DynamicResource GreyRoundedButton}" 
+                    Height="20" 
+                    Width="70" 
+                    Margin="3,0,3,0" 
+                    Content="Show Media" 
+                    Click="Button_Media_Click"/>
+                        <Button x:Name="button_SnapToSelectedItem" 
+                    IsEnabled="False"
+                                Margin="3,0,0,0" 
+                                Width="20"
+                                Height="20"
+                    Style="{DynamicResource GreyRoundedButton}" 
+                    Click="Button_SnapToSelectedItem_Click">
+                            <Image Source="pack://application:,,,/resources/images/icons/focus.png" 
+                       ToolTip="Bring the current selected item into view"/>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
 
-                <Grid Background="Transparent">
+                <!-- Info Cards -->
+                <Grid Grid.Column="2" 
+          VerticalAlignment="Center"
+          Margin="5,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*" />
-                    </Grid.RowDefinitions>
 
-                    <!-- Info Cards -->
+                    <!-- Total Card -->
                     <Border Grid.Column="0" 
-                            Grid.Row="0" 
-                            Width="80"  
-                            Margin="0,0,5,0" 
-                            Padding="4,8,4,8" 
-                            BorderThickness="1" 
-                            BorderBrush="{DynamicResource DarkBorderBrush}" 
-                            Background="{DynamicResource TotalCardBackgroundBrush}" 
-                            CornerRadius="6">
+                Width="80"  
+                Margin="0,0,5,0" 
+                Padding="4,8,4,8" 
+                BorderThickness="1" 
+                BorderBrush="{DynamicResource DarkBorderBrush}" 
+                Background="{DynamicResource TotalCardBackgroundBrush}" 
+                CornerRadius="6">
                         <StackPanel HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" 
-                                        HorizontalAlignment="Center" 
-                                        VerticalAlignment="Center">
+                            HorizontalAlignment="Center">
                                 <Image Height="15" Source="pack://application:,,,/resources/images/icons/gamepad.png"/>
                                 <TextBlock Text="Total" 
-                                           Margin="5,0,0,0" 
-                                           Foreground="{DynamicResource CardForegroundBrush}" 
-                                           FontSize="12" 
-                                           FontWeight="Bold"/>
+                               Margin="5,0,0,0" 
+                               Foreground="{DynamicResource CardForegroundBrush}" 
+                               FontSize="12" 
+                               FontWeight="Bold"/>
                             </StackPanel>
                             <TextBlock x:Name="textBlock_TotalCount" 
-                                       Text="0" 
-                                       HorizontalAlignment="Center" 
-                                       Foreground="{DynamicResource CardForegroundBrush}" 
-                                       FontSize="16" 
-                                       FontWeight="Bold"/>
+                           Text="0" 
+                           HorizontalAlignment="Center" 
+                           Foreground="{DynamicResource CardForegroundBrush}" 
+                           FontSize="16" 
+                           FontWeight="Bold"/>
                         </StackPanel>
                     </Border>
 
+                    <!-- Hidden Card -->
                     <Border Grid.Column="1" 
-                            Grid.Row="0" 
-                            Width="80" 
-                            Margin="0,0,5,0" 
-                            Padding="2,8,2,8" 
-                            Background="{DynamicResource HiddenCardBackgroundBrush}" 
-                            BorderBrush="{DynamicResource DarkBorderBrush}" 
-                            BorderThickness="1"  
-                            CornerRadius="6">
+                Width="80" 
+                Margin="0,0,5,0" 
+                Padding="2,8,2,8" 
+                Background="{DynamicResource HiddenCardBackgroundBrush}" 
+                BorderBrush="{DynamicResource DarkBorderBrush}" 
+                BorderThickness="1"  
+                CornerRadius="6">
                         <StackPanel HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" 
-                                        HorizontalAlignment="Center" 
-                                        VerticalAlignment="Center">
+                            HorizontalAlignment="Center">
                                 <Image Height="15" Source="pack://application:,,,/resources/images/icons/invisible.png"/>
                                 <TextBlock Text="Hidden" 
-                                           Margin="5,0,0,0" 
-                                           Foreground="{DynamicResource CardForegroundBrush}" 
-                                           FontSize="12" 
-                                           FontWeight="Bold"/>
+                               Margin="5,0,0,0" 
+                               Foreground="{DynamicResource CardForegroundBrush}" 
+                               FontSize="12" 
+                               FontWeight="Bold"/>
                             </StackPanel>
                             <TextBlock x:Name="textBlock_HiddenCount" 
-                                       HorizontalAlignment="Center" 
-                                       Text="0" 
-                                       Foreground="{DynamicResource CardForegroundBrush}" 
-                                       FontSize="16" 
-                                       FontWeight="Bold"/>
+                           Text="0" 
+                           HorizontalAlignment="Center" 
+                           Foreground="{DynamicResource CardForegroundBrush}" 
+                           FontSize="16" 
+                           FontWeight="Bold"/>
                         </StackPanel>
                     </Border>
 
+                    <!-- Showing Card -->
                     <Border Grid.Column="2" 
-                            Grid.Row="0" 
-                            Margin="0,0,5,0" 
-                            Width="80" 
-                            Padding="2,8,2,8" 
-                            Background="{DynamicResource ShowingCardBackgroundBrush}" 
-                            BorderBrush="{DynamicResource DarkBorderBrush}" 
-                            BorderThickness="1"  
-                            CornerRadius="6">
+                Width="80" 
+                Margin="0,0,5,0" 
+                Padding="2,8,2,8" 
+                Background="{DynamicResource ShowingCardBackgroundBrush}" 
+                BorderBrush="{DynamicResource DarkBorderBrush}" 
+                BorderThickness="1"  
+                CornerRadius="6">
                         <StackPanel HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" 
-                                        HorizontalAlignment="Center" 
-                                        VerticalAlignment="Center">
+                            HorizontalAlignment="Center">
                                 <Image Height="15" Source="pack://application:,,,/resources/images/icons/magnifying-glass.png"/>
                                 <TextBlock Text="Showing" 
-                                           Margin="5,0,0,0" 
-                                           Foreground="{DynamicResource CardForegroundBrush}" 
-                                           FontSize="12" 
-                                           FontWeight="Bold"/>
+                               Margin="5,0,0,0" 
+                               Foreground="{DynamicResource CardForegroundBrush}" 
+                               FontSize="12" 
+                               FontWeight="Bold"/>
                             </StackPanel>
                             <TextBlock x:Name="textBlock_ShowingCount" 
-                                       HorizontalAlignment="Center" 
-                                       Text="0" 
-                                       Foreground="{DynamicResource CardForegroundBrush}" 
-                                       FontSize="16" 
-                                       FontWeight="Bold"/>
+                           Text="0" 
+                           HorizontalAlignment="Center" 
+                           Foreground="{DynamicResource CardForegroundBrush}" 
+                           FontSize="16" 
+                           FontWeight="Bold"/>
                         </StackPanel>
                     </Border>
 
+                    <!-- Favorite Card -->
                     <Border Grid.Column="3" 
-                            Grid.Row="0" 
-                            Margin="0,0,5,0" 
-                            Width="80" 
-                            Padding="2,8,2,8" 
-                            Background="{DynamicResource FavoriteCardBackgroundBrush}" 
-                            BorderBrush="{DynamicResource DarkBorderBrush}" 
-                            BorderThickness="1"  
-                            CornerRadius="6">
+                Width="80" 
+                Padding="2,8,2,8" 
+                Background="{DynamicResource FavoriteCardBackgroundBrush}" 
+                BorderBrush="{DynamicResource DarkBorderBrush}" 
+                BorderThickness="1"  
+                CornerRadius="6">
                         <StackPanel HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" 
-                                        HorizontalAlignment="Center" 
-                                        VerticalAlignment="Center">
+                            HorizontalAlignment="Center">
                                 <Image Height="15" Source="pack://application:,,,/resources/images/icons/heart.png"/>
                                 <TextBlock Text="Favorite" 
-                                           Margin="5,0,0,0" 
-                                           Foreground="{DynamicResource CardForegroundBrush}" 
-                                           FontSize="12" 
-                                           FontWeight="Bold"/>
+                               Margin="5,0,0,0" 
+                               Foreground="{DynamicResource CardForegroundBrush}" 
+                               FontSize="12" 
+                               FontWeight="Bold"/>
                             </StackPanel>
                             <TextBlock x:Name="textBlock_FavoriteCount" 
-                                       HorizontalAlignment="Center" 
-                                       Text="0" 
-                                       Foreground="{DynamicResource CardForegroundBrush}" 
-                                       FontSize="16" 
-                                       FontWeight="Bold"/>
+                           Text="0" 
+                           HorizontalAlignment="Center" 
+                           Foreground="{DynamicResource CardForegroundBrush}" 
+                           FontSize="16" 
+                           FontWeight="Bold"/>
                         </StackPanel>
                     </Border>
                 </Grid>
 
-                <Border Width="320" 
-                        Background="{DynamicResource FilterPanelBackgroundBrush}" 
-                        Padding="5" 
-                        BorderBrush="{DynamicResource DarkBorderBrush}" 
-                        BorderThickness="1" 
-                        CornerRadius="6">
+                <!-- Filter Panel -->
+                <Border Grid.Column="3"
+            Width="320" 
+            Background="{DynamicResource FilterPanelBackgroundBrush}" 
+            Padding="5" 
+            BorderBrush="{DynamicResource DarkBorderBrush}" 
+            BorderThickness="1" 
+            CornerRadius="6"
+            VerticalAlignment="Stretch">
                     <StackPanel x:Name="stackpanel_Filters" IsEnabled="False">
                         <!-- Row 1: Visibility -->
                         <StackPanel Orientation="Horizontal" 
-                                    Margin="0,0,0,3" 
-                                    VerticalAlignment="Center">
+                        Margin="0,0,0,3" 
+                        VerticalAlignment="Center">
                             <TextBlock Text="View Filter:" 
-                                       FontSize="12" 
-                                       FontWeight="Bold" 
-                                       VerticalAlignment="Center" 
-                                       Margin="2,0,0,0" 
-                                       Width="70"/>
+                           FontSize="12" 
+                           FontWeight="Bold" 
+                           VerticalAlignment="Center" 
+                           Margin="2,0,0,0" 
+                           Width="70"/>
                             <RadioButton x:Name="radioButton_AllItems" 
-                                         IsChecked="True" 
-                                         Style="{DynamicResource CustomRadioButton}" 
-                                         FontSize="12" 
-                                         FontWeight="SemiBold" 
-                                         Content="All" 
-                                         Margin="0,0,12,0" 
-                                         VerticalAlignment="Center" 
-                                         Checked="RadioButton_AllItems_Checked" />
+                             IsChecked="True" 
+                             Style="{DynamicResource CustomRadioButton}" 
+                             FontSize="12" 
+                             FontWeight="SemiBold" 
+                             Content="All" 
+                             Margin="0,0,12,0" 
+                             VerticalAlignment="Center" 
+                             Checked="RadioButton_AllItems_Checked" />
                             <RadioButton x:Name="radioButton_VisibleItems" 
-                                         Style="{DynamicResource CustomRadioButton}" 
-                                         FontSize="12" 
-                                         FontWeight="SemiBold" 
-                                         Content="Visible" 
-                                         Margin="0,0,12,0" 
-                                         VerticalAlignment="Center" 
-                                         Checked="RadioButton_VisibleItems_Checked"/>
+                             Style="{DynamicResource CustomRadioButton}" 
+                             FontSize="12" 
+                             FontWeight="SemiBold" 
+                             Content="Visible" 
+                             Margin="0,0,12,0" 
+                             VerticalAlignment="Center" 
+                             Checked="RadioButton_VisibleItems_Checked"/>
                             <RadioButton x:Name="radioButton_HiddenItems" 
-                                         Style="{DynamicResource CustomRadioButton}" 
-                                         FontSize="12" 
-                                         FontWeight="SemiBold" 
-                                         Content="Hidden" 
-                                         VerticalAlignment="Center" 
-                                         Checked="RadioButton_HiddenItems_Checked"/>
+                             Style="{DynamicResource CustomRadioButton}" 
+                             FontSize="12" 
+                             FontWeight="SemiBold" 
+                             Content="Hidden" 
+                             VerticalAlignment="Center" 
+                             Checked="RadioButton_HiddenItems_Checked"/>
                             <Button x:Name="button_ResetView" 
-                                    Style="{DynamicResource CustomImageButton}" 
-                                    ToolTip="Reset View" 
-                                    Click="Button_ResetView_Click"  
-                                    Margin="13,0,5,0">
+                        Style="{DynamicResource CustomImageButton}" 
+                        ToolTip="Reset View" 
+                        Click="Button_ResetView_Click"  
+                        Margin="13,0,5,0">
                                 <Image Source="pack://application:,,,/resources/images/buttons/redreset.png" 
-                                       Width="32" 
-                                       Height="16"/>
+                           Width="32" 
+                           Height="16"/>
                             </Button>
                         </StackPanel>
 
@@ -1168,71 +1211,71 @@
                         <StackPanel Orientation="Horizontal">
                             <!-- Toggle Button -->
                             <Button x:Name="ToggleFilterModeButton"
-                                    Style="{DynamicResource CustomImageButton}"
-                                    Width="20" 
-                                    Height="20"
-                                    Margin="0,0,5,0"
-                                    ToolTip="Switch filter mode"
-                                    Click="ToggleFilterModeButton_Click">
+                        Style="{DynamicResource CustomImageButton}"
+                        Width="20" 
+                        Height="20"
+                        Margin="0,0,5,0"
+                        ToolTip="Switch filter mode"
+                        Click="ToggleFilterModeButton_Click">
                                 <Image Source="pack://application:,,,/resources/images/buttons/filter1.png"  
-                                       Width="18" 
-                                       Height="20"/>
+                           Width="18" 
+                           Height="20"/>
                             </Button>
 
                             <!-- Genre Filter -->
                             <StackPanel x:Name="stackpanel_Genre" 
-                                        Orientation="Horizontal" 
-                                        Visibility="Visible" 
-                                        VerticalAlignment="Center" 
-                                        MinWidth="280">
+                            Orientation="Horizontal" 
+                            Visibility="Visible" 
+                            VerticalAlignment="Center" 
+                            MinWidth="280">
                                 <TextBlock Text="Genre:" 
-                                           FontSize="12" 
-                                           FontWeight="Bold"  
-                                           Margin="0,0,5,0" 
-                                           VerticalAlignment="Center"/>
+                               FontSize="12" 
+                               FontWeight="Bold"  
+                               Margin="0,0,5,0" 
+                               VerticalAlignment="Center"/>
                                 <ComboBox x:Name="comboBox_Genre" 
-                                          Style="{DynamicResource CustomComboBox}" 
-                                          Padding="3,0,0,0" 
-                                          Height="20" 
-                                          Width="210" 
-                                          FontSize="12" 
-                                          FontWeight="SemiBold"  
-                                          SelectionChanged="ComboBox_Genre_SelectionChanged"/>
+                              Style="{DynamicResource CustomComboBox}" 
+                              Padding="3,0,0,0" 
+                              Height="20" 
+                              Width="210" 
+                              FontSize="12" 
+                              FontWeight="SemiBold"  
+                              SelectionChanged="ComboBox_Genre_SelectionChanged"/>
                                 <Button x:Name="button_ClearGenreSelection" 
-                                        Style="{DynamicResource CustomImageButton}" 
-                                        ToolTip="Clear" 
-                                        Click="Button_ClearGenreSelection_Click" 
-                                        Margin="5,0,0,0">
+                            Style="{DynamicResource CustomImageButton}" 
+                            ToolTip="Clear" 
+                            Click="Button_ClearGenreSelection_Click" 
+                            Margin="5,0,0,0">
                                     <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" 
-                                           Width="16" 
-                                           Height="16"/>
+                               Width="16" 
+                               Height="16"/>
                                 </Button>
                             </StackPanel>
 
                             <!-- Custom Filter -->
                             <StackPanel x:Name="stackpanel_Custom" 
-                                        Orientation="Horizontal" 
-                                        Visibility="Collapsed" 
-                                        VerticalAlignment="Center" 
-                                        MinWidth="280">
+                            Orientation="Horizontal" 
+                            Visibility="Collapsed" 
+                            VerticalAlignment="Center" 
+                            MinWidth="280">
                                 <ComboBox x:Name="comboBox_CustomFilter" 
-                                          Padding="3,0,0,0" 
-                                          Height="20" 
-                                          Width="90" 
-                                          FontSize="12" 
-                                          FontWeight="SemiBold" 
-                                          Style="{DynamicResource CustomComboBox}" 
-                                          SelectionChanged="FilterModeComboBox_SelectionChanged"/>
+                              Padding="3,0,0,0" 
+                              Height="20" 
+                              Width="90" 
+                              FontSize="12" 
+                              FontWeight="SemiBold" 
+                              Style="{DynamicResource CustomComboBox}" 
+                              SelectionChanged="FilterModeComboBox_SelectionChanged"/>
                                 <ComboBox x:Name="comboBox_FilterMode" 
-                                          SelectedIndex="0" 
-                                          Padding="3,0,0,0" 
-                                          Height="20" 
-                                          Width="100" 
-                                          Margin="5,0" 
-                                          FontSize="12" 
-                                          FontWeight="SemiBold" 
-                                          Style="{DynamicResource CustomComboBox}" 
-                                          SelectionChanged="FilterModeComboBox_SelectionChanged">
+                              SelectedIndex="0" 
+                              Padding="3,0,0,0" 
+                              Height="20" 
+                              Width="100" 
+                              Margin="5,0" 
+                              FontSize="12" 
+                              FontWeight="SemiBold" 
+                              Style="{DynamicResource CustomComboBox}" 
+                              SelectionChanged="FilterModeComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Is Like"/>
                                     <ComboBoxItem Content="Is Not Like"/>
                                     <ComboBoxItem Content="Starts With"/>
@@ -1242,27 +1285,28 @@
                                     <ComboBoxItem Content="Is Not Empty"/>
                                 </ComboBox>
                                 <TextBox x:Name="textBox_CustomFilter" 
-                                         Width="60"
-                                         Style="{DynamicResource CustomTextBox}"
-                                         Height="20"
-                                         FontSize="12" 
-                                         FontWeight="SemiBold" 
-                                         VerticalAlignment="Center" 
-                                         KeyUp="TextBox_CustomFilter_KeyUp"/>
+                             Width="60"
+                             Style="{DynamicResource CustomTextBox}"
+                             Height="20"
+                             FontSize="12" 
+                             FontWeight="SemiBold" 
+                             VerticalAlignment="Center" 
+                             KeyUp="TextBox_CustomFilter_KeyUp"/>
                                 <Button x:Name="button_ClearCustomFilter" 
-                                        Style="{DynamicResource CustomImageButton}" 
-                                        Margin="3,0,0,0" 
-                                        ToolTip="Clear Filter" 
-                                        Click="Button_ClearCustomFilter_Click">
+                            Style="{DynamicResource CustomImageButton}" 
+                            Margin="3,0,0,0" 
+                            ToolTip="Clear Filter" 
+                            Click="Button_ClearCustomFilter_Click">
                                     <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" 
-                                           Width="18" 
-                                           Height="20"/>
+                               Width="18" 
+                               Height="20"/>
                                 </Button>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Border>
-            </StackPanel>
+            </Grid>
+
         </Grid>
 
         <!-- GridSplitter in the middle -->

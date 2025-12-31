@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.10.35122.118
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GamelistManager", "GamelistManager.csproj", "{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}"
 EndProject
@@ -19,8 +19,8 @@ Global
 		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Debug|x64.Build.0 = Debug|x64
 		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Release|x64.ActiveCfg = Release|x64
-		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Release|x64.Build.0 = Release|x64
+		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Release|x64.ActiveCfg = Release|Any CPU
+		{FBCC97AB-E187-4A43-B91E-CFE87FDB8A37}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

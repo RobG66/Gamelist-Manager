@@ -146,6 +146,11 @@ namespace GamelistManager.classes.services
             {
                 string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
                 romRegion = RegionLanguageHelper.GetRegion(nameValue);
+                if (string.IsNullOrEmpty(romRegion))
+                {
+                    // A default of "us" is set when an empty string is returned
+                    romRegion = "us";
+                }
                 itemsToScrape.Remove("region");
             }
 
@@ -154,6 +159,11 @@ namespace GamelistManager.classes.services
             {
                 string nameValue = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
                 romLanguage = RegionLanguageHelper.GetLanguage(nameValue);
+                if (string.IsNullOrEmpty(romLanguage))
+                {
+                    // A default of "en" is set when an empty string is returned
+                    romLanguage = "en";
+                }
                 itemsToScrape.Remove("lang");
             }
 

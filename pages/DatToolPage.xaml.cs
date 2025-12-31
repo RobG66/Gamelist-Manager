@@ -72,7 +72,7 @@ namespace GamelistManager.pages
 
         }
 
-        private async void button_StreamFromMame_Click(object sender, RoutedEventArgs e)
+        private async void Button_StreamFromMame_Click(object sender, RoutedEventArgs e)
         {
             ResetDatToolPage();
             comboBox_ReportView.IsEnabled = false;
@@ -124,7 +124,7 @@ namespace GamelistManager.pages
             }
         }
 
-        private async void button_OpenDatFile_Click(object sender, RoutedEventArgs e)
+        private async void Button_OpenDatFile_Click(object sender, RoutedEventArgs e)
         {
             // Open file dialog
             var dlg = new OpenFileDialog
@@ -233,7 +233,7 @@ namespace GamelistManager.pages
         }
 
 
-        private async Task<List<GameReportItem>> CreateGamelistSummaryAsync(List<GameReportItem> datSummary)
+        private static async Task<List<GameReportItem>> CreateGamelistSummaryAsync(List<GameReportItem> datSummary)
         {
             return await Task.Run(() =>
             {
@@ -301,7 +301,7 @@ namespace GamelistManager.pages
         }
 
 
-        private async Task<(List<GameReportItem>, DatHeader?)> CreateDatSummaryAsync(Stream xmlStream)
+        private static async Task<(List<GameReportItem>, DatHeader?)> CreateDatSummaryAsync(Stream xmlStream)
         {
             return await Task.Run(() =>
             {
@@ -368,7 +368,7 @@ namespace GamelistManager.pages
             });
         }
 
-        private GameReportItem? ParseSingleMachine(XmlReader reader, string elementName)
+        private static GameReportItem? ParseSingleMachine(XmlReader reader, string elementName)
         {
             string name = FilePathHelper.NormalizeRomName(reader.GetAttribute("name") ?? "");
             string cloneOf = FilePathHelper.NormalizeRomName(reader.GetAttribute("cloneof") ?? "");
@@ -383,7 +383,7 @@ namespace GamelistManager.pages
             string description = "";
             bool needsCHD = false;
             bool hasSoftwareList = false;
-            bool hasScreen = false;
+            bool hasScreen = false;  
 
             if (runnable.Equals("no", StringComparison.OrdinalIgnoreCase))
                 nonPlayable.Add("Not runnable");
@@ -471,7 +471,7 @@ namespace GamelistManager.pages
             };
         }
 
-        private (string DiskStatus, string? NonPlayableReason, bool RequiresCHD) ResolveDiskStatus(
+        private static (string DiskStatus, string? NonPlayableReason, bool RequiresCHD) ResolveDiskStatus(
             XmlReader reader,
             string gameName,
             string romPath)
@@ -498,7 +498,7 @@ namespace GamelistManager.pages
             return (diskStatus, nonPlayableReason, requiresCHD);
         }
 
-        private DatHeader? ParseDatHeaderInline(XmlReader reader)
+        private static DatHeader? ParseDatHeaderInline(XmlReader reader)
         {
             var header = new DatHeader();
             int depth = reader.Depth;
@@ -698,6 +698,7 @@ namespace GamelistManager.pages
 
         private async void ShowReport(string selectedText, DataView dataView)
         {
+
             // Show cursor and disable during processing
             Mouse.OverrideCursor = Cursors.Wait;
             this.IsEnabled = false;
@@ -828,7 +829,7 @@ namespace GamelistManager.pages
             return Task.FromResult<(Stream?, Process?)>((process.StandardOutput.BaseStream, process));
         }
 
-        private void button_DatPageClose_Click(object sender, RoutedEventArgs e)
+        private void Button_DatPageClose_Click(object sender, RoutedEventArgs e)
         {
             CloseDatToolPage();
         }
@@ -875,14 +876,14 @@ namespace GamelistManager.pages
             public string Description { get; set; } = "";
         }
 
-        private void checkBox_IncludeHidden_Checked(object sender, RoutedEventArgs e)
+        private void CheckBox_IncludeHidden_Checked(object sender, RoutedEventArgs e)
         {
             bool includeHidden = checkBox_IncludeHidden.IsChecked == true;
             UpdateGamelistSummaryCounts(includeHidden);
         }
 
 
-        private string EscapeCsv(string value)
+        private static string EscapeCsv(string value)
         {
             if (string.IsNullOrEmpty(value))
                 return "";
@@ -896,7 +897,7 @@ namespace GamelistManager.pages
             return value;
         }
 
-        private string GenerateTextReport(
+        private static string GenerateTextReport(
           List<(string Name, string Description, string NonPlayable, string CHDRequired)> missingParents,
           List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)> missingClones,
           string datFileName)
@@ -1003,7 +1004,7 @@ namespace GamelistManager.pages
         }
 
         // Replace the GenerateCsvReport method with this enhanced version:
-        private string GenerateCsvReport(
+        private static string GenerateCsvReport(
             List<(string Name, string Description, string NonPlayable, string CHDRequired)> missingParents,
             List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)> missingClones,
             string datFileName)
@@ -1051,7 +1052,7 @@ namespace GamelistManager.pages
             return sb.ToString();
         }
 
-        private async void button_GenerateMissingReport_Click(object sender, RoutedEventArgs e)
+        private async void Button_GenerateMissingReport_Click(object sender, RoutedEventArgs e)
         {
             if (_datSummary == null || _datSummary.Count == 0)
             {

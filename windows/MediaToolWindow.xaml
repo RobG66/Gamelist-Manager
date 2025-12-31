@@ -138,7 +138,7 @@
                         <DataGrid x:Name="dataGrid_BadMedia" Height="Auto" BorderThickness="0" Background="{DynamicResource DataGridBackgroundBrush}" Foreground="{DynamicResource DataGridForegroundBrush}" CanUserAddRows="False" AutoGenerateColumns="False">
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem x:Name="contextMenu_DeleteItems2" IsEnabled="False" Header="Delete Selected Rows" Click="contextMenu_DeleteItems2_Click" />
+                                    <MenuItem x:Name="contextMenu_DeleteItems2" IsEnabled="False" Header="Delete Selected Rows" Click="ContextMenu_DeleteItems2_Click" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                             <DataGrid.Columns>

@@ -12,7 +12,7 @@
     <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
     <Platforms>AnyCPU;x64</Platforms>
     <PackageIcon>icon.png</PackageIcon>
-    <FileVersion>8.5</FileVersion>
+    <FileVersion>8.6</FileVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Title>Gamelist Manager</Title>
@@ -41,6 +41,8 @@
     <Content Include="ini\**\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
   <ItemGroup>
+    <Page Remove="resources\resource dictionaries\controls\CustomContextMenu.xaml" />
+    <Page Remove="resources\resource dictionaries\controls\CustomImageCombobox.xaml" />
     <Page Remove="resources\resource dictionaries\controls\CustomRibbonStyle.xaml" />
     <Page Remove="resources\resource dictionaries\themes\GrayTheme.xaml" />
     <Page Remove="resources\resource dictionaries\themes\MintTheme.xaml" />
@@ -80,6 +82,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Update="resources\resource dictionaries\controls\CustomRibbonStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\controls\CustomImageCombobox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\controls\CustomContextMenu.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Resource>
     <Resource Update="resources\resource dictionaries\themes\SandyTheme.xaml">

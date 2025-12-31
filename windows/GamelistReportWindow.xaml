@@ -1,0 +1,65 @@
+﻿<Window x:Class="GamelistManager.classes.gamelist.GamelistReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Gamelist Statistics Report" 
+        Height="200" 
+        Width="400"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0" 
+                   Text="Generate Gamelist Statistics Report"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Margin="0,0,0,10"
+                   HorizontalAlignment="Center"/>
+
+        <!-- Info Text -->
+        <TextBlock Grid.Row="1" 
+                   x:Name="InfoText"
+                   Text="Ready to analyze all your systems"
+                   FontSize="12"
+                   Margin="0,0,0,15"
+                   HorizontalAlignment="Center"/>
+
+        <!-- Checkbox -->
+        <CheckBox Grid.Row="2"
+                  x:Name="StorageCheckbox"
+                  Content="Include storage statistics (slower, calculates file sizes)"
+                  IsChecked="True"
+                  Style="{DynamicResource CustomCheckBox}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Top"/>
+
+        <!-- Button Panel -->
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,10,0,0">
+
+            <Button x:Name="StartButton"
+                    Content="Start Report"
+                    Width="80"
+                    Height="20"
+                    Margin="5"
+                    Style="{DynamicResource GreenRoundedButton}"
+                    Click="StartButton_Click"/>
+
+            <Button x:Name="CancelButton"
+                    Content="Cancel"
+                    Width="80"
+                    Height="20"
+                    Margin="5"
+                    Style="{DynamicResource RedRoundedButton}"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

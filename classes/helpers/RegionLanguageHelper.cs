@@ -105,6 +105,7 @@ namespace GamelistManager.classes.helpers
             return result;
         }
 
+
         public static string GetRegion(string romName)
         {
             string currentSystem = SharedData.CurrentSystem.ToLowerInvariant();
@@ -143,8 +144,9 @@ namespace GamelistManager.classes.helpers
             if (ArcadeSystems.Contains(currentSystem))
                 return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
 
-            // Default fallback
-            return "us";
+            // Now returns empty string on no match
+            // The caller will handle that and set default if necessary
+            return string.Empty;
         }
 
         public static string GetLanguage(string fileName)
@@ -184,7 +186,9 @@ namespace GamelistManager.classes.helpers
             if (ArcadeSystems.Contains(currentSystem) && matchedLanguages.Count == 0)
                 return fileName.ToLowerInvariant().EndsWith("j.zip") ? "jp" : "en";
 
-            return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";
+            // Now returns empty string on no match
+            // The caller will handle that and set default if necessary
+            return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : string.Empty;
         }
     }
 }

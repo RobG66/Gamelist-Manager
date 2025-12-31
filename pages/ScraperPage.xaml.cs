@@ -413,8 +413,10 @@ namespace GamelistManager.pages
             //_mainWindow.MainDataGrid.IsEnabled = true;
             _mainWindow.MainDataGrid.IsReadOnly = false;
             _mainWindow.MainDataGrid.IsHitTestVisible = true;
-            _mainWindow.stackPanel_InfoBar.IsEnabled = true;
+            _mainWindow.grid_InfoBar.IsEnabled = true;
             _mainWindow.textBox_Description.IsEnabled = true;
+            _mainWindow.dockPanel_Find.IsEnabled = true;
+            _mainWindow.dockPanel_SearchAndReplace.IsEnabled = true;
 
             if (!string.IsNullOrEmpty(message))
             {
@@ -475,11 +477,14 @@ namespace GamelistManager.pages
             // Parent Window disables
             _mainWindow.menu_Main.IsEnabled = false;
             _mainWindow.RibbonMenu.IsEnabled = false;
-            _mainWindow.stackPanel_InfoBar.IsEnabled = false;
+            _mainWindow.grid_InfoBar.IsEnabled = false;
             _mainWindow.textBox_Description.IsEnabled = false;
             //_mainWindow.MainDataGrid.IsEnabled = false;
             _mainWindow.MainDataGrid.IsReadOnly = true;
             _mainWindow.MainDataGrid.IsHitTestVisible = false;
+            _mainWindow.dockPanel_Find.IsEnabled = false;
+            _mainWindow.dockPanel_SearchAndReplace.IsEnabled = false;
+
 
             // Reset labels and progressbar Value
             label_CurrentScrape.Content = "N/A";
@@ -524,7 +529,7 @@ namespace GamelistManager.pages
             return rowsArray;
         }
                 
-        private string GetScreenScraperLanguage()
+        private static string GetScreenScraperLanguage()
         {
             string language = Properties.Settings.Default.Language;
 
@@ -536,12 +541,11 @@ namespace GamelistManager.pages
                     return match.Groups[1].Value;
                 }
             }
-
             return "en";
         }
 
 
-        private List<string> GetScreenScraperRegions()
+        private static List<string> GetScreenScraperRegions()
         {
             var regions = new List<string>();
 
@@ -604,7 +608,7 @@ namespace GamelistManager.pages
 
             // Get rows to scrape
             var rowsToScrape = GetRowsToScrape();
-            if (!rowsToScrape.Any())
+            if (rowsToScrape.Length == 0)
             {
                 MessageBox.Show("There were no items to scrape.", "No Items", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -827,7 +831,7 @@ namespace GamelistManager.pages
                 LogHelper.Instance.Log("Region and Language scraping will be limited.", System.Windows.Media.Brushes.Orange);
             }
 
-            // 3,2,1,go!
+            // 3,2,1,kaboom!
 
             // For enabling stop button
             stackPanel_ScraperButtons.IsEnabled = true;

@@ -84,68 +84,68 @@ namespace GamelistManager.classes.api
 
             foreach (string element in parameters.ElementsToScrape)
             {
-                string? url = null;
+                string url = string.Empty;
 
                 switch (element)
                 {
                     case "fanart":
                         url = await GetMediaUrl("Background", parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "fanart"));
+                        AddMedia(result, GetMediaResult(url, "fanart"));
                         break;
 
                     case "boxback":
                         url = await GetMediaUrl("BoxBack", parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "boxback"));
+                        AddMedia(result, GetMediaResult(url, "boxback"));
                         break;
 
                     case "boxart":
                         url = await GetMediaUrl(parameters.BoxArtSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "boxart"));
+                        AddMedia(result, GetMediaResult(url, "boxart"));
                         break;
 
                     case "wheel":
                         url = await GetMediaUrl(parameters.WheelSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "wheel"));
+                        AddMedia(result, GetMediaResult(url, "wheel"));
                         break;
 
                     case "manual":
                         url = await GetMediaUrl("Manual", parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "manual"));
+                        AddMedia(result, GetMediaResult(url, "manual"));
                         break;
 
                     case "music":
                         url = await GetMediaUrl("Music", parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "music"));
+                        AddMedia(result, GetMediaResult(url, "music"));
                         break;
 
                     case "image":
                         url = await GetMediaUrl(parameters.ImageSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "image"));
+                        AddMedia(result, GetMediaResult(url, "image"));
                         break;
 
                     case "titleshot":
                         url = await GetMediaUrl("Title", parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "titleshot"));
+                        AddMedia(result, GetMediaResult(url, "titleshot"));
                         break;
 
                     case "thumbnail":
                         url = await GetMediaUrl(parameters.ThumbnailSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "thumbnail"));
+                        AddMedia(result, GetMediaResult(url, "thumbnail"));
                         break;
 
                     case "marquee":
                         url = await GetMediaUrl(parameters.MarqueeSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "marquee"));
+                        AddMedia(result, GetMediaResult(url, "marquee"));
                         break;
 
                     case "cartridge":
                         url = await GetMediaUrl(parameters.CartridgeSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "cartridge"));
+                        AddMedia(result, GetMediaResult(url, "cartridge"));
                         break;
 
                     case "video":
                         url = await GetMediaUrl(parameters.VideoSource, parameters, mediaLists);
-                        AddMedia(result, GetMediaResult(url!, "video"));
+                        AddMedia(result, GetMediaResult(url, "video"));
                         break;
                 }
             }
@@ -154,19 +154,19 @@ namespace GamelistManager.classes.api
             return result;
         }
 
-        private async Task<string?> GetMediaUrl(
+        private async Task<string> GetMediaUrl(
             string? remoteMediaType,
             ScraperParameters parameters,
             Dictionary<string, List<string>> mediaLists)
         {
             if (string.IsNullOrEmpty(remoteMediaType))
-                return null;
+                return string.Empty;
 
             if (string.IsNullOrEmpty(parameters.RomName) || string.IsNullOrEmpty(parameters.RomFileName))
-                return null;
+                return string.Empty;
 
             if (!mediaLists.TryGetValue(remoteMediaType, out List<string>? mediaList) || mediaList == null)
-                return null;
+                return string.Empty;
 
             string romFileNameWithoutExtension = Path.GetFileNameWithoutExtension(parameters.RomFileName);
             List<string> searchItems = new List<string> { romFileNameWithoutExtension, parameters.RomName, };
@@ -174,11 +174,11 @@ namespace GamelistManager.classes.api
             string remoteFileName = FindString(searchItems, mediaList);
 
             if (string.IsNullOrEmpty(remoteFileName))
-                return null;
+                return string.Empty;
 
             string fileFormat = Path.GetExtension(remoteFileName);
             if (string.IsNullOrEmpty(fileFormat))
-                return null;
+                return string.Empty;
 
             string encodedURL = WebUtility.UrlEncode(remoteFileName);
             string downloadURL = $"{ApiUrl}/Media/Download?accessToken={parameters.UserAccessToken}&systemName={parameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={encodedURL}";

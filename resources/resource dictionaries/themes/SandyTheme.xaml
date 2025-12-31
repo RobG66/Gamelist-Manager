@@ -155,7 +155,6 @@
 
     <!-- RadioButton -->
     <SolidColorBrush x:Key="RadioButtonBorderBrush" Color="#A0897A"/>
-    <SolidColorBrush x:Key="RadioButtonBackgroundBrush" Color="#F0EBE6"/>
     <SolidColorBrush x:Key="RadioButtonDotBrush" Color="#2C2C2C"/>
 
     <!-- Splitters -->
@@ -204,62 +203,7 @@
     <!-- RadioButton -->
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
-        <Setter Property="Background" Value="{StaticResource RadioButtonBackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource RadioButtonBorderBrush}"/>
-        <Setter Property="BorderThickness" Value="2"/>
-        <Setter Property="Padding" Value="6,0,0,0"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="RadioButton">
-                    <Grid Background="Transparent">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Border x:Name="RadioBorder"
-                                Width="18"
-                                Height="18"
-                                CornerRadius="9"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                VerticalAlignment="Center">
-                            <Ellipse x:Name="RadioDot"
-                                     Width="10"
-                                     Height="10"
-                                     Fill="{StaticResource RadioButtonDotBrush}"
-                                     Visibility="Collapsed"/>
-                        </Border>
-
-                        <ContentPresenter Grid.Column="1"
-                                        Margin="{TemplateBinding Padding}"
-                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
-                    </Grid>
-
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="RadioDot" Property="Visibility" Value="Visible"/>
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="RadioBorder" Property="BorderBrush" Value="{StaticResource HoverBorderBrush}"/>
-                            <Setter TargetName="RadioBorder" Property="Background" Value="{StaticResource HoverBackgroundBrush}"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="RadioBorder" Property="Background" Value="{StaticResource PressedBackgroundBrush}"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}"/>
-                            <Setter TargetName="RadioBorder" Property="BorderBrush" Value="{StaticResource DisabledBorderBrush}"/>
-                            <Setter TargetName="RadioBorder" Property="Background" Value="{StaticResource DisabledBackgroundBrush}"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
+     </Style>
 
     <!-- DataGrid -->
     <Style TargetType="DataGrid">
@@ -281,6 +225,14 @@
     <!-- ============================================ -->
     <!-- BUTTON STYLES -->
     <!-- ============================================ -->
+
+    <!-- Modern Toggle Button Style -->
+    <Style TargetType="ToggleButton" BasedOn="{StaticResource CustomToggleButton}">
+        <Setter Property="Background" Value="#EDE5DA"/>
+        <Setter Property="Foreground" Value="#2C2C2C"/>
+        <Setter Property="BorderBrush" Value="#A0897A"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
 
     <Style x:Key="GreyRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
         <Setter Property="Background" Value="#EDE5DA"/>

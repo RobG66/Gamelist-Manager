@@ -26,7 +26,7 @@ namespace GamelistManager.classes.helpers
             bool hasFilePath = !string.IsNullOrEmpty(filePath);
 
             // Only add file operation items if we have a file path
-            MenuItem openWithItem = null; // Declare here so we can reference it later
+            MenuItem openWithItem = null!; 
 
             if (hasFilePath)
             {

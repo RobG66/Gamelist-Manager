@@ -79,7 +79,7 @@
                     <StackPanel Orientation="Vertical" VerticalAlignment="Center">
                         <Button x:Name="button_StreamFromMame"
                                 Content="MAME Import"
-                                Click="button_StreamFromMame_Click"
+                                Click="Button_StreamFromMame_Click"
                                 Style="{DynamicResource BlueRoundedButton}"
                                 Height="20"
                                 Width="75"
@@ -87,7 +87,7 @@
 
                         <Button x:Name="button_OpenDatFile"
                                 Content="Open DAT File"
-                                Click="button_OpenDatFile_Click"
+                                Click="Button_OpenDatFile_Click"
                                 Style="{DynamicResource GreenRoundedButton}"
                                 Height="20"
                                 Width="75"
@@ -166,8 +166,8 @@
                               IsEnabled="False"
                               VerticalAlignment="Center"
                               Style="{DynamicResource CustomCheckBox}"
-                              Checked="checkBox_IncludeHidden_Checked"
-                              Unchecked="checkBox_IncludeHidden_Checked"
+                              Checked="CheckBox_IncludeHidden_Checked"
+                              Unchecked="CheckBox_IncludeHidden_Checked"
                               Grid.ColumnSpan="2"                           
                               Margin="0,5,5,0"/>
                 </Grid>
@@ -180,7 +180,7 @@
         IsEnabled="False"
         HorizontalAlignment="Center"
         Margin="0,0,0,0"
-        Click="button_GenerateMissingReport_Click"/>
+        Click="Button_GenerateMissingReport_Click"/>
 
            <CheckBox x:Name="checkBox_CsvOutput"
           Content="CSV Format"
@@ -244,7 +244,7 @@
                                 Width="20"
                                 Margin="5,0,0,0"
                                 ToolTip="Close DAT Summary Panel"
-                                Click="button_DatPageClose_Click">
+                                Click="Button_DatPageClose_Click">
                             <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" Width="16" Height="16"/>
                         </Button>
                     </StackPanel>

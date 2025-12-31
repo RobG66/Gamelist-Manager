@@ -40,6 +40,8 @@ namespace GamelistManager
         private Scraper _scraper;
         private Dictionary<DataGridColumn, Style?> _originalCellStyles = [];
         private DatToolPage? _datToolPage;
+        private readonly DataGridService _dataGridService;
+        private readonly RibbonAnimationService _ribbonAnimationService; 
 
         public MainWindow()
         {
@@ -54,7 +56,7 @@ namespace GamelistManager
             _dataGridSelectionChangedTimer.Tick += DataGridSelectionChangedTimer_Tick;
             SharedData.ProgramDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
             SharedData.InitializeChangeTracker();
-            SharedData.ChangeTracker.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged!;
+            SharedData.ChangeTracker!.UndoRedoStateChanged += ChangeTracker_UndoRedoStateChanged;
 
             _autosizeColumns = true;
             _parentFolderPath = string.Empty;
@@ -64,10 +66,12 @@ namespace GamelistManager
             _currentSelectedRow = null!;
             _scraper = new Scraper(this);
             _mediaPage = new MediaPage();
+
+            _dataGridService = new DataGridService(MainDataGrid);
+            _ribbonAnimationService = new RibbonAnimationService(RibbonMenu, RibbonHotZone);
         }
 
-
-        private void ChangeTracker_UndoRedoStateChanged(object sender, EventArgs e)
+        private void ChangeTracker_UndoRedoStateChanged(object? sender, EventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
@@ -148,58 +152,39 @@ namespace GamelistManager
             }
         }
 
-        private void SetupMainDataGrid()
-        {
-            MainDataGrid.ItemsSource = null;
-            MainDataGrid.Columns.Clear();
-
-            foreach (DataColumn column in SharedData.DataSet.Tables[0].Columns)
-            {
-                if (column.DataType == typeof(bool))
-                {
-                    MainDataGrid.Columns.Add(new DataGridTemplateColumn
-                    {
-                        Header = column.ColumnName,
-                        CellTemplate = CheckBoxTemplateHelper.CreateCheckbox(column.ColumnName),
-                        SortMemberPath = column.ColumnName
-                    });
-                }
-                else
-                {
-                    MainDataGrid.Columns.Add(new DataGridTextColumn
-                    {
-                        Header = column.ColumnName,
-                        Binding = new Binding(column.ColumnName),
-                        SortMemberPath = column.ColumnName
-                    });
-                }
-            }
-
-            MainDataGrid.ItemsSource = SharedData.DataSet.Tables[0].DefaultView;
-        }
 
         private void SetupGamelistUI(string systemName)
         {
             string imageName = $"{systemName}.png";
             string imagePath = $"pack://application:,,,/resources/images/systems/{imageName}";
 
-            try
+            // Find the matching ComboBoxItem by system name
+            int foundIndex = -1;
+            for (int i = 1; i < comboBox_Systems.Items.Count; i++) // Start at 1 to skip placeholder
             {
-                PlatformLogo.Source = new BitmapImage(new Uri(imagePath));
-            }
-            catch
-            {
-                PlatformLogo.Source = new BitmapImage(new Uri("pack://application:,,,/resources/images/logos/gamelistmanager.png"));
+                if (comboBox_Systems.Items[i] is ComboBoxItem item)
+                {
+                    // Check if the image source matches
+                    if (item.Content is Image img &&
+                        img.Source is BitmapImage bitmap &&
+                        bitmap.UriSource.ToString() == imagePath)
+                    {
+                        foundIndex = i;
+                        break;
+                    }
+                }
             }
 
+            // Set index to found item or default to placeholder (0)
+            comboBox_Systems.SelectedIndex = foundIndex >= 0 ? foundIndex : 0;
 
             // Populate genre ComboBox
             var uniqueGenres = SharedData.DataSet.Tables[0].AsEnumerable()
-                .Select(row => row.Field<string>("genre"))
-                .Where(genre => !string.IsNullOrEmpty(genre))
-                .Distinct()
-                .OrderBy(genre => genre)
-                .ToList();
+                    .Select(row => row.Field<string>("genre"))
+                    .Where(genre => !string.IsNullOrEmpty(genre))
+                    .Distinct()
+                    .OrderBy(genre => genre)
+                    .ToList();
 
             comboBox_Genre.Items.Clear();
             comboBox_Genre.Items.Add("<All Genres>");
@@ -359,30 +344,21 @@ namespace GamelistManager
             }
         }
 
-        private void SetDefaultColumnVisibility(DataGrid dg)
+        private void SetDefaultColumnVisibility()
         {
-            // The metadata has a property 'AlwaysVisible' for columns
-            // which should always be visible in the datagrid.
-            // They might not have a menu item, but that is accounted for
+            // Get always visible columns from metadata
             var alwaysVisible = GamelistMetaData.GetMetaDataDictionary().Values
-            .Where(decl => decl.AlwaysVisible)
-            .Select(decl => decl.Name)
-            .ToList();
+                .Where(decl => decl.AlwaysVisible)
+                .Select(decl => decl.Name)
+                .ToList();
 
-            // Use either a default column string or custom column string
-            // Based upon a bool setting
+            // Get visible columns from settings
             bool rememberColumns = Properties.Settings.Default.RememberColumns;
-            List<string> visibleColumns = [];
-            string jsonString;
-            if (rememberColumns)
-            {
-                jsonString = Properties.Settings.Default.VisibleGridColumns;
-            }
-            else
-            {
-                jsonString = Properties.Settings.Default.DefaultColumns;
-            }
+            string jsonString = rememberColumns
+                ? Properties.Settings.Default.VisibleGridColumns
+                : Properties.Settings.Default.DefaultColumns;
 
+            var visibleColumns = new List<string>();
             if (!string.IsNullOrEmpty(jsonString))
             {
                 var columnVisibility = JsonSerializer.Deserialize<Dictionary<string, bool>>(jsonString)!;
@@ -392,29 +368,30 @@ namespace GamelistManager
                     .ToList();
             }
 
-            // Start with hiding all columns
-            foreach (DataGridColumn column in dg.Columns)
+            // Hide all columns and description UI initially
+            foreach (DataGridColumn column in MainDataGrid.Columns)
             {
                 column.Visibility = Visibility.Collapsed;
+                column.IsReadOnly = true;
             }
 
             textBox_Description.Visibility = Visibility.Collapsed;
             column_Description.Width = new GridLength(0);
             gridSplitter_Vertical.Visibility = Visibility.Collapsed;
 
-            // Start with everything hidden and readonly
-            // AlwaysVisible columns are visible
-            foreach (DataGridColumn column in dg.Columns)
+            // Show columns that should be visible
+            foreach (DataGridColumn column in MainDataGrid.Columns)
             {
                 string header = column.Header.ToString()!;
-                column.IsReadOnly = true;
-                string menuItemName = "menuItem_" + header.Replace(" ", "");
-                MenuItem? menuItem = FindName("menuItem_" + header.Replace(" ", "")) as MenuItem;
+                bool shouldBeVisible = alwaysVisible.Contains(header) || visibleColumns.Contains(header);
 
-                if (alwaysVisible.Contains(header) || (visibleColumns.Contains(header)))
+                // Standard column menu
+                MenuItem? menuItem = menuItem_Columns.Items
+                    .OfType<MenuItem>()
+                    .FirstOrDefault(mi => mi.Tag?.ToString() == header);
+
+                if (shouldBeVisible)
                 {
-                    // Description needs special handling
-                    // The column is never visible, but the textbox is
                     if (header == "Description")
                     {
                         column_Description.Width = new GridLength(200);
@@ -425,64 +402,63 @@ namespace GamelistManager
                     {
                         column.Visibility = Visibility.Visible;
                     }
-                    if (menuItem != null)
-                    {
-                        menuItem.IsChecked = true;
-                    }
                 }
-                else
+
+                if (menuItem != null)
                 {
-                    // It's already collapsed, so just uncheck the menuItem
-                    if (menuItem != null)
-                    {
-                        menuItem.IsChecked = false;
-                    }
+                    menuItem.IsChecked = shouldBeVisible;
                 }
             }
 
-            if (visibleColumns.Contains("Media Paths") && rememberColumns == true)
+            // Handle Media Paths
+            bool showMediaPaths = visibleColumns.Contains("Media Paths") && rememberColumns;
+            menuItem_MediaPaths.IsChecked = showMediaPaths;
+            ribbon_MediaPaths.IsChecked = showMediaPaths;
+            _dataGridService.ShowMediaPaths(showMediaPaths);
+
+            if (showMediaPaths)
             {
-                menuItem_MediaPaths.IsChecked = true;
-                ribbon_MediaPaths.IsChecked = true;
-                ShowMediaPaths(true);
-            }
-            else
-            {
-                menuItem_MediaPaths.IsChecked = false;
-                ribbon_MediaPaths.IsChecked = false;
-                ShowMediaPaths(false);
+                menuItem_ColumnAutoSize.IsChecked = false;
+                _autosizeColumns = false;
             }
 
-            // Set hidden and favorite isReadonly = false
-            // so they can be checked or unchecked
-            var hiddenColumn = MainDataGrid.Columns
-            .FirstOrDefault(col => col.Header != null && col.Header.ToString() == "Hidden");
-            hiddenColumn!.IsReadOnly = false;
+            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
+            UpdateFilterComboboxes();
 
-            var favoriteColumn = MainDataGrid.Columns
-            .FirstOrDefault(col => col.Header != null && col.Header.ToString() == "Favorite");
-            favoriteColumn!.IsReadOnly = false;
+            // Make Hidden and Favorite editable (columns are guaranteed to exist)
+            var hiddenColumn = MainDataGrid.Columns.First(col => col.Header?.ToString() == "Hidden");
+            hiddenColumn.IsReadOnly = false;
 
-            SyncColumnCheckboxes(true); // menu to ribbon
+            var favoriteColumn = MainDataGrid.Columns.First(col => col.Header?.ToString() == "Favorite");
+            favoriteColumn.IsReadOnly = false;
 
         }
 
-
         private async void ReloadFile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult result = MessageBox.Show($"Do you want to reload the file '{SharedData.XMLFilename}'?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result != MessageBoxResult.Yes)
-            {
-                return;
-            }
+            string fileName = SharedData.XMLFilename;
 
-            if (string.IsNullOrEmpty(SharedData.XMLFilename) || !File.Exists(SharedData.XMLFilename))
+            if (string.IsNullOrEmpty(fileName))
             {
                 MessageBox.Show("No file is currently loaded!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            await OpenFileAsync(SharedData.XMLFilename);
+            MessageBoxResult result = MessageBox.Show($"Do you want to reload the file '{fileName}'?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            bool success = await OpenFileAsync(SharedData.XMLFilename);
+            if (!success)
+            {
+                MessageBox.Show(
+                    $"There was an error loading '{fileName}'",
+                    "Load Error!",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
+
         }
 
 
@@ -499,7 +475,7 @@ namespace GamelistManager
                 ribbonApplicationMenu.IsDropDownOpen = false;
             }
 
-            string currentSystem = char.ToUpper(SharedData.CurrentSystem[0]) + SharedData.CurrentSystem.Substring(1);
+            string currentSystem = char.ToUpper(SharedData.CurrentSystem[0]) + SharedData.CurrentSystem[1..];
             var result = MessageBox.Show($"Do you want to save the '{currentSystem}' gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
@@ -596,7 +572,7 @@ namespace GamelistManager
             _parentFolderPath = Path.GetDirectoryName(fileName)!;
             SharedData.CurrentSystem = Path.GetFileName(_parentFolderPath)!;
 
-            SetupMainDataGrid();
+            _dataGridService.SetupMainDataGrid();
 
             if (SharedData.CurrentSystem == "mame")
             {
@@ -656,105 +632,129 @@ namespace GamelistManager
 
         private async void OpenFile_Click(object sender, RoutedEventArgs e)
         {
-
             string fileName = SelectXMLFile();
             if (string.IsNullOrEmpty(fileName))
-            {
                 return;
+
+            bool success = await OpenFileAsync(fileName);
+
+            if (!success)
+            {
+                MessageBox.Show(
+                    $"There was an error loading '{fileName}'",
+                    "Load Error!",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
 
-            await OpenFileAsync(fileName);
         }
 
-        private async Task OpenFileAsync(string fileName)
+        private async Task<bool> OpenFileAsync(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
-                return;
+                return false;
 
+            // Check if file exists first
+            if (!File.Exists(fileName))
+            {
+                MessageBox.Show("File not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+
+            // Save reminder check
             bool saveReminder = Properties.Settings.Default.SaveReminder;
-
             if (SharedData.IsDataChanged && saveReminder)
                 SaveGamelist();
 
-            if (!Path.Exists(fileName))
-            {
-                MessageBox.Show("File not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
+            // Clear log if scraper exists
             if (_scraper != null)
                 LogHelper.Instance.ClearLog();
 
+            // Show loading state
             Mouse.OverrideCursor = Cursors.Wait;
             this.IsEnabled = false;
 
-            var data = await LoadGamelistFromFileAsync(fileName);
-
-            if (data == null)
+            try
             {
-                MessageBox.Show($"There was an error loading '{fileName}", "Load Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Load the gamelist
+                var data = await LoadGamelistFromFileAsync(fileName);
+                if (data == null)
+                {
+                    return false;
+                }
+
+                // Save to recent files
+                SaveLastOpenedGamelistName(fileName);
+
+                // Stop change tracking if enabled
+                int maxUndo = Properties.Settings.Default.MaxUndo;
+                if (maxUndo > 0)
+                {
+                    SharedData.ChangeTracker?.StopTracking();
+                    UpdateChangeTrackerButtons();
+                }
+
+                // Update shared data
+                SharedData.DataSet = data;
+                SharedData.XMLFilename = fileName;
+                _parentFolderPath = Path.GetDirectoryName(fileName)!;
+                SharedData.CurrentSystem = new DirectoryInfo(_parentFolderPath).Name;
+
+                // Special handling for MAME
+                if (SharedData.CurrentSystem == "mame")
+                    GenerateMameNames();
+
+                // Update UI
+                DateTime lastModifiedTime = File.GetLastWriteTime(fileName);
+                textBlock_Filename.Text = $"File: {fileName}";
+                textBlock_LastModifiedTime.Text = $"Modified Time: {lastModifiedTime}";
+
+                _dataGridService.SetupMainDataGrid();
+                SetupGamelistUI(SharedData.CurrentSystem);
+
+                // Restart change tracking if enabled
+                if (maxUndo > 0)
+                {
+                    SharedData.ChangeTracker?.StartTracking(SharedData.DataSet.Tables[0], maxUndo);
+                    UpdateChangeTrackerButtons();
+                }
+
+                SharedData.IsDataChanged = false;
+
+                // Close ribbon menu if open
+                if (ribbonApplicationMenu.IsDropDownOpen)
+                    ribbonApplicationMenu.IsDropDownOpen = false;
+
+                // Reset DAT tool page if showing
+                if (_datToolPage != null && MainContentFrame.Content == _datToolPage)
+                    _datToolPage.ResetDatToolPage();
+
+                return true;
+            }
+            finally
+            {
+                // Always restore UI state
                 Mouse.OverrideCursor = default;
                 this.IsEnabled = true;
-                return;
             }
-
-            SaveLastOpenedGamelistName(fileName);
-
-            int maxUndo = Properties.Settings.Default.MaxUndo;
-
-            if (maxUndo > 0)
-            {
-                SharedData.ChangeTracker?.StopTracking();
-                UpdateChangeTrackerButtons();
-            }
-
-            SharedData.DataSet = data;
-            SharedData.XMLFilename = fileName;
-
-            _parentFolderPath = Path.GetDirectoryName(fileName)!;
-            SharedData.CurrentSystem = new DirectoryInfo(_parentFolderPath).Name;
-
-            if (SharedData.CurrentSystem == "mame")
-                GenerateMameNames();
-
-            DateTime lastModifiedTime = File.GetLastWriteTime(fileName);
-            textBlock_Filename.Text = $"File: {fileName}";
-            textBlock_LastModifiedTime.Text = $"Modified Time: {lastModifiedTime}";
-
-            SetupMainDataGrid();
-            SetupGamelistUI(SharedData.CurrentSystem);
-
-            if (maxUndo > 0)
-            {
-                SharedData.ChangeTracker?.StartTracking(SharedData.DataSet.Tables[0], maxUndo);
-                UpdateChangeTrackerButtons();
-            }
-
-            SharedData.IsDataChanged = false;
-            Mouse.OverrideCursor = default;
-            this.IsEnabled = true;
-
-            if (ribbonApplicationMenu.IsDropDownOpen == true)
-            {
-                ribbonApplicationMenu.IsDropDownOpen = false;
-            }
-
-            // Reset dattool page if showing
-            if (_datToolPage != null && MainContentFrame.Content == _datToolPage)
-            {
-                _datToolPage.ResetDatToolPage();
-            }
-
         }
-
 
         private async void RecentFilemenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem && menuItem.Tag is string fileName && !string.IsNullOrEmpty(fileName))
             {
-                await OpenFileAsync(fileName);
+                bool success = await OpenFileAsync(fileName);
+                if (!success)
+                {
+                    MessageBox.Show(
+                        $"There was an error loading '{fileName}'",
+                        "Load Error!",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
-
         }
 
         private static string SelectXMLFile()
@@ -767,13 +767,9 @@ namespace GamelistManager
             };
 
             bool? result = openFileDialog.ShowDialog();
-
-            if (result != true)
-            {
-                return null!;
-            }
-            return openFileDialog.FileName;
+            return result == true ? openFileDialog.FileName : null!;
         }
+
 
         public void UpdateCounters()
         {
@@ -890,28 +886,22 @@ namespace GamelistManager
             }
 
             // Deserialize from JSON
-            List<string> recentFilesList;
+            List<string>? recentFilesList = null;
             try
             {
                 recentFilesList = JsonSerializer.Deserialize<List<string>>(recentFiles);
-                if (recentFilesList == null || recentFilesList.Count == 0)
-                {
-                    if (RecentFilesRibbon != null)
-                    {
-                        RecentFilesRibbon.ItemsSource = null;
-                    }
-                    return;
-                }
             }
-            catch
+            catch (JsonException)
             {
-                // Invalid JSON, skip
-                if (RecentFilesRibbon != null)
-                {
-                    RecentFilesRibbon.ItemsSource = null;
-                }
+                // Invalid JSON → treat as no recent files
+            }
+
+            if (recentFilesList is not { Count: > 0 })
+            {
+                RecentFilesRibbon?.SetValue(ItemsControl.ItemsSourceProperty, null);
                 return;
             }
+
 
             // Populate Classic Menu
             foreach (var file in recentFilesList)
@@ -944,21 +934,34 @@ namespace GamelistManager
 
         private async void RecentFilesRibbon_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ListBox listBox && listBox.SelectedItem is string fileName)
+            if (sender is not ListBox listBox)
+                return;
+
+            if (listBox.SelectedItem is not string fileName || string.IsNullOrEmpty(fileName))
+                return;
+
+            bool success = await OpenFileAsync(fileName);
+            if (!success)
             {
-                if (!string.IsNullOrEmpty(fileName))
-                {
-                    await OpenFileAsync(fileName);
-                    // Clear selection so the same file can be selected again
-                    listBox.SelectedIndex = -1;
-                }
+                MessageBox.Show(
+                    $"There was an error loading '{fileName}'",
+                    "Load Error!",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
+
+            // Clear selection so the same file can be selected again
+            listBox.SelectedIndex = -1;
         }
+
 
 
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+
+            PopulateSystemsComboboxAsync();
 
             string filePath = Assembly.GetExecutingAssembly().Location;
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
@@ -968,8 +971,8 @@ namespace GamelistManager
 
             if (Properties.Settings.Default.Version != fileVersion)
             {
-                ResetSettings();
-                MessageBox.Show("Settings have been reset.", "Settings Reset", MessageBoxButton.OK, MessageBoxImage.Information);
+                //ResetSettings();
+                //MessageBox.Show("Settings have been reset.", "Settings Reset", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 
             statusBar_FileInfo.Visibility = Properties.Settings.Default.ShowFileStatusBar ? Visibility.Visible : Visibility.Collapsed;
@@ -991,10 +994,10 @@ namespace GamelistManager
             MainDataGrid.FontSize = size;
 
             // Update font size for DataGrid headers and cells
-            UpdateDataGridFontSize(MainDataGrid, size);
+            _dataGridService.UpdateDataGridFontSize(size);
 
             // Adjust column widths
-            AdjustDataGridColumnWidths(MainDataGrid);
+            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
 
             // Default states
             stackpanel_Filters.IsEnabled = false;
@@ -1031,7 +1034,7 @@ namespace GamelistManager
 
         }
 
-        private void ribbon_AutoHide_Click(object sender, RoutedEventArgs e)
+        private void Ribbon_AutoHide_Click(object sender, RoutedEventArgs e)
         {
             bool autoHideRibbon = ribbon_AutoHide.IsChecked == true;
             SetRibbonAutoHide(autoHideRibbon);
@@ -1041,111 +1044,26 @@ namespace GamelistManager
         {
             if (autoHideRibbon)
             {
-                RibbonHotZone.MouseEnter += RibbonHotZone_MouseEnter;
-                RibbonMenu.MouseLeave += RibbonMenu_MouseLeave; // Also hook leave event
+                _ribbonAnimationService.EnableAutoHide(SharedData.XMLFilename);
             }
             else
             {
-                RibbonHotZone.MouseEnter -= RibbonHotZone_MouseEnter;
-                RibbonMenu.MouseLeave -= RibbonMenu_MouseLeave;
+                _ribbonAnimationService.DisableAutoHide();
             }
 
             Properties.Settings.Default.AutoHideRibbon = autoHideRibbon;
             Properties.Settings.Default.Save();
         }
 
-        private void RibbonHotZone_MouseEnter(object sender, MouseEventArgs e)
-        {
-            bool useRibbonMenu = Properties.Settings.Default.UseRibbonMenu;
-            if (RibbonMenu.Visibility is Visibility.Collapsed && useRibbonMenu)
-            {
-                ShowRibbonWithAnimation();
-            }
-        }
-
-        private void RibbonMenu_MouseLeave(object sender, MouseEventArgs e)
-        {
-            // Only hide if mouse is truly outside the ribbon
-            if (!RibbonMenu.IsMouseOver && !string.IsNullOrEmpty(SharedData.XMLFilename))
-            {
-                HideRibbonWithAnimation();
-            }
-        }
-
-        private void ShowRibbonWithAnimation()
-        {
-            RibbonMenu.Visibility = Visibility.Visible;
-
-            // Slide down animation
-            var slideDown = new DoubleAnimation
-            {
-                From = -RibbonMenu.ActualHeight,
-                To = 0,
-                Duration = TimeSpan.FromMilliseconds(250),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            // Fade in animation
-            var fadeIn = new DoubleAnimation
-            {
-                From = 0,
-                To = 1,
-                Duration = TimeSpan.FromMilliseconds(250)
-            };
-
-            var transform = new TranslateTransform();
-            RibbonMenu.RenderTransform = transform;
-
-            transform.BeginAnimation(TranslateTransform.YProperty, slideDown);
-            RibbonMenu.BeginAnimation(UIElement.OpacityProperty, fadeIn);
-        }
-
-        private void HideRibbonWithAnimation()
-        {
-            // Slide up animation
-            var slideUp = new DoubleAnimation
-            {
-                From = 0,
-                To = -RibbonMenu.ActualHeight,
-                Duration = TimeSpan.FromMilliseconds(200),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            };
-
-            // Fade out animation
-            var fadeOut = new DoubleAnimation
-            {
-                From = 1,
-                To = 0,
-                Duration = TimeSpan.FromMilliseconds(200)
-            };
-
-            slideUp.Completed += (s, e) =>
-            {
-                RibbonMenu.Visibility = Visibility.Collapsed;
-                RibbonMenu.RenderTransform = null;
-            };
-
-            var transform = RibbonMenu.RenderTransform as TranslateTransform ?? new TranslateTransform();
-            RibbonMenu.RenderTransform = transform;
-
-            transform.BeginAnimation(TranslateTransform.YProperty, slideUp);
-            RibbonMenu.BeginAnimation(UIElement.OpacityProperty, fadeOut);
-        }
-
         private void FontSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (MainDataGrid.ItemsSource == null)
-            {
                 return;
-            }
+            
 
-            var slider = sender as Slider;
-
-            if (slider == null)
-            {
+            if (sender is not Slider slider)
                 return;
-            }
-
+            
             int size = ((int)slider.Value);
             Properties.Settings.Default.GridFontSize = size;
             Properties.Settings.Default.Save();
@@ -1157,142 +1075,48 @@ namespace GamelistManager
             MainDataGrid.FontSize = size;
 
             // Update font size for DataGrid headers and cells
-            UpdateDataGridFontSize(MainDataGrid, size);
+            _dataGridService.UpdateDataGridFontSize(size);
 
             // Adjust column widths
-            AdjustDataGridColumnWidths(MainDataGrid);
+            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
 
         }
-
-        private static void UpdateDataGridFontSize(DataGrid dg, double fontSize)
-        {
-            // Update font size for DataGrid header and cells
-            foreach (var column in dg.Columns)
-            {
-                if (column.Header is TextBlock header)
-                {
-                    header.FontSize = fontSize;
-                }
-            }
-
-            dg.RowHeight = fontSize + 7; // Adjust row height for better fit
-        }
-
-        private void AdjustDataGridColumnWidths(DataGrid dg)
-        {
-            MainDataGrid.UpdateLayout();
-
-            DataGridLength size = new(1, DataGridLengthUnitType.SizeToCells);
-            if (_autosizeColumns)
-            {
-                size = new DataGridLength(1, DataGridLengthUnitType.Star);
-            }
-
-            foreach (var column in dg.Columns)
-            {
-                double headerWidth = MeasureColumnHeaderWidth(column);
-
-                if (column is DataGridTemplateColumn)
-                {
-                    // For boolean columns
-                    column.CanUserResize = false;
-                    column.Width = new DataGridLength(1, DataGridLengthUnitType.SizeToHeader);
-                }
-                else
-                {
-                    // Measure content width
-                    double contentWidth = MeasureColumnContentWidth(column);
-
-                    // Set width to header if content width is shorter
-                    if (contentWidth < headerWidth)
-                    {
-                        column.Width = new DataGridLength(headerWidth, DataGridLengthUnitType.SizeToHeader);
-                    }
-                    else
-                    {
-                        column.Width = size;
-                    }
-
-                    column.CanUserResize = true;
-                }
-            }
-        }
-
-        private double MeasureColumnContentWidth(DataGridColumn column)
-        {
-            double maxWidth = 0;
-
-            foreach (var item in MainDataGrid.Items)
-            {
-                var cellContent = GetCellContent(column, item);
-
-                if (cellContent != null)
-                {
-                    cellContent.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                    double width = cellContent.DesiredSize.Width;
-                    if (width > maxWidth)
-                    {
-                        maxWidth = width;
-                    }
-                }
-            }
-
-            return maxWidth;
-        }
-
-        private static double MeasureColumnHeaderWidth(DataGridColumn column)
-        {
-            string header = column.Header.ToString()!;
-            var textBlock = new TextBlock { Text = header };
-            textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            return textBlock.DesiredSize.Width;
-        }
-
-
-        private static FrameworkElement GetCellContent(DataGridColumn column, object item)
-        {
-            if (column.GetCellContent(item) is FrameworkElement cellContent)
-            {
-                return cellContent;
-            }
-
-            return null!;
-        }
-
 
         private void MenuItem_Clicked(object sender, RoutedEventArgs e)
         {
-            // Try reading the Tag from either control type
-            string? columnName = (sender as FrameworkElement)?.Tag?.ToString();
+       
+            if (sender is not FrameworkElement fe)
+                return;
+
+            string? columnName = fe.Tag?.ToString();
             if (string.IsNullOrEmpty(columnName))
                 return;
 
             bool isChecked;
 
-            if (sender is MenuItem menuItem)
+            if (sender is MenuItem mi)
             {
-                isChecked = menuItem.IsChecked == true;
-                SyncColumnCheckboxes(true);   // menu → ribbon
+                isChecked = mi.IsChecked == true;
             }
-            else if (sender is System.Windows.Controls.Ribbon.RibbonCheckBox ribbonCheckBox)
+            else if (sender is System.Windows.Controls.Ribbon.RibbonCheckBox rc)
             {
-                isChecked = ribbonCheckBox.IsChecked == true;
-                SyncColumnCheckboxes(false);  // ribbon → menu
+                isChecked = rc.IsChecked == true;
             }
             else
             {
-                return; // unexpected sender
+                return;
             }
 
             SetColumnVisibility(columnName, isChecked);
         }
 
 
-        private void SetColumnVisibility(string columnName, bool isChecked)
+
+        private void SetColumnVisibility(string columnName, bool isColumnVisible)
         {
             if (columnName == "Description")
             {
-                if (!isChecked)
+                if (!isColumnVisible)
                 {
                     gridSplitter_Vertical.Visibility = Visibility.Collapsed;
                     column_Description.Width = new GridLength(0);
@@ -1309,19 +1133,22 @@ namespace GamelistManager
 
             if (columnName == "Media Paths")
             {
-                ShowMediaPaths(isChecked);
-                return;
+                _dataGridService.ShowMediaPaths(isColumnVisible);
+                _autosizeColumns = !isColumnVisible;
             }
-
-            // Find the column with the specified header
-            var column = MainDataGrid.Columns
-                .FirstOrDefault(col => col.Header.ToString() == columnName);
-            if (column != null)
+            else
             {
-                // Show or hide the column based on the menu item state
-                column.Visibility = isChecked ? Visibility.Visible : Visibility.Collapsed;
+                // Find the column with the specified header
+                var column = MainDataGrid.Columns
+                    .FirstOrDefault(col => col.Header.ToString() == columnName);
+                if (column != null)
+                {
+                    // Show or hide the column based on the menu item state
+                    column.Visibility = isColumnVisible ? Visibility.Visible : Visibility.Collapsed;
+                }
             }
 
+            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
             UpdateFilterComboboxes();
 
             if (Properties.Settings.Default.RememberColumns == true)
@@ -1330,37 +1157,6 @@ namespace GamelistManager
             }
         }
 
-        private void ShowMediaPaths(bool showPaths)
-        {
-            var mediaItems = GamelistMetaData.GetMetaDataDictionary().Values
-                .Where(decl => decl.DataType == MetaDataType.Image ||
-                                decl.DataType == MetaDataType.Video ||
-                                decl.DataType == MetaDataType.Music ||
-                                decl.DataType == MetaDataType.Document)
-                                .Select(decl => decl.Name)
-                                .ToList();
-
-            foreach (DataGridColumn column in MainDataGrid.Columns)
-            {
-                if (mediaItems.Contains(column.Header.ToString()!))
-                {
-                    column.Visibility = (showPaths) ? Visibility.Visible : Visibility.Collapsed;
-                    column.Width = new DataGridLength(1, DataGridLengthUnitType.Auto);
-                }
-            }
-
-            MainDataGrid.UpdateLayout();
-
-            if (showPaths)
-            {
-                // Media paths are fairly large, so turn off autosize automatically
-                menuItem_ColumnAutoSize.IsChecked = false;
-                _autosizeColumns = false;
-            }
-
-            AdjustDataGridColumnWidths(MainDataGrid);
-            UpdateFilterComboboxes();
-        }
 
         private void SaveVisibleColumnsSetting()
         {
@@ -1564,9 +1360,6 @@ namespace GamelistManager
             textBox_CustomFilter.Text = "";
             button_ClearCustomFilter.Visibility = Visibility.Hidden;
             button_ClearCustomFilter.IsEnabled = false;
-            //stackpanel_Custom.Visibility = Visibility.Collapsed;
-            //stackpanel_Genre.Visibility = Visibility.Visible;
-
             radioButton_AllItems.IsChecked = true;
 
             SharedData.DataSet.Tables[0].DefaultView.RowFilter = null;
@@ -1591,10 +1384,10 @@ namespace GamelistManager
             }
 
             // Reset column view
-            SetDefaultColumnVisibility(MainDataGrid);
+            SetDefaultColumnVisibility();
 
             // Adjust Column Widths
-            AdjustDataGridColumnWidths(MainDataGrid);
+            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
 
             UpdateCounters();
 
@@ -1618,8 +1411,7 @@ namespace GamelistManager
             _dataGridSelectionChangedTimer.Start();
 
             // Update current row/index only if a valid row is selected
-            var selectedRow = MainDataGrid.SelectedItem as DataRowView;
-            if (selectedRow != null)
+            if (MainDataGrid.SelectedItem is DataRowView selectedRow)
             {
                 _currentSelectedRow = selectedRow;
                 _currentSelectedRowIndex = MainDataGrid.SelectedIndex;
@@ -1643,7 +1435,7 @@ namespace GamelistManager
                 .ToList();
 
             // If nothing is left selected, pick the next available row
-            if (!visibleSelectedRows.Any())
+            if (visibleSelectedRows.Count == 0)
             {
                 int nextIndex = _currentSelectedRowIndex;
                 if (nextIndex >= MainDataGrid.Items.Count)
@@ -1683,14 +1475,21 @@ namespace GamelistManager
             // Update description and media for the current row
             if (_currentSelectedRow != null)
             {
-                textBox_Description.Text =
-                    _currentSelectedRow["Description"] is DBNull
+                 
+                string description = _currentSelectedRow["Description"] is DBNull
                         ? string.Empty
                         : _currentSelectedRow["Description"]?.ToString() ?? string.Empty;
+
+                textBox_Description.Text = description;
+
+                string name = _currentSelectedRow["Name"] is DBNull
+                        ? string.Empty
+                        : _currentSelectedRow["Name"]?.ToString() ?? "Unknown";
 
                 if (_mediaPage != null && button_Media.Content?.ToString() == "Hide Media")
                 {
                     _mediaPage.ShowMedia(_currentSelectedRow);
+                    _mediaPage.SetStatus($"Showing media for '{name}'");
                 }
             }
         }
@@ -1973,6 +1772,9 @@ namespace GamelistManager
             // Reload settings
             _confirmBulkChange = Properties.Settings.Default.ConfirmBulkChange;
 
+            // Repopulate in case rom folder was changed!
+            PopulateSystemsComboboxAsync();
+
             int maxUndo = Properties.Settings.Default.MaxUndo;
 
             if (maxUndo == 0)
@@ -2155,7 +1957,7 @@ namespace GamelistManager
 
         }
 
-        private void ribbonButton_DeleteItem_Click(object sender, RoutedEventArgs e)
+        private void RibbonButton_DeleteItem_Click(object sender, RoutedEventArgs e)
         {
 
             if (!Properties.Settings.Default.EnableDelete)
@@ -2463,7 +2265,7 @@ namespace GamelistManager
                             _originalCellStyles[column] = column.CellStyle;
                         }
 
-                        // Apply edit mode style (Black text)
+                        // Apply edit mode style (Blue text)
                         var editStyle = new Style(typeof(DataGridCell));
                         editStyle.Setters.Add(new Setter(DataGridCell.ForegroundProperty, Brushes.Blue));
                         column.CellStyle = editStyle;
@@ -2471,7 +2273,7 @@ namespace GamelistManager
                     else
                     {
                         // Restore original style
-                        column.CellStyle = _originalCellStyles.ContainsKey(column) ? _originalCellStyles[column] : null;
+                        column.CellStyle = _originalCellStyles.TryGetValue(column, out Style? value) ? value : null;
                     }
                 }
             }
@@ -2668,7 +2470,7 @@ namespace GamelistManager
             bool value = menuItem_ColumnAutoSize.IsChecked;
             menuItem_ColumnAutoSize.IsChecked = !value;
             _autosizeColumns = !value;
-            AdjustDataGridColumnWidths(MainDataGrid);
+            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
             Properties.Settings.Default.AutoSizeColumns = !value;
         }
 
@@ -2824,7 +2626,16 @@ namespace GamelistManager
             File.Copy(selectedPath, SharedData.XMLFilename, true);
             MessageBox.Show("Restore completed.\n\nThe new gamelist will now be loaded.", "Restore Completed", MessageBoxButton.OK, MessageBoxImage.Information);
             SharedData.IsDataChanged = false;
-            await OpenFileAsync(SharedData.XMLFilename);
+            bool success = await OpenFileAsync(SharedData.XMLFilename);
+            if (!success)
+            {
+                MessageBox.Show(
+                    $"There was an error loading '{fileName}'",
+                    "Load Error!",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         private async void Button_Scraper_Click(object sender, RoutedEventArgs e)
@@ -3190,7 +3001,7 @@ namespace GamelistManager
 
             usedFolders.Add(Path.GetFullPath(_parentFolderPath!));
 
-            // 🔹 Track BOTH files and directories
+            // Track BOTH files and directories
             var existingPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var folder in usedFolders)
@@ -3268,7 +3079,7 @@ namespace GamelistManager
                 MessageBoxImage.Question
             );
 
-            SharedData.ChangeTracker.StartBulkOperation();
+            SharedData.ChangeTracker!.StartBulkOperation();
 
             if (result == MessageBoxResult.Yes)
             {
@@ -3446,12 +3257,9 @@ namespace GamelistManager
         private void TextBox_Find_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is not TextBox textBox)
-            {
                 return;
-            }
-
+            
             button_Find.IsEnabled = !string.IsNullOrWhiteSpace(textBox.Text);
-
         }
 
 
@@ -3462,7 +3270,7 @@ namespace GamelistManager
 
             int currentIndex = MainDataGrid.SelectedIndex;
 
-            int rowIndex = FindRowIndexInDataGrid(MainDataGrid, currentIndex, searchText, column);
+            int rowIndex = _dataGridService.FindRowIndexInDataGrid(currentIndex, searchText, column);
 
             if (rowIndex >= 0)
             {
@@ -3489,58 +3297,7 @@ namespace GamelistManager
             }
         }
 
-        private static int FindRowIndexInDataGrid(DataGrid dataGrid, int currentIndex, string searchText, string columnName)
-        {
-            if (string.IsNullOrWhiteSpace(searchText) || dataGrid.Items.Count == 0)
-            {
-                return -1;
-            }
-
-            int startIndex = (currentIndex + 1) % dataGrid.Items.Count;
-
-            // Pass 1: from startIndex → end
-            for (int i = startIndex; i < dataGrid.Items.Count; i++)
-            {
-                if (IsMatch(dataGrid.Items[i], searchText, columnName))
-                    return i;
-            }
-
-            // Pass 2: from 0 → currentIndex
-            for (int i = 0; i < startIndex; i++)
-            {
-                if (IsMatch(dataGrid.Items[i], searchText, columnName))
-                    return i;
-            }
-
-            return -1; // nothing found
-        }
-
-        private static bool IsMatch(object item, string searchText, string columnName)
-        {
-            if (item is DataRowView rowView)
-            {
-                if (string.IsNullOrEmpty(columnName))
-                {
-                    // Search all columns
-                    return rowView.Row.ItemArray
-                              .Cast<object?>()
-                              .Any(col =>
-                              {
-                                  var s = col?.ToString();
-                                  return !string.IsNullOrEmpty(s) &&
-                                         s.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
-                              });
-                }
-                else if (rowView.Row.Table.Columns.Contains(columnName))
-                {
-                    var value = rowView.Row[columnName]?.ToString();
-                    return !string.IsNullOrEmpty(value) &&
-                           value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
-                }
-            }
-
-            return false;
-        }
+        
 
         private void MenuItem_SearchAndReplace_Click(object sender, RoutedEventArgs e)
         {
@@ -3728,8 +3485,6 @@ namespace GamelistManager
                 SharedData.ChangeTracker.UndoRedoStateChanged -= ChangeTracker_UndoRedoStateChanged;
             }
 
-
-
             // Unsubscribe from event handlers to prevent memory leaks
             if (_dataGridSelectionChangedTimer != null)
             {
@@ -3748,10 +3503,7 @@ namespace GamelistManager
                 _scraper.comboBox_SelectedScraper.SelectionChanged -= _scraper.ComboBox_SelectedScraper_SelectionChanged;
             }
 
-            // Unsubscribe Ribbon auto-hide events if they were attached
-            RibbonHotZone.MouseEnter -= RibbonHotZone_MouseEnter;
-            RibbonMenu.MouseLeave -= RibbonMenu_MouseLeave;
-
+           
             // Unsubscribe font size sliders
             RibbonFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
             ClassicFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
@@ -3774,6 +3526,9 @@ namespace GamelistManager
             {
                 _datToolPage.CloseDatToolPage();
             }
+
+            comboBox_Systems.SelectionChanged -= ComboBox_Systems_SelectionChanged;
+
         }
 
         private void MenuItem_ResetName_Click(object sender, RoutedEventArgs e)
@@ -3800,7 +3555,7 @@ namespace GamelistManager
                     string newName = FilePathHelper.NormalizeRomName(path);
                     if (SharedData.CurrentSystem == "mame")
                     {
-                        newName = MameNamesHelper.Names.ContainsKey(newName) ? MameNamesHelper.Names[newName] : newName;
+                        newName = MameNamesHelper.Names.TryGetValue(newName, out string? value) ? value : newName;
                     }
                     row["Name"] = newName;
                 }
@@ -3836,7 +3591,7 @@ namespace GamelistManager
 
         }
 
-        private void ResetSettings()
+        private static void ResetSettings()
         {
             string filePath = Assembly.GetExecutingAssembly().Location;
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(filePath);
@@ -3974,20 +3729,13 @@ namespace GamelistManager
                 RibbonFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
                 ClassicFontSizeSlider.Value = fontSize;
                 ClassicFontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
-
-                // Remove event handlers
-                RibbonHotZone.MouseEnter -= RibbonHotZone_MouseEnter;
-                RibbonMenu.MouseLeave -= RibbonMenu_MouseLeave;
-
+                          
                 // Sync enabled states
                 menuItem_View.IsEnabled = ribbonTab_Home.IsEnabled;
                 menuItem_Edit.IsEnabled = ribbonTab_Edit.IsEnabled;
                 menuItem_Columns.IsEnabled = ribbonTab_Columns.IsEnabled;
                 menuItem_Tools.IsEnabled = ribbonTab_Tools.IsEnabled;
-
-                // Sync column checkboxes
-                SyncColumnCheckboxes(false); // false = ribbon to menu
-
+                         
                 Properties.Settings.Default.UseRibbonMenu = false;
                 Properties.Settings.Default.AutoHideRibbon = false;
                 ribbon_AutoHide.IsChecked = false;
@@ -4005,89 +3753,29 @@ namespace GamelistManager
                 ClassicFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
                 RibbonFontSizeSlider.Value = fontSize;
                 RibbonFontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
-
-                bool autoHideRibbon = Properties.Settings.Default.AutoHideRibbon;
-                // Add event handlers if autohide is enabled
-                if (autoHideRibbon)
-                {
-                    RibbonHotZone.MouseEnter += RibbonHotZone_MouseEnter;
-                    RibbonMenu.MouseLeave += RibbonMenu_MouseLeave;
-                }
-                else
-                {
-                    RibbonHotZone.MouseEnter -= RibbonHotZone_MouseEnter;
-                    RibbonMenu.MouseLeave -= RibbonMenu_MouseLeave;
-                }
-
+                
                 // Sync enabled states
                 ribbonTab_Home.IsEnabled = menuItem_View.IsEnabled;
                 ribbonTab_Edit.IsEnabled = menuItem_Edit.IsEnabled;
                 ribbonTab_Columns.IsEnabled = menuItem_Columns.IsEnabled;
                 ribbonTab_Tools.IsEnabled = menuItem_Tools.IsEnabled;
-
-                // Sync column checkboxes
-                SyncColumnCheckboxes(true); // true = menu to ribbon
-
+                           
                 Properties.Settings.Default.UseRibbonMenu = true;
                 if (!string.IsNullOrEmpty(SharedData.XMLFilename))
                 {
                     ribbon_AutoHide.IsChecked = false;
                     Properties.Settings.Default.AutoHideRibbon = false;
-                    ShowRibbonWithAnimation(); // make sure ribbon is shown
+                    _ribbonAnimationService.ShowWithAnimation();
                 }
                 Properties.Settings.Default.Save();
             }
         }
-
-        private void SyncColumnCheckboxes(bool menuToRibbon)
-        {
-            if (menuToRibbon)
-            {
-                ribbon_Description.IsChecked = menuItem_Description.IsChecked;
-                ribbon_Genre.IsChecked = menuItem_Genre.IsChecked;
-                ribbon_GameId.IsChecked = menuItem_GameId.IsChecked;
-                ribbon_Rating.IsChecked = menuItem_Rating.IsChecked;
-                ribbon_ReleaseDate.IsChecked = menuItem_ReleaseDate.IsChecked;
-                ribbon_Players.IsChecked = menuItem_Players.IsChecked;
-                ribbon_Favorite.IsChecked = menuItem_Favorite.IsChecked;
-                ribbon_Developer.IsChecked = menuItem_Developer.IsChecked;
-                ribbon_Publisher.IsChecked = menuItem_Publisher.IsChecked;
-                ribbon_ArcadeSystemName.IsChecked = menuItem_ArcadeSystemName.IsChecked;
-                ribbon_Family.IsChecked = menuItem_Family.IsChecked;
-                ribbon_Region.IsChecked = menuItem_Region.IsChecked;
-                ribbon_Language.IsChecked = menuItem_Language.IsChecked;
-                ribbon_PlayCount.IsChecked = menuItem_PlayCount.IsChecked;
-                ribbon_LastPlayed.IsChecked = menuItem_LastPlayed.IsChecked;
-                ribbon_GameTime.IsChecked = menuItem_GameTime.IsChecked;
-                ribbon_MediaPaths.IsChecked = menuItem_MediaPaths.IsChecked;
-            }
-            else
-            {
-                menuItem_Description.IsChecked = ribbon_Description.IsChecked ?? false;
-                menuItem_Genre.IsChecked = ribbon_Genre.IsChecked ?? false;
-                menuItem_GameId.IsChecked = ribbon_GameId.IsChecked ?? false;
-                menuItem_Rating.IsChecked = ribbon_Rating.IsChecked ?? false;
-                menuItem_ReleaseDate.IsChecked = ribbon_ReleaseDate.IsChecked ?? false;
-                menuItem_Players.IsChecked = ribbon_Players.IsChecked ?? false;
-                menuItem_Favorite.IsChecked = ribbon_Favorite.IsChecked ?? false;
-                menuItem_Developer.IsChecked = ribbon_Developer.IsChecked ?? false;
-                menuItem_Publisher.IsChecked = ribbon_Publisher.IsChecked ?? false;
-                menuItem_ArcadeSystemName.IsChecked = ribbon_ArcadeSystemName.IsChecked ?? false;
-                menuItem_Family.IsChecked = ribbon_Family.IsChecked ?? false;
-                menuItem_Region.IsChecked = ribbon_Region.IsChecked ?? false;
-                menuItem_Language.IsChecked = ribbon_Language.IsChecked ?? false;
-                menuItem_PlayCount.IsChecked = ribbon_PlayCount.IsChecked ?? false;
-                menuItem_LastPlayed.IsChecked = ribbon_LastPlayed.IsChecked ?? false;
-                menuItem_GameTime.IsChecked = ribbon_GameTime.IsChecked ?? false;
-                menuItem_MediaPaths.IsChecked = ribbon_MediaPaths.IsChecked ?? false;
-            }
-        }
+                
 
         // Hide the ribbon's quick access toolbar
         private void MainRibbon_Loaded(object sender, RoutedEventArgs e)
         {
-            Grid child = System.Windows.Media.VisualTreeHelper.GetChild((DependencyObject)sender, 0) as Grid;
-            if (child != null)
+            if (VisualTreeHelper.GetChild((DependencyObject)sender, 0) is Grid child)
             {
                 child.RowDefinitions[0].Height = new GridLength(0);
             }
@@ -4099,7 +3787,7 @@ namespace GamelistManager
         }
 
 
-        private void menuItem_FindDuplicate_Click(object sender, RoutedEventArgs e)
+        private void MenuItem_FindDuplicate_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show("This will quickly identify any duplicate items in this gamelist, regardless of text case.\n\nDo you want to continue?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
@@ -4134,13 +3822,9 @@ namespace GamelistManager
                         string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(romPath, _parentFolderPath!);
 
                         // Check for duplicates - if already seen, it's a duplicate
-                        if (seenPaths.Contains(fullPath))
+                        if (!seenPaths.Add(fullPath))
                         {
                             duplicateItems.Add(row);
-                        }
-                        else
-                        {
-                            seenPaths.Add(fullPath);
                         }
                     }
                 }
@@ -4217,46 +3901,7 @@ namespace GamelistManager
                 MainDataGrid.ScrollIntoView(_currentSelectedRow);
             }
         }
-
-        // In InitializeComponent() or Window_Loaded, add:
-        // MainDataGrid.RowEditEnding += MainDataGrid_RowEditEnding;
-
-        private void MainDataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
-        {
-            if (e.EditAction != DataGridEditAction.Commit)
-                return;
-
-            var dataView = (DataView)MainDataGrid.ItemsSource;
-            if (string.IsNullOrEmpty(dataView?.RowFilter))
-                return; // No filter, nothing to worry about
-
-            int currentIndex = MainDataGrid.SelectedIndex;
-            var editedRow = e.Row.Item as DataRowView;
-
-            // Check after the edit completes
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                // Is the edited row still visible?
-                if (!MainDataGrid.Items.Contains(editedRow))
-                {
-                    // Row filtered out, select next or previous visible row
-                    if (MainDataGrid.Items.Count == 0)
-                    {
-                        // No rows left, do nothing
-                        return;
-                    }
-
-                    // Try next row at same index, or previous if at end
-                    int newIndex = currentIndex < MainDataGrid.Items.Count
-                        ? currentIndex
-                        : MainDataGrid.Items.Count - 1;
-
-                    MainDataGrid.SelectedIndex = newIndex;
-                    MainDataGrid.ScrollIntoView(MainDataGrid.Items[newIndex]);
-                }
-            }), DispatcherPriority.Background);
-        }
-
+        
 
         private void MenuItem_OpenTerminal_Click(object sender, RoutedEventArgs e)
         {
@@ -4303,17 +3948,170 @@ namespace GamelistManager
             BatoceraService.RemoveSshKey();
         }
 
-        private void button_SnapToSelectedItem_Click(object sender, RoutedEventArgs e)
+        private void Button_SnapToSelectedItem_Click(object sender, RoutedEventArgs e)
         {
-            if (MainDataGrid.ItemsSource == null)
-                return;
-
-            if (MainDataGrid.SelectedItems.Count > 0)
-            {
+            if (MainDataGrid.ItemsSource != null && MainDataGrid.SelectedItems.Count > 0)
+            { 
                 var firstSelectedItem = MainDataGrid.SelectedItems[0];
                 MainDataGrid.CurrentItem = firstSelectedItem;
                 MainDataGrid.ScrollIntoView(firstSelectedItem);
             }
         }
+
+        private async void PopulateSystemsComboboxAsync()
+        {           
+            comboBox_Systems.Items.Clear();
+            comboBox_Systems.IsEnabled = false;
+            AddSystemsPlaceholder(comboBox_Systems);
+
+            string romsFolder = (Properties.Settings.Default.RomsFolder).Trim();
+
+            if (!Directory.Exists(romsFolder))
+                return;
+
+            var dirs = Directory.GetDirectories(romsFolder)
+               .OrderBy(d => Path.GetFileName(d))
+               .ToArray();
+
+            foreach (string systemDir in dirs)
+            {
+                string systemName = Path.GetFileName(systemDir);
+                string gamelistPath = Path.Combine(systemDir, "gamelist.xml");
+
+                if (!File.Exists(gamelistPath))
+                    continue;
+
+                // Build image path
+                string imageName = $"{systemName}.png";
+                string imagePath = $"pack://application:,,,/resources/images/systems/{imageName}";
+
+                bool exists = false;
+                try
+                {
+                    exists = Application.GetResourceStream(new Uri(imagePath)) != null;
+                }
+                catch
+                {
+                    exists = false;
+                }
+
+                if (!exists)
+                    continue;
+
+
+                var image = new Image
+                {
+                    Source = new BitmapImage(new System.Uri(imagePath)),
+                    MaxWidth = 140, 
+                    MaxHeight = 30,  
+                    Tag = gamelistPath,
+                    Stretch = Stretch.Uniform
+                };
+
+                var item = new ComboBoxItem
+                {
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Content = image,
+                    Tag = gamelistPath,
+                    Padding = new Thickness(2)
+                };
+                comboBox_Systems.Items.Add(item);
+            }
+
+            if (comboBox_Systems.Items.Count > 0)
+            {
+                comboBox_Systems.SelectedIndex = 0;
+                comboBox_Systems.IsEnabled = true;
+                comboBox_Systems.SelectionChanged += ComboBox_Systems_SelectionChanged;
+            }  
+        }
+
+        private async void ComboBox_Systems_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is not ComboBox comboBox || comboBox.SelectedItem is not ComboBoxItem item)
+                return;
+
+            if (item.Content is not Image img || img.Tag is not string gamelistPath)
+                return;
+
+            bool result = await OpenFileAsync(gamelistPath);
+            if (!result)
+            {
+                MessageBox.Show(
+                  $"Could not open the gamelist file:\n{gamelistPath}",
+                  "Warning",
+                  MessageBoxButton.OK,
+                  MessageBoxImage.Warning
+            );
+            }
+        }
+
+
+        private static void AddSystemsPlaceholder(ComboBox comboBox)
+        {
+            var image = new Image
+            {
+                MaxWidth = 140,
+                MaxHeight = 30,
+                Source = new BitmapImage(
+                    new Uri("pack://application:,,,/resources/images/logos/gamelistmanager.png")),
+                Stretch = Stretch.Uniform
+            };
+
+            var placeholder = new ComboBoxItem
+            {
+                HorizontalAlignment= HorizontalAlignment.Center,
+                Content = image,
+                IsEnabled = false,
+                Padding = new Thickness(0)
+            };
+
+            comboBox.Items.Add(placeholder);
+            comboBox.SelectedIndex = 0;
+        }
+
+        private async void RibbonButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if combobox has items
+            if (comboBox_CustomFilter.Items.Count == 0)
+            {
+                MessageBox.Show(
+                    "No systems loaded in combobox.",
+                    "No Systems",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            // Extract paths from combobox
+            var gamelistPaths = new List<string>();
+
+            gamelistPaths.AddRange(
+                 comboBox_Systems.Items
+                .OfType<ComboBoxItem>()
+                .Select(item => item.Tag)
+                .OfType<string>()   // filters nulls AND non-strings
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+            );
+
+
+            // Check if any valid paths were found
+            if (gamelistPaths.Count == 0)
+            {
+                MessageBox.Show(
+                    "No valid gamelist paths found in system tags.",
+                    "No Valid Paths",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            GamelistReportWindow gamelistReportWindow = new(gamelistPaths);
+            gamelistReportWindow.ShowDialog();
+           
+        }
+
     }
 }

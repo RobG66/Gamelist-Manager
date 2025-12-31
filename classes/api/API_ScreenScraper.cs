@@ -352,11 +352,10 @@ namespace GamelistManager.classes.api
                             var namesNode = xmlData.SelectSingleNode("/Data/jeu/noms");
                             if (namesNode != null)
                             {
-                                string nameLanguage = !string.IsNullOrEmpty(parameters.SSLanguage) ? parameters.SSLanguage : "en";
                                 var regions = parameters.SSRegions != null && parameters.SSRegions.Count > 0
                                     ? parameters.SSRegions
                                     : DefaultRegions;
-                                string name = ParseNames(namesNode, parameters.RomFileName!, nameLanguage, regions);
+                                string name = ParseNames(namesNode, parameters.RomFileName!, regions);
                                 if (!string.IsNullOrEmpty(name))
                                     gameData.Data["name"] = name;
                             }
@@ -679,66 +678,59 @@ namespace GamelistManager.classes.api
             return string.Empty;
         }
 
-        private static string ParseNames(XmlNode namesElement, string romFileName, string userLanguage, List<string> userRegions)
+        private static string ParseNames(
+            XmlNode namesElement,
+            string romFileName,
+            List<string> userRegions)
         {
             if (namesElement == null)
                 return string.Empty;
 
-            string romLanguage = RegionLanguageHelper.GetLanguage(romFileName);
             string romRegion = RegionLanguageHelper.GetRegion(romFileName);
 
-            // Determine romlang
-            string romlang;
-            if (romLanguage.Contains(userLanguage))
-            {
-                romlang = userLanguage;
-            }
-            else if (romLanguage.Split(',').Length == 1)
-            {
-                romlang = romLanguage;
-            }
-            else
-            {
-                romlang = romRegion;
-            }
+            var searchOrder = new List<string>();
 
-            // Build search order: start with detected language/region, then user's preferred regions
-            List<string> searchOrder = new List<string>();
-
-            // Special handling for Japanese region when user language is not Japanese
-            if (romRegion == "jp" && userLanguage != "jp")
+            // Determined ROM region
+            if (!string.IsNullOrEmpty(romRegion))
             {
                 searchOrder.Add(romRegion);
             }
-            else
-            {
-                searchOrder.Add(romlang);
-                searchOrder.Add(romRegion);
-            }
 
-            // Add user's preferred regions
+            // User preferred regions
             if (userRegions != null && userRegions.Count > 0)
             {
                 searchOrder.AddRange(userRegions);
             }
 
-            // Remove duplicates while preserving order
-            var uniqueOrder = searchOrder.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+            // ScreenScraper canonical fallback
+            searchOrder.Add("ss");
 
-            // Try each region in order
-            foreach (string searchRegion in uniqueOrder)
+            // De-duplicate while preserving order
+            var uniqueOrder = searchOrder
+                .Where(r => !string.IsNullOrEmpty(r))
+                .Distinct()
+                .ToList();
+
+            // Try regions in order
+            foreach (var region in uniqueOrder)
             {
-                XmlNode? xmlNode = namesElement.SelectSingleNode($"nom[@region='{searchRegion}']");
-                if (xmlNode != null)
-                {
-                    string name = xmlNode.InnerText ?? string.Empty;
-                    if (!string.IsNullOrEmpty(name))
-                        return name;
-                }
+                XmlNode? node = namesElement.SelectSingleNode(
+                    $"nom[@region='{region}']");
+
+                if (!string.IsNullOrWhiteSpace(node?.InnerText))
+                    return node.InnerText.Trim();
+            }
+
+            // Final fallback: first/any available name
+            foreach (XmlNode node in namesElement.SelectNodes("nom")!)
+            {
+                if (!string.IsNullOrWhiteSpace(node.InnerText))
+                    return node.InnerText.Trim();
             }
 
             return string.Empty;
         }
+
 
         private static string ConvertRating(string? rating)
         {

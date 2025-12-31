@@ -20,6 +20,8 @@
                 <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomMenuItem.xaml"/>
                 <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomProgressBar.xaml"/>
                 <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomRibbonStyle.xaml"/>
+                <ResourceDictionary Source="/resources/resource dictionaries/controls/CustomImageCombobox.xaml"/>
+            
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

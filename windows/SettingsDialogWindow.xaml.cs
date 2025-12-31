@@ -44,6 +44,11 @@ namespace GamelistManager
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
+            SaveSettings();
+        }
+
+        public void SaveSettings() 
+        {
             string hostName = textBox_HostName.Text;
             string userID = textBox_UserID.Text;
             string password = textBox_Password.Text;
@@ -72,8 +77,7 @@ namespace GamelistManager
             Properties.Settings.Default.AutoExpandLogger = (bool)checkBox_AutoExpandLogger.IsChecked!;
             Properties.Settings.Default.IgnoreDuplicates = (bool)checkBox_IgnoreDuplicates.IsChecked!;
             Properties.Settings.Default.BatchProcessing = (bool)checkBox_BatchProcessing.IsChecked!;
-            Properties.Settings.Default.DisableScrapeNotifications = (bool)checkBox_DisableScrapeNotifications.IsChecked!;
-
+       
             // Search Depth validation
             string searchDepth = textBox_SearchDepth.Text;
             if (!int.TryParse(searchDepth, out int searchDepthInt) || searchDepthInt < MIN_SEARCH_DEPTH || searchDepthInt > MAX_SEARCH_DEPTH)
@@ -110,8 +114,11 @@ namespace GamelistManager
             textBox_MaxBatch.Text = maxBatchInt.ToString();
             Properties.Settings.Default.BatchProcessingMaximum = maxBatchInt;
             
-            string MamePath = textBox_MamePath.Text;
-            Properties.Settings.Default.MamePath = MamePath;
+            string mamePath = textBox_MamePath.Text;
+            Properties.Settings.Default.MamePath = mamePath;
+
+            string romsFolder = textBox_RomsFolder.Text;
+            Properties.Settings.Default.RomsFolder = romsFolder;
 
             bool result = CredentialHelper.SaveCredentials(hostName, userID, password);
 
@@ -258,20 +265,23 @@ namespace GamelistManager
                 comboBox_AlternatingRowColor.Items.Add(item);
             }
 
+            // Not sure why I had this in here... will check later
             //comboBox_AlternatingRowColor.SelectedIndex = 0;
 
             var item2 = comboBox_AlternatingRowColor.Items.Cast<ComboBoxItem>()
             .FirstOrDefault(i => i.Content.ToString() == currentColorName);
             if (item2 != null)
-            {
                 comboBox_AlternatingRowColor.SelectedItem = item2;
-            }
+            
 
             string? mamePath = Properties.Settings.Default.MamePath;
             if (!string.IsNullOrEmpty(mamePath))
-            {
                 textBox_MamePath.Text = mamePath;
-            }
+            
+
+            string? romsFolder = Properties.Settings.Default.RomsFolder;
+            if (!string.IsNullOrEmpty(romsFolder))
+                textBox_RomsFolder.Text = romsFolder;
 
             string hostName = Properties.Settings.Default.BatoceraHostName;
             (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
@@ -288,10 +298,7 @@ namespace GamelistManager
 
             bool rememberAutoSize = Properties.Settings.Default.RememberAutoSize;
             checkBox_RememberAutosize.IsChecked = rememberAutoSize;
-
-            bool disableNotifications = Properties.Settings.Default.DisableScrapeNotifications;
-            checkBox_DisableScrapeNotifications.IsChecked = disableNotifications;
-
+                   
             bool showFileStatusBar = Properties.Settings.Default.ShowFileStatusBar;
             checkBox_ShowFileStatusBar.IsChecked = showFileStatusBar;
 
@@ -634,6 +641,34 @@ namespace GamelistManager
             comboBox_GridLinesVisibility.SelectionChanged -= ComboBox_GridLinesSelectionChanged;
             comboBox_Theme.SelectionChanged -= ComboBox_Theme_SelectionChanged;
 
+        }
+
+        private void Button_FindRoms_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFolderDialog
+            {
+                Title = "Select ROMs Folder",
+                Multiselect = false
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
+
+            string selectedPath = dialog.FolderName;
+            string folderName = Path.GetFileName(
+                selectedPath.TrimEnd(Path.DirectorySeparatorChar));
+
+            if (!folderName.Equals("roms", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show(
+                    "The selected folder is not named roms.\n\n" +
+                    "Please make sure you have picked a valid folder.",
+                    "Invalid ROMs Folder?",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+
+            textBox_RomsFolder.Text = selectedPath;
         }
     }
 }

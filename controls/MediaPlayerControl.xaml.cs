@@ -25,6 +25,9 @@ namespace GamelistManager.controls
         private bool _isInitializing;
         private Media? _currentMedia;
 
+        private readonly SemaphoreSlim _operationLock;
+        private bool _isDisposed;
+
         public bool IsPaused => _isPaused;
         public bool IsStopped => _isStopped;
         public bool IsPlaying => _isPlaying;
@@ -42,8 +45,12 @@ namespace GamelistManager.controls
             _volume = 50;
             _visualizationsEnabled = false;
             _isInitializing = false;
+            _operationLock = new SemaphoreSlim(1, 1);
+            _isDisposed = false;
 
             InitializeUI();
+
+            this.Unloaded += UserControl_Unloaded;
         }
 
         private void InitializeUI()
@@ -58,79 +65,175 @@ namespace GamelistManager.controls
             button_Play.IsEnabled = false;
         }
 
-        public async void PlayMedia(string fileName, bool autoPlay)
+        public async Task PlayMediaAsync(string fileName, bool autoPlay)
         {
-            LoadPlaylist(new[] { fileName }, singleFile: true);
+            if (_isDisposed) return;
 
-            if (autoPlay)
+            try
             {
-                await PlayCurrentTrackAsync();
+                LoadPlaylist(new[] { fileName }, singleFile: true);
+
+                if (autoPlay)
+                {
+                    await PlayCurrentTrackAsync();
+                }
+                else
+                {
+                    await LoadPausedAsync(fileName);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await LoadPausedAsync(fileName);
+                await ShowErrorAsync($"Error playing media: {ex.Message}");
+                await ResetPlaybackStateAsync();
             }
         }
 
-        public async void PlayMediaFiles(string[] fileList, bool autoPlay)
+        public async Task PlayMediaFilesAsync(string[] fileList, bool autoPlay)
         {
-            LoadPlaylist(fileList, singleFile: false);
-            if (autoPlay) await PlayCurrentTrackAsync();
+            if (_isDisposed) return;
+
+            try
+            {
+                LoadPlaylist(fileList, singleFile: false);
+                if (autoPlay)
+                {
+                    await PlayCurrentTrackAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync($"Error playing media files: {ex.Message}");
+                await ResetPlaybackStateAsync();
+            }
         }
 
         public async Task ResumePlayingAsync()
         {
-            if (_mediaPlayer != null && _isPaused)
+            if (_isDisposed) return;
+
+            await _operationLock.WaitAsync();
+            try
             {
-                _isPaused = false;
-                _isPlaying = true;
-                _isStopped = false;
+                if (_mediaPlayer != null && _isPaused)
+                {
+                    _mediaPlayer.Play();
 
-                UpdatePlaybackButtons(playing: true, paused: false);
-
-                await Dispatcher.InvokeAsync(() => _mediaPlayer?.Play());
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        _isPaused = false;
+                        _isPlaying = true;
+                        _isStopped = false;
+                        UpdatePlaybackButtons(playing: true, paused: false);
+                    });
+                }
+            }
+            finally
+            {
+                _operationLock.Release();
             }
         }
 
         public async Task PausePlayingAsync()
         {
-            if (_mediaPlayer?.IsPlaying == true)
-            {
-                _isPaused = true;
-                _isStopped = false;
-                _isPlaying = false;
+            if (_isDisposed) return;
 
-                UpdatePlaybackButtons(playing: true, paused: true);
-                await Dispatcher.InvokeAsync(() => _mediaPlayer?.Pause());
+            await _operationLock.WaitAsync();
+            try
+            {
+                if (_mediaPlayer?.IsPlaying == true)
+                {
+                    _mediaPlayer.Pause();
+
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        _isPaused = true;
+                        _isStopped = false;
+                        _isPlaying = false;
+                        UpdatePlaybackButtons(playing: true, paused: true);
+                    });
+                }
+            }
+            finally
+            {
+                _operationLock.Release();
             }
         }
 
         public async Task StopPlayingAsync()
         {
-            if (_mediaPlayer?.IsPlaying == true || _isPaused)
+            if (_isDisposed) return;
+
+            await _operationLock.WaitAsync();
+            try
             {
-                _isPaused = false;
-                _isPlaying = false;
-                _isStopped = true;
-
-                UpdatePlaybackButtons(playing: false, paused: false);
-
-                await Dispatcher.InvokeAsync(() =>
+                if (_mediaPlayer?.IsPlaying == true || _isPaused)
                 {
                     _mediaPlayer?.Stop();
                     _currentMedia?.Dispose();
                     _currentMedia = null;
-                });
+
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        _isPaused = false;
+                        _isPlaying = false;
+                        _isStopped = true;
+                        UpdatePlaybackButtons(playing: false, paused: false);
+                    });
+                }
+            }
+            finally
+            {
+                _operationLock.Release();
             }
         }
 
         public void SetVolume(int volume)
         {
+            if (_isDisposed) return;
+
             _volume = volume;
             if (_mediaPlayer != null)
                 _mediaPlayer.Volume = _volume;
 
-            Dispatcher.InvokeAsync(() => sliderVolume.Value = _volume, DispatcherPriority.Background);
+            Dispatcher.BeginInvoke(() => sliderVolume.Value = _volume, DispatcherPriority.Background);
+        }
+
+        public async Task DisposeMediaAsync()
+        {
+            if (_isDisposed) return;
+
+            await _operationLock.WaitAsync();
+            try
+            {
+                if (_isPlaying || _isPaused)
+                {
+                    _mediaPlayer?.Stop();
+                }
+
+                _currentMedia?.Dispose();
+                _currentMedia = null;
+                _mediaFiles = Array.Empty<string>();
+                _currentIndex = 0;
+
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _isPaused = false;
+                    _isStopped = true;
+                    _isPlaying = false;
+                    button_Play.IsEnabled = false;
+
+                    comboBox_CurrentTrack.SelectionChanged -= ComboBox_CurrentTrack_SelectionChanged;
+                    comboBox_CurrentTrack.ItemsSource = null;
+
+                    if (_mediaPlayer != null)
+                        _mediaPlayer.EndReached -= MediaPlayer_EndReached;
+                });
+            }
+            finally
+            {
+                _operationLock.Release();
+            }
         }
 
         private async Task LoadPausedAsync(string videoPath)
@@ -139,16 +242,29 @@ namespace GamelistManager.controls
                 return;
 
             if (_mediaPlayer == null || _libVLC == null)
-            {
                 await InitializeVLCAsync(_visualizationsEnabled);
-            }
 
-            // Double-check after initialization
             if (_mediaPlayer == null || _libVLC == null)
                 return;
 
             EventHandler<EventArgs>? onPlaying = null;
             var playingEventFired = false;
+
+            const int previewSeekMs = 3000;    // How far into the video to pause
+            const int playingTimeoutMs = 3000; // Maximum wait for Playing event
+
+            void ResetPlaybackState()
+            {
+                _isPaused = false;
+                _isStopped = true;
+                _isPlaying = false;
+                UpdatePlaybackButtons(playing: false, paused: false);
+
+                if (_mediaPlayer != null && onPlaying != null)
+                {
+                    try { _mediaPlayer.Playing -= onPlaying; } catch { }
+                }
+            }
 
             try
             {
@@ -156,16 +272,16 @@ namespace GamelistManager.controls
 
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    // Check again inside dispatcher - could be null due to race condition
                     if (_libVLC == null)
                         return;
 
                     _currentMedia?.Dispose();
                     newMedia = new Media(_libVLC, videoPath, FromType.FromPath);
+                    // Eliminate 'tick' noise from startup
+                    newMedia.AddOption(":no-audio");
                     _currentMedia = newMedia;
                 });
 
-                // If media creation failed, exit
                 if (newMedia == null)
                     return;
 
@@ -176,96 +292,72 @@ namespace GamelistManager.controls
                     if (_mediaPlayer != null)
                         _mediaPlayer.Playing -= onPlaying;
 
-                    Dispatcher.BeginInvoke(new Action(async () =>
+                    Dispatcher.InvokeAsync(async () =>
                     {
                         try
                         {
-                            if (_mediaPlayer == null || !_mediaPlayer.IsPlaying)
+                            if (_mediaPlayer == null)
                                 return;
 
-                            long targetTime = 3000;
-                            if (_mediaPlayer.Length > 0 && _mediaPlayer.Length < 3000)
+                            long targetTime = previewSeekMs;
+                            if (_mediaPlayer.Length > 0 && _mediaPlayer.Length < previewSeekMs)
                                 targetTime = (long)(_mediaPlayer.Length * 0.2);
 
                             _mediaPlayer.Time = targetTime;
 
-                            await Task.Delay(50);
+                            await Task.Delay(50); // small buffer for decoder
 
                             _mediaPlayer.Pause();
-
-                            _isPaused = true;
+                                
+                            // The trick is setting paused as false so media reloads when play is pushed
+                            // That is how we get the video and audio
+                            _isPaused = false;
                             _isStopped = false;
                             _isPlaying = false;
-                            UpdatePlaybackButtons(playing: true, paused: true);
+
+                            UpdatePlaybackButtons(playing: _isPlaying, paused: _isPaused);
                         }
                         catch
                         {
-                            _isPaused = false;
-                            _isStopped = true;
-                            _isPlaying = false;
-                            UpdatePlaybackButtons(playing: false, paused: false);
+                            ResetPlaybackState();
                         }
-                    }));
+                    });
                 };
 
                 _mediaPlayer.Playing += onPlaying;
 
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    _mediaPlayer.Volume = _volume;
                     _mediaPlayer.Play(_currentMedia);
                 });
 
-                var timeout = Task.Delay(3000);
-                while (!playingEventFired && !timeout.IsCompleted)
+                // Wait for Playing event or timeout
+                var timeoutTask = Task.Delay(playingTimeoutMs);
+                while (!playingEventFired && !timeoutTask.IsCompleted)
                 {
                     await Task.Delay(50);
                 }
 
                 if (!playingEventFired)
-                {
-                    if (onPlaying != null && _mediaPlayer != null)
-                    {
-                        try
-                        {
-                            _mediaPlayer.Playing -= onPlaying;
-                        }
-                        catch { }
-                    }
-
-                    _isPaused = false;
-                    _isStopped = true;
-                    _isPlaying = false;
-                    UpdatePlaybackButtons(playing: false, paused: false);
-                }
+                    ResetPlaybackState();
             }
             catch
             {
-                if (onPlaying != null && _mediaPlayer != null)
-                {
-                    try
-                    {
-                        _mediaPlayer.Playing -= onPlaying;
-                    }
-                    catch { }
-                }
-
+                ResetPlaybackState();
                 try
                 {
                     _currentMedia?.Dispose();
                     _currentMedia = null;
                 }
                 catch { }
-
-                _isPaused = false;
-                _isStopped = true;
-                _isPlaying = false;
-                UpdatePlaybackButtons(playing: false, paused: false);
             }
         }
 
+
         private void LoadPlaylist(string[] files, bool singleFile)
         {
+            if (_isDisposed) return;
+
             _mediaFiles = files;
             _currentIndex = 0;
             _isPaused = false;
@@ -273,10 +365,11 @@ namespace GamelistManager.controls
             _isPlaying = false;
 
             var fileNames = Array.ConvertAll(files, Path.GetFileName);
-            comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
+
+            comboBox_CurrentTrack.SelectionChanged -= ComboBox_CurrentTrack_SelectionChanged;
             comboBox_CurrentTrack.ItemsSource = fileNames;
             comboBox_CurrentTrack.SelectedIndex = 0;
-            comboBox_CurrentTrack.SelectionChanged += comboBox_CurrentTrack_SelectionChanged;
+            comboBox_CurrentTrack.SelectionChanged += ComboBox_CurrentTrack_SelectionChanged;
 
             if (singleFile)
             {
@@ -300,7 +393,7 @@ namespace GamelistManager.controls
 
         private async Task PlayCurrentTrackAsync()
         {
-            if (_mediaFiles.Length == 0 || _currentIndex < 0 || _currentIndex >= _mediaFiles.Length)
+            if (_mediaFiles.Length == 0 || _currentIndex < 0 || _currentIndex >= _mediaFiles.Length || _isDisposed)
                 return;
 
             await PlayAsync(_mediaFiles[_currentIndex]);
@@ -308,75 +401,189 @@ namespace GamelistManager.controls
 
         private async Task PlayAsync(string fileName)
         {
-            if (_mediaPlayer == null || _libVLC == null)
-            {
-                await InitializeVLCAsync(_visualizationsEnabled);
-            }
+            if (_isDisposed) return;
 
-            // Double-check after initialization
-            if (_mediaPlayer == null || _libVLC == null)
+            await _operationLock.WaitAsync();
+            try
+            {
+                if (_mediaPlayer == null || _libVLC == null)
+                {
+                    await InitializeVLCAsync(_visualizationsEnabled);
+                }
+
+                if (_mediaPlayer == null || _libVLC == null || _mediaFiles.Length == 0 || _isDisposed)
+                    return;
+
+                bool isAudioFile = IsAudioFile(fileName);
+                bool needsReinit = (isAudioFile && !_visualizationsEnabled) || (!isAudioFile && _visualizationsEnabled);
+
+                if (needsReinit)
+                {
+                    _visualizationsEnabled = isAudioFile;
+                    await InitializeVLCAsync(_visualizationsEnabled);
+
+                    if (_mediaPlayer == null || _libVLC == null || _isDisposed)
+                        return;
+                }
+
+                var libVLC = _libVLC;
+                var mediaPlayer = _mediaPlayer;
+
+                Media? newMedia = null;
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _currentMedia?.Dispose();
+                    newMedia = new Media(libVLC, fileName, FromType.FromPath);
+                    _currentMedia = newMedia;
+                });
+
+                if (newMedia == null || _isDisposed)
+                    return;
+
+                mediaPlayer.Play(newMedia);
+              
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _isPaused = false;
+                    _isStopped = false;
+                    _isPlaying = true;
+                    UpdatePlaybackButtons(playing: true, paused: false);
+                });
+            }
+            finally
+            {
+                _operationLock.Release();
+            }
+        }
+
+        private void GotoNextTrack()
+        {
+            if (_mediaFiles.Length == 0 || _isDisposed) return;
+
+            _currentIndex = _randomPlayback
+                ? _random.Next(0, _mediaFiles.Length)
+                : (_currentIndex + 1) % _mediaFiles.Length;
+
+            Dispatcher.InvokeAsync(() => comboBox_CurrentTrack.SelectedIndex = _currentIndex);
+
+            SafeFireAndForget(PlayCurrentTrackAsync());
+        }
+
+        private void GotoPreviousTrack()
+        {
+            if (_mediaFiles.Length == 0 || _isDisposed) return;
+
+            _currentIndex = _randomPlayback
+                ? _random.Next(0, _mediaFiles.Length)
+                : _currentIndex - 1;
+
+            if (_currentIndex < 0)
+                _currentIndex = _mediaFiles.Length - 1;
+
+            Dispatcher.InvokeAsync(() => comboBox_CurrentTrack.SelectedIndex = _currentIndex);
+
+            SafeFireAndForget(PlayCurrentTrackAsync());
+        }
+
+        private async Task InitializeVLCAsync(bool enableVisualizations)
+        {
+            if (_isInitializing || _isDisposed)
                 return;
 
-            if (_mediaFiles.Length == 0) return;
-
-            bool isAudioFile = IsAudioFile(fileName);
-            bool needsReinit = (isAudioFile && !_visualizationsEnabled) || (!isAudioFile && _visualizationsEnabled);
-
-            if (needsReinit)
+            if (_libVLC != null || _mediaPlayer != null)
             {
-                _visualizationsEnabled = isAudioFile;
-                await InitializeVLCAsync(_visualizationsEnabled);
-
-                // Check again after reinit
-                if (_mediaPlayer == null || _libVLC == null)
-                    return;
+                await DisposeVLCAsync();
             }
 
-            await Dispatcher.InvokeAsync(() =>
+            _isInitializing = true;
+
+            try
             {
-                // Check again inside dispatcher - could be null due to race condition
-                if (_libVLC == null || _mediaPlayer == null)
-                    return;
+                await Task.Run(async () =>
+                {
+                    try
+                    {
+                        var vlcOptions = new List<string>
+                        {
+                            "--network-caching=300",
+                            "--file-caching=300"
+                        };
 
-                _currentMedia?.Dispose();
-                _currentMedia = new Media(_libVLC, fileName, FromType.FromPath);
+                        if (enableVisualizations)
+                        {
+                            vlcOptions.Add("--audio-visual=visual");
+                            vlcOptions.Add("--effect-width=50");
+                            vlcOptions.Add("--effect-height=50");
+                            vlcOptions.Add("--effect-list=spectrometer");
 
-                _mediaPlayer.Play(_currentMedia);
-                _mediaPlayer.Volume = _volume;
-            });
+                            var libVlcDirectory = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "vlc"));
+                            vlcOptions.Add($"--plugin-path={libVlcDirectory.FullName}");
+                        }
 
-            _isPaused = false;
-            _isStopped = false;
-            _isPlaying = true;
-            UpdatePlaybackButtons(playing: true, paused: false);
+                        var libVLC = new LibVLC(vlcOptions.ToArray());
+                        var mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(libVLC);
+                        mediaPlayer.Volume = _volume;
+
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            if (_isDisposed) return;
+
+                            _libVLC = libVLC;
+                            _mediaPlayer = mediaPlayer;
+                            VideoView.MediaPlayer = mediaPlayer;
+                            mediaPlayer.EndReached += MediaPlayer_EndReached;
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowErrorAsync($"VLC Init Error: {ex.Message}");
+                    }
+                });
+            }
+            finally
+            {
+                _isInitializing = false;
+            }
         }
 
-        public async Task DisposeMediaAsync()
+        private async Task DisposeVLCAsync()
         {
-            // Stop playback if necessary
-            if (_isPlaying || _isPaused)
+            await Task.Run(async () =>
             {
-                await StopPlayingAsync();
-            }
+                var mediaPlayer = _mediaPlayer;
+                var libVLC = _libVLC;
+                var currentMedia = _currentMedia;
 
-            _currentMedia?.Dispose();
-            _mediaFiles = Array.Empty<string>();
-            _currentIndex = 0;
-            _isPaused = false;
-            _isStopped = true;
-            _isPlaying = false;
-            button_Play.IsEnabled = false;
-            await Dispatcher.InvokeAsync(() =>
-            {
-                comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
-                comboBox_CurrentTrack.ItemsSource = null;
-                if (_mediaPlayer != null)
-                   _mediaPlayer.EndReached -= MediaPlayer_EndReached!;
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _mediaPlayer = null;
+                    _libVLC = null;
+                    _currentMedia = null;
+                });
+
+                try
+                {
+                    if (mediaPlayer != null)
+                    {
+                        if (mediaPlayer.IsPlaying)
+                            mediaPlayer.Stop();
+
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            mediaPlayer.EndReached -= MediaPlayer_EndReached;
+                        });
+
+                        mediaPlayer.Dispose();
+                    }
+
+                    libVLC?.Dispose();
+                    currentMedia?.Dispose();
+                }
+                catch { }
             });
-
         }
 
-        private bool IsAudioFile(string fileName)
+        private static bool IsAudioFile(string fileName)
         {
             string[] audioExtensions = { ".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a" };
             return audioExtensions.Contains(Path.GetExtension(fileName).ToLower());
@@ -389,176 +596,171 @@ namespace GamelistManager.controls
             button_Stop.IsEnabled = playing || paused;
         }
 
-        private void GotoNext()
-        {
-            if (_mediaFiles.Length == 0) return;
-
-            _currentIndex = _randomPlayback
-                ? _random.Next(0, _mediaFiles.Length)
-                : (_currentIndex + 1) % _mediaFiles.Length;
-
-            Dispatcher.InvokeAsync(() => comboBox_CurrentTrack.SelectedIndex = _currentIndex);
-            _ = PlayCurrentTrackAsync();
-        }
-
-        private void GotoPrevious()
-        {
-            if (_mediaFiles.Length == 0) return;
-
-            _currentIndex = _randomPlayback
-                ? _random.Next(0, _mediaFiles.Length)
-                : _currentIndex - 1;
-
-            if (_currentIndex < 0) _currentIndex = _mediaFiles.Length - 1;
-
-            Dispatcher.InvokeAsync(() => comboBox_CurrentTrack.SelectedIndex = _currentIndex);
-            _ = PlayCurrentTrackAsync();
-        }
-
-        private async Task InitializeVLCAsync(bool enableVisualizations)
-        {
-            if (_isInitializing)
-                return;
-
-            if (_libVLC != null || _mediaPlayer != null)
-            {
-                await DisposeVLCAsync();
-            }
-
-            _isInitializing = true;
-
-            try
-            {
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    var vlcOptions = new List<string>
-                    {
-                        "--network-caching=300",
-                        "--file-caching=300"
-                    };
-
-                    if (enableVisualizations)
-                    {
-                        vlcOptions.Add("--audio-visual=visual");
-                        vlcOptions.Add("--effect-width=50");
-                        vlcOptions.Add("--effect-height=50");
-                        vlcOptions.Add("--effect-list=spectrometer");
-
-                        var libVlcDirectory = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "vlc"));
-                        vlcOptions.Add($"--plugin-path={libVlcDirectory.FullName}");
-                    }
-
-                    _libVLC = new LibVLC(vlcOptions.ToArray());
-                    _mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
-                    VideoView.MediaPlayer = _mediaPlayer;
-                    _mediaPlayer.Volume = _volume;
-                    _mediaPlayer.EndReached += MediaPlayer_EndReached;
-                });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"VLC Init Error: {ex.Message}");
-            }
-            finally
-            {
-                _isInitializing = false;
-            }
-        }
-
-        private async Task DisposeVLCAsync()
+        private async Task ResetPlaybackStateAsync()
         {
             await Dispatcher.InvokeAsync(() =>
             {
-                try
-                {
-                    if (_mediaPlayer != null)
-                    {
-                        if (_mediaPlayer.IsPlaying || _isPaused)
-                            _mediaPlayer.Stop();
-
-                        _mediaPlayer.EndReached -= MediaPlayer_EndReached;
-                        _mediaPlayer.Dispose();
-                        _mediaPlayer = null;
-                    }
-
-                    _libVLC?.Dispose();
-                    _libVLC = null;
-
-                    _currentMedia?.Dispose();
-                    _currentMedia = null;
-                }
-                catch { }
+                _isPaused = false;
+                _isStopped = true;
+                _isPlaying = false;
+                UpdatePlaybackButtons(playing: false, paused: false);
             });
         }
 
-        public void MediaPlayerControlDispose()
+        private async Task ShowErrorAsync(string message)
         {
-            this.Unloaded -= UserControl_Unloaded;
-            _mediaFiles = Array.Empty<string>();
-
-            comboBox_CurrentTrack.SelectionChanged -= comboBox_CurrentTrack_SelectionChanged;
-            comboBox_CurrentTrack.ItemsSource = null;
-
-            _ = DisposeVLCAsync();
+            await Dispatcher.InvokeAsync(() => MessageBox.Show(message));
         }
 
-        private void MediaPlayer_EndReached(object sender, EventArgs e) => Dispatcher.InvokeAsync(GotoNext);
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void SafeFireAndForget(Task task)
         {
-            if (sender is not Button button) return;
-
-            if (button == button_Play)
+            try
             {
-                if (_mediaPlayer != null && _isPaused)
+                await task;
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync($"Playback error: {ex.Message}");
+                await ResetPlaybackStateAsync();
+            }
+        }
+
+        private void MediaPlayer_EndReached(object? sender, EventArgs e)
+        {
+            GotoNextTrack();
+        }
+
+        private async void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isDisposed) return;
+
+            try
+            {
+                if (sender is not Button button) return;
+
+                if (button == button_Play)
                 {
-                    ResumePlayingAsync();
+                    if (_mediaPlayer != null && _isPaused)
+                    {
+                        await ResumePlayingAsync();
+                    }
+                    else
+                    {
+                        await PlayCurrentTrackAsync();
+                    }
                 }
-                else
+                else if (button == button_Pause)
                 {
-                    _ = PlayCurrentTrackAsync();
+                    await PausePlayingAsync();
+                }
+                else if (button == button_Stop)
+                {
+                    await StopPlayingAsync();
+                }
+                else if (button == button_Previous)
+                {
+                    GotoPreviousTrack();
+                }
+                else if (button == button_Next)
+                {
+                    GotoNextTrack();
                 }
             }
-            else if (button == button_Pause) PausePlayingAsync();
-            else if (button == button_Stop) StopPlayingAsync();
-            else if (button == button_Previous) GotoPrevious();
-            else if (button == button_Next) GotoNext();
+            catch (Exception ex)
+            {
+                await ShowErrorAsync($"Playback error: {ex.Message}");
+                await ResetPlaybackStateAsync();
+            }
         }
 
-        private void button_Playlist_Click(object sender, RoutedEventArgs e)
+        private void Button_Playlist_Click(object sender, RoutedEventArgs e)
         {
+            if (_isDisposed) return;
+
             comboBox_CurrentTrack.Visibility = comboBox_CurrentTrack.Visibility == Visibility.Visible
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         }
 
-        private void comboBox_CurrentTrack_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void ComboBox_CurrentTrack_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is not ComboBox comboBox || comboBox.SelectedIndex == -1) return;
+            if (_isDisposed) return;
 
-            _currentIndex = comboBox.SelectedIndex;
-            if (_currentIndex >= 0 && _currentIndex < _mediaFiles.Length)
-                _ = PlayAsync(_mediaFiles[_currentIndex]);
+            try
+            {
+                if (sender is not ComboBox comboBox || comboBox.SelectedIndex == -1) return;
+
+                _currentIndex = comboBox.SelectedIndex;
+                if (_currentIndex >= 0 && _currentIndex < _mediaFiles.Length)
+                    await PlayAsync(_mediaFiles[_currentIndex]);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync($"Error changing track: {ex.Message}");
+                await ResetPlaybackStateAsync();
+            }
         }
 
-        private void checkBox_Randomize_Click(object sender, RoutedEventArgs e) =>
+        private void CheckBox_Randomize_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isDisposed) return;
             _randomPlayback = checkBox_Randomize.IsChecked == true;
+        }
 
-        private void UserControl_Unloaded(object sender, RoutedEventArgs e) => MediaPlayerControlDispose();
+        private async void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            await DisposeAsync();
+        }
 
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (_isDisposed) return;
+
             _volume = (int)sliderVolume.Value;
-            if (_mediaPlayer != null) _mediaPlayer.Volume = _volume;
+            if (_mediaPlayer != null)
+                _mediaPlayer.Volume = _volume;
         }
 
-        private void sliderVolume_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void SliderVolume_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (_isDisposed) return;
+
             if (sender is Slider slider)
             {
                 var pos = e.GetPosition(slider);
                 slider.Value = pos.X / slider.ActualWidth * (slider.Maximum - slider.Minimum) + slider.Minimum;
             }
+        }
+
+        public async Task DisposeAsync()
+        {
+            if (_isDisposed) return;
+
+            _isDisposed = true;
+
+            await _operationLock.WaitAsync();
+            try
+            {
+                this.Unloaded -= UserControl_Unloaded;
+
+                await DisposeMediaAsync();
+                await DisposeVLCAsync();
+
+                _mediaFiles = Array.Empty<string>();
+
+                comboBox_CurrentTrack.SelectionChanged -= ComboBox_CurrentTrack_SelectionChanged;
+                comboBox_CurrentTrack.ItemsSource = null;
+            }
+            finally
+            {
+                _operationLock.Release();
+                _operationLock.Dispose();
+            }
+        }
+
+        public void MediaPlayerControlDispose()
+        {
+            _ = DisposeAsync();
         }
     }
 }

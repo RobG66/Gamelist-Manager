@@ -9,13 +9,10 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="controls\MediaEditButtons.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="controls\MediaPlayerControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="controls\MessageBoxWithCheckbox.xaml.cs">
+    <Compile Update="controls\MessageBoxWithCheckboxControl.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="pages\MediaPage.xaml.cs">
@@ -42,11 +39,11 @@
     <Compile Update="windows\MediaToolWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="windows\GamelistReportWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="controls\MediaEditButtons.xaml">
-      <SubType>Designer</SubType>
-    </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
@@ -71,6 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Update="resources\resource dictionaries\controls\CustomRibbonStyle.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\controls\CustomImageCombobox.xaml">
+      <SubType>Designer</SubType>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\controls\CustomContextMenu.xaml">
       <SubType>Designer</SubType>
     </Resource>
     <Resource Update="resources\resource dictionaries\themes\SandyTheme.xaml">

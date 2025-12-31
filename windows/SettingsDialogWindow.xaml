@@ -95,33 +95,85 @@
                     Margin="0,0,0,10"
                     BorderBrush="{DynamicResource AccentBrush}" 
                     BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="MAME Exe Path" 
-                               FontWeight="SemiBold" 
-                               Foreground="{DynamicResource AccentBrush}" 
-                               Margin="0,0,0,8"/>
+                    <StackPanel>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="textBox_MamePath" Grid.Column="0" Height="20"
-                                 Style="{DynamicResource CustomTextBox}"
-                                 VerticalAlignment="Center"
-                                 MaxLength="150"
-                                 TextChanged="TextBox_TextChanged"/>
-                        <Button x:Name="button_FindMame"
-                                Grid.Column="1"
-                                Width="26" Height="26"
-                                Margin="5,0,0,0"
-                                Click="Button_FindMame_Click"
-                                Style="{DynamicResource CustomImageButton}"
-                                ToolTip="Browse for MAME">
-                            <Image Source="pack://application:,,,/resources/images/icons/folder.png" Width="18" Height="18"/>
-                        </Button>
-                    </Grid>
-                </StackPanel>
+                        <!-- Section Header -->
+                    <TextBlock Text="Paths" 
+                  FontWeight="SemiBold" 
+                  Foreground="{DynamicResource AccentBrush}" 
+                  Margin="0,0,0,8"/>
+
+                    <!-- MAME EXE PATH -->
+                        <StackPanel>
+                        <Label Content="Mame.exe Path :" Padding="0,0,0,2"/>
+
+                        <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="textBox_MamePath"
+                         Grid.Column="0"
+                         Height="20"
+                         Style="{DynamicResource CustomTextBox}"
+                         VerticalAlignment="Center"
+                         MaxLength="150"
+                         TextChanged="TextBox_TextChanged"/>
+
+                                <Button x:Name="button_FindMame"
+                        Grid.Column="1"
+                        Width="26"
+                        Height="26"
+                        Margin="5,0,0,0"
+                        Click="Button_FindMame_Click"
+                        Style="{DynamicResource CustomImageButton}"
+                        ToolTip="Browse for MAME">
+                                    <Image Source="pack://application:,,,/resources/images/icons/folder.png"
+                           Width="18"
+                           Height="18"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Spacer -->
+                        <Border Height="12" Background="Transparent"/>
+
+                        <!-- ROMS PATH -->
+                        <StackPanel>
+                        <Label Content="Roms Path :" Padding="0,0,0,2"/>
+
+                        <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox x:Name="textBox_RomsFolder"
+                         Grid.Column="0"
+                         Height="20"
+                         Style="{DynamicResource CustomTextBox}"
+                         VerticalAlignment="Center"
+                         MaxLength="150"
+                         TextChanged="TextBox_TextChanged"/>
+
+                                <Button x:Name="button_FindRoms"
+                        Grid.Column="1"
+                        Width="26"
+                        Height="26"
+                        Margin="5,0,0,0"
+                        Click="Button_FindRoms_Click"
+                        Style="{DynamicResource CustomImageButton}"
+                        ToolTip="Browse for ROMs folder">
+                                    <Image Source="pack://application:,,,/resources/images/icons/folder.png"
+                           Width="18"
+                           Height="18"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+            
             </Border>
 
             <!-- Save / Close -->
@@ -135,14 +187,6 @@
                         Width="70" Margin="5,0,0,0" Height="20" 
                         Click="ButtonClose_Click"/>
             </StackPanel>
-
-            <TextBlock TextWrapping="Wrap" 
-                       FontStyle="Italic" 
-                       FontSize="10"
-                       Opacity="0.7"
-                       Margin="5,0,0,0" 
-                       Text="Change Tracking changes do not take effect until a new gamelist is loaded." 
-                       VerticalAlignment="Top"/>
 
         </StackPanel>
 
@@ -276,13 +320,6 @@
                                    ToolTip="50 - 300"
                                    DataObject.Pasting="NumericTextBox_Pasting"/>
                                     </StackPanel>
-
-                            <CheckBox x:Name="checkBox_DisableScrapeNotifications" 
-                             Style="{DynamicResource CustomCheckBox}" 
-                             VerticalAlignment="Center" 
-                             ToolTip="Disables most notifications when scraping from the media page" 
-                             Content="Disable Media Scrape Notifications" 
-                             Click="CheckBox_Click"/>
 
 
                         </UniformGrid>

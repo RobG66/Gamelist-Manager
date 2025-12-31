@@ -39,7 +39,7 @@
             <Button x:Name="button_Playlist"
             Style="{StaticResource CustomImageButton}"
             ToolTip="Show File Picker"
-            Click="button_Playlist_Click"
+            Click="Button_Playlist_Click"
             Margin="5,3,5,3"
             Visibility="Visible"
             Grid.Column="0"
@@ -51,7 +51,7 @@
               Content="Random"
               Style="{StaticResource CustomCheckBox}"
               VerticalAlignment="Center"
-              Click="checkBox_Randomize_Click"
+              Click="CheckBox_Randomize_Click"
               Margin="5,0,5,0"
               Grid.Column="1"
               Visibility="Visible"
@@ -112,7 +112,7 @@
             Margin="10,0,10,0"
             Style="{StaticResource CustomSlider}"
             ValueChanged="Slider_ValueChanged"
-            PreviewMouseDown="sliderVolume_PreviewMouseDown">
+            PreviewMouseDown="SliderVolume_PreviewMouseDown">
             </Slider>
         </Grid>
 

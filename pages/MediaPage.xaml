@@ -10,22 +10,65 @@
                 CornerRadius="8"
                 Padding="5">
             <Grid Margin="0,12,0,0">
-                <!-- SCALED MODE: Viewbox only -->
-                <Viewbox x:Name="ScaledModeViewbox"
-                         Stretch="Uniform"
-                         Visibility="Collapsed">
-                    <Grid x:Name="ScaledContentHost"/>
-                </Viewbox>
-                <!-- SCROLL MODE: ScrollViewer -> Viewbox -> Content -->
-                <ScrollViewer x:Name="ScrollModeScrollViewer"
-                              HorizontalScrollBarVisibility="Auto"
-                              VerticalScrollBarVisibility="Disabled"
-                              Visibility="Visible">
-                    <Viewbox x:Name="ScrollModeViewbox"
-                             Stretch="Uniform">
-                        <Grid x:Name="ScrollContentHost"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Main content area -->
+                <Grid Grid.Row="0">
+                    <!-- SCALED MODE: Viewbox only -->
+                    <Viewbox x:Name="ScaledModeViewbox"
+                             Stretch="Uniform"
+                             Visibility="Collapsed">
+                        <Grid x:Name="ScaledContentHost"/>
                     </Viewbox>
-                </ScrollViewer>
+                    <!-- SCROLL MODE: ScrollViewer -> Viewbox -> Content -->
+                    <ScrollViewer x:Name="ScrollModeScrollViewer"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  Visibility="Visible">
+                        <Viewbox x:Name="ScrollModeViewbox"
+                                 Stretch="Uniform">
+                            <Grid x:Name="ScrollContentHost"/>
+                        </Viewbox>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- Status Bar -->
+                <Border Grid.Row="1"
+                        Background="{DynamicResource PrimaryBackgroundBrush}"
+                        BorderBrush="{DynamicResource PrimaryBorderBrush}"
+                        BorderThickness="0,1,0,0"
+                        CornerRadius="0,0,7,7"
+                        Padding="8,4"
+                        Margin="-5,4,-5,-5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Status icon (optional) -->
+                        <TextBlock x:Name="StatusIcon"
+                                   Grid.Column="0"
+                                   Text="ℹ"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,6,0"
+                                   Visibility="Collapsed"/>
+
+                        <!-- Status message -->
+                        <TextBlock x:Name="StatusText"
+                                   Grid.Column="1"
+                                   Text="Ready"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource PrimaryForegroundBrush}"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+                </Border>
             </Grid>
         </Border>
 

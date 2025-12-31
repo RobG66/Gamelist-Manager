@@ -228,6 +228,14 @@
     <!-- BUTTON STYLES -->
     <!-- ============================================ -->
 
+    <!-- Modern Toggle Button Style -->
+    <Style x:Key="CustomToggleButton" TargetType="ToggleButton" BasedOn="{StaticResource CustomToggleButton}">
+        <Setter Property="Background" Value="#F0EBE6"/>
+        <Setter Property="Foreground" Value="#2C2C2C"/>
+        <Setter Property="BorderBrush" Value="#E8E0D8"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
     <Style x:Key="GreyRoundedButton" TargetType="Button" BasedOn="{StaticResource CustomRoundedButton}">
         <Setter Property="Background" Value="#F0EBE6"/>
         <Setter Property="Foreground" Value="#2C2C2C"/>
