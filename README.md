@@ -12,6 +12,21 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 This program is not Wine compatible
 
 ---
+ January 4th, 2026
+
+  Gamelist Manager 8.6 will be the last version to be built upon windows WPF.  I have decided to focus on future development being cross platform compatible with Avalonia.  I have already begun porting over code which isn't too bad, but the gui will see some design changes for sure.        
+
+ Early work, not themed yet... Functional, but still a lot to do.  I'm just (re) building the settings page now.
+
+<img width="2676" height="1768" alt="image" src="https://github.com/user-attachments/assets/f6c4f55d-3507-4a1d-b173-91fe4e058d7f" />
+
+<img width="2676" height="1768" alt="image" src="https://github.com/user-attachments/assets/5900cc7b-277c-421f-b8ca-a2f55c8bea0d" />
+
+<img width="2676" height="1768" alt="image" src="https://github.com/user-attachments/assets/b1fcdab6-8ffe-474e-b63d-0e8786be324a" />
+
+
+
+---
 December 31st, 2025
 
  Known bugs fixed, and a few more features will round out 2025 with the release of Gamelist Manager 8.6.  Get it while it's hot! :)
