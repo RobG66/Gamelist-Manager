@@ -12,6 +12,15 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 This program is not Wine compatible
 
 ---
+January 7th, 2026
+
+ Media controls are wired in, but there's a lot of work to do there..  I did a rough port-in of the scraper gui from WPF.  Obviously it needs work, but that's how it kind of starts.  I'm using Gitub Copilot to assist with the 'porting' and helping me with the mvvm stuff too.  There are so many bindings and hooks that it's easy to become overwhelmed by it all.  Copilot makes a lot of mistakes too so that increases the amount I need to use it to find and fix what it screwed up in the first place.  It's a vicious circle and there's no refund for their misakes!  I have already hit a major roadblock with VLC which is frustrating, but I've pushed that aside for now.  And I still don't like the Avalonia licensing where they keep their media player paywalled because they know VLC has issues.  I don't want their other accelerate stuff, I just want a working media player that isn't such a PITA (cough VLC cough)!  Copilot costs money, Avalonia Accelerate costs money, Uno costs money...  Suddenly free software isn't free any more and I hate that.  I have no problem spending time doing this, but I do have limits on out of pocket expenses.  Sorry for the rant...  Anyhow, see the rough in, I hope I can complete the scraper without running out of copilot assistance $$$$.                         
+
+ <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/02898248-b577-40bb-8678-2c60a2f34326" />
+
+
+
+---
  January 4th, 2026
 
   Gamelist Manager 8.6 will be the last version to be built upon windows WPF.  I have decided to focus on future development being cross platform compatible with Avalonia.  I have already begun porting over code which isn't too bad, but the gui will see some design changes for sure.        
