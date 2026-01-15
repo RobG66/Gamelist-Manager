@@ -12,6 +12,20 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 This program is not Wine compatible
 
 ---
+
+January 15th, 2026
+
+ As you may know, or not, the development of the Windows only version of Gamelist Manager has stopped.  Version 9 will be a 'port' to Avalonia so the program can be truly cross platform compatible.  But, I need your help to see this through.  I've been using a lot of Github CoPilot to migrate code and sometimes it's straightforward, sometimes it's difficult.  AI costs money and I have no budget for this except what I personally spent the first month for a pro subsbsription ($50 US/mo).  1/3 of that was covered by a few past donations I still had in paypal (thank you again).  I expect another few weeks of heavy lifting and then I can probably cancel that subscription, or cut it back to the $10/mo rate.  There is also the issue of an Avalonia Accererate subscription to use their media player, but I would not pay for that until I am ready to put that in.  I have tried very hard to avoid it, but other solutions are just not working.  For the time being, I just have a placeholder in place for video previews.  
+
+
+ I am now 90% through my monthly alotment of AI and it's been just 2 weeks of use.  When I hit 100%, I will see where things are and go from there.  And you might think why do I need AI anyhow?  Well, I definitely wouldn't even be this far along without it.  MVVM is making it more difficult in some respects, but I wanted the structure in place. It's just hard to get there and I'm still just a rookie at this.     
+
+ <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/1fd36bf2-91e5-4bde-aa60-1d9aace8f28d" />
+
+
+Rob
+
+---
 # Gamelist Manager
 
 A comprehensive desktop application designed for retro gaming enthusiasts to manage, organize, and enhance their game collections. Gamelist Manager provides powerful tools for editing metadata, scraping information from online databases, and maintaining gamelist XML files for popular emulation frontends like EmulationStation and Batocera/Retrobat.
