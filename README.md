@@ -9,7 +9,13 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [PayPal](https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US)
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
-This program is not Wine compatible
+Version 8 is not wine compatible.  Version 9 will be cross platform compatible.
+
+---
+
+ January 19th, 2026
+
+  V9 scraping has been wired in now, but still needs some work and thorough testing.  Media drag/drop is also working now too.  Not much else going on right now, it's quiet....  
 
 ---
 
