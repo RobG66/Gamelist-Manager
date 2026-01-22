@@ -13,6 +13,14 @@ Version 8 is not wine compatible.  Version 9 will be cross platform compatible.
 
 ---
 
+ January 22nd, 2026
+
+ I posted the first release of my Doom launcher program.  It's designed to be cross-platform compatible and work within Batocera.  It's also a work in progress and can be found here:  https://github.com/RobG66/DMINLauncher
+
+ Nothing new to report with Gamelist Manager.  Still quiet........  
+
+---
+
  January 19th, 2026
 
   V9 scraping has been wired in now, but still needs some work and thorough testing.  Media drag/drop is also working now too.  Not much else going on right now, it's quiet....  
@@ -21,18 +29,8 @@ Version 8 is not wine compatible.  Version 9 will be cross platform compatible.
 
 January 15th, 2026
 
- As you may know, or not, the development of the Windows only version of Gamelist Manager has stopped.  Version 9 will be a 'port' to Avalonia so the program can be truly cross platform compatible.  But, I need your help to see this through.  I've been using a lot of Github CoPilot to migrate code and sometimes it's straightforward, sometimes it's difficult.  AI costs money and I have no budget for this except what I personally spent the first month already.  1/4 of that was covered by a few past donations I still had in paypal (thank you again).  I expect another few weeks of heavy lifting and then I can probably cancel that subscription, or cut it back to the $10/mo rate.  There is also the issue of an Avalonia Accererate subscription to use their media player, but I would not pay for that until I am ready to put that in.  I have tried very hard to avoid it, but other solutions are just not working.  For the time being, I just have a placeholder in place for video previews.  
-
-<img width="3365" height="1109" alt="image" src="https://github.com/user-attachments/assets/11f81658-ace7-4105-ae48-9c92f8bce48f" />
-
-
- I am now 90% through my monthly alotment of AI and it's been just 2 weeks of use.  When I hit 100%, I will see where things are and go from there.  And you might think why do I need AI anyhow?  Well, I definitely wouldn't even be this far along without it.  MVVM is making it more difficult in some respects, but I wanted the structure in place. It's just hard to get there and I'm still just a rookie at this.     
-
- <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/1fd36bf2-91e5-4bde-aa60-1d9aace8f28d" />
-
-
-Rob
-
+ As you may know, or not, the development of the Windows only version of Gamelist Manager has stopped.  Version 9 will be a 'port' to Avalonia so the program can be truly cross platform compatible.
+ 
 ---
 # Gamelist Manager
 
