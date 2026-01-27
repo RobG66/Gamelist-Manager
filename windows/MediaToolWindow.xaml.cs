@@ -473,8 +473,8 @@ namespace GamelistManager
                 string mediaType = item.MediaType;
                 string matchedFile = item.MatchedFile;
 
-                // Convert the full path to a relative path
-                string relativePath = FilePathHelper.ConvertPathToRelativePath(matchedFile, _parentFolderPath);
+                // Convert the full path to a gamelist-relative path
+                string relativePath = FilePathHelper.ConvertPathToGamelistRomPath(matchedFile, _parentFolderPath);
 
                 if (rowLookup.TryGetValue(item.RomPath, out DataRow? foundRow))
                 {
