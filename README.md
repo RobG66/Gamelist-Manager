@@ -13,6 +13,14 @@ Version 8 is not wine compatible.  Version 9 will be cross platform compatible.
 
 ---
 
+ January 27th, 2026
+
+ - DMINLauncher 1.2 released.
+ - I may do an 8.7 hotfix for 2 minor bugs.
+ - LIBVLCSharp scaling fix incoming for Avalonia (great news!)
+ - Version 9 development on hold for now.  No funds for dev costs.       
+
+---
  January 22nd, 2026
 
  I posted the first release of my Doom launcher program.  It's designed to be cross-platform compatible and work within Batocera.  It's also a work in progress and can be found here:  https://github.com/RobG66/DMINLauncher
