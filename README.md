@@ -17,8 +17,7 @@ Version 8 is not wine compatible.  Version 9 will be cross platform compatible.
 
  - DMINLauncher 1.2 released.
  - I may do an 8.7 hotfix for 2 minor bugs.
- - LIBVLCSharp scaling fix incoming for Avalonia (great news!)
- - Version 9 development on hold for now.  No funds for dev costs.       
+ - LIBVLCSharp scaling fix incoming for Avalonia (great news!)      
 
 ---
  January 22nd, 2026
