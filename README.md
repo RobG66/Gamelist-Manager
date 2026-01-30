@@ -13,6 +13,12 @@ Version 8 is not wine compatible.  Version 9 will be cross platform compatible.
 
 ---
 
+ January 30th, 2026
+
+ Gamelist Manager 8.7 released.  This includes a few minor fixes and tweaks.     
+
+---
+
  January 27th, 2026
 
  - DMINLauncher 1.2 released.
