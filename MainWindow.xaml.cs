@@ -3130,7 +3130,6 @@ namespace GamelistManager
             {
                 MainGrid.RowDefinitions[4].Height = new GridLength(210);
                 gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
-                _datToolPage.ResetDatToolPage();
                 MainContentFrame.Navigate(_datToolPage);
             }
             else
@@ -4108,9 +4107,12 @@ namespace GamelistManager
                 return;
             }
 
-            GamelistReportWindow gamelistReportWindow = new(gamelistPaths);
+            // Get current system path from SharedData
+            string? currentSystemPath = !string.IsNullOrEmpty(SharedData.XMLFilename) ? SharedData.XMLFilename : null;
+
+            GamelistReportWindow gamelistReportWindow = new(gamelistPaths, currentSystemPath);
             gamelistReportWindow.ShowDialog();
-           
+
         }
 
     }

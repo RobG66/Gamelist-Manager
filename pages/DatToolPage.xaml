@@ -85,14 +85,24 @@
                                 Width="75"
                                 HorizontalAlignment="Center"/>
 
-                        <Button x:Name="button_OpenDatFile"
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <Button x:Name="button_OpenDatFile"
                                 Content="Open DAT File"
                                 Click="Button_OpenDatFile_Click"
                                 Style="{DynamicResource GreenRoundedButton}"
                                 Height="20"
-                                Width="75"
-                                HorizontalAlignment="Center"
-                                Margin="0,5,0,0"/>
+                                Width="70"
+                                HorizontalAlignment="Center"/>
+                            <Button Style="{DynamicResource RedRoundedButton}"
+                       Name="button_CloseDATPage"
+                       Content="Close Panel"
+                       Height="20"
+                       Width="60"
+                       Margin="5,0,0,0"
+                       ToolTip="Close DAT Summary Panel"
+                       Click="Button_DatPageClose_Click">
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -237,17 +247,7 @@
                         <ComboBoxItem FontWeight="SemiBold" Content="Non Playable"/>
                         <ComboBoxItem FontWeight="SemiBold" Content="Not In DAT"/>
                       </ComboBox>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <Button Style="{DynamicResource CustomImageButton}"
-                                Name="button_CloseDATPage"
-                                Height="20"
-                                Width="20"
-                                Margin="5,0,0,0"
-                                ToolTip="Close DAT Summary Panel"
-                                Click="Button_DatPageClose_Click">
-                            <Image Source="pack://application:,,,/resources/images/buttons/x-button.png" Width="16" Height="16"/>
-                        </Button>
-                    </StackPanel>
+         
                 </StackPanel>
 
                 <!-- DAT File Info -->

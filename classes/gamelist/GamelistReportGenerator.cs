@@ -764,7 +764,7 @@ namespace GamelistManager.classes.gamelist
                     string digits = new string(line.Where(char.IsDigit).ToArray());
                     if (!int.TryParse(digits, out totalGames))
                     {
-                        totalGames = 0; // fallback if parsing fails
+                        totalGames = 0;
                     }
                 }
                 else if (line.Contains("Total Images:"))
@@ -796,7 +796,6 @@ namespace GamelistManager.classes.gamelist
                 }
             }
 
-
             if (totalGames == 0)
             {
                 var noDataText = new TextBlock
@@ -822,14 +821,30 @@ namespace GamelistManager.classes.gamelist
                 FontSize = 14,
                 FontWeight = FontWeights.Bold
             };
-            Canvas.SetLeft(title, 50);
+            Canvas.SetLeft(title, 10);
             Canvas.SetTop(title, 10);
             canvas.Children.Add(title);
 
-            double centerX = 120;
-            double centerY = 100;
-            double radius = 55;
-            double startAngle = 0;
+            var subtitle = new TextBlock
+            {
+                Text = "Shows what % of your games have each media type",
+                FontSize = 9,
+                Foreground = Brushes.Gray
+            };
+            Canvas.SetLeft(subtitle, 10);
+            Canvas.SetTop(subtitle, 28);
+            canvas.Children.Add(subtitle);
+
+            var example = new TextBlock
+            {
+                Text = $"(e.g., {imagePercent:F0}% = {totalImages} of {totalGames} games have images)",
+                FontSize = 8,
+                Foreground = Brushes.DarkGray,
+                FontStyle = FontStyles.Italic
+            };
+            Canvas.SetLeft(example, 10);
+            Canvas.SetTop(example, 40);
+            canvas.Children.Add(example);
 
             var colors = new[]
             {
@@ -841,41 +856,74 @@ namespace GamelistManager.classes.gamelist
             var dataPoints = new[] { imagePercent, videoPercent, manualPercent };
             var labels = new[] { "Images", "Videos", "Manuals" };
 
+            double barWidth = 180;
+            double barHeight = 25;
+            double startY = 60;
+            double labelWidth = 65;
+            double spacing = 35;
+
             for (int i = 0; i < dataPoints.Length; i++)
             {
-                double sweepAngle = (dataPoints[i] / 100.0) * 360;
+                double y = startY + (i * spacing);
 
-                if (sweepAngle > 0.1)
+                var labelText = new TextBlock
                 {
-                    var segment = CreatePieSegment(centerX, centerY, radius, startAngle, sweepAngle, colors[i]);
-                    canvas.Children.Add(segment);
-                    startAngle += sweepAngle;
+                    Text = labels[i],
+                    FontSize = 11,
+                    FontWeight = FontWeights.SemiBold
+                };
+                Canvas.SetLeft(labelText, 15);
+                Canvas.SetTop(labelText, y + 5);
+                canvas.Children.Add(labelText);
+
+                var barBackground = new Rectangle
+                {
+                    Width = barWidth,
+                    Height = barHeight,
+                    Fill = Brushes.LightGray,
+                    Stroke = Brushes.Gray,
+                    StrokeThickness = 1
+                };
+                Canvas.SetLeft(barBackground, labelWidth + 15);
+                Canvas.SetTop(barBackground, y);
+                canvas.Children.Add(barBackground);
+
+                double fillWidth = (dataPoints[i] / 100.0) * barWidth;
+                if (fillWidth > 0)
+                {
+                    var barFill = new Rectangle
+                    {
+                        Width = fillWidth,
+                        Height = barHeight,
+                        Fill = colors[i]
+                    };
+                    Canvas.SetLeft(barFill, labelWidth + 15);
+                    Canvas.SetTop(barFill, y);
+                    canvas.Children.Add(barFill);
                 }
-            }
 
-            int legendY = 170;
-            for (int i = 0; i < dataPoints.Length; i++)
-            {
-                var legendRect = new Rectangle
+                var countText = new TextBlock
                 {
-                    Width = 12,
-                    Height = 12,
-                    Fill = colors[i]
+                    Text = i == 0 ? $"{totalImages}/{totalGames}" :
+                           i == 1 ? $"{totalVideos}/{totalGames}" :
+                                    $"{totalManuals}/{totalGames}",
+                    FontSize = 10,
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.SemiBold
                 };
-                Canvas.SetLeft(legendRect, 30);
-                Canvas.SetTop(legendRect, legendY);
-                canvas.Children.Add(legendRect);
+                Canvas.SetLeft(countText, labelWidth + 20);
+                Canvas.SetTop(countText, y + 6);
+                canvas.Children.Add(countText);
 
-                var legendText = new TextBlock
+                var percentText = new TextBlock
                 {
-                    Text = $"{labels[i]}: {dataPoints[i]:F1}%",
-                    FontSize = 11
+                    Text = $"{dataPoints[i]:F1}%",
+                    FontSize = 11,
+                    FontWeight = FontWeights.Bold
                 };
-                Canvas.SetLeft(legendText, 47);
-                Canvas.SetTop(legendText, legendY - 1);
-                canvas.Children.Add(legendText);
-
-                legendY += 20;
+                Canvas.SetLeft(percentText, labelWidth + barWidth + 25);
+                Canvas.SetTop(percentText, y + 5);
+                canvas.Children.Add(percentText);
             }
 
             return canvas;
@@ -937,7 +985,7 @@ namespace GamelistManager.classes.gamelist
             }
             catch { }
 
-            if (diskTotalSize == 0 || totalCollectionSize == 0)
+            if (diskTotalSize == 0)
             {
                 var noDataText = new TextBlock
                 {
@@ -947,18 +995,26 @@ namespace GamelistManager.classes.gamelist
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 Canvas.SetLeft(noDataText, 50);
-                Canvas.SetTop(noDataText, 150);
+                Canvas.SetTop(noDataText, 100);
                 canvas.Children.Add(noDataText);
                 return canvas;
             }
 
-            long diskUsedSize = diskTotalSize - diskFreeSize;
-            long otherUsedSize = diskUsedSize - totalCollectionSize;
+            // If no collection data, still show disk usage with just free/used
+            if (totalCollectionSize == 0)
+            {
+                totalRomSize = 0;
+                totalMediaSize = 0;
+            }
 
-            double romPercent = (totalRomSize * 100.0) / diskTotalSize;
-            double mediaPercent = (totalMediaSize * 100.0) / diskTotalSize;
-            double otherPercent = (otherUsedSize * 100.0) / diskTotalSize;
-            double freePercent = (diskFreeSize * 100.0) / diskTotalSize;
+            long diskUsedSize = diskTotalSize - diskFreeSize;
+            long otherUsedSize = Math.Max(0, diskUsedSize - totalCollectionSize);
+
+            // Ensure no negative percentages
+            double romPercent = totalRomSize > 0 ? (totalRomSize * 100.0) / diskTotalSize : 0;
+            double mediaPercent = totalMediaSize > 0 ? (totalMediaSize * 100.0) / diskTotalSize : 0;
+            double otherPercent = otherUsedSize > 0 ? (otherUsedSize * 100.0) / diskTotalSize : 0;
+            double freePercent = diskFreeSize > 0 ? (diskFreeSize * 100.0) / diskTotalSize : 0;
 
             var title = new TextBlock
             {
@@ -1007,31 +1063,29 @@ namespace GamelistManager.classes.gamelist
             int legendY = 170;
             for (int i = 0; i < dataPoints.Length; i++)
             {
-                if (dataPoints[i] > 0.1)
+                // Show all legend items, not just those > 0.1%
+                var legendRect = new Rectangle
                 {
-                    var legendRect = new Rectangle
-                    {
-                        Width = 12,
-                        Height = 12,
-                        Fill = colors[i],
-                        Stroke = Brushes.Gray,
-                        StrokeThickness = 1
-                    };
-                    Canvas.SetLeft(legendRect, 15);
-                    Canvas.SetTop(legendRect, legendY);
-                    canvas.Children.Add(legendRect);
+                    Width = 12,
+                    Height = 12,
+                    Fill = colors[i],
+                    Stroke = Brushes.Gray,
+                    StrokeThickness = 1
+                };
+                Canvas.SetLeft(legendRect, 15);
+                Canvas.SetTop(legendRect, legendY);
+                canvas.Children.Add(legendRect);
 
-                    var legendText = new TextBlock
-                    {
-                        Text = labels[i],
-                        FontSize = 11
-                    };
-                    Canvas.SetLeft(legendText, 32);
-                    Canvas.SetTop(legendText, legendY - 1);
-                    canvas.Children.Add(legendText);
+                var legendText = new TextBlock
+                {
+                    Text = labels[i],
+                    FontSize = 11
+                };
+                Canvas.SetLeft(legendText, 32);
+                Canvas.SetTop(legendText, legendY - 1);
+                canvas.Children.Add(legendText);
 
-                    legendY += 18;
-                }
+                legendY += 18;
             }
 
             return canvas;

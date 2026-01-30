@@ -474,7 +474,7 @@ namespace GamelistManager
                 string matchedFile = item.MatchedFile;
 
                 // Convert the full path to a relative path
-                string relativePath = FilePathHelper.ConvertPathToRelativePath(matchedFile, _parentFolderPath);
+                string relativePath = FilePathHelper.ConvertPathToGamelistRomPath(matchedFile, _parentFolderPath);
 
                 if (rowLookup.TryGetValue(item.RomPath, out DataRow? foundRow))
                 {

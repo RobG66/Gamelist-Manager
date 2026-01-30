@@ -55,6 +55,7 @@ namespace GamelistManager.pages
             _gamelistSummary.Clear();
             _datHeader = null;
             comboBox_ReportView.SelectedIndex = 0;
+            comboBox_ReportView.IsEnabled = false;
             button_FindMissing.IsEnabled = false;
 
             if (SharedData.CurrentSystem == "mame" &&
@@ -849,9 +850,8 @@ namespace GamelistManager.pages
                 _mameProcess = null;
             }
 
-            // Unsubscribe from event to prevent memory leaks
-            comboBox_ReportView.SelectionChanged -= ComboBox_ReportView_SelectionChanged;
-            
+            ResetDatToolPage();
+           
             _mainWindow.MainGrid.RowDefinitions[4].Height = new GridLength(0);
             _mainWindow.gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
         }

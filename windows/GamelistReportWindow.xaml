@@ -2,12 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Gamelist Statistics Report" 
-        Height="200" 
+        Height="230" 
         Width="400"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -30,7 +31,7 @@
                    Margin="0,0,0,15"
                    HorizontalAlignment="Center"/>
 
-        <!-- Checkbox -->
+        <!-- Checkboxes -->
         <CheckBox Grid.Row="2"
                   x:Name="StorageCheckbox"
                   Content="Include storage statistics (slower, calculates file sizes)"
@@ -39,8 +40,19 @@
                   HorizontalAlignment="Center"
                   VerticalAlignment="Top"/>
 
+        <CheckBox Grid.Row="3"
+                  x:Name="CurrentSystemOnlyCheckbox"
+                  Content="Report Current System Only"
+                  IsChecked="False"
+                  Style="{DynamicResource CustomCheckBox}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Top"
+                  Margin="0,10,0,0"
+                  Checked="CurrentSystemOnlyCheckbox_Changed"
+                  Unchecked="CurrentSystemOnlyCheckbox_Changed"/>
+
         <!-- Button Panel -->
-        <StackPanel Grid.Row="3"
+        <StackPanel Grid.Row="4"
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     Margin="0,10,0,0">
