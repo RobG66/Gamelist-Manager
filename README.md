@@ -9,7 +9,7 @@ If you find Gamelist Manager helpful, consider supporting its continued developm
 - [PayPal](https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US)
 - [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
 
-Version 8 is not wine compatible.  Version 9 will be cross platform compatible using Eremax Controls: https://eremexcontrols.net/
+Version 8 is not wine compatible.
 
 ---
 
