@@ -22,8 +22,7 @@ Version 8 is not wine compatible.
  January 27th, 2026
 
  - DMINLauncher 1.2 released.
- - I may do an 8.7 hotfix for 2 minor bugs.
- - LIBVLCSharp scaling fix incoming for Avalonia (great news!)      
+ - I may do an 8.7 hotfix soon for 2 minor bugs (released now).      
 
 ---
  January 22nd, 2026
@@ -31,18 +30,6 @@ Version 8 is not wine compatible.
  I posted the first release of my Doom launcher program.  It's designed to be cross-platform compatible and work within Batocera.  It's also a work in progress and can be found here:  https://github.com/RobG66/DMINLauncher
 
  Nothing new to report with Gamelist Manager.  Still quiet........  
-
----
-
- January 19th, 2026
-
-  V9 scraping has been wired in now, but still needs some work and thorough testing.  Media drag/drop is also working now too.  Not much else going on right now, it's quiet....  
-
----
-
-January 15th, 2026
-
- As you may know, or not, the development of the Windows only version of Gamelist Manager has stopped.  Version 9 will be a 'port' to Avalonia so the program can be truly cross platform compatible.
  
 ---
 # Gamelist Manager
