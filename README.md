@@ -6,9 +6,6 @@
 
 If you find Gamelist Manager helpful, consider supporting its continued development:
 
-- [PayPal](https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US)
-- [Buy Me a Coffee](https://buymeacoffee.com/silverballb)
-
 Version 8 is not wine compatible.
 
 ---
