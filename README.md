@@ -10,6 +10,12 @@ Version 8 is not wine compatible.
 
 ---
 
+ I have updated the funding link on my github to switch from buymeacoffee to ko-fi.  Any contributions made through buymeacoffee have been refunded and I will be closing that soon.
+
+ Thank you.
+
+---
+
  January 30th, 2026
 
  Gamelist Manager 8.7 released.  This includes a few minor fixes and tweaks.     
