@@ -47,7 +47,6 @@ A comprehensive desktop application designed for retro gaming enthusiasts to man
 - **Smart Filtering**: Filter by visibility (visible/hidden), genre, or custom criteria with 7 comparison modes (Is Like, Is Not Like, Starts With, Ends With, Is, Is Empty, Is Not Empty)
 - **Find & Replace**: Powerful search tools with column-specific searching and batch replacement for all items or selected items
 - **Undo/Redo System**: Full history tracking with configurable undo depth (up to 99 levels) so you never lose your work
-- **Clear Data Tools**: Selectively clear metadata or media paths for selected items or all items at once
 
 ### 🎮 Multi-Source Game Scrapers
 - **Three Scraper Options**: Choose from ArcadeDB, EmuMovies, or ScreenScraper
@@ -147,9 +146,7 @@ A comprehensive desktop application designed for retro gaming enthusiasts to man
 
 ## 💻 System Requirements
 
-- Windows 7 or later
-- .NET Framework 4.8 or higher  
-- Internet connection (for scraping features)
-- Network connection (for Batocera remote features)
+- Windows 10 or later
+- .NET Framework 10  
 
 ---
