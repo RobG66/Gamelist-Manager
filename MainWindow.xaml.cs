@@ -440,11 +440,15 @@ namespace GamelistManager
 
             if (string.IsNullOrEmpty(fileName))
             {
-                MessageBox.Show("No file is currently loaded!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    this,
+                    "No file is currently loaded!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            MessageBoxResult result = MessageBox.Show($"Do you want to reload the file '{fileName}'?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult result = MessageBox.Show(
+                this,
+                $"Do you want to reload the file '{fileName}'?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)
                 return;
 
@@ -476,7 +480,9 @@ namespace GamelistManager
             }
 
             string currentSystem = char.ToUpper(SharedData.CurrentSystem[0]) + SharedData.CurrentSystem[1..];
-            var result = MessageBox.Show($"Do you want to save the '{currentSystem}' gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show(
+                this,
+                $"Do you want to save the '{currentSystem}' gamelist?", "Save Reminder", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
             {
@@ -4023,6 +4029,22 @@ namespace GamelistManager
                 comboBox_Systems.IsEnabled = true;
                 comboBox_Systems.SelectionChanged += ComboBox_Systems_SelectionChanged;
             }  
+        }
+
+        private void ComboBox_Systems_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // Prevent Escape key from resetting ComboBox to index 0 (placeholder)
+            if (e.Key == Key.Escape && sender is ComboBox comboBox)
+            {
+                // Keep the current selection by marking the event as handled
+                e.Handled = true;
+
+                // Optionally, close the dropdown if it's open
+                comboBox.IsDropDownOpen = false;
+
+                // Move focus away from the ComboBox to prevent further Escape handling
+                Keyboard.ClearFocus();
+            }
         }
 
         private async void ComboBox_Systems_SelectionChanged(object sender, SelectionChangedEventArgs e)

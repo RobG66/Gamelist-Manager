@@ -404,17 +404,14 @@ namespace GamelistManager.pages
                     }
                 };
 
-                // Enable drag & drop for images only (not Video or Manual)
-                if (item != "Video" && item != "Manual")
-                {
-                    container.AllowDrop = true;
-                    container.DragEnter += Container_DragEnter;
-                    container.DragLeave += Container_DragLeave;
-                    container.Drop += Container_Drop;
+                // Enable drag & drop for images, videos, and manuals
+                container.AllowDrop = true;
+                container.DragEnter += Container_DragEnter;
+                container.DragLeave += Container_DragLeave;
+                container.Drop += Container_Drop;
 
-                    // Store column name for drop handler
-                    container.Tag = item; // This will be overwritten by DisplayItem, so we'll use a different approach
-                }
+                // Store column name for drop handler
+                container.Tag = item; // This will be overwritten by DisplayItem, so we'll use a different approach
 
                 Grid.SetRow(container, 1);
                 Grid.SetColumn(container, columnIndex);
@@ -484,20 +481,38 @@ namespace GamelistManager.pages
 
             bool isValidDrop = false;
 
+            // Get the column name to determine what file type is expected
+            int columnIndex = Grid.GetColumn(container);
+            var column = MediaContentGrid.ColumnDefinitions[columnIndex];
+            string columnName = column.Name.Replace("__", " ");
+
             // Check for file drops (from file explorer)
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files.Length == 1 && IsImageFile(files[0]))
+                if (files.Length == 1)
                 {
-                    isValidDrop = true;
+                    string file = files[0];
+                    if (columnName == "Video" && IsVideoFile(file))
+                    {
+                        isValidDrop = true;
+                    }
+                    else if (columnName == "Manual" && IsPdfFile(file))
+                    {
+                        isValidDrop = true;
+                    }
+                    else if (columnName != "Video" && columnName != "Manual" && IsImageFile(file))
+                    {
+                        isValidDrop = true;
+                    }
                 }
             }
-            // Check for image drops from web browsers
-            else if (e.Data.GetDataPresent(DataFormats.Html) ||
-                     e.Data.GetDataPresent(DataFormats.Bitmap) ||
-                     e.Data.GetDataPresent("FileContents") ||
-                     e.Data.GetDataPresent("UniformResourceLocator"))
+            // Check for image drops from web browsers (only for image columns)
+            else if (columnName != "Video" && columnName != "Manual" &&
+                     (e.Data.GetDataPresent(DataFormats.Html) ||
+                      e.Data.GetDataPresent(DataFormats.Bitmap) ||
+                      e.Data.GetDataPresent("FileContents") ||
+                      e.Data.GetDataPresent("UniformResourceLocator")))
             {
                 isValidDrop = true;
             }
@@ -555,22 +570,43 @@ namespace GamelistManager.pages
                     string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
                     if (files.Length != 1)
                     {
-                        MessageBox.Show("Please drop only one image file at a time.",
+                        MessageBox.Show(
+                            Window.GetWindow(this),
+                            "Please drop only one file at a time.",
                             "Invalid Drop", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
 
                     droppedFile = files[0];
 
-                    if (!IsImageFile(droppedFile))
+                    // Validate file type based on column
+                    if (columnName == "Video" && !IsVideoFile(droppedFile))
                     {
-                        MessageBox.Show("Only image files are supported.\n\nSupported formats: JPG, PNG, BMP, GIF, TIFF, WEBP",
+                        MessageBox.Show(
+                            Window.GetWindow(this),
+                            "Only video files are supported.\n\nSupported formats: MP4, AVI, MKV, MOV, WMV, FLV",
+                            "Invalid File Type", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    else if (columnName == "Manual" && !IsPdfFile(droppedFile))
+                    {
+                        MessageBox.Show(
+                            Window.GetWindow(this),
+                            "Only PDF files are supported for manuals.",
+                            "Invalid File Type", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    else if (columnName != "Video" && columnName != "Manual" && !IsImageFile(droppedFile))
+                    {
+                        MessageBox.Show(
+                            Window.GetWindow(this),
+                            "Only image files are supported.\n\nSupported formats: JPG, PNG, BMP, GIF, TIFF, WEBP",
                             "Invalid File Type", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
                 }
-                // Handle drops from web browsers
-                else if (e.Data.GetDataPresent("FileContents"))
+                // Handle drops from web browsers (images only)
+                else if (columnName != "Video" && columnName != "Manual" && e.Data.GetDataPresent("FileContents"))
                 {
                     // Chrome/Edge drops
                     using var stream = e.Data.GetData("FileContents") as Stream;
@@ -580,7 +616,7 @@ namespace GamelistManager.pages
                         isTemporaryFile = true;
                     }
                 }
-                else if (e.Data.GetDataPresent(DataFormats.Bitmap))
+                else if (columnName != "Video" && columnName != "Manual" && e.Data.GetDataPresent(DataFormats.Bitmap))
                 {
                     // Some browsers provide bitmap directly
                     var bitmap = e.Data.GetData(DataFormats.Bitmap) as System.Drawing.Bitmap;
@@ -590,7 +626,7 @@ namespace GamelistManager.pages
                         isTemporaryFile = true;
                     }
                 }
-                else if (e.Data.GetDataPresent("UniformResourceLocator"))
+                else if (columnName != "Video" && columnName != "Manual" && e.Data.GetDataPresent("UniformResourceLocator"))
                 {
                     // URL drops - download the image
                     string url = e.Data.GetData("UniformResourceLocator") as string;
@@ -600,7 +636,7 @@ namespace GamelistManager.pages
                         isTemporaryFile = true;
                     }
                 }
-                else if (e.Data.GetDataPresent(DataFormats.Html))
+                else if (columnName != "Video" && columnName != "Manual" && e.Data.GetDataPresent(DataFormats.Html))
                 {
                     // Try to extract image URL from HTML
                     string html = e.Data.GetData(DataFormats.Html) as string;
@@ -614,12 +650,15 @@ namespace GamelistManager.pages
 
                 if (string.IsNullOrEmpty(droppedFile))
                 {
-                    MessageBox.Show("Could not process the dropped image.\n\nTry saving the image to your computer first, then drag it from file explorer.",
+                    string mediaTypeName = columnName == "Video" ? "video" : columnName == "Manual" ? "PDF manual" : "image";
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        $"Could not process the dropped {mediaTypeName}.\n\nTry saving the file to your computer first, then drag it from file explorer.",
                         "Drop Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                await HandleImageDrop(droppedFile, columnName);
+                await HandleMediaDrop(droppedFile, columnName);
             }
             finally
             {
@@ -640,23 +679,31 @@ namespace GamelistManager.pages
             e.Handled = true;
         }
 
-        // Handle the dropped image
-        private async Task HandleImageDrop(string droppedFile, string columnName)
+        // Handle the dropped media (image, video, or manual)
+        private async Task HandleMediaDrop(string droppedFile, string columnName)
         {
             try
             {
                 Mouse.OverrideCursor = Cursors.Wait;
 
+                // Stop video playback if dropping on Video column
+                if (columnName == "Video" && _mediaPlayerControl != null)
+                {
+                    await _mediaPlayerControl.StopPlayingAsync();
+                }
+
                 // Get the main window's selected item
                 var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
                 {
-                    MessageBox.Show("No item selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        "No item selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
                 DataRow row = selectedRowView.Row;
-                
+
                 // Get the media paths
                 string jsonString = Properties.Settings.Default.MediaPaths;
                 var mediaPaths = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString) ?? new();
@@ -666,7 +713,9 @@ namespace GamelistManager.pages
 
                 if (!mediaPaths.TryGetValue(mediaType, out string mediaFolder))
                 {
-                    MessageBox.Show($"Media path not configured for {columnName}.",
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        $"Media path not configured for {columnName}.",
                         "Configuration Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
@@ -698,6 +747,7 @@ namespace GamelistManager.pages
                 if (File.Exists(destFullPath))
                 {
                     var result = MessageBox.Show(
+                        Window.GetWindow(this),
                         $"A {columnName} file already exists for '{romName}'.\n\n" +
                         $"Do you want to replace it?\n\n" +
                         $"File: {destFileName}",
@@ -741,6 +791,21 @@ namespace GamelistManager.pages
             string extension = Path.GetExtension(filePath).ToLowerInvariant();
             return extension is ".jpg" or ".jpeg" or ".png" or ".bmp" or
                    ".gif" or ".tiff" or ".tif" or ".webp";
+        }
+
+        // Helper method to check if file is a video
+        private static bool IsVideoFile(string filePath)
+        {
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return extension is ".mp4" or ".avi" or ".mkv" or ".mov" or
+                   ".wmv" or ".flv" or ".webm" or ".m4v";
+        }
+
+        // Helper method to check if file is a PDF
+        private static bool IsPdfFile(string filePath)
+        {
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return extension == ".pdf";
         }
 
         // Helper methods for browser drops

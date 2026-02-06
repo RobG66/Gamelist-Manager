@@ -583,7 +583,9 @@ namespace GamelistManager.pages
             // Stop if there is no INI loaded
             if (_allIniSections == null)
             {
-                MessageBox.Show("INI sections not loaded correctly. Cannot start scraping.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    "INI sections not loaded correctly. Cannot start scraping.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -593,7 +595,9 @@ namespace GamelistManager.pages
             {
                 if (!section.TryGetValue(SharedData.CurrentSystem, out systemID))
                 {
-                    MessageBox.Show($"A system ID is missing for system '{SharedData.CurrentSystem}'.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        $"A system ID is missing for system '{SharedData.CurrentSystem}'.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -602,7 +606,9 @@ namespace GamelistManager.pages
             var elementsToScrape = GetElementsToScrape();
             if (elementsToScrape == null || elementsToScrape.Count == 0)
             {
-                MessageBox.Show("There were no checkboxes selected.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    "There were no checkboxes selected.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -610,7 +616,9 @@ namespace GamelistManager.pages
             var rowsToScrape = GetRowsToScrape();
             if (rowsToScrape.Length == 0)
             {
-                MessageBox.Show("There were no items to scrape.", "No Items", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    "There were no items to scrape.", "No Items", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -622,11 +630,13 @@ namespace GamelistManager.pages
                 // Check if arcade systems configuration is loaded
                 if (!ArcadeSystemID.IsInitialized)
                 {
-                    MessageBox.Show("Arcade systems configuration is missing!\n\n" +
-                                   "The arcadesystems.ini file could not be loaded.",
-                                   "Configuration Error",
-                                   MessageBoxButton.OK,
-                                   MessageBoxImage.Error);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        "Arcade systems configuration is missing!\n\n" +
+                        "The arcadesystems.ini file could not be loaded.",
+                        "Configuration Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                     return;
                 }
 
@@ -634,11 +644,13 @@ namespace GamelistManager.pages
                 isArcade = ArcadeSystemID.HasArcadeSystemName(SharedData.CurrentSystem);
                 if (!isArcade)
                 {
-                    MessageBox.Show("You cannot scrape this system with the currently selected scraper.\n\n" +
-                                   $"'{SharedData.CurrentSystem}' is not an arcade system.",
-                                   "Non Arcade System",
-                                   MessageBoxButton.OK,
-                                   MessageBoxImage.Stop);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        "You cannot scrape this system with the currently selected scraper.\n\n" +
+                        $"'{SharedData.CurrentSystem}' is not an arcade system.",
+                        "Non Arcade System",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Stop);
                     return;
                 }
             }
@@ -1098,11 +1110,14 @@ namespace GamelistManager.pages
             string cacheFolder = $"{SharedData.ProgramDirectory}\\cache\\{_currentScraper}\\{SharedData.CurrentSystem}";
             if (!Directory.Exists(cacheFolder))
             {
-                MessageBox.Show("Cache is already empty.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    "Cache is already empty.", "Notice", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             MessageBoxResult result = MessageBox.Show(
+                Window.GetWindow(this),
                 $"Do you want to clear the {_currentScraper} cache files for '{SharedData.CurrentSystem}'?\n\n" +
                 "Warning: This cannot be undone and the cache will have to be scraped again.",
                 "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);

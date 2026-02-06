@@ -94,8 +94,10 @@ namespace GamelistManager.pages
                 if (xmlStream == null)
                 {
                     Mouse.OverrideCursor = null;
-                    MessageBox.Show("Failed to get XML stream from MAME.", "Error",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        "Failed to get XML stream from MAME.", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
 
                     if (_allowStreamingFromMame)
                     {
@@ -112,8 +114,10 @@ namespace GamelistManager.pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error streaming from MAME: {ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    $"Error streaming from MAME: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -162,8 +166,10 @@ namespace GamelistManager.pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error opening DAT file: {ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    $"Error opening DAT file: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -192,8 +198,10 @@ namespace GamelistManager.pages
 
                 if (datEntries == null || datEntries.Count == 0)
                 {
-                    MessageBox.Show("No entries were found in the DAT file.", "No Data",
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        "No entries were found in the DAT file.", "No Data",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -773,8 +781,10 @@ namespace GamelistManager.pages
                 this.IsEnabled = true;
                 SharedData.ChangeTracker?.ResumeTracking();
 
-                MessageBox.Show($"No items found for '{selectedText}' report.", "No Items",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    $"No items found for '{selectedText}' report.", "No Items",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1056,15 +1066,19 @@ namespace GamelistManager.pages
         {
             if (_datSummary == null || _datSummary.Count == 0)
             {
-                MessageBox.Show("No DAT file loaded.", "No Data",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    "No DAT file loaded.", "No Data",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             if (_gamelistSummary == null || _gamelistSummary.Count == 0)
             {
-                MessageBox.Show("No gamelist data available.", "No Data",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    "No gamelist data available.", "No Data",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1131,8 +1145,10 @@ namespace GamelistManager.pages
 
                 if (string.IsNullOrEmpty(reportContent))
                 {
-                    MessageBox.Show("All playable games from the DAT are present in your gamelist!", "No Missing Games",
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                        Window.GetWindow(this),
+                        "All playable games from the DAT are present in your gamelist!", "No Missing Games",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
@@ -1146,8 +1162,10 @@ namespace GamelistManager.pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error generating report: {ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    Window.GetWindow(this),
+                    $"Error generating report: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {

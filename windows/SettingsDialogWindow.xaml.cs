@@ -49,9 +49,24 @@ namespace GamelistManager
 
         public void SaveSettings() 
         {
-            string hostName = textBox_HostName.Text;
-            string userID = textBox_UserID.Text;
-            string password = textBox_Password.Text;
+            string hostName = textBox_HostName.Text.Trim();
+            string userID = textBox_UserID.Text.Trim();
+            string password = textBox_Password.Text.Trim();
+
+            if (!string.IsNullOrEmpty(hostName))
+                Properties.Settings.Default.BatoceraHostName = hostName;
+            
+            if (!string.IsNullOrEmpty(userID))
+            {
+                bool result = CredentialHelper.SaveCredentials(hostName, userID, password);
+                if (!result)
+                {
+                    MessageBox.Show(
+                        this,
+                        "Failed to save credentials!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
 
             string theme = comboBox_Theme.Text;
             Properties.Settings.Default.Theme = theme;
@@ -64,7 +79,6 @@ namespace GamelistManager
 
             Properties.Settings.Default.LogVerbosity = comboBox_LogVerbosity.SelectedIndex;
             Properties.Settings.Default.GridLineVisibility = gridLineVisibility;
-            Properties.Settings.Default.BatoceraHostName = hostName;
             Properties.Settings.Default.ConfirmBulkChange = (bool)checkBox_ConfirmBulkChanges.IsChecked!;
             Properties.Settings.Default.RememberColumns = (bool)checkBox_RememberColumns.IsChecked!;
             Properties.Settings.Default.SaveReminder = (bool)checkBox_EnableSaveReminder.IsChecked!;
@@ -120,13 +134,6 @@ namespace GamelistManager
             string romsFolder = textBox_RomsFolder.Text;
             Properties.Settings.Default.RomsFolder = romsFolder;
 
-            bool result = CredentialHelper.SaveCredentials(hostName, userID, password);
-
-            if (!result)
-            {
-                MessageBox.Show("Failed to save credentials!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
 
             var textBoxes = GamelistManager.classes.helpers.TreeHelper.GetAllVisualChildren<TextBox>(Paths);
             Dictionary<string, string> mediaPaths = [];
@@ -368,6 +375,10 @@ namespace GamelistManager
 
             int logVerbosity = Properties.Settings.Default.LogVerbosity;    
             comboBox_LogVerbosity.SelectedIndex = logVerbosity;
+
+            var gridLinesVisibility = Properties.Settings.Default.GridLineVisibility;
+            comboBox_GridLinesVisibility.SelectedItem = comboBox_GridLinesVisibility.Items.Cast<ComboBoxItem>()
+                .FirstOrDefault(item => item.Content?.ToString() == gridLinesVisibility);
 
             // Hook up event handlers for comboboxes
             comboBox_AlternatingRowColor.SelectionChanged += ComboBox_AlternatingRowColor_SelectionChanged;
@@ -661,6 +672,7 @@ namespace GamelistManager
             if (!folderName.Equals("roms", StringComparison.OrdinalIgnoreCase))
             {
                 MessageBox.Show(
+                    this,
                     "The selected folder is not named roms.\n\n" +
                     "Please make sure you have picked a valid folder.",
                     "Invalid ROMs Folder?",

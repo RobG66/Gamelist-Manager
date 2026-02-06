@@ -988,11 +988,12 @@
                 VerticalAlignment="Center"
                 Margin="0,0">
                     <ComboBox x:Name="comboBox_Systems"
-                  Height="30"
-                  Margin="0"
-                  IsEditable="False"
-                  ToolTip="Select system"
-                  Style="{DynamicResource CustomImageComboBox}"/>
+                      Height="30"
+                      Margin="0"
+                      IsEditable="False"
+                      ToolTip="Select system"
+                      PreviewKeyDown="ComboBox_Systems_PreviewKeyDown"
+                      Style="{DynamicResource CustomImageComboBox}"/>
 
                     <StackPanel Orientation="Horizontal" 
                     Margin="0,3,0,0"
