@@ -4,9 +4,9 @@
 
 ### 💖 Support Development
 
-If you find Gamelist Manager helpful, consider supporting its continued development:
+**If you find Gamelist Manager helpful, consider supporting its new cross-platform development**
 
-Version 8 is not wine compatible.
+Version 8 is not wine compatible.  It uses API that are simply not supported in that environment.
 
 ---
 
