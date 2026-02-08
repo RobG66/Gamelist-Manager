@@ -10,6 +10,12 @@ Version 8 is not wine compatible.  It uses API that are simply not supported in 
 
 ---
 
+ February 8th, 2026
+ 
+ Version 8.8 was posted a few days ago.  It has a few new features (requested) and a few minor fixes.  I switched to using JetBrains Rider instead of Visual Studio.  So far I like it a lot!  Thankfully the license is free for non commercial use.    
+
+---
+
  I have updated the funding link on my github to switch from buymeacoffee to ko-fi.  Any contributions made through buymeacoffee have been refunded and I will be closing that soon.
 
  Thank you.
