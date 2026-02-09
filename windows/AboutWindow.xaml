@@ -39,14 +39,14 @@
             <TextBlock Text="Support development:" Margin="0,15,0,5" HorizontalAlignment="Center"
                        Foreground="{DynamicResource PrimaryTextBrush}"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
-                <TextBlock Text="PayPal: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                <TextBlock Text="https://paypal.me/RobG" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
-                           Cursor="Hand" MouseLeftButtonUp="PaypalLink_Click" Margin="5,0"/>
+                <TextBlock Text="Ko-fi: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="https://ko-fi.com/robg66" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
+                           Cursor="Hand" MouseLeftButtonUp="KofiLink_Click" Margin="5,0"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="By Me A Coffee: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
-                <TextBlock Text="https://buymeacoffee.com/silverballb" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
-                           Cursor="Hand" MouseLeftButtonUp="BMAC_Click" Margin="5,0"/>
+                <TextBlock Text="GitHub Sponsors: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="https://github.com/sponsors/RobG66" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
+                           Cursor="Hand" MouseLeftButtonUp="GitHubSponsors_Click" Margin="5,0"/>
             </StackPanel>
 
             <!-- Close button -->

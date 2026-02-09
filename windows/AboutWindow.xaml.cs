@@ -28,14 +28,14 @@ namespace GamelistManager
             OpenLink("https://github.com/RobG66/Gamelist-Manager");
         }
 
-        private void PaypalLink_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void KofiLink_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            OpenLink("https://paypal.me/RobG");
+            OpenLink("https://ko-fi.com/robg66");
         }
 
-        private void BMAC_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void GitHubSponsors_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            OpenLink("https://buymeacoffee.com/silverballb");
+            OpenLink("https://github.com/sponsors/RobG66");
         }
 
         private void OpenLink(string url)

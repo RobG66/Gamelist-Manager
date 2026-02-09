@@ -762,8 +762,8 @@ namespace GamelistManager.pages
                 // Copy the file
                 await Task.Run(() => File.Copy(droppedFile, destFullPath, overwrite: true));
 
-                // Update the database with the relative path
-                string relativePath = FilePathHelper.ConvertGamelistPathToFullPath(destFullPath, parentFolderPath);
+                // Update the database with the relative path (with ./ prefix)
+                string relativePath = FilePathHelper.ConvertPathToGamelistRomPath(destFullPath, parentFolderPath);
 
                 if (row.Table.Columns.Contains(columnName))
                 {
@@ -777,7 +777,7 @@ namespace GamelistManager.pages
             }
             catch (Exception ex)
             {
-                UpdateStatusError($"Error adding image: {ex.Message}");
+                UpdateStatusError($"Error adding media: {ex.Message}");
             }
             finally
             {
