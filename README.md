@@ -12,7 +12,7 @@ Version 8 is not wine compatible.  It uses API that are simply not supported in 
 
 ## What it does
 
-Manage and scrape game metadata and media from ArcadeDB, ScreenScraper, or EmuMovies. Edit hundreds of games at once. Manage large ROM collections without touching gamelist xml files directly.
+Manage and scrape gamelist metadata and media from ArcadeDB, ScreenScraper, or EmuMovies. Edit hundreds of games at once. Manage large ROM collections without touching gamelist xml files directly.  Works directly with Batocera and Retrobat.  ES-DE support is being considered.
 
 **Scraping**
 - Choose different available sources for each many media types.
