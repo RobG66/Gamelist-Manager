@@ -10,149 +10,81 @@ Version 8 is not wine compatible.  It uses API that are simply not supported in 
 
 ---
 
- February 8th, 2026
- 
- Version 8.8 was posted a few days ago.  It has a few new features (requested) and a few minor fixes.  I switched to using JetBrains Rider instead of Visual Studio.  So far I like it a lot!  Thankfully the license is free for non commercial use.    
+## What it does
 
----
+Manage and scrape game metadata and media from ArcadeDB, ScreenScraper, or EmuMovies. Edit hundreds of games at once. Manage large ROM collections without touching gamelist xml files directly.
 
- I have updated the funding link on my github to switch from buymeacoffee to ko-fi.  Any contributions made through buymeacoffee have been refunded and I will be closing that soon.
+**Scraping**
+- Choose different available sources for each many media types.
+- Scrape more media types such as cartridge
+- Scrape individual metadata or media items, or batch process your entire collection at once
+- Fast, multi-threaded scraping with local caching. 
+- 15+ media types: screenshots, box art, videos, bezels, manuals, wheels, cartridges, marquees, fan art, and more
+- Overwrite protection - choose what to update and what to keep
+- Inline media scanning means bad images (corrupt, single color) are automatically discarded
+- Progress monitoring and saved logs
+- Configurable language and region settings, with additional user selectable fallback settings (screenscraper)
 
- Thank you.
+**Editing**
+- Bulk edit metadata: genres, descriptions, publishers, release dates, ratings, player counts
+- Find and replace across all fields with filtering
+- Full undo/redo system 
+- Show/hide games with extensive filtering options
+- Mark favorites, hidden or edit any data 
+- CSV export for external analysis
+- Automatic backups while saving
 
----
+**Organization**
+- Scan ROM directories to find new games not in your gamelist
+- Identify games in your gamelist that are missing from disk
+- Auto-link existing media files to games
+- Find and remove orphaned media
+- DAT file import and comparison for MAME/arcade collections
+- Scan for bad, missing or unecessay media
+- Add existing or new media back to your gamelist
+- Customizable media paths in settings
+- Additional tools for full gamelist and media reporting
+- DAT Tools for comprehensive analysis of romsets such as Mame and FBNeo
 
- January 30th, 2026
+**Remote management** (Batocera)
+- SSH terminal access from within the app
+- Map network drives to your Batocera shares
+- Check version and available updates
+- Stop emulators, restart EmulationStation, reboot or shutdown the system
 
- Gamelist Manager 8.7 released.  This includes a few minor fixes and tweaks.     
+**Interface**
+- Drag and drop media files to add new or existing media, locally or from web browser
+- Preview images and videos with built-in player
+- 5 color themes
+- Customizable fonts, grid spacing, column visibility
+- Advanced, easy to use filtering options
+- Recent files history and quick system select capability
+- Comprehensive settings to suit what you want
 
----
+## Getting started
 
- January 27th, 2026
+Download from [Releases](https://github.com/RobG66/Gamelist-Manager/releases). Extract and run - no installation needed.
 
- - DMINLauncher 1.2 released.
- - I may do an 8.7 hotfix soon for 2 minor bugs (released now).      
+1. Open your gamelist.xml (usually in `/userdata/roms/[system]/` on Batocera)
+2. Set your media folder paths in Settings
+3. Pick a scraper and configure what to download
+4. Scrape or edit as needed
+5. Save
 
----
- January 22nd, 2026
-
- I posted the first release of my Doom launcher program.  It's designed to be cross-platform compatible and work within Batocera.  It's also a work in progress and can be found here:  https://github.com/RobG66/DMINLauncher
-
- Nothing new to report with Gamelist Manager.  Still quiet........  
- 
----
-# Gamelist Manager
-
-A comprehensive desktop application designed for retro gaming enthusiasts to manage, organize, and enhance their game collections. Gamelist Manager provides powerful tools for editing metadata, scraping information from online databases, and maintaining gamelist XML files for popular emulation frontends like EmulationStation and Batocera/Retrobat.
-
-## ✨ Key Features
-
-### 📝 Advanced Metadata Management
-- **Bulk Editing**: Update multiple games simultaneously with search and replace functionality
-- **Comprehensive Fields**: Manage names, descriptions, genres, publishers, developers, release dates, ratings, player counts, arcade system names, families, game IDs, languages, and more
-- **Smart Filtering**: Filter by visibility (visible/hidden), genre, or custom criteria with 7 comparison modes (Is Like, Is Not Like, Starts With, Ends With, Is, Is Empty, Is Not Empty)
-- **Find & Replace**: Powerful search tools with column-specific searching and batch replacement for all items or selected items
-- **Undo/Redo System**: Full history tracking with configurable undo depth (up to 99 levels) so you never lose your work
-
-### 🎮 Multi-Source Game Scrapers
-- **Three Scraper Options**: Choose from ArcadeDB, EmuMovies, or ScreenScraper
-- **Flexible Scraping Modes**: Scrape all items or only selected items
-- **Smart Caching System**: Store scraped data locally to speed up future operations and reduce API calls
-- **Configurable Media Sources**: Select different image sources (screenshots, flyers, cabinets, etc.) for images, marquees, thumbnails, cartridges, videos, box art, and wheels
-- **15+ Media Types**: Download images, thumbnails, videos, marquees, bezels, manuals, titleshots, wheels, cartridges, box art, box backs, fan art, maps, music, and magazines
-- **Scraping Options**: 
-  - Scrape from cache first (with option to skip non-cached items)
-  - Include or exclude hidden items
-  - Multi-threaded scraping with configurable thread count
-  - Real-time progress tracking with percentage completion
-  - Detailed scraping log with color-coded status messages
-- **Overwrite Protection**: Separately control whether to overwrite names, metadata, or media
-- **Cache Management**: View cache item count and clear cache when needed
-
-### 🖼️ Media Management
-- **Find & Add Media**: Automatically locate and link existing media files to your games
-- **Media Cleanup**: Identify and remove orphaned media files
-- **15+ Media Types**: Support for images, thumbnails, videos, marquees, bezels, manuals, titleshots, wheels, cartridges, box art, box backs, fan art, maps, music, and magazines
-- **Configurable Paths**: Customize folder paths for each media type
-- **Path Management**: View and edit media paths directly in the grid
-- **Media Preview**: Built-in media viewer with autoplay option for videos
-- **Media Statistics**: View counts of existing media by type
-
-### 🔍 Discovery & Organization
-- **Find New Items**: Scan ROM directories to add newly discovered games with configurable search depth (0-9 levels)
-- **Identify Missing**: Detect games listed in your gamelist but missing from disk
-- **DAT Tools**: Comprehensive DAT file analysis and comparison
-  - Import directly from MAME executable
-  - Load external DAT files
-  - View detailed DAT statistics (total, parents, clones, CHD required, playable/non-playable)
-  - Gamelist comparison showing parents, clones, CHD games, non-working games, and items not in DAT
-  - Generate reports for specific categories
-  - Optional inclusion of hidden items in analysis
-- **Visibility Management**: Show or hide games individually, in bulk, by selection, or by genre
-- **Favorites Tracking**: Mark and filter your favorite games with dedicated counter
-- **Status Indicators**: Visual color-coding for new items (green) and missing items (red)
-- **Genre Filtering**: Quick filter by genre with clear button
-- **Statistics Display**: Real-time counts for total games, hidden games, showing games, and favorites
-
-### 🌐 Remote Batocera Management
-- **Network Drive Mapping**: Connect to Batocera shares directly from the application
-- **SSH Terminal Access**: Open terminal sessions to your Batocera host
-- **System Information**: Check Batocera version and view available updates
-- **Remote Control**: 
-  - Stop running emulators
-  - Stop EmulationStation
-  - Reboot Batocera host
-  - Shutdown Batocera host
-- **SSH Key Management**: Easy SSH key configuration and removal
-- **Configurable Connection**: Store hostname, user ID, and password in settings
-
-### 🎨 Customizable Interface
-- **Theme System**: Choose from 5 color themes (Default/Silver, Blue/Azure, Dark/Black, Cool/Alice Blue, Warm/White Smoke)
-- **Adjustable Font Sizes**: Scale grid text from 8pt to 14pt for optimal readability
-- **Alternating Row Colors**: Customize alternating row colors for better readability
-- **Grid Line Options**: Control visibility of horizontal, vertical, all, or no grid lines
-- **Column Visibility**: Show or hide any combination of 17+ columns
-- **Column Autosize**: Automatically fit columns to content with remember setting
-- **Always on Top**: Keep Gamelist Manager visible while working
-- **Dual-Pane Layout**: View game list and descriptions side-by-side with adjustable splitter
-- **Collapsible Panels**: Minimize metadata/media selection panel when not needed
-- **Remember Settings**: Optionally remember column visibility and autosize preferences
-
-### 📊 Data Management Tools
-- **CSV Export**: Export your collection data for use in spreadsheets or external analysis
-- **Backup & Restore**: Create and restore gamelist backups to prevent data loss
-- **Recent Files**: Quick access to your most recently opened gamelists (configurable 1-50 files)
-- **Auto-Save Reminders**: Optional prompts before losing unsaved changes
-- **Bulk Change Confirmation**: Optional confirmation dialogs for major bulk operations
-- **File Status Bar**: Shows loaded filename and last modification time
-- **Reset Views**: Quickly reset filters and view settings to defaults
-
-### 🎵 Entertainment Features
-- **Video Jukebox**: Browse and play game videos from your collection
-- **Music Jukebox**: Play background music while managing your library with configurable default volume
-- **Media Autoplay**: Optional automatic playback of videos in the media viewer
-
-### ⚙️ Advanced Settings
-- **Change Tracking**: Enable/disable undo/redo with configurable history depth
-- **Image Verification**: Validate downloaded images to detect corruption and single-color images
-- **Search Depth Control**: Set folder recursion depth (0-9) for finding new items
-- **Auto-Expand Logger**: Automatically expand the scraper log during operations
-- **MAME Integration**: Configure path to MAME executable for DAT imports
-- **Custom Media Paths**: Define separate folder paths for all 15+ media types
-- **Quick Reset Options**: Reset all settings or just folder paths to defaults
-
-## 🚀 Perfect For
-
-- EmulationStation and Batocera users managing large game collections
-- Retro gaming enthusiasts who want complete, well-organized metadata
-- Arcade cabinet builders who need to scrape and organize MAME/arcade information
-- Multi-platform collectors who need flexible, powerful management tools
-- Users who want remote control and management of their Batocera systems
-- Anyone who wants to clean up and enhance their game library without manual XML editing
-
-## 💻 System Requirements
+## Requirements
 
 - Windows 10 or later
-- .NET Framework 10  
+- .NET Framework 10
 
----
+This is not compatible with Wine.
+
+## Support
+
+If you find this useful:
+
+- [PayPal](https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US)
+- [Ko-fi](https://buymeacoffee.com/silverballb)
+
+## Credits
+
+Uses data from ArcadeDB, ScreenScraper, and EmuMovies APIs.
