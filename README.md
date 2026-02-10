@@ -80,11 +80,8 @@ This is not compatible with Wine.
 
 ## Support
 
-If you find this useful:
+If you find this program useful, please consider supporting future development:
 
 - [PayPal](https://paypal.me/RGanshorn?country.x=CA&locale.x=en_US)
 - [Ko-fi](https://buymeacoffee.com/silverballb)
 
-## Credits
-
-Uses data from ArcadeDB, ScreenScraper, and EmuMovies APIs.
