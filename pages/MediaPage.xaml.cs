@@ -82,6 +82,7 @@ namespace GamelistManager.pages
 
             Button_ToggleMode.Content = _scaledDisplay ? "Fit To View: On" : "Fit To View: Off";
             Button_ToggleAll.Content = "Show All";
+            Loaded += MediaPage_Loaded;
             SetupMediaGrid();
         }
 
@@ -219,30 +220,13 @@ namespace GamelistManager.pages
             if (container?.Child is Image image)
             {
                 image.Source = new BitmapImage(new Uri("pack://application:,,,/resources/images/icons/dropicon.png"));
-                container.Tag = null; // No file path for placeholder
             }
-
-            // Update button tags to null for placeholder
-            SetButtonTags(columnIndex, null);
         }
 
         public async void PlayFile(string fileName)
         {
             await StopPlayingAsync();
             _currentVideoPath = fileName;
-
-            var videoContainer = MediaContentGrid.Children
-                .OfType<Border>()
-                .FirstOrDefault(b => b.Child == _mediaPlayerControl);
-
-            if (videoContainer != null)
-            {
-                videoContainer.Tag = fileName;
-                int columnIndex = MediaContentGrid.ColumnDefinitions.IndexOf(
-                    MediaContentGrid.ColumnDefinitions.First(c => c.Name == "Video"));
-
-                SetButtonTags(columnIndex, fileName);
-            }
 
             _mediaPlayerControl?.PlayMediaAsync(fileName, Properties.Settings.Default.VideoAutoplay);
         }
@@ -289,6 +273,11 @@ namespace GamelistManager.pages
 
         private void Button_ToggleMode_Click(object sender, RoutedEventArgs e) => ToggleScaling();
 
+        private void MediaPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetStatus("Tip: Drag & drop media from file explorer or a browser to update images; videos and manuals from files.");
+        }
+
         private void DisplayItem(string filePath, string columnName)
         {
             int index = _mediaNames.FindIndex(n => n == columnName);
@@ -303,38 +292,15 @@ namespace GamelistManager.pages
             if (columnName == "Manual")
             {
                 image.Source = new BitmapImage(new Uri("pack://application:,,,/resources/images/icons/manual.png"));
-                container.Tag = filePath;
             }
             else if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
             {
                 image.Source = new BitmapImage(new Uri("pack://application:,,,/resources/images/missing.png"));
-                container.Tag = null;
             }
             else
             {
                 var loadedImage = ImageHelper.LoadImageWithoutLock(filePath);
                 image.Source = loadedImage ?? new BitmapImage(new Uri("pack://application:,,,/resources/images/missing.png"));
-                container.Tag = filePath;
-            }
-
-            // Set both menu and expand button tags
-            SetButtonTags(index, filePath);
-        }
-
-        private void SetButtonTags(int columnIndex, string? path)
-        {
-            var stack = MediaContentGrid.Children
-                .OfType<StackPanel>()
-                .FirstOrDefault(sp => Grid.GetRow(sp) == 2 && Grid.GetColumn(sp) == columnIndex);
-
-            if (stack != null)
-            {
-                // First button = menu, second = expand
-                if (stack.Children.Count > 0 && stack.Children[0] is Button menuBtn)
-                    menuBtn.Tag = path;
-
-                if (stack.Children.Count > 1 && stack.Children[1] is Button expandBtn)
-                    expandBtn.Tag = path;
             }
         }
 
@@ -345,6 +311,45 @@ namespace GamelistManager.pages
                 if (element is Border b && b.Child is Image img)
                     img.Source = null;
             }
+        }
+
+        private int GetColumnIndexFromButton(Button btn)
+        {
+            if (btn.Parent is StackPanel stack)
+                return Grid.GetColumn(stack);
+            return -1;
+        }
+
+        private string? GetMediaPathForColumn(int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= MediaContentGrid.ColumnDefinitions.Count)
+                return null;
+
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow?.MainDataGrid.SelectedItem is not DataRowView selectedRowView)
+                return null;
+
+            var column = MediaContentGrid.ColumnDefinitions[columnIndex];
+            string columnName = column.Name.Replace("__", " ");
+
+            var cellValue = selectedRowView[columnName];
+            if (cellValue == null || cellValue == DBNull.Value)
+                return null;
+
+            string relativePath = cellValue.ToString()!;
+            if (string.IsNullOrEmpty(relativePath))
+                return null;
+
+            string parentFolder = Path.GetDirectoryName(SharedData.XMLFilename)!;
+            return FilePathHelper.ConvertGamelistPathToFullPath(relativePath, parentFolder);
+        }
+
+        private string GetColumnNameFromIndex(int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= MediaContentGrid.ColumnDefinitions.Count)
+                return string.Empty;
+
+            return MediaContentGrid.ColumnDefinitions[columnIndex].Name.Replace("__", " ");
         }
 
 
@@ -392,7 +397,6 @@ namespace GamelistManager.pages
                 container = new Border
                 {
                     Child = content,
-                    Tag = null,
                     Margin = new Thickness(20),
                     Effect = new DropShadowEffect
                     {
@@ -409,9 +413,6 @@ namespace GamelistManager.pages
                 container.DragEnter += Container_DragEnter;
                 container.DragLeave += Container_DragLeave;
                 container.Drop += Container_Drop;
-
-                // Store column name for drop handler
-                container.Tag = item; // This will be overwritten by DisplayItem, so we'll use a different approach
 
                 Grid.SetRow(container, 1);
                 Grid.SetColumn(container, columnIndex);
@@ -437,7 +438,6 @@ namespace GamelistManager.pages
                     Width = 50,
                     Height = 50,
                     Opacity = 0.7,
-                    Tag = null,
                     Margin = new Thickness(0, 0, 10, 0),
                     Cursor = System.Windows.Input.Cursors.Hand
                 };
@@ -457,7 +457,6 @@ namespace GamelistManager.pages
                         Width = 50,
                         Height = 50,
                         Opacity = 0.7,
-                        Tag = container,
                         Cursor = System.Windows.Input.Cursors.Hand
                     };
                     expandButton.Click += MediaExpandButton_Click;
@@ -559,7 +558,7 @@ namespace GamelistManager.pages
             var column = MediaContentGrid.ColumnDefinitions[columnIndex];
             string columnName = column.Name.Replace("__", " ");
 
-            string droppedFile = null;
+            string? droppedFile = null;
             bool isTemporaryFile = false;
 
             try
@@ -629,7 +628,7 @@ namespace GamelistManager.pages
                 else if (columnName != "Video" && columnName != "Manual" && e.Data.GetDataPresent("UniformResourceLocator"))
                 {
                     // URL drops - download the image
-                    string url = e.Data.GetData("UniformResourceLocator") as string;
+                    string? url = e.Data.GetData("UniformResourceLocator") as string;
                     if (!string.IsNullOrEmpty(url))
                     {
                         droppedFile = await DownloadImageFromUrl(url);
@@ -639,8 +638,8 @@ namespace GamelistManager.pages
                 else if (columnName != "Video" && columnName != "Manual" && e.Data.GetDataPresent(DataFormats.Html))
                 {
                     // Try to extract image URL from HTML
-                    string html = e.Data.GetData(DataFormats.Html) as string;
-                    string imageUrl = ExtractImageUrlFromHtml(html);
+                    string? html = e.Data.GetData(DataFormats.Html) as string;
+                    string imageUrl = ExtractImageUrlFromHtml(html ?? string.Empty);
                     if (!string.IsNullOrEmpty(imageUrl))
                     {
                         droppedFile = await DownloadImageFromUrl(imageUrl);
@@ -711,7 +710,7 @@ namespace GamelistManager.pages
                 // Get media type from column name
                 string mediaType = GamelistMetaData.GetMetadataTypeByName(columnName);
 
-                if (!mediaPaths.TryGetValue(mediaType, out string mediaFolder))
+                if (!mediaPaths.TryGetValue(mediaType, out string? mediaFolder))
                 {
                     MessageBox.Show(
                         Window.GetWindow(this),
@@ -743,8 +742,49 @@ namespace GamelistManager.pages
                 string destFileName = $"{romFileName}-{mediaType}{extension}";
                 string destFullPath = Path.Combine(fullMediaPath, destFileName);
 
+                // If an existing media file is already associated with this column, confirm replacement once
+                bool overwriteApproved = false;
+                string? existingRelativePath = null;
+                if (row.Table.Columns.Contains(columnName))
+                {
+                    var existingValue = row[columnName];
+                    if (existingValue != null && existingValue != DBNull.Value)
+                        existingRelativePath = existingValue.ToString();
+                }
+
+                if (!string.IsNullOrWhiteSpace(existingRelativePath))
+                {
+                    string existingFullPath = FilePathHelper.ConvertGamelistPathToFullPath(existingRelativePath, parentFolderPath);
+
+                    // If the existing file is missing, allow overwrite silently
+                    if (!File.Exists(existingFullPath))
+                    {
+                        overwriteApproved = true;
+                    }
+                    else
+                    {
+                        var replaceExisting = MessageBox.Show(
+                            Window.GetWindow(this),
+                            $"A {columnName} file already exists for '{romName}'.\n\n" +
+                            $"Current: {Path.GetFileName(existingFullPath)}\n" +
+                            $"Path: {existingFullPath}\n\n" +
+                            "Do you want to replace it?",
+                            "Confirm Replace",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (replaceExisting != MessageBoxResult.Yes)
+                            return;
+
+                        overwriteApproved = true;
+
+                        // Attempt to remove the existing file to avoid orphaned media with different extensions
+                        try { File.Delete(existingFullPath); } catch { /* ignore */ }
+                    }
+                }
+
                 // Check if file already exists
-                if (File.Exists(destFullPath))
+                if (File.Exists(destFullPath) && !overwriteApproved)
                 {
                     var result = MessageBox.Show(
                         Window.GetWindow(this),
@@ -895,16 +935,23 @@ namespace GamelistManager.pages
 
         private async void MediaExpandButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn || btn.Tag is not string path || string.IsNullOrEmpty(path))
+            if (sender is not Button btn)
                 return;
 
-            // Determine whether it’s video or image
-            var columnIndex = Grid.GetColumn(btn.Parent as UIElement);
+            int columnIndex = GetColumnIndexFromButton(btn);
+            if (columnIndex < 0)
+                return;
+
+            string? path = GetMediaPathForColumn(columnIndex);
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                return;
+
             var container = MediaContentGrid.Children
                 .OfType<Border>()
                 .FirstOrDefault(b => Grid.GetRow(b) == 1 && Grid.GetColumn(b) == columnIndex);
 
-            if (container == null) return;
+            if (container == null)
+                return;
 
             if (container.Child == _mediaPlayerControl)
                 await ShowVideoPreviewWindow(path);
@@ -1197,19 +1244,15 @@ namespace GamelistManager.pages
             if (sender is not Button btn)
                 return;
 
-            // Find which column this button belongs to
-            var stackPanel = btn.Parent as StackPanel;
-            if (stackPanel == null) return;
+            int columnIndex = GetColumnIndexFromButton(btn);
+            if (columnIndex < 0)
+                return;
 
-            int columnIndex = Grid.GetColumn(stackPanel);
-            var column = MediaContentGrid.ColumnDefinitions[columnIndex];
-            string columnName = column.Name.Replace("__", " ");
-
-            // Get the media type (image, thumbnail, boxart, etc.)
+            string columnName = GetColumnNameFromIndex(columnIndex);
             string mediaType = GamelistMetaData.GetMetadataTypeByName(columnName);
 
-            // Get the path from button tag (may be null for placeholders)
-            string path = btn.Tag as string;
+            // Get the path from dataset, not from tag
+            string? path = GetMediaPathForColumn(columnIndex);
             bool hasMedia = !string.IsNullOrEmpty(path);
 
             // Create context menu - if no media exists, only show scrape option
@@ -1217,17 +1260,15 @@ namespace GamelistManager.pages
             {
                 // No media - only show scrape options
                 var contextMenu = UIHelper.CreateContextMenu(
-                    "", // Empty path
+                    "",
                     onScrapeRequested: async (data) =>
                     {
-                        // Parse the data: "filePath|ScraperName"
                         var parts = data.Split('|');
                         string scraperName = parts.Length > 1 ? parts[1] : "ArcadeDB";
-                                          
                         await ScrapeImageForItem("", mediaType, columnName, scraperName);
                     },
-                    onClearRequested: null,  // No clear option when empty
-                    onDeleteRequested: null  // No delete option when empty
+                    onClearRequested: null,
+                    onDeleteRequested: null
                 );
 
                 contextMenu.PlacementTarget = btn;
@@ -1240,21 +1281,13 @@ namespace GamelistManager.pages
                     path,
                     onScrapeRequested: async (data) =>
                     {
-                        // Parse the data: "filePath|ScraperName"
                         var parts = data.Split('|');
                         string filePath = parts[0];
                         string scraperName = parts.Length > 1 ? parts[1] : "ArcadeDB";
-                                              
                         await ScrapeImageForItem(filePath, mediaType, columnName, scraperName);
                     },
-                    onClearRequested: () =>
-                    {
-                        ClearMediaPath(columnName);
-                    },
-                    onDeleteRequested: () =>
-                    {
-                        DeleteMediaFile(path, columnName);
-                    }
+                    onClearRequested: () => ClearMediaPath(columnName),
+                    onDeleteRequested: () => DeleteMediaFile(path, columnName)
                 );
 
                 contextMenu.PlacementTarget = btn;
