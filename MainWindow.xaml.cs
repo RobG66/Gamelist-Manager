@@ -41,7 +41,7 @@ namespace GamelistManager
         private Dictionary<DataGridColumn, Style?> _originalCellStyles = [];
         private DatToolPage? _datToolPage;
         private readonly DataGridService _dataGridService;
-        private readonly RibbonAnimationService _ribbonAnimationService; 
+        private readonly RibbonAnimationService _ribbonAnimationService;
 
         public MainWindow()
         {
@@ -1003,7 +1003,8 @@ namespace GamelistManager
             _dataGridService.UpdateDataGridFontSize(size);
 
             // Adjust column widths
-            _dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
+            // No columns, not required at this time
+            //_dataGridService.AdjustDataGridColumnWidths(_autosizeColumns);
 
             // Default states
             stackpanel_Filters.IsEnabled = false;
@@ -1065,11 +1066,11 @@ namespace GamelistManager
         {
             if (MainDataGrid.ItemsSource == null)
                 return;
-            
+
 
             if (sender is not Slider slider)
                 return;
-            
+
             int size = ((int)slider.Value);
             Properties.Settings.Default.GridFontSize = size;
             Properties.Settings.Default.Save();
@@ -1090,7 +1091,7 @@ namespace GamelistManager
 
         private void MenuItem_Clicked(object sender, RoutedEventArgs e)
         {
-       
+
             if (sender is not FrameworkElement fe)
                 return;
 
@@ -1201,7 +1202,7 @@ namespace GamelistManager
             Properties.Settings.Default.VisibleGridColumns = jsonString;
             Properties.Settings.Default.Save();
         }
-        
+
 
         private void ShowAll_Click(object sender, RoutedEventArgs e)
         {
@@ -1406,7 +1407,7 @@ namespace GamelistManager
             if (MainDataGrid.ItemsSource == null || MainDataGrid.Items.Count == 0)
                 return;
 
-            if (MainDataGrid.SelectedItems.Count > 1) 
+            if (MainDataGrid.SelectedItems.Count > 1)
                 return;
 
             if (_isUpdatingSelection)
@@ -1481,7 +1482,7 @@ namespace GamelistManager
             // Update description and media for the current row
             if (_currentSelectedRow != null)
             {
-                 
+
                 string description = _currentSelectedRow["Description"] is DBNull
                         ? string.Empty
                         : _currentSelectedRow["Description"]?.ToString() ?? string.Empty;
@@ -2309,7 +2310,7 @@ namespace GamelistManager
             {
                 await _mediaPage.StopPlayingAsync();
             }
-            
+
             PlayJukeBox("video");
         }
 
@@ -2330,9 +2331,9 @@ namespace GamelistManager
             string pathValue = selectedRow["Rom Path"].ToString()!;
             string textboxValue = textBox_Description.Text;
 
-             DataRow[] rows = SharedData.DataSet.Tables[0].AsEnumerable()
-                .Where(row => string.Equals(row.Field<string>("Rom Path"), pathValue, StringComparison.Ordinal))
-                .ToArray();
+            DataRow[] rows = SharedData.DataSet.Tables[0].AsEnumerable()
+               .Where(row => string.Equals(row.Field<string>("Rom Path"), pathValue, StringComparison.Ordinal))
+               .ToArray();
 
             DataRow tabledata = rows[0];
             tabledata["Description"] = textboxValue;
@@ -2675,7 +2676,7 @@ namespace GamelistManager
             MainContentFrame.Navigate(_scraper);
 
             if (show)
-            {
+            {                
                 MainGrid.RowDefinitions[4].Height = new GridLength(220);
                 gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
             }
@@ -2713,6 +2714,7 @@ namespace GamelistManager
 
             if (show)
             {
+                MainGrid.RowDefinitions[4].MinHeight = 150;
                 MainGrid.RowDefinitions[4].Height = new GridLength(235);
                 gridSplitter_Horizontal.Visibility = Visibility.Visible;
 
@@ -2731,6 +2733,7 @@ namespace GamelistManager
             }
             else
             {
+                MainGrid.RowDefinitions[4].MinHeight = 0;
                 MainGrid.RowDefinitions[4].Height = new GridLength(0);
                 gridSplitter_Horizontal.Visibility = Visibility.Collapsed;
                 if (_mediaPage != null)
@@ -3263,7 +3266,7 @@ namespace GamelistManager
         {
             if (sender is not TextBox textBox)
                 return;
-            
+
             button_Find.IsEnabled = !string.IsNullOrWhiteSpace(textBox.Text);
         }
 
@@ -3302,7 +3305,7 @@ namespace GamelistManager
             }
         }
 
-        
+
 
         private void MenuItem_SearchAndReplace_Click(object sender, RoutedEventArgs e)
         {
@@ -3508,7 +3511,7 @@ namespace GamelistManager
                 _scraper.comboBox_SelectedScraper.SelectionChanged -= _scraper.ComboBox_SelectedScraper_SelectionChanged;
             }
 
-           
+
             // Unsubscribe font size sliders
             RibbonFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
             ClassicFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
@@ -3578,7 +3581,7 @@ namespace GamelistManager
             }
 
             ResetSettings();
-                       
+
             string gridLineVisibility = Properties.Settings.Default.GridLineVisibility;
             if (Enum.TryParse(gridLineVisibility, out DataGridGridLinesVisibility visibility))
             {
@@ -3734,13 +3737,13 @@ namespace GamelistManager
                 RibbonFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
                 ClassicFontSizeSlider.Value = fontSize;
                 ClassicFontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
-                          
+
                 // Sync enabled states
                 menuItem_View.IsEnabled = ribbonTab_Home.IsEnabled;
                 menuItem_Edit.IsEnabled = ribbonTab_Edit.IsEnabled;
                 menuItem_Columns.IsEnabled = ribbonTab_Columns.IsEnabled;
                 menuItem_Tools.IsEnabled = ribbonTab_Tools.IsEnabled;
-                         
+
                 Properties.Settings.Default.UseRibbonMenu = false;
                 Properties.Settings.Default.AutoHideRibbon = false;
                 ribbon_AutoHide.IsChecked = false;
@@ -3758,13 +3761,13 @@ namespace GamelistManager
                 ClassicFontSizeSlider.ValueChanged -= FontSizeSlider_ValueChanged;
                 RibbonFontSizeSlider.Value = fontSize;
                 RibbonFontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
-                
+
                 // Sync enabled states
                 ribbonTab_Home.IsEnabled = menuItem_View.IsEnabled;
                 ribbonTab_Edit.IsEnabled = menuItem_Edit.IsEnabled;
                 ribbonTab_Columns.IsEnabled = menuItem_Columns.IsEnabled;
                 ribbonTab_Tools.IsEnabled = menuItem_Tools.IsEnabled;
-                           
+
                 Properties.Settings.Default.UseRibbonMenu = true;
                 if (!string.IsNullOrEmpty(SharedData.XMLFilename))
                 {
@@ -3775,7 +3778,7 @@ namespace GamelistManager
                 Properties.Settings.Default.Save();
             }
         }
-                
+
 
         // Hide the ribbon's quick access toolbar
         private void MainRibbon_Loaded(object sender, RoutedEventArgs e)
@@ -3906,7 +3909,7 @@ namespace GamelistManager
                 MainDataGrid.ScrollIntoView(_currentSelectedRow);
             }
         }
-        
+
 
         private void MenuItem_OpenTerminal_Click(object sender, RoutedEventArgs e)
         {
@@ -3956,7 +3959,7 @@ namespace GamelistManager
         private void Button_SnapToSelectedItem_Click(object sender, RoutedEventArgs e)
         {
             if (MainDataGrid.ItemsSource != null && MainDataGrid.SelectedItems.Count > 0)
-            { 
+            {
                 var firstSelectedItem = MainDataGrid.SelectedItems[0];
                 MainDataGrid.CurrentItem = firstSelectedItem;
                 MainDataGrid.ScrollIntoView(firstSelectedItem);
@@ -3964,7 +3967,7 @@ namespace GamelistManager
         }
 
         private async void PopulateSystemsComboboxAsync()
-        {           
+        {
             comboBox_Systems.Items.Clear();
             comboBox_Systems.IsEnabled = false;
             AddSystemsPlaceholder(comboBox_Systems);
@@ -4007,8 +4010,8 @@ namespace GamelistManager
                 var image = new Image
                 {
                     Source = new BitmapImage(new System.Uri(imagePath)),
-                    MaxWidth = 140, 
-                    MaxHeight = 30,  
+                    MaxWidth = 140,
+                    MaxHeight = 30,
                     Tag = gamelistPath,
                     Stretch = Stretch.Uniform
                 };
@@ -4028,7 +4031,7 @@ namespace GamelistManager
                 comboBox_Systems.SelectedIndex = 0;
                 comboBox_Systems.IsEnabled = true;
                 comboBox_Systems.SelectionChanged += ComboBox_Systems_SelectionChanged;
-            }  
+            }
         }
 
         private void ComboBox_Systems_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -4081,7 +4084,7 @@ namespace GamelistManager
 
             var placeholder = new ComboBoxItem
             {
-                HorizontalAlignment= HorizontalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 Content = image,
                 IsEnabled = false,
                 Padding = new Thickness(0)
@@ -4089,6 +4092,16 @@ namespace GamelistManager
 
             comboBox.Items.Add(placeholder);
             comboBox.SelectedIndex = 0;
+        }
+
+        private void MainDataGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            bool hasSelection = MainDataGrid.SelectedItems.Count > 0;
+            foreach (var item in MainDataGrid.ContextMenu.Items)
+            {
+                if (item is MenuItem menuItem)
+                    menuItem.IsEnabled = hasSelection;
+            }
         }
 
         private async void RibbonButton_Click(object sender, RoutedEventArgs e)

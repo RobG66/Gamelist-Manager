@@ -44,10 +44,8 @@ namespace GamelistManager.pages
         {
             InitializeComponent();
 
-            MediaContentGrid = new Grid
-            {
-                Background = (Brush)FindResource("SecondaryBackgroundBrush")
-            };
+            MediaContentGrid = new Grid();
+            MediaContentGrid.SetResourceReference(Grid.BackgroundProperty, "SecondaryBackgroundBrush");
             MediaContentGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             MediaContentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             MediaContentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -104,63 +102,74 @@ namespace GamelistManager.pages
             if (selectedRow == null || _mediaGridSetupDone == false)
                 return;
 
-            ClearAllImages();
+            // Stop media FIRST so the clear→reload block below has no awaits in it —
+            // old images stay visible on screen while this completes
             if (_mediaPlayerControl != null)
             {
                 await StopPlayingAsync();
                 await _mediaPlayerControl.DisposeMediaAsync();
             }
-            string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename)!;
-            bool nomedia = true;
 
-            // Load media settings
-            string mediaPathsJsonString = Properties.Settings.Default.MediaPaths;
-            Dictionary<string, string> mediaPaths;
+            // Freeze the grid's measured size so the Viewbox scale factor stays
+            // constant during the synchronous clear+reload and never sees an
+            // intermediate state where images are null and headers fill the view
+            if (_scaledDisplay && MediaContentGrid.ActualWidth > 0)
+            {
+                MediaContentGrid.Width = MediaContentGrid.ActualWidth;
+                MediaContentGrid.Height = MediaContentGrid.ActualHeight;
+            }
+
             try
             {
-                mediaPaths = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
-                             ?? new Dictionary<string, string>();
-            }
-            catch
-            {
-                mediaPaths = new Dictionary<string, string>();
-            }
+                // Everything from here to end of try is synchronous — no awaits,
+                // so the UI thread never renders the intermediate cleared state
+                ClearAllImages();
 
-            foreach (var column in MediaContentGrid.ColumnDefinitions)
-            {
-                string columnName = column.Name.Replace("__", " ");
-                int columnIndex = MediaContentGrid.ColumnDefinitions.IndexOf(column);
+                string parentFolderPath = Path.GetDirectoryName(SharedData.XMLFilename)!;
+                bool nomedia = true;
 
-                // Check if this media type is disabled in settings
-                string mediaType = columnName.Replace(" ", "").ToLower();
-                string enabledKey = $"{mediaType}_enabled";
-                bool isMediaEnabled = !mediaPaths.TryGetValue(enabledKey, out string? enabledValue) || enabledValue != "false";
-
-                // Skip disabled media types entirely
-                if (!isMediaEnabled)
+                string mediaPathsJsonString = Properties.Settings.Default.MediaPaths;
+                Dictionary<string, string> mediaPaths;
+                try
                 {
-                    column.Width = new GridLength(0);
-                    continue;
+                    mediaPaths = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(mediaPathsJsonString)
+                                 ?? new Dictionary<string, string>();
+                }
+                catch
+                {
+                    mediaPaths = new Dictionary<string, string>();
                 }
 
-                if (columnName == "Video")
+                foreach (var column in MediaContentGrid.ColumnDefinitions)
                 {
-                    var videoCellValue = selectedRow["Video"];
-                    string? videoPath = videoCellValue == null || videoCellValue == DBNull.Value
-                        ? null
-                        : videoCellValue.ToString();
+                    string columnName = column.Name.Replace("__", " ");
+                    int columnIndex = MediaContentGrid.ColumnDefinitions.IndexOf(column);
 
-                    if (!string.IsNullOrEmpty(videoPath))
+                    string mediaType = columnName.Replace(" ", "").ToLower();
+                    string enabledKey = $"{mediaType}_enabled";
+                    bool isMediaEnabled = !mediaPaths.TryGetValue(enabledKey, out string? enabledValue) || enabledValue != "false";
+
+                    if (!isMediaEnabled)
                     {
-                        string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(videoPath, parentFolderPath);
-                        column.Width = new GridLength(1, GridUnitType.Star);
-                        PlayFile(fullPath);
-                        nomedia = false;
+                        column.Width = new GridLength(0);
+                        continue;
                     }
-                    else
+
+                    if (columnName == "Video")
                     {
-                        // Show/hide based on toggle
-                        if (_showAllMedia)
+                        var videoCellValue = selectedRow["Video"];
+                        string? videoPath = videoCellValue == null || videoCellValue == DBNull.Value
+                            ? null
+                            : videoCellValue.ToString();
+
+                        if (!string.IsNullOrEmpty(videoPath))
+                        {
+                            string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(videoPath, parentFolderPath);
+                            column.Width = new GridLength(1, GridUnitType.Star);
+                            PlayFile(fullPath);
+                            nomedia = false;
+                        }
+                        else if (_showAllMedia)
                         {
                             column.Width = new GridLength(1, GridUnitType.Star);
                             DisplayPlaceholder(columnIndex);
@@ -169,24 +178,20 @@ namespace GamelistManager.pages
                         {
                             column.Width = new GridLength(0);
                         }
+                        continue;
                     }
-                    continue;
-                }
 
-                var cellValue = selectedRow[columnName];
-                string? imagePath = cellValue == null || cellValue == DBNull.Value ? null : cellValue.ToString();
+                    var cellValue = selectedRow[columnName];
+                    string? imagePath = cellValue == null || cellValue == DBNull.Value ? null : cellValue.ToString();
 
-                if (!string.IsNullOrEmpty(imagePath))
-                {
-                    string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(imagePath, parentFolderPath);
-                    column.Width = new GridLength(1, GridUnitType.Star);
-                    DisplayItem(fullPath, columnName);
-                    nomedia = false;
-                }
-                else
-                {
-                    // Show/hide based on toggle
-                    if (_showAllMedia)
+                    if (!string.IsNullOrEmpty(imagePath))
+                    {
+                        string fullPath = FilePathHelper.ConvertGamelistPathToFullPath(imagePath, parentFolderPath);
+                        column.Width = new GridLength(1, GridUnitType.Star);
+                        DisplayItem(fullPath, columnName);
+                        nomedia = false;
+                    }
+                    else if (_showAllMedia)
                     {
                         column.Width = new GridLength(1, GridUnitType.Star);
                         DisplayPlaceholder(columnIndex);
@@ -196,18 +201,26 @@ namespace GamelistManager.pages
                         column.Width = new GridLength(0);
                     }
                 }
+
+                if (nomedia && !_showAllMedia)
+                {
+                    var image = MediaContentGrid.Children
+                        .OfType<Border>()
+                        .FirstOrDefault(b => Grid.GetRow(b) == 1 && Grid.GetColumn(b) == 0)?
+                        .Child as Image;
+
+                    if (image != null)
+                        image.Source = new BitmapImage(new Uri("pack://application:,,,/resources/images/nomedia.png"));
+                }
             }
-
-            // Only show "no media" image if not showing all and truly no media
-            if (nomedia && !_showAllMedia)
+            finally
             {
-                var image = MediaContentGrid.Children
-                    .OfType<Border>()
-                    .FirstOrDefault(b => Grid.GetRow(b) == 1 && Grid.GetColumn(b) == 0)?
-                    .Child as Image;
-
-                if (image != null)
-                    image.Source = new BitmapImage(new Uri("pack://application:,,,/resources/images/nomedia.png"));
+                // Release the frozen size so the Viewbox rescales naturally to the new content
+                if (_scaledDisplay)
+                {
+                    MediaContentGrid.Width = double.NaN;
+                    MediaContentGrid.Height = double.NaN;
+                }
             }
         }
 
@@ -366,15 +379,26 @@ namespace GamelistManager.pages
                 };
                 MediaContentGrid.ColumnDefinitions.Add(column);
 
+                var shadowColor = TryFindResource("ShadowColor") as Color? ?? Colors.Black;
+
                 var header = new TextBlock
                 {
                     Text = item,
-                    FontSize = 48,
+                    FontSize = 44,
                     FontWeight = FontWeights.Bold,
+                    FontStyle = FontStyles.Italic,
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 2, 0, 2)
+                    Margin = new Thickness(0, 4, 0, 2),
+                    Effect = new DropShadowEffect
+                    {
+                        Color = shadowColor,
+                        BlurRadius = 4,
+                        ShadowDepth = 2,
+                        Direction = 315,
+                        Opacity = 0.5
+                    }
                 };
-                header.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryTextBrush");
+                header.SetResourceReference(TextBlock.ForegroundProperty, "AccentBrush");
                 Grid.SetRow(header, 0);
                 Grid.SetColumn(header, columnIndex);
                 MediaContentGrid.Children.Add(header);
@@ -391,8 +415,6 @@ namespace GamelistManager.pages
                         MaxHeight = 300,
                         Stretch = Stretch.Uniform,
                     };
-
-                var shadowColor = TryFindResource("ShadowColor") as Color? ?? Colors.Black;
 
                 container = new Border
                 {

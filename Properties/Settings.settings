@@ -78,7 +78,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="AutoSizeColumns" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="SuspendSortingInEditMode" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

@@ -12,6 +12,60 @@
         Closing="Window_Closing"
         Background="{DynamicResource WindowBackgroundBrush}">
 
+    <Window.Resources>
+        <ContextMenu x:Key="DataGridContextMenu" Style="{DynamicResource BaseContextMenu}">
+
+            <!-- Visibility -->
+            <MenuItem Header="Set Selected Visible"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_SetSelectedVisible_Click"/>
+            <MenuItem Header="Set Selected Hidden"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_SetSelectedHidden_Click"/>
+
+            <Separator Style="{DynamicResource MinimalSeparator}"/>
+
+            <!-- Remove / Delete -->
+            <MenuItem Header="Remove From Gamelist"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_RemoveItem_Click"/>
+            <MenuItem Header="Delete From Disk"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="RibbonButton_DeleteItem_Click"/>
+
+            <Separator Style="{DynamicResource MinimalSeparator}"/>
+
+            <!-- Data -->
+            <MenuItem Header="Reset Name"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_ResetName_Click"/>
+            <MenuItem Header="Clear Data"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_ClearSelected_Click"/>
+            <MenuItem Header="Clear Media Paths"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_ClearSelectedMediaPaths_Click"/>
+
+            <Separator Style="{DynamicResource MinimalSeparator}"/>
+
+            <!-- Navigation / Edit -->
+            <MenuItem Header="Toggle Edit Mode"
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_EditData_Click"/>
+
+            <Separator Style="{DynamicResource MinimalSeparator}"/>
+
+            <!-- Find -->
+            <MenuItem Header="Find..."
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_Find_Click"/>
+            <MenuItem Header="Search and Replace..."
+                      Style="{DynamicResource MinimalMenuItem}"
+                      Click="MenuItem_SearchAndReplace_Click"/>
+
+        </ContextMenu>
+    </Window.Resources>
+
     <!-- Main grid that contains everything -->
     <Grid x:Name="MainGrid" 
           Margin="5,0,5,5"
@@ -24,7 +78,7 @@
             <!-- Datagrid / Textbox -->
             <RowDefinition Height="Auto"/>
             <!-- GridSplitter -->
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" MaxHeight="350"/>
             <!-- Media Display / Scraper -->
         </Grid.RowDefinitions>
 
@@ -665,7 +719,7 @@
                 <!-- DataGrid -->
                 <ColumnDefinition Width="Auto" />
                 <!-- Vertical GridSplitter -->
-                <ColumnDefinition x:Name="column_Description" Width="2*" />
+                <ColumnDefinition x:Name="column_Description" Width="2*" MinWidth="100" MaxWidth="500"/>
                 <!-- TextBox -->
             </Grid.ColumnDefinitions>
 
@@ -693,7 +747,9 @@
                   AutoGenerateColumns="False" 
                   CanUserDeleteRows="False"
                   Sorting="MainDataGrid_Sorting"            
-                  CanUserAddRows="False">
+                  CanUserAddRows="False"
+                  ContextMenu="{StaticResource DataGridContextMenu}"
+                  ContextMenuOpening="MainDataGrid_ContextMenuOpening">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Style.Resources>
@@ -721,17 +777,17 @@
                    Background="{DynamicResource StatusBarBackgroundBrush}"
                    Grid.Row="1" 
                    Height="22">
-                        <StatusBarItem>
-                            <TextBlock x:Name="textBlock_Filename" 
-                           Text="Load an existing gamelist or create a new one from the File menu." 
-                           HorizontalAlignment="Left" 
+                        <StatusBarItem DockPanel.Dock="Right">
+                            <TextBlock x:Name="textBlock_LastModifiedTime" 
+                           HorizontalAlignment="Right" 
                            VerticalAlignment="Center" 
                            FontSize="12" 
                            Foreground="{DynamicResource StatusBarForegroundBrush}" 
-                           Margin="2,0,0,0"/>
+                           Margin="0,0,5,0"/>
                         </StatusBarItem>
                         <StatusBarItem>
-                            <TextBlock x:Name="textBlock_LastModifiedTime" 
+                            <TextBlock x:Name="textBlock_Filename" 
+                           Text="Load an existing gamelist or create a new one from the File menu." 
                            HorizontalAlignment="Left" 
                            VerticalAlignment="Center" 
                            FontSize="12" 
@@ -1336,4 +1392,5 @@
             <Frame x:Name="MainContentFrame" NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
-</Window>
+
+    </Window>

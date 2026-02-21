@@ -40,7 +40,6 @@ namespace GamelistManager.classes.helpers
             string themeFile = theme switch
             {
                 Theme.Default => "DefaultTheme.xaml",
-                Theme.Dark => "DarkTheme.xaml",
                 Theme.Warm => "WarmTheme.xaml",
                 Theme.Cool => "CoolTheme.xaml",
                 Theme.Gray => "GrayTheme.xaml",

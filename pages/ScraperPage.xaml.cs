@@ -854,20 +854,20 @@ namespace GamelistManager.pages
             await Task.Delay(2000);
             var tasks = new List<Task>();
 
-            if (batchProcessing)
-            {
-                await GetItemsInBatchMode(baseScraperParameters, batchProcessingMaximum, rowsToScrape, scraperProperties);
-            }
-
-            LogHelper.Instance.Log("Starting main scraping phase...", System.Windows.Media.Brushes.Teal);
-
-            // Log the semaphore settings
-            LogHelper.Instance.Log(
-                $"API/Download threads: {maxConcurrency}",
-                System.Windows.Media.Brushes.Teal);
-
             try
             {
+                if (batchProcessing)
+                {
+                    await GetItemsInBatchMode(baseScraperParameters, batchProcessingMaximum, rowsToScrape, scraperProperties);
+                }
+
+                LogHelper.Instance.Log("Starting main scraping phase...", System.Windows.Media.Brushes.Teal);
+
+                // Log the semaphore settings
+                LogHelper.Instance.Log(
+                    $"API/Download threads: {maxConcurrency}",
+                    System.Windows.Media.Brushes.Teal);
+
                 foreach (DataRow row in rowsToScrape)
                 {
                     await _scrapeSemaphore.WaitAsync(CancellationToken);

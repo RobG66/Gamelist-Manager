@@ -200,7 +200,7 @@ namespace GamelistManager.classes.services
             }
             _dataGrid.UpdateLayout();
         }
-    
+
 
     }
 }
