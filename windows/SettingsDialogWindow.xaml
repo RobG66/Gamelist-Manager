@@ -33,10 +33,25 @@
                                Foreground="{DynamicResource AccentBrush}" 
                                Margin="0,0,0,8"/>
 
-                    <Label Content="Hostname:" Padding="0,0,0,2"/>
+                    <DockPanel LastChildFill="False">
+                        <Label Content="Hostname:" Padding="0,0,0,2" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button x:Name="button_TestCredentials" Content="Test"
+                                    Style="{DynamicResource GreenRoundedButton}"
+                                    Width="35" Height="16" Margin="0,0,3,0"
+                                    Click="Button_TestCredentials_Click"
+                                    ToolTip="Test SSH connection with current credentials"/>
+                            <Button x:Name="button_ClearCredentials" Content="Clear"
+                                    Style="{DynamicResource YellowRoundedButton}"
+                                    Width="35" Height="16"
+                                    Click="Button_ClearCredentials_Click"
+                                    ToolTip="Clear credential fields"/>
+                        </StackPanel>
+                    </DockPanel>
+
                     <TextBox x:Name="textBox_HostName" Height="20" MaxLength="50" 
                              Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
-
+                                      
                     <Label Content="User ID:" Margin="0,8,0,2" Padding="0,0,0,2"/>
                     <TextBox x:Name="textBox_UserID" Height="20" MaxLength="50" 
                              Style="{DynamicResource CustomTextBox}" TextChanged="TextBox_TextChanged" />
@@ -279,7 +294,7 @@
                       Style="{DynamicResource CustomCheckBox}" 
                       VerticalAlignment="Center" 
                       Margin="0,0,0,5"
-                      ToolTip="Remember column autosize settings" 
+                      ToolTip="Remember column autosize setting" 
                       Content="Remember Column Autosize" 
                       Click="CheckBox_Click"/>
 
@@ -351,6 +366,7 @@
                             <TextBlock Text="Log Verbosity:" Margin="40,0,0,0" VerticalAlignment="Center"/>
                             <ComboBox x:Name="comboBox_LogVerbosity" Height="20"
                                       MinWidth="110"
+                                      SelectionChanged="comboBox_LogVerbosity_SelectionChanged"
                                       Style="{DynamicResource CustomComboBox}" 
                                       Margin="5,0,0,0">
                                 <ComboBoxItem Content="Downloads Only" Tag="0" IsSelected="True" />

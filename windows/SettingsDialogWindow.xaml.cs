@@ -1,5 +1,6 @@
 ﻿using GamelistManager.classes.helpers;
 using Microsoft.Win32;
+using Renci.SshNet;
 using System.Configuration;
 using System.IO;
 using System.Reflection;
@@ -600,6 +601,10 @@ namespace GamelistManager
 
                 // Set the slider Value
                 slider.Value = newValue;
+
+                button_Save.Content = "Save";
+                button_Save.IsEnabled = true;
+
             }
         }
 
@@ -645,6 +650,59 @@ namespace GamelistManager
             }
         }
 
+        private async void Button_TestCredentials_Click(object sender, RoutedEventArgs e)
+        {
+            string hostName = textBox_HostName.Text.Trim();
+            string userID = textBox_UserID.Text.Trim();
+            string password = textBox_Password.Text.Trim();
+
+            if (string.IsNullOrEmpty(hostName) || string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show(this, "Please fill in all credential fields before testing.", "Test Connection", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            button_TestCredentials.IsEnabled = false;
+            button_TestCredentials.Content = "...";
+
+            bool success = await Task.Run(() =>
+            {
+                try
+                {
+                    using var client = new SshClient(hostName, userID, password);
+                    client.Connect();
+                    bool connected = client.IsConnected;
+                    client.Disconnect();
+                    return connected;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+
+            button_TestCredentials.IsEnabled = true;
+            button_TestCredentials.Content = "Test";
+
+            if (success)
+                MessageBox.Show(this, "Connection successful!", "Test Connection", MessageBoxButton.OK, MessageBoxImage.Information);
+            else
+                MessageBox.Show(this, "Connection failed. Check hostname and credentials.", "Test Connection", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void Button_ClearCredentials_Click(object sender, RoutedEventArgs e)
+        {
+            var hostName = textBox_HostName.Text.Trim();
+            if (!string.IsNullOrEmpty(hostName))
+            {
+                CredentialHelper.DeleteCredentials(hostName);
+            }
+
+            textBox_HostName.Text = string.Empty;
+            textBox_UserID.Text = string.Empty;
+            textBox_Password.Text = string.Empty;
+        }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             // Unhook event handlers to prevent memory leaks
@@ -681,6 +739,12 @@ namespace GamelistManager
             }
 
             textBox_RomsFolder.Text = selectedPath;
+        }
+
+        private void comboBox_LogVerbosity_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            button_Save.Content = "Save";
+            button_Save.IsEnabled = true;
         }
     }
 }

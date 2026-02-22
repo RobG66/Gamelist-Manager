@@ -1039,6 +1039,20 @@ namespace GamelistManager
 
             SetMenuStyle(useRibbonMenu);
 
+            string hostName = Properties.Settings.Default.BatoceraHostName;
+            (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
+
+            if (string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userPassword))
+            {
+                ribbonTab_Remote.Visibility = Visibility.Collapsed;
+                menuItem_Remote.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ribbonTab_Remote.Visibility = Visibility.Visible;
+                menuItem_Remote.Visibility = Visibility.Visible;
+            }
+
         }
 
         private void Ribbon_AutoHide_Click(object sender, RoutedEventArgs e)
@@ -1775,6 +1789,22 @@ namespace GamelistManager
 
             SettingsDialogWindow settingsDialog = new(this);
             settingsDialog.ShowDialog();
+
+            // Check credentials for remote access and show/hide menu accordingly
+            string hostName = Properties.Settings.Default.BatoceraHostName;
+            (string userName, string userPassword) = CredentialHelper.GetCredentials(hostName);
+
+            if (string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userPassword))
+            {
+                ribbonTab_Remote.Visibility = Visibility.Collapsed;
+                menuItem_Remote.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ribbonTab_Remote.Visibility = Visibility.Visible;
+                menuItem_Remote.Visibility = Visibility.Visible;
+            }
+
 
             // Reload settings
             _confirmBulkChange = Properties.Settings.Default.ConfirmBulkChange;
@@ -3968,68 +3998,74 @@ namespace GamelistManager
 
         private async void PopulateSystemsComboboxAsync()
         {
+            comboBox_Systems.SelectionChanged -= ComboBox_Systems_SelectionChanged;
+            foreach (var existingItem in comboBox_Systems.Items.OfType<ComboBoxItem>())
+            {
+                if (existingItem.Content is Image img)
+                    img.Source = null;
+            }
             comboBox_Systems.Items.Clear();
             comboBox_Systems.IsEnabled = false;
             AddSystemsPlaceholder(comboBox_Systems);
 
-            string romsFolder = (Properties.Settings.Default.RomsFolder).Trim();
+            string romsFolder = Properties.Settings.Default.RomsFolder.Trim();
 
             if (!Directory.Exists(romsFolder))
                 return;
 
-            var dirs = Directory.GetDirectories(romsFolder)
-               .OrderBy(d => Path.GetFileName(d))
-               .ToArray();
-
-            foreach (string systemDir in dirs)
+            var validSystems = await Task.Run(() =>
             {
-                string systemName = Path.GetFileName(systemDir);
-                string gamelistPath = Path.Combine(systemDir, "gamelist.xml");
+                return Directory.GetDirectories(romsFolder)
+                    .OrderBy(Path.GetFileName)
+                    .Select(systemDir => new
+                    {
+                        systemName = Path.GetFileName(systemDir),
+                        gamelistPath = Path.Combine(systemDir, "gamelist.xml")
+                    })
+                    .Where(s => File.Exists(s.gamelistPath))
+                    .ToList();
+            });
 
-                if (!File.Exists(gamelistPath))
-                    continue;
+            foreach (var system in validSystems)
+            {
+                var imageUri = new Uri($"pack://application:,,,/resources/images/systems/{system.systemName}.png");
 
-                // Build image path
-                string imageName = $"{systemName}.png";
-                string imagePath = $"pack://application:,,,/resources/images/systems/{imageName}";
-
-                bool exists = false;
                 try
                 {
-                    exists = Application.GetResourceStream(new Uri(imagePath)) != null;
+                    var info = Application.GetResourceStream(imageUri);
+                    if (info == null) continue;
+                    info.Stream.Dispose();
                 }
-                catch
-                {
-                    exists = false;
-                }
+                catch { continue; }
 
-                if (!exists)
-                    continue;
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.UriSource = imageUri;
+                bmp.DecodePixelWidth = 140;
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.EndInit();
+                bmp.Freeze();
 
-
-                var image = new Image
-                {
-                    Source = new BitmapImage(new System.Uri(imagePath)),
-                    MaxWidth = 140,
-                    MaxHeight = 30,
-                    Tag = gamelistPath,
-                    Stretch = Stretch.Uniform
-                };
-
-                var item = new ComboBoxItem
+                comboBox_Systems.Items.Add(new ComboBoxItem
                 {
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    Content = image,
-                    Tag = gamelistPath,
+                    Content = new Image
+                    {
+                        Source = bmp,
+                        MaxWidth = 140,
+                        MaxHeight = 30,
+                        Tag = system.gamelistPath,
+                        Stretch = Stretch.Uniform
+                    },
+                    Tag = system.gamelistPath,
                     Padding = new Thickness(2)
-                };
-                comboBox_Systems.Items.Add(item);
+                });
             }
 
             if (comboBox_Systems.Items.Count > 0)
             {
-                comboBox_Systems.SelectedIndex = 0;
                 comboBox_Systems.IsEnabled = true;
+                comboBox_Systems.SelectedIndex = 0;
                 comboBox_Systems.SelectionChanged += ComboBox_Systems_SelectionChanged;
             }
         }
@@ -4073,12 +4109,19 @@ namespace GamelistManager
 
         private static void AddSystemsPlaceholder(ComboBox comboBox)
         {
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.UriSource = new Uri("pack://application:,,,/resources/images/logos/gamelistmanager.png");
+            bmp.DecodePixelHeight = 30;
+            bmp.CacheOption = BitmapCacheOption.OnLoad;
+            bmp.EndInit();
+            bmp.Freeze();
+
             var image = new Image
             {
                 MaxWidth = 140,
                 MaxHeight = 30,
-                Source = new BitmapImage(
-                    new Uri("pack://application:,,,/resources/images/logos/gamelistmanager.png")),
+                Source = bmp,
                 Stretch = Stretch.Uniform
             };
 

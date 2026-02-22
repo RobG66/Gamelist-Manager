@@ -77,9 +77,21 @@ namespace GamelistManager.classes.gamelist
             var cts = new CancellationTokenSource();
             var progress = new Progress<int>();
             var progressWindow = ShowProgressWindow(gamelistPaths.Count, progress, cts);
+            bool progressWindowClosed = false;
+
+            void CloseProgressWindow()
+            {
+                if (!progressWindowClosed)
+                {
+                    progressWindowClosed = true;
+                    try { progressWindow.Close(); } catch { }
+                }
+            }
 
             try
             {
+                // Do NOT pass cts.Token to Task.Run — avoids TaskCanceledException
+                // before the task body even starts, which bypasses inner catch blocks
                 var allStats = await Task.Run(() =>
                 {
                     int completed = 0;
@@ -87,7 +99,6 @@ namespace GamelistManager.classes.gamelist
 
                     try
                     {
-                        // Process all gamelists with better cancellation support
                         Parallel.ForEach(gamelistPaths,
                             new ParallelOptions
                             {
@@ -96,35 +107,44 @@ namespace GamelistManager.classes.gamelist
                             },
                             gamelistPath =>
                             {
-                                cts.Token.ThrowIfCancellationRequested();
+                                // If already cancelled, skip silently
+                                if (cts.Token.IsCancellationRequested)
+                                    return;
 
-                                GamelistStatistics? stat = null;
-
-                                if (!string.IsNullOrWhiteSpace(gamelistPath))
+                                try
                                 {
-                                    if (!File.Exists(gamelistPath))
+                                    GamelistStatistics? stat = null;
+
+                                    if (!string.IsNullOrWhiteSpace(gamelistPath))
                                     {
-                                        string systemName = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
-                                        stat = new GamelistStatistics
+                                        if (!File.Exists(gamelistPath))
                                         {
-                                            SystemName = systemName,
-                                            GamelistPath = gamelistPath,
-                                            LoadError = true
-                                        };
-                                    }
-                                    else
-                                    {
-                                        string systemName = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
-                                        stat = AnalyzeGamelist(gamelistPath, systemName, includeStorage, ignoreDuplicates);
+                                            string systemName = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
+                                            stat = new GamelistStatistics
+                                            {
+                                                SystemName = systemName,
+                                                GamelistPath = gamelistPath,
+                                                LoadError = true
+                                            };
+                                        }
+                                        else
+                                        {
+                                            string systemName = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
+                                            stat = AnalyzeGamelist(gamelistPath, systemName, includeStorage, ignoreDuplicates, cts.Token);
+                                        }
+
+                                        if (stat != null)
+                                            results.Add(stat);
                                     }
 
-                                    if (stat != null)
-                                        results.Add(stat);
+                                    int current = Interlocked.Increment(ref completed);
+                                    ((IProgress<int>)progress).Report(current);
                                 }
-
-                                // Update progress
-                                int current = Interlocked.Increment(ref completed);
-                                ((IProgress<int>)progress).Report(current);
+                                catch (OperationCanceledException)
+                                {
+                                    // Swallow cancellation inside the lambda — let the outer
+                                    // cts.IsCancellationRequested check handle the result
+                                }
                             });
 
                         return results.OrderBy(s => s.SystemName, StringComparer.OrdinalIgnoreCase).ToList();
@@ -133,32 +153,47 @@ namespace GamelistManager.classes.gamelist
                     {
                         return new List<GamelistStatistics>();
                     }
-                }, cts.Token);
+                    catch (AggregateException ae) when (ae.Flatten().InnerExceptions.All(ex => ex is OperationCanceledException))
+                    {
+                        // Parallel.ForEach wraps cancellation in nested AggregateExceptions — flatten before checking
+                        return new List<GamelistStatistics>();
+                    }
+                }); // No cts.Token here — cancellation is handled inside the lambda
 
-                // Close progress window
-                progressWindow.Close();
+                CloseProgressWindow();
 
-                // Check if cancelled
-                if (cts.Token.IsCancellationRequested || allStats.Count == 0)
+                // Check if cancelled or no results
+                if (cts.IsCancellationRequested || allStats.Count == 0)
                 {
-                    MessageBox.Show(
-                        "Report generation cancelled.",
-                        "Cancelled",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
+                    if (cts.IsCancellationRequested)
+                    {
+                        MessageBox.Show(
+                            "Report generation cancelled.",
+                            "Cancelled",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+                    }
                     return;
                 }
 
-                // Generate report text
                 string reportText = BuildReportText(allStats, includeStorage);
-
-                // Show report in window with option to save or open in notepad
                 ShowReportWindow(reportText, includeStorage);
             }
             catch (OperationCanceledException)
             {
-                progressWindow.Close();
+                CloseProgressWindow();
+                MessageBox.Show(
+                    "Report generation cancelled.",
+                    "Cancelled",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
+            catch (AggregateException ae) when (ae.Flatten().InnerExceptions.All(ex => ex is OperationCanceledException))
+            {
+                // Parallel.ForEach cancellation bubbled through Task.Run as AggregateException
+                CloseProgressWindow();
                 MessageBox.Show(
                     "Report generation cancelled.",
                     "Cancelled",
@@ -168,7 +203,7 @@ namespace GamelistManager.classes.gamelist
             }
             catch (Exception ex)
             {
-                progressWindow.Close();
+                CloseProgressWindow();
                 MessageBox.Show(
                     $"Error generating report: {ex.Message}",
                     "Error",
@@ -243,13 +278,15 @@ namespace GamelistManager.classes.gamelist
             Grid.SetRow(cancelButton, 3);
             cancelButton.Click += (s, e) =>
             {
-                cts.Cancel();
-                cancelButton.IsEnabled = false;
-                textBlock.Text = "Cancelling...";
+                if (!cts.IsCancellationRequested)
+                {
+                    cts.Cancel();
+                    cancelButton.IsEnabled = false;
+                    textBlock.Text = "Cancelling...";
+                }
             };
             grid.Children.Add(cancelButton);
 
-            // Update progress bar when progress is reported
             ((Progress<int>)progress).ProgressChanged += (s, value) =>
             {
                 window.Dispatcher.Invoke(() =>
@@ -265,7 +302,7 @@ namespace GamelistManager.classes.gamelist
             return window;
         }
 
-        private static GamelistStatistics AnalyzeGamelist(string gamelistPath, string systemName, bool includeStorage, bool ignoreDuplicates)
+        private static GamelistStatistics AnalyzeGamelist(string gamelistPath, string systemName, bool includeStorage, bool ignoreDuplicates, CancellationToken token = default)
         {
             var stats = new GamelistStatistics
             {
@@ -285,7 +322,6 @@ namespace GamelistManager.classes.gamelist
 
                 stats.TotalGames = gameTable.Rows.Count;
 
-
                 string baseDir = System.IO.Path.GetDirectoryName(gamelistPath) ?? string.Empty;
 
                 var allMediaTypes = GamelistMetaData.GetMetaDataDictionary().Values
@@ -302,6 +338,8 @@ namespace GamelistManager.classes.gamelist
 
                 foreach (DataRow row in gameTable.Rows)
                 {
+                    token.ThrowIfCancellationRequested();
+
                     if (hasHiddenCol && row[hiddenColName] != DBNull.Value && Convert.ToBoolean(row[hiddenColName]))
                     {
                         stats.HiddenGames++;
@@ -424,13 +462,21 @@ namespace GamelistManager.classes.gamelist
 
                             if (Directory.Exists(romDir))
                             {
-                                stats.RomFolderSize = GetDirectorySize(romDir);
+                                stats.RomFolderSize = GetDirectorySize(romDir, token);
                                 stats.ActualRomSize = stats.RomFolderSize - stats.TotalMediaSize;
                             }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw; // Always re-throw cancellation
                         }
                         catch { }
                     }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // Always re-throw cancellation
             }
             catch
             {
@@ -459,7 +505,7 @@ namespace GamelistManager.classes.gamelist
             return System.IO.Path.Combine(baseDir, mediaPath);
         }
 
-        private static long GetDirectorySize(string directory)
+        private static long GetDirectorySize(string directory, CancellationToken token = default)
         {
             long size = 0;
             try
@@ -468,12 +514,17 @@ namespace GamelistManager.classes.gamelist
 
                 foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                 {
+                    token.ThrowIfCancellationRequested();
                     try
                     {
                         size += file.Length;
                     }
                     catch { }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // Always re-throw cancellation
             }
             catch { }
             return size;
@@ -748,7 +799,7 @@ namespace GamelistManager.classes.gamelist
             var canvas = new Canvas
             {
                 Background = Brushes.White,
-                Margin = new Thickness(10,0,10,0)
+                Margin = new Thickness(10, 0, 10, 0)
             };
 
             var lines = reportText.Split('\n');
@@ -763,9 +814,7 @@ namespace GamelistManager.classes.gamelist
                 {
                     string digits = new string(line.Where(char.IsDigit).ToArray());
                     if (!int.TryParse(digits, out totalGames))
-                    {
                         totalGames = 0;
-                    }
                 }
                 else if (line.Contains("Total Images:"))
                 {
@@ -934,7 +983,7 @@ namespace GamelistManager.classes.gamelist
             var canvas = new Canvas
             {
                 Background = Brushes.White,
-                Margin = new Thickness(10,0,10,0)
+                Margin = new Thickness(10, 0, 10, 0)
             };
 
             var lines = reportText.Split('\n');
@@ -1000,7 +1049,6 @@ namespace GamelistManager.classes.gamelist
                 return canvas;
             }
 
-            // If no collection data, still show disk usage with just free/used
             if (totalCollectionSize == 0)
             {
                 totalRomSize = 0;
@@ -1010,7 +1058,6 @@ namespace GamelistManager.classes.gamelist
             long diskUsedSize = diskTotalSize - diskFreeSize;
             long otherUsedSize = Math.Max(0, diskUsedSize - totalCollectionSize);
 
-            // Ensure no negative percentages
             double romPercent = totalRomSize > 0 ? (totalRomSize * 100.0) / diskTotalSize : 0;
             double mediaPercent = totalMediaSize > 0 ? (totalMediaSize * 100.0) / diskTotalSize : 0;
             double otherPercent = otherUsedSize > 0 ? (otherUsedSize * 100.0) / diskTotalSize : 0;
@@ -1063,7 +1110,6 @@ namespace GamelistManager.classes.gamelist
             int legendY = 170;
             for (int i = 0; i < dataPoints.Length; i++)
             {
-                // Show all legend items, not just those > 0.1%
                 var legendRect = new Rectangle
                 {
                     Width = 12,
@@ -1092,12 +1138,12 @@ namespace GamelistManager.classes.gamelist
         }
 
         private static System.Windows.Shapes.Path CreatePieSegment(
-    double centerX,
-    double centerY,
-    double radius,
-    double startAngle,
-    double sweepAngle,
-    Brush fill)
+            double centerX,
+            double centerY,
+            double radius,
+            double startAngle,
+            double sweepAngle,
+            Brush fill)
         {
             const double strokeThickness = 2;
             const double innerRadius = strokeThickness / 2;
@@ -1122,13 +1168,11 @@ namespace GamelistManager.classes.gamelist
             double startRad = (startAngle - 90) * Math.PI / 180.0;
             double endRad = (startAngle + sweepAngle - 90) * Math.PI / 180.0;
 
-            // Outer arc points
             double x1 = centerX + radius * Math.Cos(startRad);
             double y1 = centerY + radius * Math.Sin(startRad);
             double x2 = centerX + radius * Math.Cos(endRad);
             double y2 = centerY + radius * Math.Sin(endRad);
 
-            // Inner start/end points (slightly off-center)
             double ix1 = centerX + innerRadius * Math.Cos(startRad);
             double iy1 = centerY + innerRadius * Math.Sin(startRad);
             double ix2 = centerX + innerRadius * Math.Cos(endRad);
@@ -1164,7 +1208,6 @@ namespace GamelistManager.classes.gamelist
                 StrokeLineJoin = PenLineJoin.Round
             };
         }
-
 
         private static long ParseSizeString(string sizeStr)
         {
@@ -1230,7 +1273,6 @@ namespace GamelistManager.classes.gamelist
             {
                 string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"GamelistReport_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
                 File.WriteAllText(tempPath, reportText);
-
                 Process.Start("notepad.exe", tempPath);
             }
             catch (Exception ex)

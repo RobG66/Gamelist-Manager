@@ -996,7 +996,7 @@
             <Grid Grid.Row="2" 
               x:Name="grid_InfoBar" 
               Grid.ColumnSpan="3" 
-              Margin="0,5,0,5" 
+              Margin="0,5,0,0" 
               VerticalAlignment="Center">
              <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
