@@ -1,0 +1,69 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Small Modern Checkbox - Theme-Aware -->
+    <Style TargetType="CheckBox" x:Key="CustomCheckBox">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel x:Name="rootPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Box with checkmark inside -->
+                        <Grid Width="14" Height="14" VerticalAlignment="Center">
+                            <Border x:Name="Border"
+                                    CornerRadius="3"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource CheckBoxBorderBrush}"
+                                    Background="Transparent"/>
+                            <Path x:Name="CheckMark"
+                                  Data="M2,7 L5,10 L12,2"
+                                  Stroke="{DynamicResource CheckMarkBrush}"
+                                  StrokeThickness="2"
+                                  Visibility="Collapsed"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                        </Grid>
+                        <!-- Content -->
+                        <ContentPresenter x:Name="contentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          Margin="6,0,0,0"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <!-- Checked -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource CheckBoxCheckedBrush}"/>
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource CheckBoxBorderBrush}"/>
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <!-- Hover -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource ActiveBorderBrush}"/>
+                        </Trigger>
+                        <!-- Disabled -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                            <Setter TargetName="rootPanel" Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}"/>
+                            <Setter TargetName="CheckMark" Property="Stroke" Value="{DynamicResource DisabledTextBrush}"/>
+                        </Trigger>
+                        <!-- Disabled + Checked -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="False"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

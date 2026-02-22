@@ -1,0 +1,57 @@
+﻿<Window x:Class="GamelistManager.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About Gamelist Manager"
+        Height="450" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource WindowBackgroundBrush}">
+
+    <Grid Margin="15">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+
+            <!-- App Logo -->
+            <Image Source="pack://application:,,,/resources/images/logos/gamelistmanager.png" Height="80" Width="400" Margin="0,0,0,0"/>
+
+            <!-- App Icon -->
+            <Image Source="pack://application:,,,/resources/images/icons/icon.png" Height="60" Width="80" Margin="0,0,0,0"/>
+
+            <!-- Version -->
+            <TextBlock Text="{Binding Version}" Margin="0,5,0,10" 
+                       HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" />
+
+            <!-- Description / features -->
+            <TextBlock TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,10"
+                       Foreground="{DynamicResource SecondaryTextBrush}">
+                Manage and scrape your ROM libraries easily.
+                Supports ScreenScraper, ArcadeDB, EmuMovies.
+                Organize metadata, artwork, videos, and more.
+            </TextBlock>
+
+            <!-- Author / GitHub link -->
+            <TextBlock Text="Created by Rob Ganshorn" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+            <TextBlock Text="GitHub: https://github.com/RobG66/Gamelist-Manager"
+                       Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline" Cursor="Hand" 
+                       HorizontalAlignment="Center" MouseLeftButtonUp="GitHubLink_Click"/>
+
+            <!-- Donation Links -->
+            <TextBlock Text="Support development:" Margin="0,15,0,5" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                <TextBlock Text="Ko-fi: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="https://ko-fi.com/robg66" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
+                           Cursor="Hand" MouseLeftButtonUp="KofiLink_Click" Margin="5,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="GitHub Sponsors: " VerticalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"/>
+                <TextBlock Text="https://github.com/sponsors/RobG66" Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline"
+                           Cursor="Hand" MouseLeftButtonUp="GitHubSponsors_Click" Margin="5,0"/>
+            </StackPanel>
+
+            <!-- Close button -->
+            <Button Content="Close" Width="60" Margin="0,20,0,0" HorizontalAlignment="Center" Height="20" 
+                    Style="{DynamicResource OrangeRoundedButton}" Click="Close_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

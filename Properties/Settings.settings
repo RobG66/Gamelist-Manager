@@ -1,0 +1,180 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GamelistManager.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="LastScraper" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RecentFiles" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="BatoceraHostName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">batocera</Value>
+    </Setting>
+    <Setting Name="AlternatingRowColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">LightGray</Value>
+    </Setting>
+    <Setting Name="ConfirmBulkChange" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="SaveReminder" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="MaxUndo" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="ShowCounts" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Region" Type="System.String" Scope="User">
+      <Value Profile="(Default)">wor</Value>
+    </Setting>
+    <Setting Name="ArcadeDB_Checkboxes" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ScreenScraper_Checkboxes" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="EmuMovies_Checkboxes" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="MediaSources" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="GridFontSize" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">12</Value>
+    </Setting>
+    <Setting Name="VerifyDownloadedImages" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ScrapeEnglishGenreOnly" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="GridLineVisibility" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Horizontal</Value>
+    </Setting>
+    <Setting Name="Language" Type="System.String" Scope="User">
+      <Value Profile="(Default)">en</Value>
+    </Setting>
+    <Setting Name="ShowFileStatusBar" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="VideoAutoplay" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="Volume" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">75</Value>
+    </Setting>
+    <Setting Name="SearchDepth" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="MamePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RememberColumns" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="RememberAutoSize" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="AutoSizeColumns" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="SuspendSortingInEditMode" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ScrapeAnyMedia" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AutoExpandLogger" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Theme" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="MediaPaths" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{
+  "image": "images",
+  "image_enabled": "true",
+  "titleshot": "images",
+  "titleshot_enabled": "true",
+  "marquee": "images",
+  "marquee_enabled": "true",
+  "wheel": "images",
+  "wheel_enabled": "false",
+  "thumbnail": "images",
+  "thumbnail_enabled": "true",
+  "cartridge": "images",
+  "cartridge_enabled": "true",
+  "video": "videos",
+  "video_enabled": "true",
+  "music": "music",
+  "music_enabled": "true",
+  "map": "images",
+  "map_enabled": "false",
+  "bezel": "images",
+  "bezel_enabled": "true",
+  "manual": "manuals",
+  "manual_enabled": "true",
+  "fanart": "images",
+  "fanart_enabled": "true",
+  "boxart": "images",
+  "boxart_enabled": "true",
+  "boxback": "images",
+  "boxback_enabled": "true",
+  "magazine": "images",
+  "magazine_enabled": "false",
+  "mix": "images",
+  "mix_enabled": "true"
+}</Value>
+    </Setting>
+    <Setting Name="VisibleGridColumns" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}</Value>
+    </Setting>
+    <Setting Name="DefaultColumns" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Description": true, "Developer": false, "Favorite": false, "Game Time": false, "Language": false, "Last Played": false, "Play Count": false, "Publisher": false, "Region": false, "Genre": true, "Rating": true, "Players": true, "Release Date": true}</Value>
+    </Setting>
+    <Setting Name="Region_Fallback" Type="System.String" Scope="User">
+      <Value Profile="(Default)">["USA (us)","ScreenScraper (ss)","Europe (eu)","United Kingdom (uk)","World (wor)"]</Value>
+    </Setting>
+    <Setting Name="Version" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RecentFilesCount" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">15</Value>
+    </Setting>
+    <Setting Name="UseRibbonMenu" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AutoHideRibbon" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="AlwaysOnTop" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="EnableDelete" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="IgnoreDuplicates" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BatchProcessing" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="BatchProcessingMaximum" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">300</Value>
+    </Setting>
+    <Setting Name="LogVerbosity" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="ScaleToFit" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="EncryptedCredentials" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RomsFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>

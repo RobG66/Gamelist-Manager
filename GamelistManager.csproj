@@ -1,0 +1,107 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ApplicationIcon>resources\images\icons\icon.ico</ApplicationIcon>
+    <UserSecretsId>68a893f0-81e0-4c69-846f-445715273768</UserSecretsId>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PackageIcon>icon.png</PackageIcon>
+    <FileVersion>8.85</FileVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Title>Gamelist Manager</Title>
+    <Version>$(VersionPrefix)</Version>
+  </PropertyGroup>
+
+  <!-- Exclude unwanted folders -->
+  <ItemGroup>
+    <Compile Remove="cache\**" />
+    <Compile Remove="resources\flags\**" />
+    <EmbeddedResource Remove="cache\**" />
+    <EmbeddedResource Remove="resources\flags\**" />
+    <None Remove="cache\**" />
+    <None Remove="resources\flags\**" />
+    <Page Remove="cache\**" />
+    <Page Remove="resources\flags\**" />
+  </ItemGroup>
+
+  <!-- Embedded resources -->
+  <ItemGroup>
+    <Resource Include="resources\**\*.*" />
+  </ItemGroup>
+
+  <!-- Folders to copy to output -->
+  <ItemGroup>
+    <Content Include="ini\**\*" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="resources\resource dictionaries\controls\CustomContextMenu.xaml" />
+    <Page Remove="resources\resource dictionaries\controls\CustomImageCombobox.xaml" />
+    <Page Remove="resources\resource dictionaries\controls\CustomRibbonStyle.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\GrayTheme.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\MintTheme.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\SandyTheme.xaml" />
+    <Page Remove="resources\resource dictionaries\themes\SunsetTheme.xaml" />
+	<Page Remove="resources\resource dictionaries\themes\MintTheme.xaml" />
+  </ItemGroup>
+
+  <!-- NuGet packages -->
+  <ItemGroup>
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.9.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
+    <PackageReference Include="SSH.NET" Version="2025.1.0" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+  </ItemGroup>
+
+  <!-- Keep folder in source control if needed -->
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="resources\images\icons\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Update="resources\resource dictionaries\controls\CustomRibbonStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\controls\CustomImageCombobox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\controls\CustomContextMenu.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\SandyTheme.xaml">
+      <Generator></Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\MintTheme.xaml">
+      <Generator></Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\SunsetTheme.xaml">
+      <Generator></Generator>
+    </Resource>
+    <Resource Update="resources\resource dictionaries\themes\GrayTheme.xaml">
+      <Generator></Generator>
+    </Resource>
+  </ItemGroup>
+
+</Project>

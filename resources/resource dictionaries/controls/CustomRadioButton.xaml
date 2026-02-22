@@ -1,0 +1,65 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="CustomRadioButton" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource RadioButtonBorderBrush}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <StackPanel x:Name="rootPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid Width="16" Height="16" Margin="0,0,6,0">
+                            <!-- Outer circle -->
+                            <Ellipse x:Name="OuterCircle"
+                                     Fill="Transparent"
+                                     Stroke="{TemplateBinding BorderBrush}"
+                                     StrokeThickness="2"/>
+                            <!-- Inner circle -->
+                            <Ellipse x:Name="InnerCircle"
+                                     Width="8" Height="8"
+                                     Fill="{DynamicResource RadioButtonDotBrush}"
+                                     Opacity="0"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"/>
+                        </Grid>
+                        <!-- Text -->
+                        <ContentPresenter x:Name="contentPresenter"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </StackPanel>
+                    <!-- Triggers -->
+                    <ControlTemplate.Triggers>
+                        <!-- Checked -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="InnerCircle" Property="Opacity" Value="1"/>
+                        </Trigger>
+                        <!-- Hover -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="OuterCircle" Property="Stroke" Value="{DynamicResource ActiveBorderBrush}"/>
+                        </Trigger>
+                        <!-- Disabled -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                            <Setter TargetName="rootPanel" Property="Opacity" Value="0.5"/>
+                            <Setter TargetName="OuterCircle" Property="Stroke" Value="{DynamicResource DisabledBorderBrush}"/>
+                            <Setter TargetName="OuterCircle" Property="Fill" Value="{DynamicResource DisabledBackgroundBrush}"/>
+                            <Setter TargetName="InnerCircle" Property="Fill" Value="{DynamicResource DisabledTextBrush}"/>
+                        </Trigger>
+                        <!-- Disabled + Checked -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="False"/>
+                                <Condition Property="IsChecked" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="InnerCircle" Property="Opacity" Value="1"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
