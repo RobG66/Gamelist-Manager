@@ -59,10 +59,8 @@ namespace GamelistManager.classes.gamelist
 
     public static partial class GamelistReportGenerator
     {
-        // Main entry point - call this method with a list of gamelist file paths
-        public static async Task GenerateReportAsync(List<string> gamelistPaths, bool includeStorage = true, bool ignoreDuplicates = true)
+        public static async Task GenerateReportAsync(List<string> gamelistPaths, bool includeStorage = true, bool ignoreDuplicates = true, bool singleThread = false)
         {
-            // Check if list is empty or null
             if (gamelistPaths == null || gamelistPaths.Count == 0)
             {
                 MessageBox.Show(
@@ -74,136 +72,75 @@ namespace GamelistManager.classes.gamelist
                 return;
             }
 
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             var progress = new Progress<int>();
             var progressWindow = ShowProgressWindow(gamelistPaths.Count, progress, cts);
-            bool progressWindowClosed = false;
-
-            void CloseProgressWindow()
-            {
-                if (!progressWindowClosed)
-                {
-                    progressWindowClosed = true;
-                    try { progressWindow.Close(); } catch { }
-                }
-            }
 
             try
             {
-                // Do NOT pass cts.Token to Task.Run — avoids TaskCanceledException
-                // before the task body even starts, which bypasses inner catch blocks
                 var allStats = await Task.Run(() =>
                 {
                     int completed = 0;
                     var results = new System.Collections.Concurrent.ConcurrentBag<GamelistStatistics>();
 
-                    try
-                    {
-                        Parallel.ForEach(gamelistPaths,
-                            new ParallelOptions
-                            {
-                                MaxDegreeOfParallelism = Environment.ProcessorCount,
-                                CancellationToken = cts.Token
-                            },
-                            gamelistPath =>
-                            {
-                                // If already cancelled, skip silently
-                                if (cts.Token.IsCancellationRequested)
-                                    return;
+                    Parallel.ForEach(gamelistPaths,
+                        new ParallelOptions
+                        {
+                            MaxDegreeOfParallelism = singleThread ? 1 : Environment.ProcessorCount
+                        },
+                        gamelistPath =>
+                        {
+                            if (cts.IsCancellationRequested || string.IsNullOrWhiteSpace(gamelistPath))
+                                return;
 
-                                try
+                            string systemName = System.IO.Path.GetFileName(
+                                System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
+
+                            var stat = !File.Exists(gamelistPath)
+                                ? new GamelistStatistics
                                 {
-                                    GamelistStatistics? stat = null;
-
-                                    if (!string.IsNullOrWhiteSpace(gamelistPath))
-                                    {
-                                        if (!File.Exists(gamelistPath))
-                                        {
-                                            string systemName = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
-                                            stat = new GamelistStatistics
-                                            {
-                                                SystemName = systemName,
-                                                GamelistPath = gamelistPath,
-                                                LoadError = true
-                                            };
-                                        }
-                                        else
-                                        {
-                                            string systemName = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(gamelistPath) ?? "Unknown");
-                                            stat = AnalyzeGamelist(gamelistPath, systemName, includeStorage, ignoreDuplicates, cts.Token);
-                                        }
-
-                                        if (stat != null)
-                                            results.Add(stat);
-                                    }
-
-                                    int current = Interlocked.Increment(ref completed);
-                                    ((IProgress<int>)progress).Report(current);
+                                    SystemName = systemName,
+                                    GamelistPath = gamelistPath,
+                                    LoadError = true
                                 }
-                                catch (OperationCanceledException)
-                                {
-                                    // Swallow cancellation inside the lambda — let the outer
-                                    // cts.IsCancellationRequested check handle the result
-                                }
-                            });
+                                : AnalyzeGamelist(gamelistPath, systemName, includeStorage, ignoreDuplicates, cts.Token);
 
-                        return results.OrderBy(s => s.SystemName, StringComparer.OrdinalIgnoreCase).ToList();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        return new List<GamelistStatistics>();
-                    }
-                    catch (AggregateException ae) when (ae.Flatten().InnerExceptions.All(ex => ex is OperationCanceledException))
-                    {
-                        // Parallel.ForEach wraps cancellation in nested AggregateExceptions — flatten before checking
-                        return new List<GamelistStatistics>();
-                    }
-                }); // No cts.Token here — cancellation is handled inside the lambda
+                            if (!cts.IsCancellationRequested)
+                            {
+                                results.Add(stat);
+                                int current = Interlocked.Increment(ref completed);
+                                ((IProgress<int>)progress).Report(current);
+                            }
+                        });
 
-                CloseProgressWindow();
-
-                // Check if cancelled or no results
-                if (cts.IsCancellationRequested || allStats.Count == 0)
-                {
                     if (cts.IsCancellationRequested)
-                    {
-                        MessageBox.Show(
-                            "Report generation cancelled.",
-                            "Cancelled",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information
-                        );
-                    }
+                        return null;
+
+                    return results.OrderBy(s => s.SystemName, StringComparer.OrdinalIgnoreCase).ToList();
+                });
+
+                try { progressWindow.Close(); } catch { }
+
+                if (allStats == null)
+                {
+                    MessageBox.Show(
+                        "Report generation was cancelled.",
+                        "Cancelled",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
                     return;
                 }
+
+                if (allStats.Count == 0)
+                    return;
 
                 string reportText = BuildReportText(allStats, includeStorage);
                 ShowReportWindow(reportText, includeStorage);
             }
-            catch (OperationCanceledException)
-            {
-                CloseProgressWindow();
-                MessageBox.Show(
-                    "Report generation cancelled.",
-                    "Cancelled",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-            }
-            catch (AggregateException ae) when (ae.Flatten().InnerExceptions.All(ex => ex is OperationCanceledException))
-            {
-                // Parallel.ForEach cancellation bubbled through Task.Run as AggregateException
-                CloseProgressWindow();
-                MessageBox.Show(
-                    "Report generation cancelled.",
-                    "Cancelled",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
-            }
             catch (Exception ex)
             {
-                CloseProgressWindow();
+                try { progressWindow.Close(); } catch { }
                 MessageBox.Show(
                     $"Error generating report: {ex.Message}",
                     "Error",
@@ -312,7 +249,7 @@ namespace GamelistManager.classes.gamelist
 
             try
             {
-                DataSet? dataSet = GamelistLoader.LoadGamelist(gamelistPath, ignoreDuplicates);
+                using DataSet? dataSet = GamelistLoader.LoadGamelist(gamelistPath, ignoreDuplicates);
 
                 if (dataSet?.Tables["game"] is not DataTable gameTable)
                 {
@@ -334,11 +271,12 @@ namespace GamelistManager.classes.gamelist
                 string hiddenColName = GamelistMetaData.GetMetadataNameByType("hidden");
                 bool hasHiddenCol = !string.IsNullOrEmpty(hiddenColName) && gameTable.Columns.Contains(hiddenColName);
 
-                var allMediaPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var allMediaPaths = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (DataRow row in gameTable.Rows)
                 {
-                    token.ThrowIfCancellationRequested();
+                    if (token.IsCancellationRequested)
+                        return stats;
 
                     if (hasHiddenCol && row[hiddenColName] != DBNull.Value && Convert.ToBoolean(row[hiddenColName]))
                     {
@@ -362,7 +300,7 @@ namespace GamelistManager.classes.gamelist
                                 try
                                 {
                                     size = new FileInfo(mediaPath).Length;
-                                    allMediaPaths.Add(mediaPath);
+                                    allMediaPaths.TryAdd(mediaPath, size);
                                 }
                                 catch { }
                             }
@@ -442,14 +380,7 @@ namespace GamelistManager.classes.gamelist
 
                 if (includeStorage)
                 {
-                    foreach (var mediaPath in allMediaPaths)
-                    {
-                        try
-                        {
-                            stats.TotalMediaSize += new FileInfo(mediaPath).Length;
-                        }
-                        catch { }
-                    }
+                    stats.TotalMediaSize = allMediaPaths.Values.Sum();
 
                     if (!string.IsNullOrEmpty(baseDir) && Directory.Exists(baseDir))
                     {
@@ -466,17 +397,9 @@ namespace GamelistManager.classes.gamelist
                                 stats.ActualRomSize = stats.RomFolderSize - stats.TotalMediaSize;
                             }
                         }
-                        catch (OperationCanceledException)
-                        {
-                            throw; // Always re-throw cancellation
-                        }
                         catch { }
                     }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                throw; // Always re-throw cancellation
             }
             catch
             {
@@ -514,17 +437,15 @@ namespace GamelistManager.classes.gamelist
 
                 foreach (FileInfo file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
                 {
-                    token.ThrowIfCancellationRequested();
+                    if (token.IsCancellationRequested)
+                        return size;
+
                     try
                     {
                         size += file.Length;
                     }
                     catch { }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                throw; // Always re-throw cancellation
             }
             catch { }
             return size;

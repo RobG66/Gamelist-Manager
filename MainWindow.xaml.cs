@@ -4177,7 +4177,7 @@ namespace GamelistManager
             if (gamelistPaths.Count == 0)
             {
                 MessageBox.Show(
-                    "No valid gamelist paths found in system tags.",
+                    "No valid gamelist paths to search, did you set the roms path in settings?",
                     "No Valid Paths",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning

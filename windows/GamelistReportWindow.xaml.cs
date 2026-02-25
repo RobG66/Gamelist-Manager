@@ -47,6 +47,7 @@ namespace GamelistManager.classes.gamelist
         private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
             bool includeStorage = StorageCheckbox.IsChecked ?? true;
+            bool singleThread = SingleThreadCheckbox.IsChecked ?? false;
 
             List<string> pathsToAnalyze;
 
@@ -59,10 +60,9 @@ namespace GamelistManager.classes.gamelist
                 pathsToAnalyze = _gamelistPaths;
             }
 
-            // Close this window and start the report generation
             Close();
 
-            await GamelistReportGenerator.GenerateReportAsync(pathsToAnalyze, includeStorage);
+            await GamelistReportGenerator.GenerateReportAsync(pathsToAnalyze, includeStorage, singleThread: singleThread);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
