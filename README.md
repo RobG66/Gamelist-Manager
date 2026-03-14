@@ -6,7 +6,8 @@
 
 **If you find Gamelist Manager helpful, consider supporting its new cross-platform development**
 
-For native windows/linux version 9 (work in progress), please visit:  https://github.com/RobG66/Gamelist-Manager-Avalonia
+Gamelist Manager 9.02beta is now live:  https://github.com/RobG66/Gamelist-Manager-Avalonia
+Check it out!
 
 ---
 
