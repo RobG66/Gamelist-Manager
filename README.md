@@ -6,8 +6,9 @@
 
 **If you find Gamelist Manager helpful, consider supporting its new cross-platform development**
 
-Gamelist Manager 9.02beta is now live:  https://github.com/RobG66/Gamelist-Manager-Avalonia
-Check it out!
+Gamelist Manager 9.06beta is now live:  https://github.com/RobG66/Gamelist-Manager-Avalonia
+
+Go check it out, it's coming along really well!
 
 ---
 
