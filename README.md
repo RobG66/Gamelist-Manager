@@ -8,7 +8,7 @@
 
 Gamelist Manager 9.0xbeta versions are now live:  https://github.com/RobG66/Gamelist-Manager-Avalonia
 
-Be sure to check it out, it will be completely replacing the WPF version in the near future. 
+Be sure to check it out, it will be completely replacing the WPF version shortly. 
 
 ---
 
