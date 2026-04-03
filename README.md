@@ -6,9 +6,9 @@
 
 **If you find Gamelist Manager helpful, consider supporting its new cross-platform development**
 
-Gamelist Manager 9.0xbeta versions are now live:  https://github.com/RobG66/Gamelist-Manager-Avalonia
+**For Linux and Windows
+Gamelist Manager 9.0xbeta versions are now live:  https://github.com/RobG66/Gamelist-Manager-Avalonia**
 
-Be sure to check it out, it will be completely replacing the WPF version shortly. 
 
 ---
 
