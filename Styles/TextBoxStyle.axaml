@@ -1,0 +1,35 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- TextBox style that matches ComboBox height and appearance -->
+  <Style Selector="TextBox">
+    <Setter Property="MinHeight" Value="{DynamicResource ComboBoxMinHeight}"/>
+    <Setter Property="Padding" Value="{DynamicResource ComboBoxPadding}"/>
+    <Setter Property="FontSize" Value="{DynamicResource GlobalFontSize}"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBorderBrush}"/>
+    <Setter Property="BorderThickness" Value="{DynamicResource ComboBoxBorderThemeThickness}"/>
+    <Setter Property="Background" Value="{DynamicResource ComboBoxBackground}"/>
+  </Style>
+
+  <!-- Neutralize Fluent template internal padding so only the Padding setter controls spacing -->
+  <Style Selector="TextBox /template/ Border#PART_BorderElement">
+    <Setter Property="Padding" Value="0"/>
+  </Style>
+
+  <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBorderBrushPointerOver}"/>
+    <Setter Property="Background" Value="{DynamicResource ComboBoxBackgroundPointerOver}"/>
+  </Style>
+
+  <Style Selector="TextBox:focus-within /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentBrush}"/>
+  </Style>
+
+  <Style Selector="TextBox:disabled /template/ Border#PART_BorderElement">
+    <Setter Property="BorderBrush" Value="{DynamicResource ComboBoxBorderBrushDisabled}"/>
+    <Setter Property="Background" Value="{DynamicResource ComboBoxBackgroundDisabled}"/>
+  </Style>
+
+</Styles>

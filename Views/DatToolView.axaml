@@ -1,0 +1,318 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Gamelist_Manager.ViewModels"
+             xmlns:models="using:Gamelist_Manager.Models"
+             xmlns:converters="using:Gamelist_Manager.Classes.Converters"
+             xmlns:behaviors="clr-namespace:Gamelist_Manager.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             x:Class="Gamelist_Manager.Views.DatToolView"
+             x:DataType="vm:DatToolViewModel"
+             FontSize="{DynamicResource GlobalFontSize}"
+             Padding="2.5">
+
+    <Panel>
+    <Grid Margin="0,0,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- DAT Summary Panel -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10"
+                Margin="0,0,5,0">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,0,6">
+                    <Image Source="/Assets/Icons/data.png"
+                           Height="{DynamicResource GlobalIconSize}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,5,0"/>
+                    <TextBlock Text="DAT Summary"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentIconBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                    <Grid Margin="0,0,0,8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Items:" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                   Text="{Binding DatTotal}"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentTextBrush}"
+                                   Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Parents:"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatParents}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Clones:"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DatClones}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="CHD Required:"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DatCHD}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Playable:"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding DatPlayable}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Non-Playable:"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding DatNonPlayable}" Margin="5,0,0,0"/>
+                    </Grid>
+
+                    <Button Content="MAME Import"
+                            Classes="rounded blue"
+                            Command="{Binding StreamFromMameCommand}"
+                            Margin="0,0,0,0"
+                            IsEnabled="{Binding IsStreamFromMameEnabled}"
+                            HorizontalAlignment="Left"/>
+
+                        <Button Content="Open DAT File"
+                                Classes="rounded green"
+                                Command="{Binding OpenDatFileCommand}"
+                                Margin="0,5,0,0"
+                                HorizontalAlignment="Left"/>
+                        <Button Content="Close Panel"
+                                Classes="rounded yellow"
+                                Command="{Binding CloseCommand}"
+                                Margin="0,5,0,0"
+                                ToolTip.Tip="Close DAT Summary Panel"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Gamelist Summary Panel -->
+        <Border Grid.Column="1"
+                Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10"
+                Margin="0,0,5,0">
+
+            <StackPanel>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,0,6">
+                    <Image Source="/Assets/Icons/gamepad.png"
+                           Height="{DynamicResource GlobalIconSize}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,5,0"/>
+                    <TextBlock Text="Gamelist Summary"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentIconBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <Grid Margin="0,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Total Items:" FontWeight="SemiBold" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1"
+                               Text="{Binding GamelistTotal}"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource AccentTextBrush}"
+                               Margin="5,0,0,0"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Parents:" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding GamelistParents}" Margin="5,0,0,0"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Clones:" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding GamelistClones}" Margin="5,0,0,0"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="CHD Required:" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding GamelistCHD}" Margin="5,0,0,0"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Non-working:" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding GamelistNonPlayable}" Margin="5,0,0,0"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Missing Parents:" Margin="0,0,5,0" IsVisible="False"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding GamelistMissingParents}" Margin="5,0,0,0" IsVisible="False"/>
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Missing Clones:" Margin="0,0,5,0" IsVisible="False"/>
+                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding GamelistMissingClones}" Margin="5,0,0,0" IsVisible="False"/>
+
+                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Not In DAT:" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding GamelistNotInDat}" Margin="5,0,0,0"/>
+
+                    <CheckBox Grid.Row="8" Grid.ColumnSpan="2"
+                              Content="Include hidden items in count"
+                              IsChecked="{Binding IncludeHidden}"
+                              IsEnabled="{Binding IsIncludeHiddenEnabled}"
+                              VerticalAlignment="Center"
+                              Margin="0,5,5,0"/>
+                </Grid>
+
+                <Border Height="1"
+                        Background="{DynamicResource SeparatorBrush}"
+                        Margin="0,6"/>
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Create Missing Report"
+                            Classes="rounded green"
+                            Command="{Binding FindMissingCommand}"
+                            IsEnabled="{Binding IsFindMissingEnabled}"
+                            HorizontalAlignment="Center"/>
+                    <CheckBox Content="CSV Format"
+                              IsChecked="{Binding CsvOutput}"
+                              IsEnabled="{Binding IsCsvOutputEnabled}"
+                              VerticalAlignment="Center"
+                              Margin="5,0,0,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,6,0,0">
+                    <RadioButton Content="Parents"
+                                 GroupName="MissingFilter"
+                                 IsChecked="{Binding MissingFilterParents}"/>
+                    <RadioButton Content="Clones"
+                                 GroupName="MissingFilter"
+                                 IsChecked="{Binding MissingFilterClones}"/>
+                    <RadioButton Content="All"
+                                 GroupName="MissingFilter"
+                                 IsChecked="{Binding MissingFilterAll}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Report Summary Panel -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10"
+                Margin="0,0,0,0">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,0,5">
+                           <Image Source="/Assets/Icons/report.png"
+                           Height="{DynamicResource GlobalIconSize}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,5,0"/>
+                    <TextBlock Text="Report Summary:"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentIconBrush}"
+                               VerticalAlignment="Center"/>
+                    <ComboBox Width="140"
+                              Margin="10,0,0,0"
+                              SelectedIndex="{Binding ReportViewIndex}"
+                              IsEnabled="{Binding IsReportComboEnabled}">
+                        <ComboBoxItem Content="Select a Report" FontStyle="Italic"/>
+                        <ComboBoxItem Content="Parents" FontWeight="SemiBold"/>
+                        <ComboBoxItem Content="Clones" FontWeight="SemiBold"/>
+                        <ComboBoxItem Content="CHD Required" FontWeight="SemiBold"/>
+                        <ComboBoxItem Content="Non Playable" FontWeight="SemiBold"/>
+                        <ComboBoxItem Content="Not In DAT" FontWeight="SemiBold"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                    <TextBlock Text="Loaded DAT File:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                    <TextBlock Text="{Binding DatFileName}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,0,8"/>
+
+                    <TextBlock Text="DAT Information"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentIconBrush}"
+                               Margin="0,0,0,4"/>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DatInfoName}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Version:" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatInfoVersion}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Author:" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DatInfoAuthor}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Date:" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DatInfoDate}" Margin="5,0,0,0"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Description:" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1"
+                                   Text="{Binding DatInfoDescription}"
+                                   Margin="5,0,0,0"
+                                   TextWrapping="Wrap"/>
+                    </Grid>
+
+                    <Button Content="Clear All Reports"
+                            Classes="rounded yellow"
+                            Command="{Binding ClearReportCommand}"
+                            IsEnabled="{Binding IsClearReportEnabled}"
+                            HorizontalAlignment="Left"
+                            Margin="0,8,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+    <Panel IsVisible="{Binding IsBusy}"
+           Background="Transparent"
+           Cursor="Wait"/>
+    </Panel>
+</UserControl>

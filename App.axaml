@@ -1,0 +1,110 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Gamelist_Manager.App"
+             xmlns:local="using:Gamelist_Manager"
+             xmlns:helpers="using:Gamelist_Manager.Classes.Helpers"
+             xmlns:converters="using:Gamelist_Manager.Classes.Converters"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+  
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://Gamelist_Manager/Styles/ThemeResources.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Converters -->
+            <converters:BooleanToGridLengthConverter x:Key="BooleanToGridLengthConverter"/>
+            <converters:BooleanToScrollBarVisibilityConverter x:Key="BooleanToScrollBarVisibilityConverter"/>
+            <converters:BoolToTextConverter x:Key="BoolToTextConverter"/>
+            <converters:PathToBitmapConverter x:Key="PathToBitmapConverter"/>
+            <converters:BooleanToWatermarkConverter x:Key="BooleanToWatermarkConverter"/>
+            <converters:NullBrushConverter x:Key="NullBrushConverter"/>
+
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme DensityStyle="Compact">
+            <FluentTheme.Palettes>
+                <!-- Light palette: white region, standard Fluent light chrome colors -->
+                <ColorPaletteResources x:Key="Light"
+                    Accent="#0078D4"
+                    RegionColor="#FFFFFF"
+                    ErrorText="#C42B1C"
+                    AltHigh="#FFFFFF"
+                    AltLow="#33FFFFFF"
+                    AltMedium="#99FFFFFF"
+                    AltMediumHigh="#CCFFFFFF"
+                    AltMediumLow="#66FFFFFF"
+                    BaseHigh="#000000"
+                    BaseLow="#33000000"
+                    BaseMedium="#99000000"
+                    BaseMediumHigh="#CC000000"
+                    BaseMediumLow="#66000000"
+                    ChromeAltLow="#171717"
+                    ChromeBlackHigh="#000000"
+                    ChromeBlackLow="#33000000"
+                    ChromeBlackMedium="#CC000000"
+                    ChromeBlackMediumLow="#66000000"
+                    ChromeDisabledHigh="#CCCCCC"
+                    ChromeDisabledLow="#7A7A7A"
+                    ChromeGray="#767676"
+                    ChromeHigh="#CCCCCC"
+                    ChromeLow="#F2F2F2"
+                    ChromeMedium="#E6E6E6"
+                    ChromeMediumLow="#F2F2F2"
+                    ChromeWhite="#FFFFFF"
+                    ListLow="#19000000"
+                    ListMedium="#33000000"/>
+                <!-- Dark palette: dark region, standard Fluent dark chrome colors -->
+                <ColorPaletteResources x:Key="Dark"
+                    Accent="#0078D4"
+                    RegionColor="#1E1E1E"
+                    ErrorText="#FF99A4"
+                    AltHigh="#1C1C1C"
+                    AltLow="#331C1C1C"
+                    AltMedium="#991C1C1C"
+                    AltMediumHigh="#CC1C1C1C"
+                    AltMediumLow="#661C1C1C"
+                    BaseHigh="#FFFFFF"
+                    BaseLow="#33FFFFFF"
+                    BaseMedium="#99FFFFFF"
+                    BaseMediumHigh="#CCFFFFFF"
+                    BaseMediumLow="#66FFFFFF"
+                    ChromeAltLow="#F2F2F2"
+                    ChromeBlackHigh="#000000"
+                    ChromeBlackLow="#33000000"
+                    ChromeBlackMedium="#CC000000"
+                    ChromeBlackMediumLow="#66000000"
+                    ChromeDisabledHigh="#333333"
+                    ChromeDisabledLow="#858585"
+                    ChromeGray="#767676"
+                    ChromeHigh="#767676"
+                    ChromeLow="#1C1C1C"
+                    ChromeMedium="#2B2B2B"
+                    ChromeMediumLow="#2B2B2B"
+                    ChromeWhite="#FFFFFF"
+                    ListLow="#19FFFFFF"
+                    ListMedium="#33FFFFFF"/>
+            </FluentTheme.Palettes>
+        </FluentTheme>
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <!-- Application styles -->
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/TransparentButtonStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/RadioButtonStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/CheckBoxStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/ComboBoxStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/TextBoxStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/ButtonStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/NavigationButtonStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/DescriptionTextBoxStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/DataGridStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/GridSplitterStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/NumericUpDownStyle.axaml"/>
+    </Application.Styles>
+</Application>

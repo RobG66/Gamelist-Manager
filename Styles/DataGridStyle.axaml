@@ -1,0 +1,198 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime">
+    
+    <!-- Ultra-Compact DataGrid Styles -->
+    
+    <Styles.Resources>
+        <system:Double x:Key="DataGridFontSizeResource">12</system:Double>
+        <system:Double x:Key="DataGridRowHeight">22</system:Double>
+        <system:Double x:Key="DataGridHeaderHeight">20</system:Double>
+        </Styles.Resources>
+    
+    <!-- DataGrid Base Styling - Ensure transparent background -->
+    <Style Selector="DataGrid">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="RowBackground" Value="Transparent"/>
+        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
+    </Style>
+    
+    <!-- DataGrid Cell Styling -->
+    <Style Selector="DataGridCell">
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="MinWidth" Value="0"/>
+    </Style>
+    
+    <!-- DataGrid Column Header Styling - Fixed 12px column reserves space for sort arrow -->
+    <Style Selector="DataGridColumnHeader">
+        <Setter Property="Padding" Value="4,0,4,0"/>
+        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="MinHeight" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DataGridGridLinesBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource DataGridColumnHeaderBackgroundBrush}"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid x:Name="PART_ColumnHeaderRoot"
+                      Background="{TemplateBinding Background}"
+                      ColumnDefinitions="*,12,1">
+                    
+                    <!-- Header text -->
+                    <ContentPresenter Grid.Column="0"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    
+                    <!-- Sort indicator - Fixed 12px column ensures SizeToHeader includes arrow space -->
+                    <Path x:Name="PART_SortIcon"
+                          Grid.Column="1"
+                          Width="8"
+                          Height="6"
+                          Margin="0,0,4,0"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Center"
+                          Stretch="Uniform"
+                          Fill="{DynamicResource DataGridColumnHeaderForegroundBrush}"/>
+                    
+                    <!-- Column separator -->
+                    <Rectangle x:Name="VerticalSeparator"
+                              Grid.Column="2"
+                              Width="1"
+                              VerticalAlignment="Stretch"
+                              Fill="{TemplateBinding SeparatorBrush}"
+                              IsVisible="{TemplateBinding AreSeparatorsVisible}"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    
+    <!-- Sort icon for ascending -->
+    <Style Selector="DataGridColumnHeader:sortascending /template/ Path#PART_SortIcon">
+        <Setter Property="Data" Value="M 0,4 L 4,0 L 8,4 Z"/>
+    </Style>
+    
+    <!-- Sort icon for descending -->
+    <Style Selector="DataGridColumnHeader:sortdescending /template/ Path#PART_SortIcon">
+        <Setter Property="Data" Value="M 0,0 L 4,4 L 8,0 Z"/>
+    </Style>
+    
+    <!-- DataGridColumnHeadersPresenter -->
+    <Style Selector="DataGridColumnHeadersPresenter">
+        <Setter Property="Height" Value="{DynamicResource DataGridHeaderHeight}"/>
+        <Setter Property="MinHeight" Value="{DynamicResource DataGridHeaderHeight}"/>
+    </Style>
+    
+    <!-- DataGrid Row -->
+    <Style Selector="DataGridRow">
+        <Setter Property="MinHeight" Value="{DynamicResource DataGridRowHeight}"/>
+        <Setter Property="Height" Value="{DynamicResource DataGridRowHeight}"/>
+        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
+    </Style>
+    
+    <!-- DataGrid TextBlock in Cell - compact -->
+    <Style Selector="DataGridCell TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+    
+    <!-- Compact CheckBox - applies to all checkboxes in DataGrid -->
+    <Style Selector="DataGridCell CheckBox">
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <Border x:Name="NormalRectangle"
+                            Width="{DynamicResource DataGridFontSizeResource}"
+                            Height="{DynamicResource DataGridFontSizeResource}"
+                            Background="{DynamicResource CheckBoxCheckBackgroundFillUnchecked}"
+                            BorderBrush="{DynamicResource CheckBoxCheckBackgroundStrokeUnchecked}"
+                            BorderThickness="1"
+                            CornerRadius="3"
+                            Padding="2"
+                            UseLayoutRounding="False">
+                        <!-- FIX: Use Opacity 0/1 instead of IsVisible toggling.
+                             Opacity transitions survive theme reloads more reliably
+                             than IsVisible pseudo-class styles. -->
+                        <Path x:Name="CheckGlyph"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Data="M0,4 L3,7 L8,0"
+                              Stroke="{DynamicResource CheckBoxCheckGlyphForegroundChecked}"
+                              StrokeThickness="1.2"
+                              Stretch="Uniform"
+                              Opacity="0"
+                              UseLayoutRounding="False"/>
+                    </Border>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    
+    <!-- CheckBox checked state -->
+    <Style Selector="DataGridCell CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource CheckBoxCheckBackgroundFillChecked}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CheckBoxCheckBackgroundStrokeChecked}"/>
+    </Style>
+
+    <!-- FIX: Opacity is more reliable than IsVisible after theme switches -->
+    <Style Selector="DataGridCell CheckBox:checked /template/ Path#CheckGlyph">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+    
+    <!-- CheckBox hover state -->
+    <Style Selector="DataGridCell CheckBox:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource CheckBoxCheckBackgroundFillUncheckedPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CheckBoxCheckBackgroundStrokeUncheckedPointerOver}"/>
+    </Style>
+    
+    <Style Selector="DataGridCell CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource CheckBoxCheckBackgroundFillCheckedPointerOver}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CheckBoxCheckBackgroundStrokeCheckedPointerOver}"/>
+    </Style>
+    
+    <!-- CheckBox pressed state -->
+    <Style Selector="DataGridCell CheckBox:pressed /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource CheckBoxCheckBackgroundFillUncheckedPressed}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CheckBoxCheckBackgroundStrokeUncheckedPressed}"/>
+    </Style>
+    
+    <Style Selector="DataGridCell CheckBox:checked:pressed /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource CheckBoxCheckBackgroundFillCheckedPressed}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CheckBoxCheckBackgroundStrokeCheckedPressed}"/>
+    </Style>
+    
+    <!-- DataGrid Cell Styling with custom template to remove focus borders -->
+    <Style Selector="DataGridCell">
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Background="{TemplateBinding Background}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Padding="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

@@ -1,0 +1,85 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <Version>9.0.9-beta</Version>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <FileVersion>9.0.0.0</FileVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="ini\**" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaXaml Remove="old\**" />
+      <AvaloniaXaml Remove="publish\**" />
+      <Compile Remove="old\**" />
+      <Compile Remove="publish\**" />
+      <EmbeddedResource Remove="old\**" />
+      <EmbeddedResource Remove="publish\**" />
+      <None Remove="old\**" />
+      <None Remove="publish\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include=".github\copilot-instructions.md" />
+      <None Include=".github\workflows\release.yml" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.3.12" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.12" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
+            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="DynamicData" Version="9.4.31" />
+        <PackageReference Include="LibVLCSharp" Version="3.9.6" />
+        <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.6" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.4" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.4" />
+        <!-- Native VLC binaries: Windows only. Linux uses system-installed libvlc (apt install libvlc-dev). -->
+        <!-- Condition targets win-* RIDs explicitly so cross-compiling for Linux from Windows is excluded. -->
+        <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" Condition="$([System.String]::Copy('$(RuntimeIdentifier)').Contains('win')) Or ('$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows')))" />
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.9.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\MenuView.axaml.cs">
+        <DependentUpon>MenuView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\ScraperPanel.axaml.cs">
+        <DependentUpon>ScraperPanel.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\SettingsView.axaml.cs">
+        <DependentUpon>SettingsView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\StatsFilterView.axaml.cs">
+        <DependentUpon>StatsFilterView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\ThreeButtonDialogView.axaml.cs">
+        <DependentUpon>ThreeButtonDialogView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\ThreeButtonDialogConfig.cs">
+        <DependentUpon>ThreeButtonDialogView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\DatToolView.axaml.cs">
+        <DependentUpon>DatToolView.axaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
+</Project>
+
+

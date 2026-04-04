@@ -1,0 +1,172 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <Design.PreviewWith>
+    <Border Padding="20" Background="#F3F3F3">
+      <StackPanel Spacing="12">
+        <NumericUpDown Value="42" />
+        <NumericUpDown Value="0" Minimum="0" Maximum="100" />
+        <NumericUpDown Value="3.14" FormatString="F2" />
+        <NumericUpDown IsReadOnly="True" Value="99" />
+        <NumericUpDown IsEnabled="False" Value="10" />
+        <NumericUpDown Watermark="Enter value..." />
+      </StackPanel>
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="NumericUpDown">
+    <Setter Property="Background" Value="#FFFFFF"/>
+    <Setter Property="BorderBrush" Value="#CCCCCC"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="4"/>
+    <Setter Property="Foreground" Value="#1E1E1E"/>
+    <Setter Property="FontSize" Value="{DynamicResource GlobalFontSize}"/>
+    <Setter Property="MinHeight" Value="28"/>
+    <Setter Property="Padding" Value="4,0"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <ButtonSpinner Name="PART_Spinner"
+                       Background="{TemplateBinding Background}"
+                       BorderBrush="{TemplateBinding BorderBrush}"
+                       BorderThickness="{TemplateBinding BorderThickness}"
+                       CornerRadius="{TemplateBinding CornerRadius}"
+                       AllowSpin="{TemplateBinding AllowSpin}"
+                       ShowButtonSpinner="{TemplateBinding ShowButtonSpinner}"
+                       ButtonSpinnerLocation="{TemplateBinding ButtonSpinnerLocation}">
+          <TextBox Name="PART_TextBox"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   Foreground="{TemplateBinding Foreground}"
+                   FontSize="{TemplateBinding FontSize}"
+                   MinWidth="40"
+                   Padding="{TemplateBinding Padding}"
+                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                   IsReadOnly="{TemplateBinding IsReadOnly}"
+                   Watermark="{TemplateBinding Watermark}"
+                   TextAlignment="{TemplateBinding TextAlignment}"
+                   Text="{TemplateBinding Text}"
+                   InnerLeftContent="{TemplateBinding InnerLeftContent}"
+                   InnerRightContent="{TemplateBinding InnerRightContent}" />
+        </ButtonSpinner>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Hover -->
+  <Style Selector="NumericUpDown:pointerover /template/ ButtonSpinner#PART_Spinner">
+    <Setter Property="BorderBrush" Value="#999999"/>
+  </Style>
+
+  <!-- Focus -->
+  <Style Selector="NumericUpDown:focus-within /template/ ButtonSpinner#PART_Spinner">
+    <Setter Property="BorderBrush" Value="#0078D4"/>
+    <Setter Property="BorderThickness" Value="1.5"/>
+  </Style>
+
+  <!-- ReadOnly -->
+  <Style Selector="NumericUpDown:read-only /template/ ButtonSpinner#PART_Spinner">
+    <Setter Property="Background" Value="#F5F5F5"/>
+    <Setter Property="BorderBrush" Value="#DDDDDD"/>
+  </Style>
+
+  <!-- Disabled -->
+  <Style Selector="NumericUpDown:disabled">
+    <Setter Property="Opacity" Value="0.5"/>
+  </Style>
+
+  <!-- ── ButtonSpinner: remove default chrome ── -->
+  <Style Selector="ButtonSpinner">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DataValidationErrors>
+          <Grid ColumnDefinitions="*,Auto">
+            <!-- Text content -->
+            <ContentPresenter Grid.Column="0"
+                              Name="PART_ContentHost"
+                              Content="{TemplateBinding Content}"
+                              Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              CornerRadius="{TemplateBinding CornerRadius}" />
+
+            <!-- Spin buttons stacked vertically on the right -->
+            <Border Grid.Column="1"
+                    IsVisible="{TemplateBinding ShowButtonSpinner}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1,0,0,0"
+                    Background="Transparent">
+              <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+
+                <!-- Increment (Up) -->
+                <RepeatButton Name="PART_IncreaseButton"
+                              Focusable="False"
+                              IsTabStop="False"
+                              Width="20"
+                              Height="14"
+                              Padding="0"
+                              VerticalContentAlignment="Center"
+                              HorizontalContentAlignment="Center"
+                              Background="Transparent"
+                              BorderThickness="0">
+                  <Path Data="M 0,4 L 4,0 L 8,4"
+                        Stroke="#666666"
+                        StrokeThickness="1.5"
+                        StrokeLineCap="Round"
+                        StrokeJoin="Round"
+                        Width="12"
+                        Height="12"
+                        Stretch="Uniform"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                </RepeatButton>
+
+                <!-- Decrement (Down) -->
+                <RepeatButton Name="PART_DecreaseButton"
+                              Focusable="False"
+                              IsTabStop="False"
+                              Width="20"
+                              Height="14"
+                              Padding="0"
+                              VerticalContentAlignment="Center"
+                              HorizontalContentAlignment="Center"
+                              Background="Transparent"
+                              BorderThickness="0">
+                  <Path Data="M 0,0 L 4,4 L 8,0"
+                        Stroke="#666666"
+                        StrokeThickness="1.5"
+                        StrokeLineCap="Round"
+                        StrokeJoin="Round"
+                        Width="12"
+                        Height="12"
+                        Stretch="Uniform"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                </RepeatButton>
+
+              </StackPanel>
+            </Border>
+          </Grid>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- Spin button hover -->
+  <Style Selector="ButtonSpinner RepeatButton:pointerover">
+    <Setter Property="Background" Value="#EFEFEF"/>
+  </Style>
+
+  <!-- Spin button pressed -->
+  <Style Selector="ButtonSpinner RepeatButton:pressed">
+    <Setter Property="Background" Value="#E0E0E0"/>
+  </Style>
+
+  <!-- Disabled spin buttons -->
+  <Style Selector="ButtonSpinner RepeatButton:disabled">
+    <Setter Property="Opacity" Value="0.3"/>
+  </Style>
+
+</Styles>

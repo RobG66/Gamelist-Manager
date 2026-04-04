@@ -1,0 +1,522 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Base Rounded Button Theme (25% smaller than default) -->
+    <Style Selector="Button.rounded">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontSize" Value="{DynamicResource GlobalSmallFontSize}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="ToolTip.Placement" Value="Bottom"/>
+        <Setter Property="ToolTip.VerticalOffset" Value="6"/>
+    </Style>
+
+    <Style Selector="Button.rounded /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <!-- Green Button -->
+    <Style Selector="Button.rounded.green">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF98FB98" Offset="0"/>
+                <GradientStop Color="#FF66C266" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#66C266"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.green:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFB0FFB0" Offset="0"/>
+                <GradientStop Color="#FF7FD47F" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.green:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF66C266" Offset="0"/>
+                <GradientStop Color="#FF4CAF50" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Red Button -->
+    <Style Selector="Button.rounded.red">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFA07A" Offset="0"/>
+                <GradientStop Color="#FFCD5C5C" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#CD5C5C"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.red:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFC0A0" Offset="0"/>
+                <GradientStop Color="#FFE57373" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.red:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFCD5C5C" Offset="0"/>
+                <GradientStop Color="#FFB71C1C" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Blue Button -->
+    <Style Selector="Button.rounded.blue">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF87CEFA" Offset="0"/>
+                <GradientStop Color="#FF4682B4" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#4682B4"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.blue:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFA0D8FF" Offset="0"/>
+                <GradientStop Color="#FF5A9BD4" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.blue:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF4682B4" Offset="0"/>
+                <GradientStop Color="#FF2C5F87" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Yellow Button -->
+    <Style Selector="Button.rounded.yellow">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFFFA0" Offset="0"/>
+                <GradientStop Color="#FFCCCC00" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#CCCC00"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.yellow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFFFC0" Offset="0"/>
+                <GradientStop Color="#FFDDDD00" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.yellow:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFCCCC00" Offset="0"/>
+                <GradientStop Color="#FF999900" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Grey Button -->
+    <Style Selector="Button.rounded.grey">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFF0F0F0" Offset="0"/>
+                <GradientStop Color="#FFD3D3D3" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#D3D3D3"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.grey:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFFFFF" Offset="0"/>
+                <GradientStop Color="#FFE0E0E0" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.grey:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFD3D3D3" Offset="0"/>
+                <GradientStop Color="#FFB0B0B0" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Orange Button -->
+    <Style Selector="Button.rounded.orange">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFD580" Offset="0"/>
+                <GradientStop Color="#FFFFA500" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#FFCC8400"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.orange:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFE0A0" Offset="0"/>
+                <GradientStop Color="#FFFFC060" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.orange:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFA500" Offset="0"/>
+                <GradientStop Color="#FFCC8400" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Purple Button -->
+    <Style Selector="Button.rounded.purple">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFDDA0DD" Offset="0"/>
+                <GradientStop Color="#FF9932CC" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#661A99"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.purple:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFEFB0EF" Offset="0"/>
+                <GradientStop Color="#FFAA44DD" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.purple:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF9932CC" Offset="0"/>
+                <GradientStop Color="#FF661A99" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Teal Button -->
+    <Style Selector="Button.rounded.teal">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF80CED6" Offset="0"/>
+                <GradientStop Color="#FF008080" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#005050"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.teal:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFA0E0E8" Offset="0"/>
+                <GradientStop Color="#FF20A0A0" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.teal:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF008080" Offset="0"/>
+                <GradientStop Color="#FF005050" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Pink Button -->
+    <Style Selector="Button.rounded.pink">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFB6C1" Offset="0"/>
+                <GradientStop Color="#FFDB7093" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#AA4B6E"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.pink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFFFD0D8" Offset="0"/>
+                <GradientStop Color="#FFEF90B0" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.pink:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFDB7093" Offset="0"/>
+                <GradientStop Color="#FFAA4B6E" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Brown Button -->
+    <Style Selector="Button.rounded.brown">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFD2B48C" Offset="0"/>
+                <GradientStop Color="#FFA0522D" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#7B3F1E"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.brown:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFE0C8A0" Offset="0"/>
+                <GradientStop Color="#FFB8683D" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.brown:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFA0522D" Offset="0"/>
+                <GradientStop Color="#FF7B3F1E" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Cyan Button -->
+    <Style Selector="Button.rounded.cyan">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFB2FFFF" Offset="0"/>
+                <GradientStop Color="#FF00CED1" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#008B8B"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.cyan:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFD0FFFF" Offset="0"/>
+                <GradientStop Color="#FF20E0E3" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.cyan:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF00CED1" Offset="0"/>
+                <GradientStop Color="#FF008B8B" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Lime Button -->
+    <Style Selector="Button.rounded.lime">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFCCFF99" Offset="0"/>
+                <GradientStop Color="#FF99CC00" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#669900"/>
+        <Setter Property="Foreground" Value="Black"/>
+    </Style>
+    
+    <Style Selector="Button.rounded.lime:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FFDDFFAA" Offset="0"/>
+                <GradientStop Color="#FFAADD20" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.rounded.lime:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Color="#FF99CC00" Offset="0"/>
+                <GradientStop Color="#FF669900" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <!-- Placeholder for additional styles -->
+    
+    <!-- Nav Toggle (hamburger) -->
+    <Style Selector="ToggleButton.nav-toggle">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="ToggleButton.nav-toggle:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+    </Style>
+    <Style Selector="ToggleButton.nav-toggle:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+    </Style>
+    <Style Selector="ToggleButton.nav-toggle:disabled">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Opacity" Value="0.5"/>
+    </Style>
+
+    <!-- Menu Button (for navigation/toolbar buttons with transparent disabled state) -->
+    <Style Selector="Button.MenuButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Foreground" Value="{DynamicResource NavButtonForeground}"/>
+    </Style>
+    <Style Selector="Button.MenuButton:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+    </Style>
+    <Style Selector="Button.MenuButton:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+    </Style>
+    <Style Selector="Button.MenuButton:disabled">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Opacity" Value="0.5"/>
+    </Style>
+    <Style Selector="Button.MenuButton:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Media Viewer Button -->
+    <Style Selector="Button.rounded.media">
+        <Setter Property="BorderBrush" Value="#9C27B0"/>
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFDDA0DD" Offset="0"/>
+                <GradientStop Color="#FF9C27B0" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.rounded.media:pointerover /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFE8B5E8" Offset="0"/>
+                <GradientStop Color="#FFAB47BC" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="Button.rounded.media:pressed /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FF9C27B0" Offset="0"/>
+                <GradientStop Color="#FF7B1FA2" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Scraper Button -->
+    <Style Selector="Button.rounded.scraper">
+        <Setter Property="BorderBrush" Value="#FF6F00"/>
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFFFD580" Offset="0"/>
+                <GradientStop Color="#FFFF6F00" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.rounded.scraper:pointerover /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFFFE0A0" Offset="0"/>
+                <GradientStop Color="#FFFF8F00" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="Button.rounded.scraper:pressed /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFFF6F00" Offset="0"/>
+                <GradientStop Color="#FFE65100" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+    <!-- Edit Mode Toggle -->
+    <Style Selector="ToggleButton.edit-toggle">
+        <Setter Property="BorderBrush" Value="#9E9E9E"/>
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFE0E0E0" Offset="0"/>
+                <GradientStop Color="#FF9E9E9E" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.edit-toggle:pointerover /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFE8E8E8" Offset="0"/>
+                <GradientStop Color="#FFB0B0B0" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.edit-toggle:checked">
+        <Setter Property="BorderBrush" Value="#2196F3"/>
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FF90CAF9" Offset="0"/>
+                <GradientStop Color="#FF2196F3" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.edit-toggle:checked:pointerover /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FFA5D6FA" Offset="0"/>
+                <GradientStop Color="#FF42A5F5" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleButton.edit-toggle:checked:pressed /template/ ContentPresenter">
+        <Setter Property="Background">
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FF2196F3" Offset="0"/>
+                <GradientStop Color="#FF1976D2" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+
+</Styles>

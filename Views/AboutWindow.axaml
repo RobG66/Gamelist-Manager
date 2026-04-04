@@ -1,0 +1,115 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Gamelist_Manager.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+        x:Class="Gamelist_Manager.Views.AboutWindow"
+        x:DataType="vm:AboutWindowViewModel"
+        x:CompileBindings="True"
+        Title="About Gamelist Manager"
+        MinHeight="450" MinWidth="500"
+        Height="450" Width="500"
+        FontSize="{DynamicResource GlobalFontSize}"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Grid Margin="20">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <Image Source="/Assets/Logos/gamelistmanager.png" 
+                   Height="80" 
+                   Stretch="Uniform" 
+                   Margin="0,0,0,0"/>
+
+            <!-- App Icon -->
+            <Image Source="/Assets/Icons/icon.png" 
+                   Height="60" 
+                   Width="80" 
+                   Stretch="Uniform"
+                   Margin="0,0,0,0"/>
+
+            <TextBlock Text="{Binding Version}" 
+                       Margin="0,0,0,0" 
+                       HorizontalAlignment="Center" 
+                       FontSize="{DynamicResource GlobalHeaderFontSize}"
+                       FontWeight="SemiBold"/>
+
+            <TextBlock TextAlignment="Center" 
+                       TextWrapping="Wrap" 
+                       Margin="0,0,0,20"
+                       FontSize="{DynamicResource GlobalFontSize}"
+                       MaxWidth="400">
+                Manage and scrape your ROM libraries easily.
+                Supports ScreenScraper, ArcadeDB, EmuMovies.
+                Organize metadata, artwork, videos, and more.
+            </TextBlock>
+
+            <TextBlock Text="Created by Rob Ganshorn" 
+                       HorizontalAlignment="Center"
+                       FontSize="{DynamicResource GlobalFontSize}"
+                       Margin="0,0,0,5"/>
+            
+            <Button Background="Transparent" 
+                    BorderThickness="0"
+                    Padding="0"
+                    Cursor="Hand"
+                    Command="{Binding OpenGitHubCommand}"
+                    HorizontalAlignment="Center">
+                <TextBlock Text="GitHub: https://github.com/RobG66/Gamelist-Manager-Avalonia"
+                           TextDecorations="Underline"
+                           FontSize="{DynamicResource GlobalFontSize}"/>
+            </Button>
+
+            <TextBlock Text="Support development:" 
+                       Margin="0,25,0,10" 
+                       HorizontalAlignment="Center"
+                       FontSize="{DynamicResource GlobalFontSize}"
+                       FontWeight="SemiBold"/>
+            
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center" 
+                        Margin="0,0,0,8">
+                <TextBlock Text="GitHub Sponsors: " 
+                           VerticalAlignment="Center" 
+                           FontSize="{DynamicResource GlobalFontSize}"/>
+                <Button Background="Transparent" 
+                        BorderThickness="0"
+                        Padding="0"
+                        Cursor="Hand"
+                        Command="{Binding OpenGitHubSponsorsCommand}"
+                        Margin="5,0,0,0">
+                    <TextBlock Text="https://github.com/sponsors/RobG66" 
+                               TextDecorations="Underline"
+                               FontSize="{DynamicResource GlobalFontSize}"/>
+                </Button>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center">
+                <TextBlock Text="Ko-fi: " 
+                           VerticalAlignment="Center" 
+                           FontSize="{DynamicResource GlobalFontSize}"/>
+                <Button Background="Transparent" 
+                        BorderThickness="0"
+                        Padding="0"
+                        Cursor="Hand"
+                        Command="{Binding OpenKofiCommand}"
+                        Margin="5,0,0,0">
+                    <TextBlock Text="https://ko-fi.com/robg66" 
+                               TextDecorations="Underline"
+                               FontSize="{DynamicResource GlobalFontSize}"/>
+                </Button>
+            </StackPanel>
+
+            <Button Content="Close" 
+                    Classes="rounded blue"
+                    Margin="0,30,0,0" 
+                    HorizontalAlignment="Center"
+                    FontSize="{DynamicResource GlobalFontSize}"
+                    Command="{Binding CloseCommand}">
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
+

@@ -1,0 +1,180 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Gamelist_Manager.ViewModels"
+             xmlns:models="using:Gamelist_Manager.Models"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="60"
+             x:Class="Gamelist_Manager.Views.StatsFilterView"
+             x:DataType="vm:MainWindowViewModel"
+             FontSize="{DynamicResource GlobalFontSize}">
+
+    <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            BorderThickness="1"
+            Margin="0,2.5,0,0"
+            CornerRadius="4"
+            Background="{DynamicResource PanelBackground}"
+            Padding="8,4">
+        <Grid ColumnDefinitions="Auto,Auto,*">
+            <!-- System Logo -->
+            <Image Grid.Column="0"
+                   Source="{Binding SystemLogo}"
+                   MaxHeight="46" MaxWidth="90"
+                   Stretch="Uniform"
+                   Margin="0,0,8,0"
+                   VerticalAlignment="Center"/>
+
+            <!-- Vertical separator -->
+            <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="0,2" VerticalAlignment="Stretch"/>
+
+            <!-- Right side: Stats + Filters | Separator | Media Audit -->
+            <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto,*" Margin="8,0,0,0">
+
+                <!-- Stats + Filters stacked vertically -->
+                <Grid Grid.Column="0" RowDefinitions="Auto,Auto" RowSpacing="3">
+                    <!-- Row 0: Stats counters -->
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Image Source="/Assets/Icons/gamepad.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Total:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
+                            <TextBlock Text="{Binding TotalGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource AccentIconBrush}"/>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Image Source="/Assets/Icons/magnifying-glass.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Showing:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
+                            <TextBlock Text="{Binding FilteredGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource InfoTextBrush}"/>
+                        </StackPanel>
+                        <Border Grid.Column="3" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
+                        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Image Source="/Assets/Icons/visible.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Visible:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
+                            <TextBlock Text="{Binding VisibleGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource SuccessTextBrush}"/>
+                        </StackPanel>
+                        <Border Grid.Column="5" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
+                        <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Image Source="/Assets/Icons/invisible.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Hidden:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
+                            <TextBlock Text="{Binding HiddenGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource WarningTextBrush}"/>
+                        </StackPanel>
+                        <Border Grid.Column="7" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
+                        <StackPanel Grid.Column="8" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <Image Source="/Assets/Icons/heart.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Favorites:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
+                            <TextBlock Text="{Binding FavoriteGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource ErrorTextBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Row 1: Show radios + Filter toggle + Genre/Custom filter -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                        <!-- Show filter -->
+                        <TextBlock Text="Show:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,0,6,0"/>
+                        <RadioButton Content="All" Classes="compact" IsChecked="{Binding ShowAllItems}" Command="{Binding SetShowAllItemsCommand}" GroupName="FilterCardViewFilter" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <RadioButton Content="Visible" Classes="compact" IsChecked="{Binding ShowVisibleOnly}" Command="{Binding SetShowVisibleOnlyCommand}" GroupName="FilterCardViewFilter" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <RadioButton Content="Hidden" Classes="compact" IsChecked="{Binding ShowHiddenOnly}" Command="{Binding SetShowHiddenOnlyCommand}" GroupName="FilterCardViewFilter" VerticalAlignment="Center"/>
+
+                        <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
+
+                        <!-- Toggle button: swaps between Genre and Custom filter -->
+                        <Button Command="{Binding ToggleFilterModeCommand}"
+                                ToolTip.Tip="Switch between Genre and Custom filter"
+                                Classes="icon"
+                                Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
+                            <Image Source="/Assets/Buttons/filter1.png" Height="{DynamicResource GlobalIconSize}"/>
+                        </Button>
+
+                        <!-- Genre filter (visible when IsGenreFilterMode) -->
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                                    IsVisible="{Binding IsGenreFilterMode}">
+                            <TextBlock Text="Genre:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
+                            <ComboBox ItemsSource="{Binding AvailableGenres}" SelectedItem="{Binding GenreFilterSelection}" MinWidth="200" VerticalAlignment="Center"/>
+                            <Button Classes="icon" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
+                                <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Custom filter (visible when !IsGenreFilterMode) -->
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                                    IsVisible="{Binding !IsGenreFilterMode}">
+                            <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
+                            <ComboBox ItemsSource="{Binding FilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" Watermark="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
+                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="icon" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
+                                <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Vertical separator -->
+                <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2" VerticalAlignment="Stretch"/>
+
+                <!-- Media Audit - spans full height, 2 rows × N columns -->
+                <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0"
+                            Click="ScrollMediaLeft_Click"
+                            Classes="icon"
+                            Padding="2,0"
+                            Width="14"
+                            VerticalAlignment="Stretch"
+                            ToolTip.Tip="Scroll left">
+                        <Image Source="/Assets/Buttons/greydoublearrowleft.png" Stretch="Uniform"/>
+                    </Button>
+
+                    <ScrollViewer Grid.Column="1"
+                                  x:Name="MediaAuditScroller"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  VerticalAlignment="Stretch">
+                        <ItemsControl ItemsSource="{Binding MediaAuditItems}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="2" HorizontalAlignment="Left"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:MediaAuditItem">
+                                    <StackPanel Orientation="Vertical" Spacing="0" VerticalAlignment="Top" Margin="4,0"
+                                                 ToolTip.Tip="{Binding Summary}">
+                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                            <Image Source="{Binding Icon}"
+                                                   Height="{DynamicResource GlobalIconSize}"
+                                                   VerticalAlignment="Center"/>
+                                            <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0}: {1}/{2}">
+                                                        <Binding Path="Name"/>
+                                                        <Binding Path="Count"/>
+                                                        <Binding Path="Total"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Percentage}"
+                                                     Height="3" CornerRadius="1.5"
+                                                     MinWidth="70"
+                                                     Margin="0,0,10,2"
+                                                     Foreground="{Binding BarBrush}"
+                                                     Background="#28808080"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <Button Grid.Column="2"
+                            Click="ScrollMediaRight_Click"
+                            Classes="icon"
+                            Padding="2,0"
+                            Width="14"
+                            VerticalAlignment="Stretch"
+                            ToolTip.Tip="Scroll right">
+                        <Image Source="/Assets/Buttons/greydoublearrowright.png" Stretch="Uniform"/>
+                    </Button>
+                </Grid>
+
+            </Grid>
+        </Grid>
+    </Border>
+
+</UserControl>

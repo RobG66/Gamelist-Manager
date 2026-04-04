@@ -1,0 +1,122 @@
+using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Classes.Api;
+using Gamelist_Manager.Classes.IO;
+using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Gamelist_Manager.ViewModels;
+
+public partial class MediaPreviewViewModel
+{
+    public IReadOnlyList<ScraperConfig> Scrapers => ScraperRegistry.All;
+
+    private bool CanScrapeGame() => !IsScraping && SelectedGame != null;
+
+    [RelayCommand(CanExecute = nameof(CanScrapeGame))]
+    private async Task ScrapeGame(string scraperName) => await ReScrapeGameAsync(scraperName, null);
+
+    public async Task ReScrapeGameAsync(string scraperName, List<string>? specificElements = null)
+    {
+        if (SelectedGame == null || string.IsNullOrEmpty(scraperName)) return;
+
+        if (string.IsNullOrEmpty(_sharedData.GamelistDirectory))
+        {
+            SetScraperStatus("No gamelist loaded.", "error");
+            return;
+        }
+
+        _sharedData.IsScraping = true;
+        bool scrapingVideo = false;
+        try
+        {
+            string? itemLabel = specificElements?.Count == 1
+                ? GamelistMetaData.GetMetadataNameByType(specificElements[0])
+                : null;
+
+            SetScraperStatus(
+                !string.IsNullOrEmpty(itemLabel)
+                    ? $"Scraping {itemLabel} with {scraperName}..."
+                    : $"Scraping with {scraperName}...",
+                null);
+
+            var mediaSettings = _sharedData.MediaSettings;
+
+            var elementsToScrape = specificElements != null
+                ? specificElements.Where(e => mediaSettings.TryGetValue(e, out var d) && d.Enabled).ToList()
+                : mediaSettings.Values.Where(d => d.Enabled).Select(d => d.Type).ToList();
+
+            if (elementsToScrape.Count == 0)
+            {
+                SetScraperStatus(
+                    specificElements != null
+                        ? "No media path configured for this item."
+                        : "No media paths configured in Settings.",
+                    "error");
+                return;
+            }
+
+            string currentSystem = _sharedData.CurrentSystem ?? string.Empty;
+            var scraperProperties = new ScraperProperties
+            {
+                ScraperName = scraperName,
+                LogVerbosity = 0
+            };
+
+            if (elementsToScrape.Contains("video")) scrapingVideo = true;
+            if (scrapingVideo) SuspendVideo();
+
+            var baseParameters = ScraperParameters.Create(_sharedData, elementsToScrape);
+            baseParameters.OverwriteMedia = true;
+
+            var scraperService = Startup.Services.GetRequiredService<ScraperService>();
+
+            if (!await scraperService.InitializeScraperAsync(
+                baseParameters, scraperProperties, currentSystem))
+            {
+                SetScraperStatus("Could not initialize scraper.", "error");
+                return;
+            }
+
+            var (success, data) = await scraperService.ScrapeGameAsync(
+                SelectedGame, baseParameters, scraperProperties, scraperName);
+
+            if (success && data.Data.Count > 0)
+            {
+                await scraperService.SaveScrapedDataAsync(SelectedGame, data, baseParameters);
+                _sharedData.IsDataChanged = true;
+                SetScraperStatus(
+                    !string.IsNullOrEmpty(itemLabel)
+                        ? $"{itemLabel} rescrape complete."
+                        : "Rescrape complete.",
+                    "ok");
+            }
+            else if (success)
+            {
+                SetScraperStatus(
+                    !string.IsNullOrEmpty(itemLabel)
+                        ? $"No media found for {itemLabel}."
+                        : "No media found.",
+                    null);
+            }
+            else
+            {
+                SetScraperStatus("Could not scrape media for this game.", "error");
+            }
+        }
+        catch (Exception ex)
+        {
+            SetScraperStatus($"Error: {ex.Message}", "error");
+        }
+        finally
+        {
+            if (scrapingVideo && IsLibVLCInitialized && LibVLC != null)
+                InitializeVideosForCurrentGame();
+            _sharedData.IsScraping = false;
+        }
+    }
+}

@@ -1,0 +1,43 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	
+	<Style Selector="GridSplitter">
+		<Setter Property="Cursor" Value="SizeWestEast"/>
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border Background="{TemplateBinding Background}">
+					<StackPanel VerticalAlignment="Center"
+					            HorizontalAlignment="Center"
+					            Orientation="Vertical"
+					            Height="50">
+						<Ellipse Fill="{DynamicResource SystemAccentColor}" Width="4" Height="4" Margin="0,2"/>
+						<Ellipse Fill="{DynamicResource SystemAccentColor}" Width="4" Height="4" Margin="0,2"/>
+						<Ellipse Fill="{DynamicResource SystemAccentColor}" Width="4" Height="4" Margin="0,2"/>
+					</StackPanel>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+
+	<!-- Horizontal GridSplitter Style -->
+	<Style Selector="GridSplitter[ResizeDirection=Rows]">
+		<Setter Property="Cursor" Value="SizeNorthSouth"/>
+		<Setter Property="Background" Value="Transparent"/>
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Border Background="{TemplateBinding Background}">
+					<StackPanel VerticalAlignment="Center"
+					            HorizontalAlignment="Center"
+					            Orientation="Horizontal"
+					            Width="50">
+						<Ellipse Fill="{DynamicResource SystemAccentColor}" Width="4" Height="4" Margin="2,0"/>
+						<Ellipse Fill="{DynamicResource SystemAccentColor}" Width="4" Height="4" Margin="2,0"/>
+						<Ellipse Fill="{DynamicResource SystemAccentColor}" Width="4" Height="4" Margin="2,0"/>
+					</StackPanel>
+				</Border>
+			</ControlTemplate>
+		</Setter>
+	</Style>
+	
+</Styles>

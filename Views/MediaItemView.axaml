@@ -1,0 +1,153 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Gamelist_Manager.ViewModels"
+             xmlns:views="using:Gamelist_Manager.Views"
+             xmlns:controls="using:Gamelist_Manager.Controls"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="400"
+             x:Class="Gamelist_Manager.Views.MediaItemView"
+             x:DataType="vm:MediaItemViewModel"
+             FontSize="{DynamicResource GlobalFontSize}"
+             IsVisible="{Binding IsVisible}">
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.MediaHeader">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource GlobalHeaderFontSize}"/>
+        </Style>
+        
+        <Style Selector="Border.MediaBorder">
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="MinWidth" Value="10"/>
+            <Setter Property="MinHeight" Value="10"/>
+        </Style>
+        
+        <Style Selector="Border.MediaBorder.DropEnabled">
+            <Setter Property="Effect">
+                <DropShadowEffect Color="Black" OffsetX="10" OffsetY="10" BlurRadius="15" Opacity="0.7"/>
+            </Setter>
+        </Style>
+
+        <Style Selector="Border.MediaBorder.DragOver">
+            <Setter Property="BorderBrush" Value="LimeGreen"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        
+        <Style Selector="Image.MediaImage">
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <!-- Main container for media item -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- Header -->
+            <RowDefinition Height="*"/>      <!-- Media -->
+            <RowDefinition Height="Auto"/>   <!-- Buttons -->
+        </Grid.RowDefinitions>
+        
+        <!-- Header with media type -->
+        <TextBlock Grid.Row="0"
+                   Text="{Binding MediaType}"
+                   Classes="MediaHeader"/>
+        
+        <!-- Media content (Image/Video/Manual) -->
+        <Border Grid.Row="1"
+                Name="MediaBorder"
+                Classes="MediaBorder"
+                Classes.DropEnabled="{Binding !IsVideo}"
+                Classes.DragOver="{Binding IsDragOver}"
+                DragDrop.AllowDrop="True">
+            
+            <Panel>
+                <!-- Image content (when file exists and not manual or video) -->
+                <Image Classes="MediaImage"
+                       Source="{Binding MediaPath, Converter={StaticResource PathToBitmapConverter}}">
+                    <Image.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="FileExists"/>
+                            <Binding Path="!IsManual"/>
+                            <Binding Path="!IsVideo"/>
+                        </MultiBinding>
+                    </Image.IsVisible>
+                </Image>
+                
+                <!-- Manual icon (when manual file exists) -->
+                <Image Classes="MediaImage"
+                       Source="/Assets/Icons/manual.png"
+                       Opacity="0.8">
+                    <Image.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsManual"/>
+                            <Binding Path="FileExists"/>
+                        </MultiBinding>
+                    </Image.IsVisible>
+                </Image>
+                
+                <!-- No manual placeholder (when manual but no file) -->
+                <Image Classes="MediaImage"
+                       Source="/Assets/Icons/manual.png"
+                       Opacity="0.3">
+                    <Image.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsManual"/>
+                            <Binding Path="!FileExists"/>
+                        </MultiBinding>
+                    </Image.IsVisible>
+                </Image>
+                
+                <!-- Missing icon (path exists but file doesn't, not manual) -->
+                <Image Classes="MediaImage"
+                       Source="/Assets/missing.png"
+                       Opacity="0.6">
+                    <Image.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="ShowMissingIcon"/>
+                            <Binding Path="!IsManual"/>
+                        </MultiBinding>
+                    </Image.IsVisible>
+                </Image>
+                
+                <!-- Drop icon (no path defined - show when ShowAll is on, not manual or video) -->
+                <Image Classes="MediaImage"
+                       Source="/Assets/Icons/dropicon.png"
+                       Opacity="0.4">
+                    <Image.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="ShowDropIcon"/>
+                            <Binding Path="!IsManual"/>
+                            <Binding Path="!IsVideo"/>
+                        </MultiBinding>
+                    </Image.IsVisible>
+                </Image>
+                
+                <!-- VideoView for video playback - managed dynamically in code-behind -->
+                <Panel Name="VideoViewContainer"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch">
+                    <Panel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsVideo"/>
+                            <Binding Path="FileExists"/>
+                        </MultiBinding>
+                    </Panel.IsVisible>
+                </Panel>
+            </Panel>
+        </Border>
+        
+        <!-- Button controls -->
+        <controls:MediaButtonControl Grid.Row="2"
+                                     DataContext="{Binding}"
+                                     Margin="0,0,0,5"
+                                     VerticalAlignment="Bottom"
+                                     HorizontalAlignment="Center"/>
+    </Grid>
+    
+</UserControl>

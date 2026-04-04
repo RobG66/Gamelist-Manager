@@ -1,0 +1,211 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:Gamelist_Manager.ViewModels"
+			 xmlns:models="clr-namespace:Gamelist_Manager.Models"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="210"
+			 x:Class="Gamelist_Manager.Views.MediaPreviewView"
+			 x:DataType="vm:MediaPreviewViewModel"
+			 FontSize="{DynamicResource GlobalFontSize}"
+			 IsEnabled="{Binding IsMediaPreviewEnabled}"
+			 Padding="2.5">
+
+	<UserControl.Styles>
+		<!-- Media item template for each column -->
+		<Style Selector="Border.MediaItemContainer">
+			<Setter Property="Margin" Value="20"/>
+		</Style>
+
+		<Style Selector="Border.MediaItemContainer[IsVisible=True]">
+			<Setter Property="Effect">
+				<DropShadowEffect Color="Black" OffsetX="10" OffsetY="10" BlurRadius="15" Opacity="0.7"/>
+			</Setter>
+		</Style>
+
+		<Style Selector="Border.MediaItemContainer:dragover">
+			<Setter Property="BorderBrush" Value="LimeGreen"/>
+			<Setter Property="BorderThickness" Value="3"/>
+		</Style>
+
+		<Style Selector="Border.panel-border">
+			<Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+			<Setter Property="BorderThickness" Value="1"/>
+		</Style>
+		<Style Selector="Border.panel-border.edit-active">
+			<Setter Property="BorderBrush" Value="{DynamicResource AccentBlueBorder}"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+	</UserControl.Styles>
+	<Border Classes="panel-border"
+			Padding="0"
+			CornerRadius="4"
+			Background="{DynamicResource CardBackground}">
+
+		<!-- Main Grid with toolbar at top, content in middle, status bar at bottom -->
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>   <!-- Toolbar -->
+				<RowDefinition Height="*"/>      <!-- Content area -->
+				<RowDefinition Height="Auto"/>   <!-- Status bar at bottom -->
+			</Grid.RowDefinitions>
+
+			<!-- Toolbar -->
+			<Border Grid.Row="0"
+					BorderThickness="1,0,1,1"
+					BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+					CornerRadius="0,0,4,4"
+					HorizontalAlignment="Center"
+					Padding="6,4">
+				<StackPanel Orientation="Horizontal" Spacing="0">
+
+					<!-- Show All Toggle -->
+					<Button Classes="rounded"
+							Classes.blue="{Binding ShowAllMedia}"
+							Classes.grey="{Binding !ShowAllMedia}"
+							Command="{Binding ToggleShowAllCommand}"
+							ToolTip.Tip="Toggle showing empty media placeholders"
+							Padding="10,4">
+						<TextBlock Text="{Binding ShowAllMedia, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Show All: On|Show All: Off', FallbackValue='Show All: Off'}"/>
+					</Button>
+
+					<!-- Separator -->
+					<Rectangle Width="1" Margin="6,3" Fill="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+
+					<!-- Fit to View Toggle -->
+					<Button Classes="rounded"
+							Classes.blue="{Binding ScaledDisplay}"
+							Classes.grey="{Binding !ScaledDisplay}"
+							Command="{Binding ToggleScaleModeCommand}"
+							ToolTip.Tip="Toggle between Fit to View and Scrollable mode"
+							Padding="10,4">
+						<TextBlock Text="{Binding ScaledDisplay, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Fit To View: On|Fit To View: Off', FallbackValue='Fit To View: On'}"/>
+					</Button>
+
+					<!-- Separator -->
+					<Rectangle Width="1" Margin="6,3" Fill="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+
+
+					<!-- Rescrape -->
+					<Button x:Name="RescrapeButton"
+							Classes="rounded scraper"
+							ToolTip.Tip="Scrape media for the selected game"
+							Padding="10,4">
+						<StackPanel Orientation="Horizontal" Spacing="5">
+							<TextBlock Text="Re-Scrape"/>
+							<TextBlock Text="▼" FontSize="8" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+
+				</StackPanel>
+			</Border>
+			<!-- Content area with both display modes -->
+			<Border Grid.Row="1" Background="Transparent">
+				<Grid>
+					<!-- Scaled Mode Container (Fit to View) - No Viewbox, just Grid with star columns -->
+					<Grid x:Name="ScaledContentHost"
+						  MinHeight="30"
+						  IsVisible="{Binding ScaledDisplay}"/>
+
+					<!-- Scroll Mode Container (Normal scrolling) -->
+					<ScrollViewer x:Name="ScrollModeScrollViewer"
+								  IsVisible="{Binding !ScaledDisplay}"
+								  HorizontalScrollBarVisibility="Auto"
+								  VerticalScrollBarVisibility="Disabled">
+						<Grid x:Name="ScrollContentHost" MinHeight="30"/>
+					</ScrollViewer>
+				</Grid>
+			</Border>
+
+			<!-- Status Bar at bottom -->
+			<Border Grid.Row="2"
+					BorderThickness="0,1,0,0"
+					BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+					Background="{DynamicResource StatusBarBackground}"
+					CornerRadius="0,0,4,4"
+					Padding="10,4">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+
+					<!-- Left side: Informational status (game name, media count) -->
+					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+						<Image Source="/Assets/Icons/checkmark.png"
+							   Width="{DynamicResource GlobalFontSize}"
+							   Height="{DynamicResource GlobalFontSize}"
+							   VerticalAlignment="Center"
+							   IsVisible="{Binding StatusIsOk}"/>
+						<Image Source="/Assets/Icons/uncheck.png"
+							   Width="{DynamicResource GlobalFontSize}"
+							   Height="{DynamicResource GlobalFontSize}"
+							   VerticalAlignment="Center"
+							   IsVisible="{Binding StatusIsError}"/>
+						<TextBlock Text="{Binding StatusText}"
+								   FontSize="{DynamicResource GlobalSmallFontSize}"
+								   VerticalAlignment="Center"
+								   Foreground="{DynamicResource StatusBarForeground}"/>
+					</StackPanel>
+
+					<!-- Centre-right: Scraper status messages -->
+					<StackPanel Grid.Column="1"
+								Orientation="Horizontal"
+								Spacing="8"
+								IsVisible="{Binding ScraperStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+						<Rectangle Width="1" Margin="4,2" Fill="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+						<Image Source="/Assets/Icons/checkmark.png"
+							   Width="{DynamicResource GlobalFontSize}"
+							   Height="{DynamicResource GlobalFontSize}"
+							   VerticalAlignment="Center"
+							   IsVisible="{Binding ScraperStatusIsOk}"/>
+						<Image Source="/Assets/Icons/uncheck.png"
+							   Width="{DynamicResource GlobalFontSize}"
+							   Height="{DynamicResource GlobalFontSize}"
+							   VerticalAlignment="Center"
+							   IsVisible="{Binding ScraperStatusIsError}"/>
+						<TextBlock Text="{Binding ScraperStatusText}"
+								   FontSize="{DynamicResource GlobalSmallFontSize}"
+								   FontStyle="Italic"
+								   VerticalAlignment="Center"
+								   Foreground="{DynamicResource StatusBarForeground}"/>
+					</StackPanel>
+
+					<!-- Right side: LibVLC Initialization Progress -->
+					<StackPanel Grid.Column="2"
+								Orientation="Horizontal"
+								Spacing="8"
+								IsVisible="{Binding !IsLibVLCInitialized}">
+						<!-- Progress Spinner (hidden if libvlc is not installed) -->
+						<ProgressBar Width="50"
+									 MinWidth="50"
+									 Height="4"
+									 HorizontalAlignment="Right"
+									 IsIndeterminate="{Binding !IsLibVLCInitialized}"
+									 VerticalAlignment="Center"
+									 IsVisible="{Binding !IsLibVLCMissing}"/>
+
+						<!-- Loading Text (hidden if libvlc is not installed) -->
+						<TextBlock Text="Initializing video player..."
+								   FontSize="{DynamicResource GlobalSmallFontSize}"
+								   FontStyle="Italic"
+								   VerticalAlignment="Center"
+								   Foreground="{DynamicResource SubtleTextBrush}"
+								   IsVisible="{Binding !IsLibVLCMissing}"/>
+
+						<!-- Missing Text (shown only when libvlc is not found) -->
+						<TextBlock Text="libvlc not found"
+								   FontSize="{DynamicResource GlobalSmallFontSize}"
+								   FontStyle="Italic"
+								   VerticalAlignment="Center"
+								   Foreground="{DynamicResource SubtleTextBrush}"
+								   IsVisible="{Binding IsLibVLCMissing}"/>
+					</StackPanel>
+				</Grid>
+			</Border>
+		</Grid>
+	</Border>
+
+</UserControl>
+

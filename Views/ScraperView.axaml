@@ -1,0 +1,385 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Gamelist_Manager.ViewModels"
+             xmlns:models="using:Gamelist_Manager.Models"
+             xmlns:converters="using:Gamelist_Manager.Classes.Converters"
+             xmlns:behaviors="clr-namespace:Gamelist_Manager.Behaviors"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             x:Class="Gamelist_Manager.Views.ScraperView"
+             x:DataType="vm:ScraperViewModel"
+             FontSize="{DynamicResource GlobalFontSize}"
+             IsEnabled="{Binding !IsBusy}"
+             Padding="2.5">
+
+    <Design.DataContext>
+        <vm:ScraperViewModel/>
+    </Design.DataContext>
+
+    <UserControl.Resources>
+        <converters:LogLevelToBrushConverter x:Key="LogLevelToBrushConverter"/>
+    </UserControl.Resources>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="5">
+
+            <!-- ========= Card 1: Scraper ========== -->
+            <Border Grid.Column="0" Padding="10"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    CornerRadius="4"
+                    Background="{DynamicResource CardBackground}">
+                <StackPanel Spacing="6">
+
+                    <!-- Section header with right-justified action buttons -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Scraper" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}"
+                                   Foreground="{DynamicResource AccentTextBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Fill="{DynamicResource SystemAccentColor}"/>
+                        <Button Grid.Column="2" Classes="rounded green" Content="Start" Command="{Binding StartCommand}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                ToolTip.Tip="Start scraping game metadata and media from the selected source"/>
+                        <Button Grid.Column="3" Classes="rounded red" Content="Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsScraping}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                ToolTip.Tip="Stop the current scraping operation"/>
+                        <Button Grid.Column="4" Classes="rounded yellow" Content="Clear Cache" Command="{Binding ClearCacheCommand}" IsEnabled="{Binding IsClearCacheEnabled}" VerticalAlignment="Center"
+                                ToolTip.Tip="Delete all locally cached scraper data"/>
+                    </Grid>
+
+                    <!-- Scraper source + Items to scrape -->
+                    <Grid IsEnabled="{Binding !IsScraping}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="Source" FontWeight="SemiBold"/>
+                            <ComboBox MinWidth="130" Margin="0,0,10,0" SelectedIndex="{Binding SelectedScraperIndex}"
+                                      ToolTip.Tip="Select the online database to scrape metadata and media from">
+                                <ComboBoxItem Content="ArcadeDB"/>
+                                <ComboBoxItem Content="EmuMovies"/>
+                                <ComboBoxItem Content="ScreenScraper"/>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="2" Margin="10,0,0,0" VerticalAlignment="Bottom">
+                            <TextBlock Text="Items To Scrape" FontWeight="SemiBold"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <RadioButton Content="All" IsChecked="{Binding ScrapeAllMode}" GroupName="ScrapeMode"
+                                             ToolTip.Tip="Scrape every game in the current list"/>
+                                <RadioButton Content="Selected" IsChecked="{Binding ScrapeSelectedMode}" GroupName="ScrapeMode"
+                                             ToolTip.Tip="Only scrape the games currently selected in the list"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Overwrite + Options -->
+                    <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto" IsEnabled="{Binding !IsScraping}">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Overwrite:" FontWeight="SemiBold" Margin="0,5,15,0"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Options:" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                        <CheckBox Grid.Row="1" Grid.Column="0" Content="Name" IsChecked="{Binding OverwriteName}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Replace existing game names with scraped values"/>
+                        <CheckBox Grid.Row="2" Grid.Column="0" Content="Metadata" IsChecked="{Binding OverwriteMetadata}" IsEnabled="{Binding OverwriteMetadataEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Replace existing metadata fields (description, rating, genre, etc.) with scraped values"/>
+                        <CheckBox Grid.Row="3" Grid.Column="0" Content="Media" IsChecked="{Binding OverwriteMedia}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Replace existing media files (images, videos, etc.) with newly downloaded versions"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" Content="Scrape from cache first" IsChecked="{Binding ScrapeFromCache}" IsEnabled="{Binding ScrapeFromCacheEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Use locally cached data before making network requests to the scraper source"/>
+                        <CheckBox Grid.Row="2" Grid.Column="1" Content="Scrape hidden items" IsChecked="{Binding ScrapeHiddenItems}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Include games marked as hidden when scraping"/>
+                        <CheckBox Grid.Row="3" Grid.Column="1" Content="Skip non-cached items" IsChecked="{Binding SkipNonCachedItems}" IsEnabled="{Binding SkipNonCachedItemsEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Only scrape games that already have data in the local cache; skip all others"/>
+                    </Grid>
+
+                    <!-- Cache status -->
+                    <TextBlock Text="{Binding CacheCountText}"
+                               FontStyle="Italic" FontSize="{DynamicResource GlobalSmallFontSize}"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+
+                </StackPanel>
+            </Border>
+
+            
+            <!-- ========= Card 2: Metadata ========== -->
+            <Border Grid.Column="1" Padding="10"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    CornerRadius="4"
+                    Background="{DynamicResource CardBackground}"
+                    IsEnabled="{Binding !IsScraping}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Metadata" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Foreground="{DynamicResource AccentTextBrush}"/>
+                        <Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Fill="{DynamicResource SystemAccentColor}"/>
+                        <Button Grid.Column="2" Classes="rounded green" Content="All" Command="{Binding SelectAllMetadataCommand}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                ToolTip.Tip="Select all metadata fields for scraping"/>
+                        <Button Grid.Column="3" Classes="rounded yellow" Content="None" Command="{Binding SelectNoneMetadataCommand}" VerticalAlignment="Center"
+                                ToolTip.Tip="Deselect all metadata fields"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <!-- Left column: A–L -->
+                        <CheckBox Grid.Row="0" Grid.Column="0" Content="Arcade Name" IsChecked="{Binding MetaArcadeName}" IsEnabled="{Binding MetaArcadeNameEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the original arcade cabinet name for this title"/>
+                        <CheckBox Grid.Row="1" Grid.Column="0" Content="Description" IsChecked="{Binding MetaDescription}" IsEnabled="{Binding MetaDescriptionEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the game's description or synopsis"/>
+                        <CheckBox Grid.Row="2" Grid.Column="0" Content="Developer" IsChecked="{Binding MetaDeveloper}" IsEnabled="{Binding MetaDeveloperEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the name of the game's developer"/>
+                        <CheckBox Grid.Row="3" Grid.Column="0" Content="Family" IsChecked="{Binding MetaFamily}" IsEnabled="{Binding MetaFamilyEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the game family or series this title belongs to"/>
+                        <CheckBox Grid.Row="4" Grid.Column="0" Content="Game Id" IsChecked="{Binding MetaGameId}" IsEnabled="{Binding MetaGameIdEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape and store the unique game ID from the source database"/>
+                        <CheckBox Grid.Row="5" Grid.Column="0" Content="Genre" IsChecked="{Binding MetaGenre}" IsEnabled="{Binding MetaGenreEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the game's genre classification"/>
+                        <CheckBox Grid.Row="6" Grid.Column="0" Content="Language" IsChecked="{Binding MetaLanguage}" IsEnabled="{Binding MetaLanguageEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the supported language(s) for this game"/>
+                        <!-- Right column: N–Release Date -->
+                        <CheckBox Grid.Row="0" Grid.Column="1" Content="Name" IsChecked="{Binding MetaName}" IsEnabled="{Binding MetaNameEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the game's display name"/>
+                        <CheckBox Grid.Row="1" Grid.Column="1" Content="Players" IsChecked="{Binding MetaPlayers}" IsEnabled="{Binding MetaPlayersEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the number of supported players"/>
+                        <CheckBox Grid.Row="2" Grid.Column="1" Content="Publisher" IsChecked="{Binding MetaPublisher}" IsEnabled="{Binding MetaPublisherEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the name of the game's publisher"/>
+                        <CheckBox Grid.Row="3" Grid.Column="1" Content="Rating" IsChecked="{Binding MetaRating}" IsEnabled="{Binding MetaRatingEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the game's community or critic rating"/>
+                        <CheckBox Grid.Row="4" Grid.Column="1" Content="Region" IsChecked="{Binding MetaRegion}" IsEnabled="{Binding MetaRegionEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the release region (e.g. US, EU, JP)"/>
+                        <CheckBox Grid.Row="5" Grid.Column="1" Content="Release Date" IsChecked="{Binding MetaReleaseDate}" IsEnabled="{Binding MetaReleaseDateEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Scrape the game's original release date"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ========= Card 3: Media Files ========== -->
+            <Border Grid.Column="2" Padding="10"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    CornerRadius="4"
+                    Background="{DynamicResource CardBackground}"
+                    IsEnabled="{Binding !IsScraping}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Media Files" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Foreground="{DynamicResource AccentTextBrush}"/>
+                        <Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Fill="{DynamicResource SystemAccentColor}"/>
+                        <Button Grid.Column="2" Classes="rounded green" Content="All" Command="{Binding SelectAllMediaCommand}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                ToolTip.Tip="Select all media types for downloading"/>
+                        <Button Grid.Column="3" Classes="rounded yellow" Content="None" Command="{Binding SelectNoneMediaCommand}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                ToolTip.Tip="Deselect all media types"/>
+                        <Button Grid.Column="4" Classes="rounded red" Content="Reset" Command="{Binding ResetSourcesCommand}" VerticalAlignment="Center"
+                                ToolTip.Tip="Reset all media source selections back to their defaults"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <!-- Left column - no source -->
+                        <CheckBox Grid.Row="0" Grid.Column="0" Content="Titleshot" IsChecked="{Binding MediaTitleshot}" IsEnabled="{Binding MediaTitleshotEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download a title screen screenshot for this game"/>
+                        <CheckBox Grid.Row="1" Grid.Column="0" Content="Map" IsChecked="{Binding MediaMap}" IsEnabled="{Binding MediaMapEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download a map or level overview image for this game"/>
+                        <CheckBox Grid.Row="2" Grid.Column="0" Content="Manual" IsChecked="{Binding MediaManual}" IsEnabled="{Binding MediaManualEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the game manual (typically a PDF)"/>
+                        <CheckBox Grid.Row="3" Grid.Column="0" Content="Bezel" IsChecked="{Binding MediaBezel}" IsEnabled="{Binding MediaBezelEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the arcade bezel/overlay artwork for this game"/>
+                        <CheckBox Grid.Row="4" Grid.Column="0" Content="Fan Art" IsChecked="{Binding MediaFanArt}" IsEnabled="{Binding MediaFanArtEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download fan-created artwork for this game"/>
+                        <CheckBox Grid.Row="5" Grid.Column="0" Content="Box Back" IsChecked="{Binding MediaBoxBack}" IsEnabled="{Binding MediaBoxBackEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the back cover art of the game's box"/>
+                        <CheckBox Grid.Row="6" Grid.Column="0" Content="Music" IsChecked="{Binding MediaMusic}" IsEnabled="{Binding MediaMusicEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download background music or theme audio for this game"/>
+                        <!-- Right column with source ComboBoxes -->
+                        <CheckBox Grid.Row="0" Grid.Column="1" Content="Image" IsChecked="{Binding MediaImage}" IsEnabled="{Binding MediaImageEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the main gameplay screenshot or promotional image"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="0" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding ImageSources}" SelectedIndex="{Binding SelectedImageSource}" IsEnabled="{Binding MediaImage}"
+                                  ToolTip.Tip="Select which image type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="1" Grid.Column="1" Content="Marquee" IsChecked="{Binding MediaMarquee}" IsEnabled="{Binding MediaMarqueeEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the marquee (header banner) artwork for this game"/>
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="1" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding MarqueeSources}" SelectedIndex="{Binding SelectedMarqueeSource}" IsEnabled="{Binding MediaMarquee}"
+                                  ToolTip.Tip="Select which marquee type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="2" Grid.Column="1" Content="Thumbnail" IsChecked="{Binding MediaThumbnail}" IsEnabled="{Binding MediaThumbnailEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download a small thumbnail image used in list views"/>
+                        <TextBlock Grid.Row="2" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="2" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding ThumbnailSources}" SelectedIndex="{Binding SelectedThumbnailSource}" IsEnabled="{Binding MediaThumbnail}"
+                                  ToolTip.Tip="Select which thumbnail type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="3" Grid.Column="1" Content="Cartridge" IsChecked="{Binding MediaCartridge}" IsEnabled="{Binding MediaCartridgeEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download an image of the game cartridge, disc, or media"/>
+                        <TextBlock Grid.Row="3" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="3" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding CartridgeSources}" SelectedIndex="{Binding SelectedCartridgeSource}" IsEnabled="{Binding MediaCartridge}"
+                                  ToolTip.Tip="Select which cartridge image type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="4" Grid.Column="1" Content="Video" IsChecked="{Binding MediaVideo}" IsEnabled="{Binding MediaVideoEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download a video preview or trailer for this game"/>
+                        <TextBlock Grid.Row="4" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="4" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding VideoSources}" SelectedIndex="{Binding SelectedVideoSource}" IsEnabled="{Binding MediaVideo}"
+                                  ToolTip.Tip="Select which video type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="5" Grid.Column="1" Content="Box Art" IsChecked="{Binding MediaBoxArt}" IsEnabled="{Binding MediaBoxArtEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the front cover art of the game's box"/>
+                        <TextBlock Grid.Row="5" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="5" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding BoxArtSources}" SelectedIndex="{Binding SelectedBoxArtSource}" IsEnabled="{Binding MediaBoxArt}"
+                                  ToolTip.Tip="Select which box art type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="6" Grid.Column="1" Content="Wheel" IsChecked="{Binding MediaWheel}" IsEnabled="{Binding MediaWheelEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the wheel (logo) art used in carousel-style front-ends"/>
+                        <TextBlock Grid.Row="6" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="6" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding WheelSources}" SelectedIndex="{Binding SelectedWheelSource}" IsEnabled="{Binding MediaWheel}"
+                                  ToolTip.Tip="Select which wheel art type to download from the scraper source"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ========= Card 4: Log ========== -->
+            <Border Grid.Column="3" Padding="10"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    CornerRadius="4"
+                    Background="{DynamicResource CardBackground}">
+                <StackPanel Spacing="4">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Log" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}"
+                                   Foreground="{DynamicResource AccentTextBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center" Margin="0,0,8,0"
+                                   Fill="{DynamicResource SystemAccentColor}"/>
+                        <TextBlock Grid.Column="2" Text="Limit:" IsVisible="{Binding IsLimitVisible}" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                        <TextBlock Grid.Column="3" Text="{Binding LimitText}" FontWeight="SemiBold" IsVisible="{Binding IsLimitVisible}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Grid.Column="4" Text="Threads:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                        <TextBlock Grid.Column="5" Text="{Binding ThreadCountText}" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="10"/>
+                    </Grid>
+
+                    <!-- Progress — always visible -->
+                    <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="0" Text="Current Scrape:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding CurrentScrapeText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Column="0" Text="Progress:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                        <ProgressBar Grid.Column="1" Height="{DynamicResource GlobalFontSize}" MaxWidth="100" MinWidth="100" Value="{Binding ProgressValue}" Minimum="0" Maximum="{Binding ProgressMaximum}" Foreground="{DynamicResource SuccessTextBrush}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding ProgressText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="2" Text="{Binding TimeRemainingText}" VerticalAlignment="Center" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold" Margin="8,0,0,0" MinWidth="58"/>
+                    </Grid>
+
+
+                    <!-- Collapsible log entries -->
+                    <Grid ClipToBounds="True">
+                        <Grid.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="MaxHeight" Duration="0:0:0.25" Easing="CubicEaseOut"/>
+                            </Transitions>
+                        </Grid.Transitions>
+                        <StackPanel Spacing="4">
+                            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,2,0,0"/>
+                            <ScrollViewer Height="100" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <i:Interaction.Behaviors>
+                                    <behaviors:AutoScrollToEndBehavior/>
+                                </i:Interaction.Behaviors>
+                                <ItemsControl ItemsSource="{Binding LogEntries}" HorizontalAlignment="Stretch">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:LogEntry">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" x:CompileBindings="False" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                           IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,3,0,0"/>
+                            <Grid ColumnDefinitions="*,*" Margin="0,2,0,0">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+                                    <TextBlock Text="&#x2192;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                    <TextBlock Text="scraped" FontSize="{DynamicResource GlobalSmallFontSize}" Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,0,4,0"/>
+                                    <TextBlock Text="&#x2713;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                    <TextBlock Text="{Binding ScrapeSuccessText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,4,0"/>
+                                    <TextBlock Text="&#x2717;" Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                    <TextBlock Text="{Binding ScrapeFailedText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+                                    <TextBlock Text="&#x2193;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                    <TextBlock Text="downloaded" FontSize="{DynamicResource GlobalSmallFontSize}" Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,0,4,0"/>
+                                    <TextBlock Text="&#x2713;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                    <TextBlock Text="{Binding DownloadSuccessText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,4,0"/>
+                                    <TextBlock Text="&#x2717;" Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                    <TextBlock Text="{Binding DownloadFailedText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                </StackPanel>
+            </Border>
+
+
+        </Grid>
+    </ScrollViewer>
+
+</UserControl>

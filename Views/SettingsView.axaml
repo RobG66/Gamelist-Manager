@@ -1,0 +1,655 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
+		xmlns:models="clr-namespace:Gamelist_Manager.Models"
+		x:Class="Gamelist_Manager.Views.SettingsView"
+		x:DataType="viewModels:SettingsViewModel"
+		x:CompileBindings="True"
+		Title="Settings"
+		CanMaximize="False"
+		CanMinimize="False"
+		MinHeight="600" MinWidth="580"
+		Height="600" Width="580"
+		FontSize="{DynamicResource GlobalFontSize}"
+		WindowStartupLocation="CenterOwner"
+		CanResize="True">
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+
+		<!-- Tab Control -->
+		<TabControl Grid.Row="1" Margin="8,4,8,4" FontSize="{DynamicResource GlobalFontSize}">
+
+			<!-- Appearance Tab -->
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/settings2.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Appearance" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<ScrollViewer Padding="0,8,0,0" VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="8">
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="6">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Theme" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="*,12,*">
+									<StackPanel Grid.Column="0" Spacing="3">
+										<TextBlock Text="Application Theme"/>
+										<ComboBox SelectedIndex="{Binding SelectedThemeIndex}" Width="160" HorizontalAlignment="Left"
+												  ToolTip.Tip="Choose between a light or dark color scheme for the entire application.">
+											<ComboBoxItem Content="Light"/>
+											<ComboBoxItem Content="Dark"/>
+										</ComboBox>
+									</StackPanel>
+									<StackPanel Grid.Column="2" Spacing="3">
+										<TextBlock Text="Accent Color"/>
+										<ComboBox SelectedIndex="{Binding SelectedColorIndex}" Width="160" HorizontalAlignment="Left"
+												  ToolTip.Tip="Choose the accent color used for highlights, borders, buttons, and other UI elements throughout the application.">
+											<ComboBoxItem Content="Blue"/>
+											<ComboBoxItem Content="Red"/>
+											<ComboBoxItem Content="Orange"/>
+											<ComboBoxItem Content="Green"/>
+											<ComboBoxItem Content="Yellow"/>
+											<ComboBoxItem Content="Magenta"/>
+											<ComboBoxItem Content="Purple"/>
+											<ComboBoxItem Content="Teal"/>
+											<ComboBoxItem Content="Lime"/>
+											<ComboBoxItem Content="Light Blue"/>
+											<ComboBoxItem Content="Indigo"/>
+										</ComboBox>
+									</StackPanel>
+								</Grid>
+							</StackPanel>
+						</Border>
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="6">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Data Grid Appearance" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="*,12,*">
+									<StackPanel Grid.Column="0" Spacing="3">
+										<TextBlock Text="Alternating Row Color"/>
+										<ComboBox SelectedIndex="{Binding SelectedAlternatingRowColorIndex}" Width="160" HorizontalAlignment="Left"
+												  ToolTip.Tip="Apply a background color to every other row in the game list to make rows easier to distinguish. Select None to disable alternating colors.">
+											<ComboBoxItem Content="None"/>
+											<ComboBoxItem Content="Light Gray"/>
+											<ComboBoxItem Content="Light Blue"/>
+											<ComboBoxItem Content="Light Yellow"/>
+											<ComboBoxItem Content="Light Green"/>
+											<ComboBoxItem Content="Light Pink"/>
+											<ComboBoxItem Content="Light Ivory"/>
+											<ComboBoxItem Content="Light Cyan"/>
+											<ComboBoxItem Content="Light Cream"/>
+											<ComboBoxItem Content="Light Peach"/>
+											<ComboBoxItem Content="Medium Gray"/>
+											<ComboBoxItem Content="Medium Blue"/>
+											<ComboBoxItem Content="Medium Green"/>
+											<ComboBoxItem Content="Medium Yellow"/>
+											<ComboBoxItem Content="Medium Pink"/>
+											<ComboBoxItem Content="Medium Lavender"/>
+											<ComboBoxItem Content="Dark Gray"/>
+											<ComboBoxItem Content="Dark Blue"/>
+											<ComboBoxItem Content="Dark Green"/>
+											<ComboBoxItem Content="Dark Teal"/>
+											<ComboBoxItem Content="Dark Purple"/>
+											<ComboBoxItem Content="Dark Brown"/>
+										</ComboBox>
+									</StackPanel>
+									<StackPanel Grid.Column="2" Spacing="3">
+										<TextBlock Text="Grid Lines Visibility"/>
+										<ComboBox SelectedIndex="{Binding SelectedGridLinesVisibilityIndex}" Width="160" HorizontalAlignment="Left"
+												  ToolTip.Tip="Controls which grid lines are drawn in the game list. Horizontal draws lines between rows, Vertical between columns, All shows both, None hides all lines.">
+											<ComboBoxItem Content="Horizontal"/>
+											<ComboBoxItem Content="Vertical"/>
+											<ComboBoxItem Content="All"/>
+											<ComboBoxItem Content="None"/>
+										</ComboBox>
+									</StackPanel>
+								</Grid>
+							</StackPanel>
+						</Border>
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="6">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Font Size" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="*,12,*">
+									<StackPanel Grid.Column="0" Spacing="3">
+										<TextBlock Text="Global Font Size"
+												   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–20."/>
+										<NumericUpDown Value="{Binding AppFontSize}"
+													   Minimum="8" Maximum="20" Increment="1"
+													   FormatString="0"
+													   Width="100" HorizontalAlignment="Left"
+													   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–20."/>
+									</StackPanel>
+									<StackPanel Grid.Column="2" Spacing="3">
+										<TextBlock Text="Data Grid Font Size"
+												   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–18."/>
+										<NumericUpDown Value="{Binding GridFontSize}"
+													   Minimum="8" Maximum="18" Increment="1"
+													   FormatString="0"
+													   Width="100" HorizontalAlignment="Left"
+													   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–18."/>
+									</StackPanel>
+								</Grid>
+							</StackPanel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+
+			<!-- Options Tab -->
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/settings.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Options" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<ScrollViewer Padding="0,8,0,0" VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="8">
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="4">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Behavior" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<UniformGrid Columns="3">
+									<CheckBox IsChecked="{Binding ConfirmBulkChanges}" Content="Confirm Bulk Changes" Margin="0,0,4,2"
+											  ToolTip.Tip="Show a confirmation dialog before applying changes to multiple items at once."/>
+									<CheckBox IsChecked="{Binding EnableSaveReminder}" Content="Save Reminder" Margin="0,0,4,2"
+											  ToolTip.Tip="Prompt to save when closing a gamelist that has unsaved changes."/>
+									<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads" Margin="0,4,4,2"
+											  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
+									<CheckBox IsChecked="{Binding ShowGamelistStats}" Content="Show Gamelist Stats" Margin="0,4,4,2"
+											  ToolTip.Tip="Display a statistics bar at the top of the main window showing total games, visible, hidden, favorites, genres, and playtime."/>
+									<CheckBox IsChecked="{Binding VideoAutoplay}" Content="Video Autoplay" Margin="0,4,4,2"
+											  ToolTip.Tip="Automatically start playing video previews when a game is selected in the media viewer."/>
+									<CheckBox IsChecked="{Binding RememberColumns}" Content="Remember Columns" Margin="0,4,4,2"
+											  ToolTip.Tip="Save and restore the visibility of each data grid column between sessions."/>
+									<CheckBox IsChecked="{Binding RememberAutosize}" Content="Remember Autosize" Margin="0,4,4,2"
+											  ToolTip.Tip="Save and restore the column auto-fit (Size to Fit) state between sessions, independently of Remember Columns."/>
+									<CheckBox IsChecked="{Binding EnableDelete}" Content="Enable Deletion" Margin="0,4,4,2"
+											  ToolTip.Tip="Show Delete options in menus and allow permanent removal of game entries from the gamelist. Disabled by default to prevent accidental deletion."/>
+									<CheckBox IsChecked="{Binding IgnoreDuplicates}" Content="Ignore Duplicates" Margin="0,4,4,2"
+											  ToolTip.Tip="Skip entries with duplicate ROM paths when importing or merging gamelists."/>
+									<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Scraper Log Timestamps" Margin="0,4,4,2"
+											  ToolTip.Tip="Show the time of each entry in the scraper log."/>
+								</UniformGrid>
+							</StackPanel>
+						</Border>
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="4">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Advanced" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="Auto,Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+									<StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+										<TextBlock Text="Max Undo:" VerticalAlignment="Center" Margin="0,0,5,0"
+												   ToolTip.Tip="Maximum number of undo steps to keep in history. Higher values use more memory. (Default: 5)"/>
+										<TextBox Text="{Binding MaxUndo}" MaxLength="2"
+												 ToolTip.Tip="Maximum number of undo steps to keep in history. Higher values use more memory. (Default: 5)"/>
+									</StackPanel>
+									<StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+										<TextBlock Text="New File Search Depth:" VerticalAlignment="Center" Margin="10,0,5,0"
+												   ToolTip.Tip="How many directory levels deep to search for gamelist.xml files when browsing for a new file. (Default: 2)"/>
+										<TextBox Text="{Binding SearchDepth}" MaxLength="1" Width="5"
+												 ToolTip.Tip="How many directory levels deep to search for gamelist.xml files when browsing for a new file. (Default: 2)"/>
+									</StackPanel>
+									<StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal">
+										<TextBlock Text="Max Recent Files:" VerticalAlignment="Center" Margin="10,0,5,0"
+												   ToolTip.Tip="Maximum number of recently opened files shown in the File menu. (Default: 15)"/>
+										<TextBox Text="{Binding RecentFilesCount}" MaxLength="2"
+												 ToolTip.Tip="Maximum number of recently opened files shown in the File menu. (Default: 15)"/>
+									</StackPanel>
+									<StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,0">
+										<TextBlock Text="Log Verbosity:" Margin="0,0,5,0"
+												   ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call"/>
+										<ComboBox Grid.ColumnSpan="2" SelectedIndex="{Binding LogVerbosityIndex}" Width="100" HorizontalAlignment="Left"
+												  ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call">
+											<ComboBoxItem Content="Minimal"/>
+											<ComboBoxItem Content="Normal"/>
+											<ComboBoxItem Content="Verbose"/>
+										</ComboBox>
+									</StackPanel>
+									<StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
+										<TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,5,0"
+												   ToolTip.Tip="Default playback volume for video previews in the media viewer (0 = mute, 100 = full)."/>
+										<Slider Minimum="0" Maximum="100" Width="100" VerticalAlignment="Center" Value="{Binding DefaultVolume}"
+												ToolTip.Tip="Default playback volume for video previews in the media viewer (0 = mute, 100 = full)."/>
+									</StackPanel>
+								</Grid>
+							</StackPanel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+
+			<!-- Paths Tab -->
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/folder.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Paths" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="8" Margin="0,8,0,8">
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Connection Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+									<TextBlock Grid.Row="0" Grid.Column="0" Text="MAME Exe:" VerticalAlignment="Center" Margin="0,0,6,4"
+											   ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
+									<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MamePath}" Watermark="C:\MAME\mame.exe" Margin="0,0,6,4"
+											 ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
+									<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
+											ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
+									<TextBlock Grid.Row="1" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,0"
+											   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
+									<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RomsPath}" Watermark="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"
+											 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
+									<Button Grid.Row="1" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green" Click="BrowseRomsFolder_Click"
+											ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
+								</Grid>
+							</StackPanel>
+						</Border>
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<Grid ColumnDefinitions="*,Auto">
+										<TextBlock Text="Media Folder Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"/>
+										<Button Grid.Column="1" Content="Reset to Defaults" Classes="rounded orange" Padding="8,4" Click="Button_Reset_Click"
+												ToolTip.Tip="Restore all media folder paths and suffixes to their factory default values."/>
+									</Grid>
+								</Border>
+								<StackPanel Grid.IsSharedSizeScope="True" Spacing="0">
+									<!-- Headers -->
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol0"/>
+											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
+											<ColumnDefinition Width="3*"/>
+											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
+											<ColumnDefinition Width="*"/>
+											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol5"/>
+										</Grid.ColumnDefinitions>
+										<TextBlock Grid.Column="0" Text="On"     FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" HorizontalAlignment="Center" Margin="0,0,0,4"
+												   ToolTip.Tip="Enable or disable this media type. Disabled types are ignored during scraping and media operations."/>
+										<TextBlock Grid.Column="1" Text="Type"   FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="4,0,6,4"/>
+										<TextBlock Grid.Column="2" Text="Folder" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,0,0,4"
+												   ToolTip.Tip="Subfolder path relative to the ROMs folder where this media type is stored (e.g. 'images' or 'media/screenshots')."/>
+										<TextBlock Grid.Column="4" Text="Suffix" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="2,0,0,4"
+												   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
+										<Button    Grid.Column="5" Classes="icon" Click="ToggleAllSfx_Click"
+												   Width="14" Height="14" HorizontalAlignment="Center" Margin="3,0,0,4"
+												   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
+											<Image Source="avares://Gamelist_Manager/Assets/Icons/reset2.png" Width="14" Height="14"/>
+										</Button>
+									</Grid>
+									<!-- Rows -->
+									<ItemsControl ItemsSource="{Binding MediaFolderItems}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate x:DataType="models:MediaFolderItem">
+												<Grid Margin="0,0,0,2">
+													<Grid.ColumnDefinitions>
+														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol0"/>
+														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
+														<ColumnDefinition Width="3*"/>
+														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
+														<ColumnDefinition Width="*"/>
+														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol5"/>
+													</Grid.ColumnDefinitions>
+													<CheckBox  Grid.Column="0" IsChecked="{Binding Enabled}"    VerticalAlignment="Center"
+															   ToolTip.Tip="Enable or disable this media type for scraping and display."/>
+													<TextBlock Grid.Column="1" Text="{Binding Label}"           VerticalAlignment="Center" Margin="4,0,6,0" IsEnabled="{Binding Enabled}"/>
+													<TextBox   Grid.Column="2" Text="{Binding Path}"            Padding="3,2"              IsEnabled="{Binding Enabled}"
+															   ToolTip.Tip="Subfolder path relative to the ROMs folder where this media type is stored."/>
+													<Button    Grid.Column="3" Classes="icon"                   VerticalAlignment="Center" Margin="2,0,0,0" IsEnabled="{Binding Enabled}"
+															   Click="BrowseMediaFolder_Click" ToolTip.Tip="Browse for the media folder.">
+														<Image Source="/Assets/Icons/foldericon.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+													</Button>
+													<TextBox   Grid.Column="4" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding Enabled}"
+															   ToolTip.Tip="Optional filename suffix appended when scraping this media type."/>
+													<CheckBox  Grid.Column="5" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding Enabled}"
+															   ToolTip.Tip="When checked, the optional suffix will be appended to scraped files for this media type."/>       </Grid>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+
+			<!-- Remote Tab -->
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Remote" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<ScrollViewer Padding="0,8,0,0" VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="8">
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Remote Connection" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+									<TextBlock Grid.Row="0" Grid.Column="0" Text="Hostname / IP:" VerticalAlignment="Center" Margin="0,0,8,5"/>
+									<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Hostname}" Watermark="batocera, retropie, recalbox, knulli, jelos, 192.168.1.x" Margin="0,0,0,5"
+											 ToolTip.Tip="Hostname or IP of the remote device. Use a profile template to auto-fill."/>
+								</Grid>
+								<Grid ColumnDefinitions="Auto,160,16,Auto,*">
+									<TextBlock Grid.Column="0" Text="Username:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+									<TextBox Grid.Column="1" Text="{Binding UserId}" Watermark="root"
+											 ToolTip.Tip="SSH username. Use a profile template to auto-fill for your system."/>
+									<TextBlock Grid.Column="3" Text="Password:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+									<TextBox Grid.Column="4" Text="{Binding Password}" PasswordChar="*" Watermark="linux"
+											 ToolTip.Tip="SSH password. Use a profile template to auto-fill for your system."/>
+								</Grid>
+							</StackPanel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+
+			<!-- Scraper Tab -->
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/gamepad.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Scraper" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="8" Margin="0,8,0,8">
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Scraper" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<ComboBox SelectedIndex="{Binding SelectedSetupScraperIndex}" Width="180" HorizontalAlignment="Left"
+										  ToolTip.Tip="Choose which scraping service to use when fetching game metadata and media.&#10;ArcadeDB: free arcade-focused database.&#10;EmuMovies: media-rich service (account required).&#10;ScreenScraper: comprehensive multi-system database (account required).">
+									<ComboBoxItem Content="ArcadeDB"/>
+									<ComboBoxItem Content="EmuMovies"/>
+									<ComboBoxItem Content="ScreenScraper"/>
+								</ComboBox>
+							</StackPanel>
+						</Border>
+
+						<!-- ArcadeDB Options -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+								IsVisible="{Binding IsSetupArcadeDB}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Batch Scraping" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<CheckBox IsChecked="{Binding BatchProcessing}" Content="Enable Batch Scraping"
+										  ToolTip.Tip="Process multiple games in a single scraping session rather than one at a time. Faster for large collections but uses more resources."/>
+								<Grid ColumnDefinitions="Auto,80,*">
+									<TextBlock Grid.Column="0" Text="Max Batch:" VerticalAlignment="Center" Margin="0,0,6,0"
+											   ToolTip.Tip="Maximum number of games to include in a single batch scrape operation. Lower values reduce the risk of timeouts or rate limiting."/>
+									<TextBox Grid.Column="1" Text="{Binding MaxBatch}" MaxLength="4"
+											 ToolTip.Tip="Maximum number of games to include in a single batch scrape operation. Lower values reduce the risk of timeouts or rate limiting."/>
+								</Grid>
+							</StackPanel>
+						</Border>
+
+						<!-- Credentials -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+								IsVisible="{Binding IsSetupRequiresCredentials}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Credentials" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="Auto,160,16,Auto,*">
+									<TextBlock Grid.Column="0" Text="User ID:" VerticalAlignment="Center" Margin="0,0,6,0"
+											   ToolTip.Tip="Your registered username for the selected scraping service."/>
+									<TextBox Grid.Column="1" Text="{Binding ScraperUsername}"
+											 ToolTip.Tip="Your registered username for the selected scraping service."/>
+									<TextBlock Grid.Column="3" Text="Password:" VerticalAlignment="Center" Margin="0,0,6,0"
+											   ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
+									<TextBox Grid.Column="4" Text="{Binding ScraperPassword}" PasswordChar="&#x2022;"
+											 ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
+								</Grid>
+							</StackPanel>
+						</Border>
+
+						<!-- ScreenScraper Options -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+								IsVisible="{Binding IsSetupScreenScraper}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="ScreenScraper Options" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<StackPanel Orientation="Horizontal" Spacing="12">
+									<StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+										<TextBlock Text="Language:" VerticalAlignment="Center"
+												   ToolTip.Tip="The language to request for game descriptions and metadata returned by ScreenScraper."/>
+										<ComboBox ItemsSource="{Binding ScraperLanguages}" SelectedItem="{Binding SelectedScraperLanguage}" MinWidth="120"
+												  ToolTip.Tip="The language to request for game descriptions and metadata returned by ScreenScraper."/>
+									</StackPanel>
+									<StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+										<TextBlock Text="Primary Region:" VerticalAlignment="Center"
+												   ToolTip.Tip="The preferred region for media assets (e.g. box covers, screenshots). Media from this region will be downloaded first when available."/>
+										<ComboBox ItemsSource="{Binding ScraperPrimaryRegions}" SelectedItem="{Binding SelectedScraperPrimaryRegion}" MinWidth="120"
+												  ToolTip.Tip="The preferred region for media assets (e.g. box covers, screenshots). Media from this region will be downloaded first when available."/>
+									</StackPanel>
+								</StackPanel>
+
+								<CheckBox Content="Always scrape genre in English" IsChecked="{Binding ScraperGenreAlwaysEnglish}"
+										  ToolTip.Tip="EmulationStation built-in collections are based on English genres. Enable this to ensure genres are always saved in English regardless of the selected language."/>
+								<CheckBox Content="Scrape any available media not found for regions" IsChecked="{Binding ScraperScrapeAnyMedia}"
+										  ToolTip.Tip="When no media is found for primary or fallback regions, download whatever is available from any region rather than leaving the field empty."/>
+								<Grid ColumnDefinitions="*,Auto,*">
+									<StackPanel Grid.Column="0" Spacing="3">
+										<TextBlock Text="Available Regions" FontWeight="SemiBold"
+												   ToolTip.Tip="All regions supported by ScreenScraper. Select a region and click the arrow to add it to your fallback list."/>
+										<ListBox ItemsSource="{Binding ScraperAvailableRegions}" SelectedItem="{Binding SelectedScraperAvailableRegion}" Height="120"
+												 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+												 ToolTip.Tip="Select a region here, then click the right arrow to add it to your fallback regions list."/>
+									</StackPanel>
+									<StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5,0">
+										<Button Classes="icon" Command="{Binding AddScraperRegionCommand}" Width="26" Margin="0,0,0,4"
+												ToolTip.Tip="Add the selected region from the Available list to the Fallback Regions list.">
+											<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueright.png" Width="18" Height="18"/>
+										</Button>
+										<Button Classes="icon" Command="{Binding RemoveScraperRegionCommand}" Width="26"
+												ToolTip.Tip="Remove the selected region from the Fallback Regions list and return it to the Available list.">
+											<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueleft.png" Width="18" Height="18"/>
+										</Button>
+									</StackPanel>
+									<StackPanel Grid.Column="2" Spacing="3">
+										<TextBlock Text="Fallback Regions" FontWeight="SemiBold"
+												   ToolTip.Tip="Regions tried in order when media is not found for the primary region. The primary region is always checked first."/>
+										<ListBox ItemsSource="{Binding ScraperFallbackRegions}" SelectedItem="{Binding SelectedScraperFallbackRegion}" Height="120"
+												 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+												 ToolTip.Tip="Regions tried in order when media is not available for the primary region. Use the arrows to reorder the priority."/>
+										<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+											<Button Classes="icon" Command="{Binding MoveScraperRegionUpCommand}" Width="26" Margin="0,0,6,0"
+													ToolTip.Tip="Move the selected fallback region higher in priority (checked earlier during scraping).">
+												<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueup.png" Width="18" Height="18"/>
+											</Button>
+											<Button Classes="icon" Command="{Binding MoveScraperRegionDownCommand}" Width="26" Margin="0,0,6,0"
+													ToolTip.Tip="Move the selected fallback region lower in priority (checked later during scraping).">
+												<Image Source="avares://Gamelist_Manager/Assets/Buttons/bluedown.png" Width="18" Height="18"/>
+											</Button>
+											<Button Content="Reset" Command="{Binding ResetScraperFallbackCommand}" Padding="5,2"
+													ToolTip.Tip="Restore the fallback regions list to the default set of regions."/>
+										</StackPanel>
+									</StackPanel>
+								</Grid>
+								<TextBlock Text="Primary region is always first when scraping" FontStyle="Italic" FontSize="{DynamicResource GlobalSmallFontSize}" HorizontalAlignment="Center"/>
+							</StackPanel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+
+			<!-- Profiles Tab -->
+			<TabItem>
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Profiles" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="8" Margin="0,8,0,8">
+						<!-- Profile list -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="6">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Profiles" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="*,Auto,Auto">
+									<TextBlock Text="{Binding ActiveProfileName, StringFormat='Active profile: {0}'}"
+											   FontStyle="Italic" FontSize="{DynamicResource GlobalSmallFontSize}" Opacity="0.7"
+											   VerticalAlignment="Center"/>
+									<Button Grid.Column="1"
+											Content="Set as Active"
+											Command="{Binding SetActiveProfileCommand}"
+											Classes="rounded green"
+											FontSize="{DynamicResource GlobalFontSize}"
+											Margin="0,0,4,0"
+											ToolTip.Tip="Make the selected profile the active profile"/>
+									<Button Grid.Column="2"
+											Content="Delete"
+											Command="{Binding DeleteProfileCommand}"
+											Classes="rounded orange"
+											FontSize="{DynamicResource GlobalFontSize}"
+											ToolTip.Tip="Permanently delete the selected profile. Cannot delete the active or last remaining profile."/>
+								</Grid>
+								<ListBox ItemsSource="{Binding ProfileList}"
+										 SelectedItem="{Binding SelectedProfileName}"
+										 Height="140">
+									<ListBox.ItemTemplate>
+										<DataTemplate>
+											<TextBlock Text="{Binding}" Padding="4,2"/>
+										</DataTemplate>
+									</ListBox.ItemTemplate>
+								</ListBox>
+							</StackPanel>
+						</Border>
+
+						<!-- Create / Rename -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="6">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Create / Rename" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+									<TextBox Grid.Column="0"
+											 Text="{Binding NewProfileName}"
+											 Watermark="Profile name…"
+											 FontSize="{DynamicResource GlobalFontSize}"
+											 Margin="0,0,6,0"
+											 ToolTip.Tip="Enter a name for the new profile or the new name when renaming"/>
+									<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+										<Button Content="Create New"
+												Command="{Binding CreateNewProfileCommand}"
+												Classes="rounded green"
+												FontSize="{DynamicResource GlobalFontSize}"
+												ToolTip.Tip="Create a new empty profile with this name"/>
+										<Button Content="Copy Active"
+												Command="{Binding CreateCopyProfileCommand}"
+												Classes="rounded green"
+												FontSize="{DynamicResource GlobalFontSize}"
+												ToolTip.Tip="Create a new profile that starts as a copy of the current active profile"/>
+										<Button Content="Rename Selected"
+												Command="{Binding RenameProfileCommand}"
+												Classes="rounded"
+												FontSize="{DynamicResource GlobalFontSize}"
+												ToolTip.Tip="Rename the profile selected in the list above to this name"/>
+									</StackPanel>
+								</Grid>
+
+								<!-- From Template sub-section -->
+								<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="0,1,0,0" Margin="0,4,0,0" Padding="0,6,0,0">
+									<StackPanel Spacing="4">
+										<TextBlock Text="From Template" FontWeight="SemiBold" FontSize="{DynamicResource GlobalFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+										<TextBlock Text="Pre-fills connection settings (hostname, credentials, ROMs path) for known EmulationStation systems. Edit Ini/templates.ini to add or remove templates."
+												   FontSize="{DynamicResource GlobalSmallFontSize}" FontStyle="Italic" Opacity="0.7" TextWrapping="Wrap"/>
+										<Grid ColumnDefinitions="Auto,*,Auto">
+											<TextBlock Grid.Column="0" Text="Template:" VerticalAlignment="Center" Margin="0,0,6,0"
+													   FontSize="{DynamicResource GlobalFontSize}"/>
+											<ComboBox Grid.Column="1"
+													  ItemsSource="{Binding TemplateList}"
+													  SelectedItem="{Binding SelectedTemplateName, Mode=TwoWay}"
+													  PlaceholderText="Pick a template"
+													  FontSize="{DynamicResource GlobalFontSize}"
+													  ToolTip.Tip="Select a system template to pre-fill connection settings for the profile name entered above"/>
+											<Button Grid.Column="2" Content="Create from Template"
+													Command="{Binding CreateFromTemplateCommand}"
+													IsEnabled="{Binding CanCreateFromTemplate}"
+													Classes="rounded green"
+													FontSize="{DynamicResource GlobalFontSize}"
+													Margin="6,0,0,0"
+													ToolTip.Tip="Create a new profile using the name above with connection settings pre-filled from the selected template"/>
+										</Grid>
+									</StackPanel>
+								</Border>
+							</StackPanel>
+						</Border>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+		</TabControl>
+
+		<!-- Footer -->
+		<Border Grid.Row="2" BorderThickness="0,1,0,0" Padding="8,6">
+			<Grid ColumnDefinitions="*,Auto">
+				<Button Grid.Column="0" Content="Reset All Settings" HorizontalAlignment="Left" Classes="rounded orange" Click="ButtonResetAll_Click"
+						ToolTip.Tip="Reset every setting across all tabs to its factory default value. This cannot be undone."/>
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+					<Button Content="Close" Classes="rounded yellow" Click="ButtonClose_Click"
+							ToolTip.Tip="Close the Settings window. Any unsaved changes will be lost."/>
+					<Button Content="Save" Classes="rounded green" IsEnabled="{Binding IsDirty}" Click="ButtonSave_Click"
+							ToolTip.Tip="Save all changes made in this session and apply them to the application."/>
+				</StackPanel>
+			</Grid>
+		</Border>
+	</Grid>
+</Window>

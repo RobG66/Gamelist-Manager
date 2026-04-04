@@ -1,0 +1,68 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Navigation Button Style with Theme Support -->
+    <Style Selector="Button.NavButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Margin" Value="0,1"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource NavButtonForeground}"/>
+        <Setter Property="FontSize" Value="{DynamicResource GlobalMenuFontSize}"/>
+        <Setter Property="ToolTip.Placement" Value="Right"/>
+        <Setter Property="ToolTip.HorizontalOffset" Value="4"/>
+    </Style>
+
+    <Style Selector="Button.NavButton:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+    </Style>
+
+    <Style Selector="Button.NavButton:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+    </Style>
+
+    <Style Selector="Button.NavButton:disabled">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Opacity" Value="0.5"/>
+    </Style>
+
+    <Style Selector="Button.NavButton:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Remove default FlyoutPresenter padding (only Flyout in the app is Recent Files) -->
+    <Style Selector="FlyoutPresenter">
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <!-- Flyout MenuItem hover/pressed — matches NavButton interaction colors -->
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="MenuItem:pressed /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="MenuItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="MenuFlyoutPresenter">
+        <Setter Property="FontSize" Value="{DynamicResource GlobalMenuFontSize}"/>
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="ToolTip.Placement" Value="Right"/>
+    </Style>
+
+
+
+    </Styles>
+

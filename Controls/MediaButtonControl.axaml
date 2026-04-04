@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:Gamelist_Manager.ViewModels"
+			 xmlns:local="using:Gamelist_Manager.Controls"
+			 mc:Ignorable="d"
+			 x:Class="Gamelist_Manager.Controls.MediaButtonControl"
+			 x:DataType="vm:MediaItemViewModel"
+			 FontSize="{DynamicResource GlobalFontSize}">
+
+	<Border Background="Transparent"
+			BorderBrush="#50FFFFFF"
+			BorderThickness="0"
+			CornerRadius="4"
+			Padding="4,3"
+			HorizontalAlignment="Center"
+			VerticalAlignment="Center">
+
+		<StackPanel Orientation="Horizontal"
+					Spacing="4">
+
+			<!-- Context Menu Button -->
+			<Button x:Name="MenuButton"
+					Classes="icon"
+					Width="22"
+					Height="22"
+					Padding="0"
+					Background="Transparent"
+					BorderThickness="0"
+					ToolTip.Tip="Media options"
+					ToolTip.Placement="Bottom">
+				<Button.ContextMenu>
+					<ContextMenu x:Name="MediaContextMenu" FontSize="{DynamicResource GlobalFontSize}" x:DataType="vm:MediaItemViewModel">
+						<MenuItem x:Name="OpenItem" Header="Open" IsEnabled="{Binding FileExists}" Click="OpenItem_Click" ToolTip.Tip="Open this file with its default application"/>
+						<MenuItem x:Name="OpenWithItem" Header="Open With" IsEnabled="{Binding FileExists}" IsVisible="{x:Static local:MediaButtonControl.IsWindows}"/>
+						<MenuItem x:Name="OpenLocationItem" Header="Open File Location" IsEnabled="{Binding FileExists}" Click="OpenLocationItem_Click" ToolTip.Tip="Open the folder containing this file"/>
+						<MenuItem x:Name="PropertiesItem" Header="Properties" IsEnabled="{Binding FileExists}" IsVisible="{x:Static local:MediaButtonControl.IsWindows}" Click="PropertiesItem_Click" ToolTip.Tip="View file properties"/>
+						<Separator/>
+						<MenuItem x:Name="CopyPathItem" Header="Copy Path" IsEnabled="{Binding FileExists}" Click="CopyPathItem_Click" ToolTip.Tip="Copy the file path to the clipboard"/>
+						<Separator/>
+						<MenuItem x:Name="ClearItem" Header="Clear" IsEnabled="{Binding HasMedia}" Click="ClearItem_Click" ToolTip.Tip="Remove the path metadata"/>
+						<MenuItem x:Name="DeleteItem" Header="Delete" IsEnabled="{Binding FileExists}" Click="DeleteItem_Click" ToolTip.Tip="Remove the path metadata and permanently delete the file"/>
+						<Separator/>
+						<MenuItem x:Name="ScrapeItem" Header="Scrape This Item"/>
+					</ContextMenu>
+				</Button.ContextMenu>
+				<Image Source="/Assets/Buttons/menu.png"
+					   Stretch="Fill"/>
+			</Button>
+
+			<!-- Expand/Preview Button -->
+				<Button x:Name="ExpandButton"
+						Classes="icon"
+						Width="22"
+						Height="22"
+						Padding="0"
+						Background="Transparent"
+						BorderThickness="0"
+						IsEnabled="{Binding FileExists}"
+						ToolTip.Tip="Preview media"
+						ToolTip.Placement="Bottom">
+					<Image Source="/Assets/Buttons/expand.png"
+						   Stretch="Fill"/>
+				</Button>
+
+				<!-- Play/Pause Button (video only) -->
+				<Button x:Name="PlayPauseButton"
+						Classes="icon"
+						Width="22"
+						Height="22"
+						Padding="0"
+						Background="Transparent"
+						BorderThickness="0"
+						ToolTip.Tip="Play / Pause"
+						ToolTip.Placement="Bottom">
+					<Button.IsVisible>
+						<MultiBinding Converter="{x:Static BoolConverters.And}">
+							<Binding Path="IsVideo"/>
+							<Binding Path="FileExists"/>
+						</MultiBinding>
+					</Button.IsVisible>
+					<Panel>
+						<Image Source="/Assets/Buttons/play.png"
+							   Stretch="Fill"
+							   IsVisible="{Binding !IsPlaying}"/>
+						<Image Source="/Assets/Buttons/pause.png"
+							   Stretch="Fill"
+							   IsVisible="{Binding IsPlaying}"/>
+					</Panel>
+				</Button>
+
+			</StackPanel>
+	</Border>
+
+</UserControl>
+

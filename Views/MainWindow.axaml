@@ -1,0 +1,320 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
+        xmlns:views="clr-namespace:Gamelist_Manager.Views"
+        xmlns:behaviors="clr-namespace:Gamelist_Manager.Behaviors"
+        xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+        mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="500"
+        MinHeight="500" MinWidth="850"
+        Width="850" Height="500"
+        x:Class="Gamelist_Manager.Views.MainWindow"
+        x:DataType="viewModels:MainWindowViewModel"
+        x:Name="MainWindowRoot"
+        FontSize="{DynamicResource GlobalFontSize}"
+        Padding="2.5"
+        Title="Gamelist Manager">
+    <Window.Styles>
+        <Style Selector="Border.panel-border">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Border.panel-border.edit-active">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBlueBorder}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+    </Window.Styles>
+
+    <Design.DataContext>
+        <viewModels:MainWindowViewModel/>
+    </Design.DataContext>
+    
+    <Panel>
+        <SplitView IsPaneOpen="{Binding IsPaneOpen}"
+               OpenPaneLength="{Binding NavPaneWidth}"
+               CompactPaneLength="45"
+               DisplayMode="CompactInline"
+               PanePlacement="Left"
+               PaneBackground="Transparent">
+        <SplitView.Pane>
+            <views:MenuView IsEnabled="{Binding IsMenuEnabled}"/>
+        </SplitView.Pane>
+        
+        <Grid>
+            <!-- Main Content Area -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" MinHeight="200"/>   <!-- Row 0: DataGrid + Description + Toolbar -->
+                <RowDefinition Height="{Binding BottomSplitterHeight}"/>  <!-- Row 1: GridSplitter -->
+                <RowDefinition Height="{Binding BottomPanelHeight}"/>  <!-- Row 2: Bottom Panel -->
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: Top Content Grid (DataGrid + Description + Toolbar) -->
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>     <!-- Row 0: DataGrid + Description -->
+                </Grid.RowDefinitions>
+                
+                <!-- Row 0: DataGrid and Description side by side -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="7*" MinWidth="200"/>
+                        <ColumnDefinition Width="{Binding DescriptionPanelVisible, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter=Auto}" MinWidth="0"/>
+                        <ColumnDefinition Width="{Binding DescriptionPanelVisible, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter=2*}" MinWidth="0"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Column="0" Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>        <!-- DataGrid -->
+                        <RowDefinition Height="Auto"/>     <!-- Search/Replace Panel -->
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Row 0: DataGrid -->
+                    <Grid Grid.Row="0" Margin="2.5,2.5,0,2.5">
+                        <Border Background="{DynamicResource CardBackground}"
+                                CornerRadius="4"
+                                ClipToBounds="True">
+                            <Grid RowDefinitions="*,Auto" ClipToBounds="True">
+                <DataGrid Grid.Row="0" x:Name="GameDataGrid"
+                          ItemsSource="{Binding Games}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="{Binding !IsEditingAllowed}"
+                          IsHitTestVisible="{Binding !IsGridSelectionLocked}"
+                          CanUserReorderColumns="True"
+                          CanUserResizeColumns="True"
+                          CanUserSortColumns="True"
+                          GridLinesVisibility="Horizontal"
+                          SelectionMode="Extended"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="{Binding SizeToFit, Converter={StaticResource BooleanToScrollBarVisibilityConverter}}"
+                          Background="Transparent"
+                          BorderThickness="0">
+                <i:Interaction.Behaviors>
+                    <!-- Drag selection behavior for left-click-hold multi-select -->
+                    <behaviors:DataGridDragSelectionBehavior/>
+
+                    <!-- Selection changed event handler -->
+                    <ia:EventTriggerBehavior EventName="SelectionChanged">
+                        <ia:InvokeCommandAction Command="{Binding DataGridSelectionChangedCommand}" 
+                                                PassEventArgsToCommand="True"/>
+                    </ia:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
+                <DataGrid.Columns>
+                </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- File Status Bar -->
+                <Border Grid.Row="1"
+                        BorderThickness="0,1,0,0"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        Background="{DynamicResource StatusBarBackground}"
+                        CornerRadius="0,0,4,4"
+                        Padding="8,3">
+                    <Grid>
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                            <Image Grid.Column="0" Source="/Assets/Icons/load.png" Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding FileStatusText}" Foreground="{DynamicResource StatusBarForeground}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       FontSize="{DynamicResource GlobalSmallFontSize}" ToolTip.Tip="{Binding FileStatusText, FallbackValue='No Gamelist Loaded'}"/>
+                            <TextBlock Grid.Column="2" Text="{Binding LastModifiedText}" Foreground="{DynamicResource StatusBarForeground}" Opacity="0.9" VerticalAlignment="Center"
+                                       FontSize="{DynamicResource GlobalSmallFontSize}" Margin="10,0,0,0"/>
+                            <TextBlock Grid.Column="3" Text="✓ Saved" Foreground="{DynamicResource StatusBarForeground}" VerticalAlignment="Center"
+                                       FontSize="{DynamicResource GlobalSmallFontSize}" IsVisible="{Binding ShowSaveConfirmation}" Margin="8,0,0,0"/>
+                        </Grid>
+                        <TextBlock Text="Grid Editing Enabled"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="{DynamicResource GlobalSmallFontSize}"
+                                   Foreground="{DynamicResource StatusBarForeground}"
+                                   IsVisible="{Binding IsEditingAllowed}"/>
+                    </Grid>
+                    </Border>
+                        </Grid>
+                    </Border>
+                        <!-- Rounded border stroke overlay -->
+                        <Border Classes="panel-border"
+                                CornerRadius="4"
+                                IsHitTestVisible="False"/>
+                    </Grid>
+
+                        <!-- Row 1: Search/Replace Panel -->
+                    <Border Grid.Row="1"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                            BorderThickness="1"
+                            Margin="2.5,0,0,0"
+                            CornerRadius="4"
+                            Background="{DynamicResource PanelBackground}"
+                            Padding="8,4"
+                            IsVisible="{Binding IsSearchPanelVisible}">
+                        <StackPanel Orientation="Vertical" Spacing="4">
+                            <!-- Find Row -->
+                            <DockPanel LastChildFill="False">
+                                <Button DockPanel.Dock="Right"
+                                        Classes="icon"
+                                        Width="{DynamicResource GlobalIconButtonSize}"
+                                        Height="{DynamicResource GlobalIconButtonSize}"
+                                        Padding="0"
+                                        FontSize="{DynamicResource GlobalFontSize}"
+                                        Command="{Binding CloseSearchPanelCommand}"
+                                        ToolTip.Tip="Close Panel">
+                                         <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
+
+                                        </Button>
+                                <TextBlock Text="Find"
+                                           DockPanel.Dock="Left"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0"/>
+                                <TextBox DockPanel.Dock="Left"
+                                         Width="120"
+                                         MaxLength="50"
+                                         VerticalAlignment="Center"
+                                         Watermark="Search text..."
+                                         Text="{Binding FindText, Mode=TwoWay}"
+                                         Margin="0,0,8,0">
+                                    <TextBox.KeyBindings>
+                                        <KeyBinding Gesture="Enter" Command="{Binding ExecuteFindCommand}"/>
+                                    </TextBox.KeyBindings>
+                                </TextBox>
+                                <TextBlock Text="in column"
+                                           DockPanel.Dock="Left"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0"/>
+                                <ComboBox DockPanel.Dock="Left"
+                                          Width="140"
+                                          VerticalAlignment="Center"
+                                          PlaceholderText="Select column"
+                                          ItemsSource="{Binding SearchableColumns}"
+                                          SelectedItem="{Binding SelectedFindColumn}"
+                                          Margin="0,0,8,0"/>
+                                <Button DockPanel.Dock="Left"
+                                        Content="Find"
+                                        Classes="rounded green"
+                                        Command="{Binding ExecuteFindCommand}"/>
+                            </DockPanel>
+                            <!-- Replace Row -->
+                            <DockPanel LastChildFill="False">
+                                <CheckBox DockPanel.Dock="Left"
+                                          Content="And Replace with"
+                                          IsChecked="{Binding IsReplaceEnabled}"
+                                          IsEnabled="{Binding IsReplaceAllowed}"
+                                          VerticalAlignment="Center"
+                                          Margin="0,0,8,0"/>
+                                <TextBox DockPanel.Dock="Left"
+                                         Width="120"
+                                         MaxLength="50"
+                                         VerticalAlignment="Center"
+                                         Watermark="Replace with..."
+                                         Text="{Binding ReplaceToText, Mode=TwoWay}"
+                                         IsEnabled="{Binding IsReplaceEnabled}"
+                                         Margin="0,0,8,0"/>
+                                <Button DockPanel.Dock="Left"
+                                        Content="{Binding ReplaceItemsButtonText}"
+                                        Classes="rounded"
+                                        IsEnabled="{Binding IsReplaceEnabled}"
+                                        Margin="0,0,8,0"
+                                        Command="{Binding ToggleReplaceScopeCommand}"/>
+                                <Button DockPanel.Dock="Left"
+                                        Content="Replace"
+                                        Classes="rounded green"
+                                        Margin="0,0,8,0"
+                                        Command="{Binding ExecuteReplaceCommand}"/>
+                                <Button DockPanel.Dock="Left"
+                                        Content="Replace All"
+                                        Classes="rounded green"
+                                        Command="{Binding ExecuteReplaceAllCommand}"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
+
+            <!-- Column 1: Vertical GridSplitter (between DataGrid and Description) -->
+            <GridSplitter Grid.Column="1" Grid.Row="0"
+                          ResizeDirection="Columns"
+                          HorizontalAlignment="Stretch"
+                          IsVisible="{Binding DescriptionPanelVisible}"/>
+
+            <!-- Column 2: Description Card -->
+            <Border Grid.Column="2" Grid.Row="0"
+                    Classes="panel-border"
+                    CornerRadius="4"
+                    Margin="0,2.5,2.5,2.5"
+                    Background="{DynamicResource CardBackground}"
+                    IsVisible="{Binding DescriptionPanelVisible}">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Row="0"
+                               Text="Description"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentIconBrush}"
+                               Margin="10"/>
+                    <ScrollViewer Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Margin="0,0,0,0">
+                        <TextBox Name="DescriptionTextBox"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding FirstSelectedGame.Desc, Mode=TwoWay}"
+                                 VerticalAlignment="Top"
+                                 IsReadOnly="{Binding !IsEditingAllowed}"
+                                 Watermark="{Binding HasGameSelected, Converter={StaticResource BooleanToWatermarkConverter}}"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Margin="10,0,10,0"/>
+                    </ScrollViewer>
+                    <Border Grid.Row="2"
+                            BorderThickness="0,1,0,0"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                            Background="{DynamicResource StatusBarBackground}"
+                            CornerRadius="0,0,4,4"
+                            Padding="8,3"
+                            IsVisible="{Binding IsEditingAllowed}">
+                        <TextBlock Text="Description Editing Enabled"
+                                   HorizontalAlignment="Center"
+                                   FontSize="{DynamicResource GlobalSmallFontSize}"
+                                   Foreground="{DynamicResource StatusBarForeground}"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Row 1: Stats + Filters Panel (full width) -->
+            <views:StatsFilterView Grid.Row="1" Grid.ColumnSpan="3"
+                                 Margin="2.5,0,2.5,2.5"
+                                 IsVisible="{Binding ShowGamelistStats}"
+                                 IsEnabled="{Binding IsStatsCardEnabled}"/>
+
+
+                    </Grid>
+
+            </Grid>
+
+            <!-- Row 1: Horizontal GridSplitter -->
+            <GridSplitter Grid.Row="1"
+                          ResizeDirection="Rows"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Height="5"
+                          Background="Transparent"
+                          IsVisible="{Binding IsMediaPreviewVisible}"/>
+
+            <!-- Row 2: Bottom Panel Container (Media Preview or Scraper) -->
+            <ContentControl Grid.Row="2"
+                Content="{Binding CurrentBottomPanel}"
+                IsVisible="{Binding IsBottomPanelVisible}"/>
+        </Grid>
+    </SplitView>
+
+        <!-- Busy overlay: intercepts all mouse input and shows the wait cursor
+             while any long-running operation (save, load, etc.) is in progress -->
+        <Panel IsVisible="{Binding IsBusy}"
+               Background="Transparent"
+               Cursor="Wait"/>
+    </Panel>
+</Window>
