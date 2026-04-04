@@ -5,6 +5,8 @@ A cross platform (Windows/Linux) desktop application for viewing and editing Emu
 
 If you find this useful, please consider supporting the project.
 
+**Non-beta Version 9 release coming this weekend, please be patient.**
+
 ---
 
 Dark theme scraper showing:
