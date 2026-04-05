@@ -5,8 +5,6 @@ A cross platform (Windows/Linux) desktop application for viewing and editing Emu
 
 If you find this useful, please consider supporting the project.
 
-**Non-beta Version 9 release coming this weekend, please be patient.**
-
 ---
 
 Dark theme scraper showing:
@@ -15,12 +13,6 @@ Dark theme scraper showing:
 Light theme media preview showing:
 <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/012379c4-2b10-4d72-bbc0-cd76118bb0bf" />
 
-
----
-
-## Version 9.0.x-beta
-
-This is a beta release. Core functionality is working and stable. Some menu items are not yet active, some features have not been added - yet.
 
 ---
 
