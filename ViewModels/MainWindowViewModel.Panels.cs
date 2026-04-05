@@ -169,6 +169,7 @@ public partial class MainWindowViewModel
             DatToolPanelViewModel?.Dispose();
             DatToolPanelViewModel = new DatToolViewModel();
             DatToolPanelViewModel.CloseRequested += OnDatToolCloseRequested;
+            DatToolPanelViewModel.ReportColumnAdded += OnDatToolReportColumnAdded;
             CurrentBottomPanel = DatToolPanelViewModel;
             IsDatToolVisible = true;
         }
@@ -223,12 +224,15 @@ public partial class MainWindowViewModel
         if (DatToolPanelViewModel != null)
         {
             DatToolPanelViewModel.CloseRequested -= OnDatToolCloseRequested;
+            DatToolPanelViewModel.ReportColumnAdded -= OnDatToolReportColumnAdded;
             DatToolPanelViewModel.Dispose();
             DatToolPanelViewModel = null;
         }
     }
 
     private void OnDatToolCloseRequested(object? sender, EventArgs e) => CloseDatTool();
+
+    private void OnDatToolReportColumnAdded(object? sender, string _) => HasReportColumns = true;
 
     private void RaiseFindReportColumn(string columnName, HashSet<string> pathSet)
     {

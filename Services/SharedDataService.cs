@@ -227,6 +227,9 @@ namespace Gamelist_Manager.Services
             return FirstSectionValue(sections, sectionName);
         }
 
+        public string GetScraperSourceSetting(string scraperName, string sectionName)
+            => SettingsService.Instance.GetValue("Scraper", $"{scraperName}_{sectionName}", "");
+
         #endregion
 
         #region Private Methods

@@ -248,7 +248,7 @@ namespace Gamelist_Manager.Services
             {
                 Log("Starting batch API fetch...");
 
-                var cacheFilesSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var cacheFilesSet = new HashSet<string>(FilePathHelper.PathComparer);
                 if (!string.IsNullOrEmpty(cacheFolder) && Directory.Exists(cacheFolder))
                 {
                     foreach (var file in Directory.EnumerateFiles(cacheFolder, "*.json"))
@@ -384,8 +384,7 @@ namespace Gamelist_Manager.Services
 
         private string ResolveSourceValue(string scraperName, string sectionName)
         {
-            string savedDisplayName = SettingsService.Instance.GetValue(
-                "Scraper", $"{scraperName}_{sectionName}", "");
+            string savedDisplayName = _sharedData.GetScraperSourceSetting(scraperName, sectionName);
 
             if (!string.IsNullOrEmpty(savedDisplayName))
             {

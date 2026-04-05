@@ -74,6 +74,11 @@ namespace Gamelist_Manager.Services
                     }
                 }
 
+                // id is an XML attribute on <game>, not a child element
+                var gameIdAttr = gameElement.Attribute("id")?.Value;
+                if (!string.IsNullOrEmpty(gameIdAttr))
+                    game.SetValue(MetaDataKeys.id, gameIdAttr);
+
                 var normalizedFilePath = FilePathHelper.GamelistPathToFullPath(game.Path, parentFolderPath!);
 
                 if (!string.IsNullOrEmpty(normalizedFilePath))
@@ -171,9 +176,11 @@ namespace Gamelist_Manager.Services
                 gameElement.SetAttributeValue("id", gameId);
             }
 
-            // Update elements
+            // Update elements — id is saved as an attribute above, not a child element
             foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
             {
+                if (metaDecl.Key == MetaDataKeys.id) continue;
+
                 var elementName = metaDecl.Type;
                 var value = game.GetValue(metaDecl.Key);
                 var stringValue = GetStringValue(value, metaDecl);
@@ -210,9 +217,11 @@ namespace Gamelist_Manager.Services
                 gameElement.SetAttributeValue("id", gameId);
             }
 
-            // Add all metadata elements
+            // Add all metadata elements — id is saved as an attribute above, not a child element
             foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
             {
+                if (metaDecl.Key == MetaDataKeys.id) continue;
+
                 var elementName = metaDecl.Type;
                 var value = game.GetValue(metaDecl.Key);
                 var stringValue = GetStringValue(value, metaDecl);
