@@ -3,9 +3,9 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:Gamelist_Manager.ViewModels"
-			 xmlns:local="using:Gamelist_Manager.Controls"
+			 xmlns:local="using:Gamelist_Manager.Views"
 			 mc:Ignorable="d"
-			 x:Class="Gamelist_Manager.Controls.MediaButtonControl"
+			 x:Class="Gamelist_Manager.Views.MediaButtonView"
 			 x:DataType="vm:MediaItemViewModel"
 			 FontSize="{DynamicResource GlobalFontSize}">
 
@@ -33,9 +33,9 @@
 				<Button.ContextMenu>
 					<ContextMenu x:Name="MediaContextMenu" FontSize="{DynamicResource GlobalFontSize}" x:DataType="vm:MediaItemViewModel">
 						<MenuItem x:Name="OpenItem" Header="Open" IsEnabled="{Binding FileExists}" Click="OpenItem_Click" ToolTip.Tip="Open this file with its default application"/>
-						<MenuItem x:Name="OpenWithItem" Header="Open With" IsEnabled="{Binding FileExists}" IsVisible="{x:Static local:MediaButtonControl.IsWindows}"/>
+						<MenuItem x:Name="OpenWithItem" Header="Open With" IsEnabled="{Binding FileExists}" IsVisible="{x:Static local:MediaButtonView.IsWindows}"/>
 						<MenuItem x:Name="OpenLocationItem" Header="Open File Location" IsEnabled="{Binding FileExists}" Click="OpenLocationItem_Click" ToolTip.Tip="Open the folder containing this file"/>
-						<MenuItem x:Name="PropertiesItem" Header="Properties" IsEnabled="{Binding FileExists}" IsVisible="{x:Static local:MediaButtonControl.IsWindows}" Click="PropertiesItem_Click" ToolTip.Tip="View file properties"/>
+						<MenuItem x:Name="PropertiesItem" Header="Properties" IsEnabled="{Binding FileExists}" IsVisible="{x:Static local:MediaButtonView.IsWindows}" Click="PropertiesItem_Click" ToolTip.Tip="View file properties"/>
 						<Separator/>
 						<MenuItem x:Name="CopyPathItem" Header="Copy Path" IsEnabled="{Binding FileExists}" Click="CopyPathItem_Click" ToolTip.Tip="Copy the file path to the clipboard"/>
 						<Separator/>

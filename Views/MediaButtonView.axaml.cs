@@ -6,7 +6,6 @@ using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,15 +13,15 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Gamelist_Manager.Controls;
+namespace Gamelist_Manager.Views;
 
-public partial class MediaButtonControl : UserControl
+public partial class MediaButtonView : UserControl
 {
     public static bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
     private Window? _previewWindow;
 
-    public MediaButtonControl()
+    public MediaButtonView()
     {
         InitializeComponent();
         MenuButton.Click += MenuButton_Click;

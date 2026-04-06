@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Gamelist_Manager.ViewModels"
              xmlns:views="using:Gamelist_Manager.Views"
-             xmlns:controls="using:Gamelist_Manager.Controls"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="400"
              x:Class="Gamelist_Manager.Views.MediaItemView"
              x:DataType="vm:MediaItemViewModel"
@@ -143,7 +142,7 @@
         </Border>
         
         <!-- Button controls -->
-        <controls:MediaButtonControl Grid.Row="2"
+        <views:MediaButtonView Grid.Row="2"
                                      DataContext="{Binding}"
                                      Margin="0,0,0,5"
                                      VerticalAlignment="Bottom"
