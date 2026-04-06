@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 
 namespace Gamelist_Manager.ViewModels;
@@ -24,11 +23,9 @@ public partial class MainWindowViewModel
         if (string.IsNullOrEmpty(gamelistDir) || string.IsNullOrEmpty(systemName))
             return;
 
-        var iniPath = Path.Combine(AppContext.BaseDirectory, "Ini", "filetypes.ini");
-        var sections = IniFileService.ReadIniFile(iniPath);
+        var fileTypes = _sharedData.GetFileTypes();
 
-        if (!sections.TryGetValue("Filetypes", out var filetypes) ||
-            !filetypes.TryGetValue(systemName, out var extensionsCsv))
+        if (!fileTypes.TryGetValue(systemName, out var extensionsCsv))
         {
             await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {

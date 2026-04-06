@@ -9,7 +9,8 @@ namespace Gamelist_Manager.Classes.Helpers
     {
         private const int MinImageWidth = 8;
         private const int MinImageHeight = 8;
-        private const int SampleInterval = 3;
+        private const int ColumnSampleInterval = 3;
+        private const int RowSampleInterval = 2;
         private const int ColorTolerance = 5; // Allow slight variations due to compression
 
         public static void ConvertToPng(string inputFilePath, string outputFilePath)
@@ -26,7 +27,6 @@ namespace Gamelist_Manager.Classes.Helpers
 
         public static string CheckImage(string imagePath)
         {
-            // First check if file exists
             if (!File.Exists(imagePath))
             {
                 return "Missing";
@@ -41,28 +41,23 @@ namespace Gamelist_Manager.Classes.Helpers
                 if (bitmap == null)
                     return "Invalid Format";
                 
-                // Check minimum dimensions
                 if (bitmap.Width < MinImageWidth || bitmap.Height < MinImageHeight)
                     return "Too Small";
-                
 
-                // Get first pixel color
                 var firstPixel = bitmap.GetPixel(0, 0);
 
-                // Sample pixels across the image
-                for (var y = 0; y < bitmap.Height; y += 2) // Skip every other row
+                for (var y = 0; y < bitmap.Height; y += RowSampleInterval)
                 {
-                    for (var x = 0; x < bitmap.Width; x += SampleInterval)
+                    for (var x = 0; x < bitmap.Width; x += ColumnSampleInterval)
                     {
                         var pixel = bitmap.GetPixel(x, y);
 
-                        // Check if color differs beyond tolerance
                         if (Math.Abs(pixel.Red - firstPixel.Red) > ColorTolerance ||
                             Math.Abs(pixel.Green - firstPixel.Green) > ColorTolerance ||
                             Math.Abs(pixel.Blue - firstPixel.Blue) > ColorTolerance ||
                             Math.Abs(pixel.Alpha - firstPixel.Alpha) > ColorTolerance)
                         {
-                            return "OK"; // Image contains multiple colors
+                            return "OK";
                         }
                     }
                 }
@@ -104,13 +99,6 @@ namespace Gamelist_Manager.Classes.Helpers
             {
                 return null;
             }
-        }
-
-        public static bool IsImageFile(string filePath)
-        {
-            var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
-            return fileExtension is ".jpg" or ".jpeg" or ".png" or ".bmp" or
-                   ".gif" or ".tiff" or ".tif" or ".webp";
         }
     }
 }

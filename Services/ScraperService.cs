@@ -73,9 +73,9 @@ namespace Gamelist_Manager.Services
             cancellationToken.ThrowIfCancellationRequested();
 
             string romPath = row.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
-            string romFileName = RomMetadataHelper.GetRomFileName(romPath);
-            string romFileNameNoExtension = RomMetadataHelper.GetRomFileNameNoExtension(romPath);
-            string romName = RomMetadataHelper.GetRomName(row, romFileNameNoExtension);
+            string romFileName = Path.GetFileName(romPath);
+            string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);
+            string romName = row.GetValue(MetaDataKeys.name)?.ToString() ?? romFileNameNoExtension;
             string gameID = row.GetValue(MetaDataKeys.id)?.ToString() ?? string.Empty;
 
             var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, baseParameters);
@@ -91,20 +91,22 @@ namespace Gamelist_Manager.Services
             bool success = false;
             var messages = new List<string>();
 
-            string? mameArcadeName = RomMetadataHelper.GetMameArcadeName(romFileNameNoExtension);
+            string? mameArcadeName = MameNamesHelper.Names.TryGetValue(romFileNameNoExtension, out string? arcadeName) ? arcadeName : null;
 
             string romRegion = string.Empty;
             string romLanguage = string.Empty;
 
             if (itemsToScrape.Contains(nameof(MetaDataKeys.region)))
             {
-                romRegion = RomMetadataHelper.GetRegion(romFileNameNoExtension, mameArcadeName);
+                string regionName = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
+                romRegion = RegionLanguageHelper.GetRegion(regionName);
                 itemsToScrape.Remove(nameof(MetaDataKeys.region));
             }
 
             if (itemsToScrape.Contains(nameof(MetaDataKeys.lang)))
             {
-                romLanguage = RomMetadataHelper.GetLanguage(romFileNameNoExtension, mameArcadeName);
+                string languageName = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
+                romLanguage = RegionLanguageHelper.GetLanguage(languageName);
                 itemsToScrape.Remove(nameof(MetaDataKeys.lang));
             }
 

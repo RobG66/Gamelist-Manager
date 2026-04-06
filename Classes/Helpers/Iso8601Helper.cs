@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace Gamelist_Manager.Classes.Helpers
 {
+    // Converts between various date formats and the ISO 8601 format used in gamelists
     internal static class Iso8601Helper
     {
         public static string ConvertToIso8601(string dateString)

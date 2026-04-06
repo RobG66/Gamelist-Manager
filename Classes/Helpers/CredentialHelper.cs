@@ -62,12 +62,13 @@ public static class CredentialHelper
         var allCredentials = LoadAllCredentials();
 
         return allCredentials?.TryGetValue(targetName, out var credential) == true
-            ? (credential.UserName, credential.Password) 
+            ? (credential.UserName, credential.Password)
             : (null!, null!);
     }
 
 
-public static bool DeleteCredentials(string targetName)
+    // Currently not used
+    public static bool DeleteCredentials(string targetName)
     {
         if (string.IsNullOrWhiteSpace(targetName))
             return false;

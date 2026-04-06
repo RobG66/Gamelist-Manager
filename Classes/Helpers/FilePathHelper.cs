@@ -117,19 +117,20 @@ namespace Gamelist_Manager.Classes.Helpers
             return "./" + string.Join("/", clean);
         }
 
-        // Converts a gamelist-relative path or relative path back to a full absolute path.
+        // Resolves a path from a gamelist entry to a full absolute path.
+        // Absolute paths are returned as-is after normalisation.
         // Examples:
-        //   parentPath: "C:/1/2"
-        //   relPath:    "./3/4.txt"  → "C:\1\2\3\4.txt" (Windows) or "C:/1/2/3/4.txt" (Linux)
-        //   relPath:    "3/4.txt"    → "C:\1\2\3\4.txt" (Windows) or "C:/1/2/3/4.txt" (Linux)
+        //   relativePath: "./images/game.png", parentPath: "C:/roms/snes"  → "C:/roms/snes/images/game.png"
+        //   relativePath: "images/game.png",   parentPath: "C:/roms/snes"  → "C:/roms/snes/images/game.png"
+        //   relativePath: "/home/rob/media/game.png"                        → "/home/rob/media/game.png"
         public static string GamelistPathToFullPath(string relativePath, string parentPath)
         {
-            // Normalize path separators to the current platform
             relativePath = relativePath.Replace('/', Path.DirectorySeparatorChar)
                                        .Replace('\\', Path.DirectorySeparatorChar);
 
-            // Remove leading dots and slashes
-            relativePath = relativePath.TrimStart('.', Path.DirectorySeparatorChar);
+            // Absolute paths are returned as-is
+            if (Path.IsPathRooted(relativePath))
+                return Path.GetFullPath(relativePath);
 
             return Path.GetFullPath(Path.Combine(parentPath, relativePath));
         }

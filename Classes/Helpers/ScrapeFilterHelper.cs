@@ -7,6 +7,8 @@ using System.IO;
 
 namespace Gamelist_Manager.Classes.Helpers
 {
+    // Determines which elements actually need scraping for a given row, so API calls and
+    // file writes are skipped for data the user already has or has chosen not to overwrite.
     public static class ScrapeFilterHelper
     {
         public static List<string> FilterElementsToScrape(GameMetadataRow row, ScraperParameters baseParameters)

@@ -20,6 +20,8 @@ namespace Gamelist_Manager.Services
         // Cached per scraper name to avoid re-reading INI files on every access.
         private readonly ConcurrentDictionary<string, Dictionary<string, Dictionary<string, string>>> _scraperSectionsCache = new(StringComparer.OrdinalIgnoreCase);
 
+        private Dictionary<string, string>? _fileTypesCache;
+
         #endregion
 
         #region Observable Properties
@@ -229,6 +231,20 @@ namespace Gamelist_Manager.Services
 
         public string GetScraperSourceSetting(string scraperName, string sectionName)
             => SettingsService.Instance.GetValue("Scraper", $"{scraperName}_{sectionName}", "");
+
+        public IReadOnlyDictionary<string, string> GetFileTypes()
+        {
+            if (_fileTypesCache != null)
+                return _fileTypesCache;
+
+            var iniPath = Path.Combine(AppContext.BaseDirectory, "Ini", "filetypes.ini");
+            var sections = IniFileService.ReadIniFile(iniPath);
+            _fileTypesCache = sections.TryGetValue("Filetypes", out var filetypes)
+                ? filetypes
+                : new Dictionary<string, string>();
+
+            return _fileTypesCache;
+        }
 
         #endregion
 

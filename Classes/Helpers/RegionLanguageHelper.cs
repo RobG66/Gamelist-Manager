@@ -144,9 +144,7 @@ namespace Gamelist_Manager.Classes.Helpers
             // if (ArcadeSystems.Contains(currentSystem))
             //    return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
 
-            // Now returns empty string on no match
-            // The caller will handle that and set default if necessary
-            return string.Empty;
+            return "us";
         }
 
         public static string GetLanguage(string fileName)
@@ -186,9 +184,7 @@ namespace Gamelist_Manager.Classes.Helpers
             if (ArcadeSystems.Contains(currentSystem) && matchedLanguages.Count == 0)
                 return fileName.ToLowerInvariant().EndsWith("j.zip") ? "jp" : "en";
 
-            // Now returns empty string on no match
-            // The caller will handle that and set default if necessary
-            return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : string.Empty;
+            return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";
         }
     }
 }
