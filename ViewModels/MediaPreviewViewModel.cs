@@ -90,6 +90,32 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     public static Task PreloadLibVLCAsync() => _libVlcInit.Value;
 
+    // Forces the image panel for the given media type to re-read its file from
+    // disk — used after an in-place file operation such as background removal.
+    public void RefreshMedia(string mediaType)
+    {
+        if (SelectedGame == null) return;
+        var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
+        if (mediaItem == null) return;
+        var currentPath = SelectedGame.GetValue(mediaItem.PathKey)?.ToString();
+        SelectedGame.SetValue(mediaItem.PathKey, null);
+        SelectedGame.SetValue(mediaItem.PathKey, currentPath);
+    }
+
+    // Updates the game metadata path for a media item to a new full path.
+    // Used when an operation changes the file extension (e.g. JPEG background
+    // removal saves as PNG). Marks data as changed so the user is prompted to save.
+    public void UpdateMediaPath(string mediaType, string fullPath)
+    {
+        if (SelectedGame == null) return;
+        var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
+        if (mediaItem == null) return;
+        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, _sharedData.GamelistDirectory);
+        SelectedGame.SetValue(mediaItem.PathKey, null);
+        SelectedGame.SetValue(mediaItem.PathKey, relativePath);
+        _sharedData.IsDataChanged = true;
+    }
+
     public void InitializeLibVLC()
     {
         if (IsLibVLCInitialized && LibVLC != null)

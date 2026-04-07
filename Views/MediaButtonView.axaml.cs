@@ -96,6 +96,48 @@ public partial class MediaButtonView : UserControl
             await vm.UpdateGameMedia(mediaItem.MediaType, null);
     }
 
+    private async void RemoveBackgroundItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MediaItemViewModel mediaItem) return;
+        var fullPath = GetFullPath(mediaItem);
+        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) return;
+
+        var owner = TopLevel.GetTopLevel(this) as Window;
+        var savedPath = await RemoveBackgroundView.ShowAsync(fullPath, owner);
+
+        if (savedPath == null) return;
+
+        var vm = FindMediaPreviewViewModel();
+        if (vm == null) return;
+
+        // If the extension changed (JPEG → PNG), update the metadata path.
+        // Otherwise just refresh the display to pick up the in-place change.
+        if (string.Equals(savedPath, fullPath, FilePathHelper.PathComparison))
+            vm.RefreshMedia(mediaItem.MediaType);
+        else
+            vm.UpdateMediaPath(mediaItem.MediaType, savedPath);
+    }
+
+    private async void AutoCropItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MediaItemViewModel mediaItem) return;
+        var fullPath = GetFullPath(mediaItem);
+        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) return;
+
+        var owner = TopLevel.GetTopLevel(this) as Window;
+        var savedPath = await AutoCropView.ShowAsync(fullPath, owner);
+
+        if (savedPath == null) return;
+
+        var vm = FindMediaPreviewViewModel();
+        if (vm == null) return;
+
+        if (string.Equals(savedPath, fullPath, FilePathHelper.PathComparison))
+            vm.RefreshMedia(mediaItem.MediaType);
+        else
+            vm.UpdateMediaPath(mediaItem.MediaType, savedPath);
+    }
+
     private void PopulateScrapeSubmenu(MediaItemViewModel mediaItem)
     {
         var items = new List<object>();

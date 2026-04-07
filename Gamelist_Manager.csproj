@@ -76,6 +76,12 @@
       <Compile Update="Views\ThreeButtonDialogConfig.cs">
         <DependentUpon>ThreeButtonDialogView.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\RemoveBackgroundView.axaml.cs">
+        <DependentUpon>RemoveBackgroundView.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\AutoCropView.axaml.cs">
+        <DependentUpon>AutoCropView.axaml</DependentUpon>
+      </Compile>
       <Compile Update="Views\DatToolView.axaml.cs">
         <DependentUpon>DatToolView.axaml</DependentUpon>
       </Compile>

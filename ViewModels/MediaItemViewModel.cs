@@ -25,9 +25,15 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string? _mediaPath;
     [ObservableProperty] private bool _hasMedia;
     [ObservableProperty] private bool _isVisible = true;
-    [ObservableProperty] private bool _isVideo;
-    [ObservableProperty] private bool _isManual;
-    [ObservableProperty] private bool _fileExists;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsImageMedia))]
+    private bool _isVideo;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsImageMedia))]
+    private bool _isManual;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsImageMedia))]
+    private bool _fileExists;
     [ObservableProperty] private bool _showMissingIcon;
     [ObservableProperty] private bool _showDropIcon;
     [ObservableProperty] private bool _isPlaying;
@@ -39,6 +45,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     #region Public Properties
     public MetaDataKeys PathKey => _pathKey;
     public string MediaTypeKey => _mediaTypeKey;
+    public bool IsImageMedia => FileExists && !IsVideo && !IsManual;
     #endregion
 
     #region Constructor
