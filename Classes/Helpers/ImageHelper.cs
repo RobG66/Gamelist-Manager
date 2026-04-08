@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using SkiaSharp;
 
 namespace Gamelist_Manager.Classes.Helpers
 {
     public enum BackgroundRemovalMode
     {
-        Automatic,
         Circle,
         Freeform,
         ConvexHull
@@ -87,18 +90,30 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             var info = new SKImageInfo(source.Width, source.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
             var result = new SKBitmap(info);
-            var src = source.Pixels;
-            var dst = new SKColor[src.Length];
 
-            for (int i = 0; i < src.Length; i++)
+            unsafe
             {
-                var px = src[i];
-                dst[i] = px.Alpha > 0
-                    ? new SKColor((byte)(255 - px.Red), (byte)(255 - px.Green), (byte)(255 - px.Blue), px.Alpha)
-                    : px;
+                byte* src = (byte*)source.GetPixels();
+                byte* dst = (byte*)result.GetPixels();
+                int w = source.Width;
+                int h = source.Height;
+
+                Parallel.For(0, h, y =>
+                {
+                    byte* sRow = src + y * source.RowBytes;
+                    byte* dRow = dst + y * result.RowBytes;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = x * 4;
+                        byte a = sRow[i + 3];
+                        dRow[i + 0] = a > 0 ? (byte)(255 - sRow[i + 0]) : sRow[i + 0];
+                        dRow[i + 1] = a > 0 ? (byte)(255 - sRow[i + 1]) : sRow[i + 1];
+                        dRow[i + 2] = a > 0 ? (byte)(255 - sRow[i + 2]) : sRow[i + 2];
+                        dRow[i + 3] = a;
+                    }
+                });
             }
 
-            result.Pixels = dst;
             return result;
         }
 
@@ -109,15 +124,21 @@ namespace Gamelist_Manager.Classes.Helpers
             int w = bitmap.Width, h = bitmap.Height;
             var edgePixels = new List<SKColor>((w + h) * 2);
 
-            for (int x = 0; x < w; x++)
+            unsafe
             {
-                edgePixels.Add(bitmap.GetPixel(x, 0));
-                edgePixels.Add(bitmap.GetPixel(x, h - 1));
-            }
-            for (int y = 1; y < h - 1; y++)
-            {
-                edgePixels.Add(bitmap.GetPixel(0, y));
-                edgePixels.Add(bitmap.GetPixel(w - 1, y));
+                byte* p = (byte*)bitmap.GetPixels();
+                int rb = bitmap.RowBytes;
+
+                for (int x = 0; x < w; x++)
+                {
+                    edgePixels.Add(ReadPixel(p, rb, x, 0));
+                    edgePixels.Add(ReadPixel(p, rb, x, h - 1));
+                }
+                for (int y = 1; y < h - 1; y++)
+                {
+                    edgePixels.Add(ReadPixel(p, rb, 0, y));
+                    edgePixels.Add(ReadPixel(p, rb, w - 1, y));
+                }
             }
 
             int step = Math.Max(1, edgePixels.Count / 200);
@@ -152,12 +173,12 @@ namespace Gamelist_Manager.Classes.Helpers
 
             return bestCount > 0
                 ? new SKColor((byte)(bestR / bestCount), (byte)(bestG / bestCount), (byte)(bestB / bestCount))
-                : bitmap.GetPixel(0, 0);
+                : edgePixels[0];
         }
 
-        // Main entry point — in Automatic mode, runs all strategies and picks the best result.
+        // Main entry point — applies the user-selected removal strategy.
         public static (SKBitmap result, string strategy) RemoveBackground(SKBitmap source, SKColor backgroundColor, int tolerance,
-            BackgroundRemovalMode mode = BackgroundRemovalMode.Automatic, bool removeEnclosed = false)
+            BackgroundRemovalMode mode, bool removeEnclosed = false)
         {
             System.Diagnostics.Debug.WriteLine($"[BgRemove] Image: {source.Width}x{source.Height}, BgColor: #{backgroundColor.Red:X2}{backgroundColor.Green:X2}{backgroundColor.Blue:X2}, Tolerance: {tolerance}, Mode: {mode}");
 
@@ -165,10 +186,6 @@ namespace Gamelist_Manager.Classes.Helpers
             {
                 case BackgroundRemovalMode.Circle:
                     return (ApplyCircleMask(source, backgroundColor, tolerance), "Circle");
-
-                case BackgroundRemovalMode.Freeform:
-                    System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: FLOOD FILL (forced)");
-                    return (RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed), "Flood Fill");
 
                 case BackgroundRemovalMode.ConvexHull:
                 {
@@ -182,136 +199,90 @@ namespace Gamelist_Manager.Classes.Helpers
                     return (RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed), "Flood Fill");
                 }
 
-                default:
-                    return AutoSelectBestStrategy(source, backgroundColor, tolerance, removeEnclosed);
+                default: // Freeform
+                    System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: FLOOD FILL");
+                    return (RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed), "Flood Fill");
             }
         }
 
-        // Automatic mode:
-        // 1. Flood fill to get the subject mask
-        // 2. Measure circularity — if high enough, apply a fitted circle mask
-        // 3. Otherwise compute the convex hull — if it has few vertices (simple shape), apply hull mask
-        // 4. If the hull is complex (many vertices, irregular outline), keep the flood fill result
-        private static (SKBitmap result, string strategy) AutoSelectBestStrategy(
-            SKBitmap source, SKColor backgroundColor, int tolerance, bool removeEnclosed)
-        {
-            var floodResult = RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed);
-            var floodPixels = floodResult.Pixels;
-            int w = source.Width, h = source.Height;
-
-            // circularity = 4π × area / perimeter² — perfect circle = 1.0
-            // Image-edge pixels are excluded from perimeter as they are canvas
-            // boundaries, not part of the actual subject outline.
-            int area = 0, perimeter = 0;
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                {
-                    if (floodPixels[y * w + x].Alpha < 128) continue;
-                    area++;
-                    if (x == 0 || x == w - 1 || y == 0 || y == h - 1) continue;
-                    bool edge = floodPixels[y * w + x - 1].Alpha < 128 ||
-                                floodPixels[y * w + x + 1].Alpha < 128 ||
-                                floodPixels[(y - 1) * w + x].Alpha < 128 ||
-                                floodPixels[(y + 1) * w + x].Alpha < 128;
-                    if (edge) perimeter++;
-                }
-
-            double circularity = perimeter > 0
-                ? (4.0 * Math.PI * area) / ((double)perimeter * perimeter)
-                : 0;
-
-            System.Diagnostics.Debug.WriteLine($"[Auto] area={area}, perimeter={perimeter}, circularity={circularity:F4}");
-
-            // Real discs score 0.90+; logos and rectangular art score well below 0.80.
-            const double circularityThreshold = 0.85;
-
-            if (circularity >= circularityThreshold)
-            {
-                System.Diagnostics.Debug.WriteLine($"[Auto] Circular (score={circularity:F4}) — applying circle mask");
-                floodResult.Dispose();
-                return (ApplyCircleMask(source, backgroundColor, tolerance), "Circle");
-            }
-
-            // Not circular — try convex hull. A simple shape (box, cartridge, logo on plain bg)
-            // produces a hull with few vertices. A complex/irregular outline produces many.
-            var hullResult = TryRemoveByConvexHull(source, backgroundColor, tolerance, out int hullVertices);
-            System.Diagnostics.Debug.WriteLine($"[Auto] Not circular (score={circularity:F4}), hull vertices={hullVertices}");
-
-            const int maxHullVertices = 25;
-
-            if (hullResult != null && hullVertices <= maxHullVertices)
-            {
-                System.Diagnostics.Debug.WriteLine($"[Auto] Simple shape — using Outline (hull)");
-                floodResult.Dispose();
-                return (hullResult, "Outline");
-            }
-
-            hullResult?.Dispose();
-            System.Diagnostics.Debug.WriteLine($"[Auto] Complex outline — using Flood Fill");
-            return (floodResult, "Flood Fill");
-        }
-
-        // Fits a circle mask by scanning the source pixels directly to find the
+        // Fits a circle mask
         // subject bounding box, then derives centre and radius from that.
         // Scanning inward from each edge avoids reliance on flood fill accuracy.
         private static SKBitmap ApplyCircleMask(SKBitmap source, SKColor backgroundColor, int tolerance)
         {
             int w = source.Width, h = source.Height;
             int toleranceSq = tolerance * tolerance;
-            var sourcePixels = source.Pixels;
 
-            // Scan inward from each edge to find the outermost non-background pixel.
             int minX = w, maxX = 0, minY = h, maxY = 0;
 
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
+            unsafe
+            {
+                byte* p = (byte*)source.GetPixels();
+                int rb = source.RowBytes;
+
+                for (int y = 0; y < h; y++)
                 {
-                    var px = sourcePixels[y * w + x];
-                    if (px.Alpha < 128 || IsBackgroundPixel(px, backgroundColor, toleranceSq)) continue;
-                    if (x < minX) minX = x;
-                    if (x > maxX) maxX = x;
-                    if (y < minY) minY = y;
-                    if (y > maxY) maxY = y;
+                    byte* row = p + y * rb;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = x * 4;
+                        byte a = row[i + 3];
+                        if (a < 128) continue;
+                        var px = new SKColor(row[i], row[i + 1], row[i + 2], a);
+                        if (IsBackgroundPixel(px, backgroundColor, toleranceSq)) continue;
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
                 }
+            }
 
             if (maxX <= minX || maxY <= minY) return CreateTransparentCopy(source);
 
             double cx = (minX + maxX) / 2.0;
             double cy = (minY + maxY) / 2.0;
-
-            // Use the smaller span so the circle fits within both dimensions.
-            // Then clamp so the feathered outer edge never exceeds the image boundary.
             int feather = Math.Max(2, (int)Math.Round(Math.Min(maxX - minX, maxY - minY) / 2.0) / 60);
             double radius = Math.Min(maxX - minX, maxY - minY) / 2.0;
-            double maxAllowedRadius = Math.Min(
-                Math.Min(cx, w - 1 - cx),
-                Math.Min(cy, h - 1 - cy)) - feather;
+            double maxAllowedRadius = Math.Min(Math.Min(cx, w - 1 - cx), Math.Min(cy, h - 1 - cy)) - feather;
             radius = Math.Min(radius, maxAllowedRadius);
-
             int icx = (int)Math.Round(cx), icy = (int)Math.Round(cy), ir = (int)Math.Round(radius);
 
             System.Diagnostics.Debug.WriteLine($"[Circle] bbox=({minX},{minY})-({maxX},{maxY}), cx={icx}, cy={icy}, r={ir}");
 
             var result = CreateTransparentCopy(source);
-            var pixels = result.Pixels;
 
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
+            unsafe
+            {
+                byte* dst = (byte*)result.GetPixels();
+                int rb = result.RowBytes;
+                double inner = ir - feather, outer = ir + feather;
+                double feather2 = feather * 2.0;
+
+                Parallel.For(0, h, y =>
                 {
-                    double dist = Math.Sqrt((x - icx) * (x - icx) + (y - icy) * (y - icy));
-                    double inner = ir - feather, outer = ir + feather;
-                    byte alpha;
-                    if (dist <= inner)
-                        alpha = pixels[y * w + x].Alpha;
-                    else if (dist >= outer)
-                        alpha = 0;
-                    else
-                        alpha = (byte)(pixels[y * w + x].Alpha * (1.0 - (dist - inner) / (feather * 2.0)));
-                    var px = pixels[y * w + x];
-                    pixels[y * w + x] = new SKColor(px.Red, px.Green, px.Blue, alpha);
-                }
+                    byte* row = dst + y * rb;
+                    double dy = y - icy;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = x * 4;
+                        byte origAlpha = row[i + 3];
+                        if (origAlpha == 0) continue;
 
-            result.Pixels = pixels;
+                        double dist = Math.Sqrt((x - icx) * (x - icx) + dy * dy);
+                        byte alpha;
+                        if (dist <= inner)
+                            alpha = origAlpha;
+                        else if (dist >= outer)
+                            alpha = 0;
+                        else
+                            alpha = (byte)(origAlpha * (1.0 - (dist - inner) / feather2));
+
+                        row[i + 3] = alpha;
+                    }
+                });
+            }
+
             return result;
         }
 
@@ -323,41 +294,53 @@ namespace Gamelist_Manager.Classes.Helpers
             hullVertices = 0;
             int w = source.Width, h = source.Height;
             int toleranceSq = tolerance * tolerance;
-            var sourcePixels = source.Pixels;
 
             // Scan each row and column to collect the outermost non-background pixels.
             var points = new List<SKPointI>();
             int step = Math.Max(1, Math.Min(w, h) / 300);
 
-            for (int y = 0; y < h; y += step)
+            unsafe
             {
-                for (int x = 0; x < w; x++)
-                {
-                    var px = sourcePixels[y * w + x];
-                    if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                    { points.Add(new SKPointI(x, y)); break; }
-                }
-                for (int x = w - 1; x >= 0; x--)
-                {
-                    var px = sourcePixels[y * w + x];
-                    if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                    { points.Add(new SKPointI(x, y)); break; }
-                }
-            }
+                byte* p = (byte*)source.GetPixels();
+                int rb = source.RowBytes;
 
-            for (int x = 0; x < w; x += step)
-            {
-                for (int y = 0; y < h; y++)
+                for (int y = 0; y < h; y += step)
                 {
-                    var px = sourcePixels[y * w + x];
-                    if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                    { points.Add(new SKPointI(x, y)); break; }
+                    byte* row = p + y * rb;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = x * 4;
+                        var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
+                        if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
+                        { points.Add(new SKPointI(x, y)); break; }
+                    }
+                    for (int x = w - 1; x >= 0; x--)
+                    {
+                        int i = x * 4;
+                        var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
+                        if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
+                        { points.Add(new SKPointI(x, y)); break; }
+                    }
                 }
-                for (int y = h - 1; y >= 0; y--)
+
+                for (int x = 0; x < w; x += step)
                 {
-                    var px = sourcePixels[y * w + x];
-                    if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                    { points.Add(new SKPointI(x, y)); break; }
+                    for (int y = 0; y < h; y++)
+                    {
+                        byte* row = p + y * rb;
+                        int i = x * 4;
+                        var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
+                        if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
+                        { points.Add(new SKPointI(x, y)); break; }
+                    }
+                    for (int y = h - 1; y >= 0; y--)
+                    {
+                        byte* row = p + y * rb;
+                        int i = x * 4;
+                        var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
+                        if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
+                        { points.Add(new SKPointI(x, y)); break; }
+                    }
                 }
             }
 
@@ -376,39 +359,49 @@ namespace Gamelist_Manager.Classes.Helpers
             if (hull.Count < 3) return null;
 
             var result = CreateTransparentCopy(source);
-            var pixels = result.Pixels;
             int feather = Math.Max(2, Math.Min(w, h) / 80);
 
-            for (int y = 0; y < h; y++)
+            // Snapshot hull as an array for thread-safe access inside Parallel.For
+            var hullArray = hull;
+
+            unsafe
             {
-                for (int x = 0; x < w; x++)
+                byte* dst = (byte*)result.GetPixels();
+                int rb = result.RowBytes;
+
+                Parallel.For(0, h, y =>
                 {
-                    double d = MinSignedDistanceToHull(x, y, hull);
+                    byte* row = dst + y * rb;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = x * 4;
+                        byte origAlpha = row[i + 3];
+                        if (origAlpha == 0) continue;
 
-                    byte alpha;
-                    if (d >= feather)
-                        alpha = pixels[y * w + x].Alpha;
-                    else if (d <= 0)
-                        alpha = 0;
-                    else
-                        alpha = (byte)(pixels[y * w + x].Alpha * (d / feather));
+                        double d = MinSignedDistanceToHull(x, y, hullArray);
+                        byte alpha;
+                        if (d >= feather)
+                            alpha = origAlpha;
+                        else if (d <= 0)
+                            alpha = 0;
+                        else
+                            alpha = (byte)(origAlpha * (d / feather));
 
-                    var px = pixels[y * w + x];
-                    pixels[y * w + x] = new SKColor(px.Red, px.Green, px.Blue, alpha);
-                }
+                        row[i + 3] = alpha;
+                    }
+                });
             }
 
-            result.Pixels = pixels;
             return result;
         }
 
-        // ─── Flood Fill (fallback) ────────────────────────────────────────────────
+        // ─── Flood Fill ────────────────────────────────────────────────────────────
 
         private static SKBitmap RemoveBackgroundFloodFill(SKBitmap source, SKColor backgroundColor, int tolerance, bool removeEnclosed = false)
         {
-            System.Diagnostics.Debug.WriteLine($"[Fill] Starting flood fill: bg=#{backgroundColor.Red:X2}{backgroundColor.Green:X2}{backgroundColor.Blue:X2}, tolerance={tolerance} (toleranceSq={tolerance * tolerance})");
+            System.Diagnostics.Debug.WriteLine($"[Fill] Starting flood fill: {source.Width}x{source.Height}, bg=#{backgroundColor.Red:X2}{backgroundColor.Green:X2}{backgroundColor.Blue:X2}, tolerance={tolerance}");
 
-            // Pad the image so edge-flush subjects aren't clipped by the flood fill seeder
+            // Pad the image so edge-flush subjects aren't clipped by the flood fill seeder.
             const int pad = 8;
             int paddedW = source.Width + pad * 2;
             int paddedH = source.Height + pad * 2;
@@ -423,12 +416,22 @@ namespace Gamelist_Manager.Classes.Helpers
 
             int width = paddedW;
             int height = paddedH;
+            int totalPixels = width * height;
             int toleranceSq = tolerance * tolerance;
 
-            var pixels = padded.Pixels;
-            var visited = new bool[pixels.Length];
-            var removed = new bool[pixels.Length];
-            var queue = new Queue<int>();
+            // Work on a flat uint[] copy of the pixel data so flood fill reads/writes
+            // are plain array operations with no struct boxing or pointer arithmetic.
+            var pixels = new uint[totalPixels];
+            unsafe
+            {
+                uint* src = (uint*)padded.GetPixels();
+                for (int i = 0; i < totalPixels; i++)
+                    pixels[i] = src[i];
+            }
+
+            var visited = new bool[totalPixels];
+            var removed = new bool[totalPixels];
+            var queue = new Queue<int>(totalPixels / 4);
 
             for (int x = 0; x < width; x++)
             {
@@ -457,41 +460,45 @@ namespace Gamelist_Manager.Classes.Helpers
                         if (!visited[ni])
                         {
                             visited[ni] = true;
-                            if (pixels[ni].Alpha > 0 && IsBackgroundPixel(pixels[ni], backgroundColor, toleranceSq))
+                            if (IsBackgroundPixelUint(pixels[ni], backgroundColor, toleranceSq))
                             {
                                 removed[ni] = true;
-                                pixels[ni] = SKColors.Transparent;
+                                pixels[ni] = 0;
                                 queue.Enqueue(ni);
                             }
                         }
                     }
             }
 
-            int removedCount = removed.Count(r => r);
-            System.Diagnostics.Debug.WriteLine($"[Fill] Pixels removed: {removedCount} / {pixels.Length} ({(double)removedCount / pixels.Length * 100:F1}%)");
+            System.Diagnostics.Debug.WriteLine($"[Fill] Flood fill complete");
 
-            // Second pass: remove background pixels enclosed inside content (e.g. hollow letters).
-            // These were never reached by the edge-seeded fill because the content strokes blocked access.
             if (removeEnclosed)
             {
                 int enclosedCount = 0;
-                for (int i = 0; i < pixels.Length; i++)
+                for (int i = 0; i < totalPixels; i++)
                 {
-                    if (!visited[i] && pixels[i].Alpha > 0 && IsBackgroundPixel(pixels[i], backgroundColor, toleranceSq))
+                    if (!visited[i] && IsBackgroundPixelUint(pixels[i], backgroundColor, toleranceSq))
                     {
-                        pixels[i] = SKColors.Transparent;
+                        pixels[i] = 0;
                         removed[i] = true;
                         enclosedCount++;
                     }
                 }
-                System.Diagnostics.Debug.WriteLine($"[Fill] Enclosed background pixels removed: {enclosedCount}");
+                System.Diagnostics.Debug.WriteLine($"[Fill] Enclosed pixels removed: {enclosedCount}");
             }
 
-            visited = null;
+            visited = null!;
             FeatherEdges(pixels, removed, width, height);
-            padded.Pixels = pixels;
 
-            // Crop padding back off
+            // Write the processed pixel data back into the padded bitmap.
+            unsafe
+            {
+                uint* dst = (uint*)padded.GetPixels();
+                for (int i = 0; i < totalPixels; i++)
+                    dst[i] = pixels[i];
+            }
+
+            // Crop the pad back off into a new result bitmap.
             var finalInfo = new SKImageInfo(source.Width, source.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
             var result = new SKBitmap(finalInfo);
             using (var canvas = new SKCanvas(result))
@@ -518,18 +525,30 @@ namespace Gamelist_Manager.Classes.Helpers
             return result;
         }
 
-        private static void SeedEdge(int x, int y, int width, SKColor[] pixels,
+        private static void SeedEdge(int x, int y, int width, uint[] pixels,
             bool[] visited, bool[] removed, SKColor bg, int toleranceSq, Queue<int> queue)
         {
             int idx = y * width + x;
             if (visited[idx]) return;
             visited[idx] = true;
-            if (pixels[idx].Alpha > 0 && IsBackgroundPixel(pixels[idx], bg, toleranceSq))
+            if (IsBackgroundPixelUint(pixels[idx], bg, toleranceSq))
             {
                 removed[idx] = true;
-                pixels[idx] = SKColors.Transparent;
+                pixels[idx] = 0;
                 queue.Enqueue(idx);
             }
+        }
+
+        // Unpacks a packed RGBA uint and tests it against the background colour.
+        private static bool IsBackgroundPixelUint(uint packed, SKColor bg, int toleranceSq)
+        {
+            // SKBitmap with Rgba8888 layout: byte0=R, byte1=G, byte2=B, byte3=A
+            byte a = (byte)(packed >> 24);
+            if (a == 0) return true;  // fully transparent — treat as removable
+            int dr = (byte)(packed >> 0) - bg.Red;
+            int dg = (byte)(packed >> 8) - bg.Green;
+            int db = (byte)(packed >> 16) - bg.Blue;
+            return dr * dr + dg * dg + db * db <= toleranceSq;
         }
 
         private static bool IsBackgroundPixel(SKColor pixel, SKColor bg, int toleranceSq)
@@ -538,6 +557,13 @@ namespace Gamelist_Manager.Classes.Helpers
             int dg = pixel.Green - bg.Green;
             int db = pixel.Blue - bg.Blue;
             return dr * dr + dg * dg + db * db <= toleranceSq;
+        }
+
+        // Reads a single pixel from a raw SKBitmap byte pointer (Rgba8888 layout).
+        private static unsafe SKColor ReadPixel(byte* p, int rowBytes, int x, int y)
+        {
+            byte* px = p + y * rowBytes + x * 4;
+            return new SKColor(px[0], px[1], px[2], px[3]);
         }
 
         private static int ColorDistance(SKColor a, SKColor b)
@@ -602,21 +628,17 @@ namespace Gamelist_Manager.Classes.Helpers
             return minDist;
         }
 
-        // Applies a smooth alpha ramp
-        // of the removed/kept boundary. Interior pixels are never touched, so thin
-        // strokes and fine detail keep full opacity.
-        private static void FeatherEdges(SKColor[] pixels, bool[] removed, int width, int height)
+        // Applies a smooth alpha ramp at the removed/kept boundary. Interior pixels are never
+        // touched, so thin strokes and fine detail keep full opacity.
+        private static void FeatherEdges(uint[] pixels, bool[] removed, int width, int height)
         {
             const int featherWidth = 2;
             const float gamma = 1.5f;
 
             int length = pixels.Length;
-
-            // BFS outward from every removed pixel to measure each kept pixel's
-            // distance to the nearest removed neighbour (4-connectivity is enough).
             var dist = new int[length];
             Array.Fill(dist, int.MaxValue);
-            var queue = new Queue<int>();
+            var queue = new Queue<int>(length / 8);
 
             for (int i = 0; i < length; i++)
             {
@@ -653,64 +675,69 @@ namespace Gamelist_Manager.Classes.Helpers
                 }
             }
 
-            // Apply the alpha ramp only to boundary-adjacent kept pixels.
+            // Apply alpha ramp — only boundary-adjacent kept pixels are affected.
+            // The ramp is short (featherWidth=2 pixels) so a parallel loop gives no
+            // meaningful gain here; kept sequential to avoid false-sharing overhead.
             for (int i = 0; i < length; i++)
             {
                 if (removed[i]) continue;
                 int d = dist[i];
                 if (d == int.MaxValue || d == 0 || d > featherWidth) continue;
 
-                float t = (float)d / featherWidth;               // 0 at boundary, 1 at featherWidth
-                float alpha = MathF.Pow(t, gamma);               // nonlinear ramp, biased toward opacity
-                byte newAlpha = (byte)(alpha * pixels[i].Alpha);
-                pixels[i] = new SKColor(pixels[i].Red, pixels[i].Green, pixels[i].Blue, newAlpha);
+                uint packed = pixels[i];
+                byte origAlpha = (byte)(packed >> 24);
+                float t = (float)d / featherWidth;
+                byte newAlpha = (byte)(MathF.Pow(t, gamma) * origAlpha);
+                pixels[i] = (packed & 0x00FFFFFFu) | ((uint)newAlpha << 24);
             }
         }
 
         // Finds the tightest bounding box that contains all non-transparent pixels,
         // optionally adds padding, then returns a cropped copy.
-        public static SKBitmap? AutoCrop(SKBitmap source, int paddingPercent = 0, bool cropAllSides = false)
+        // cropVertical trims top/bottom; cropHorizontal trims left/right.
+        public static SKBitmap? AutoCrop(SKBitmap source, int paddingPercent = 0, bool cropVertical = true, bool cropHorizontal = true)
         {
             int width = source.Width;
             int height = source.Height;
-            var pixels = source.Pixels;
 
             int top = 0, bottom = height - 1, left = 0, right = width - 1;
             bool found = false;
 
-            for (int y = 0; y < height && !found; y++)
-                for (int x = 0; x < width && !found; x++)
-                    if (pixels[y * width + x].Alpha > 0) { top = y; found = true; }
-
-            if (!found) return null;
-
-            found = false;
-            for (int y = height - 1; y >= top && !found; y--)
-                for (int x = 0; x < width && !found; x++)
-                    if (pixels[y * width + x].Alpha > 0) { bottom = y; found = true; }
-
-            found = false;
-            for (int x = 0; x < width && !found; x++)
-                for (int y = top; y <= bottom && !found; y++)
-                    if (pixels[y * width + x].Alpha > 0) { left = x; found = true; }
-
-            found = false;
-            for (int x = width - 1; x >= left && !found; x--)
-                for (int y = top; y <= bottom && !found; y++)
-                    if (pixels[y * width + x].Alpha > 0) { right = x; found = true; }
-
-            bool cropHorizontal = true;
-            bool cropVertical = true;
-
-            if (!cropAllSides)
+            unsafe
             {
-                int totalVertical = top + (height - 1 - bottom);
-                int totalHorizontal = left + (width - 1 - right);
+                byte* p = (byte*)source.GetPixels();
+                int rb = source.RowBytes;
 
-                if (totalHorizontal <= totalVertical)
-                    cropVertical = false;
-                else
-                    cropHorizontal = false;
+                // Top edge — first row containing any non-transparent pixel
+                for (int y = 0; y < height && !found; y++)
+                {
+                    byte* row = p + y * rb;
+                    for (int x = 0; x < width && !found; x++)
+                        if (row[x * 4 + 3] > 0) { top = y; found = true; }
+                }
+
+                if (!found) return null;
+
+                // Bottom edge
+                found = false;
+                for (int y = height - 1; y >= top && !found; y--)
+                {
+                    byte* row = p + y * rb;
+                    for (int x = 0; x < width && !found; x++)
+                        if (row[x * 4 + 3] > 0) { bottom = y; found = true; }
+                }
+
+                // Left edge
+                found = false;
+                for (int x = 0; x < width && !found; x++)
+                    for (int y = top; y <= bottom && !found; y++)
+                        if ((p + y * rb)[x * 4 + 3] > 0) { left = x; found = true; }
+
+                // Right edge
+                found = false;
+                for (int x = width - 1; x >= left && !found; x--)
+                    for (int y = top; y <= bottom && !found; y++)
+                        if ((p + y * rb)[x * 4 + 3] > 0) { right = x; found = true; }
             }
 
             if (paddingPercent > 0)
@@ -746,6 +773,117 @@ namespace Gamelist_Manager.Classes.Helpers
                 new SKRect(0, 0, cropWidth, cropHeight));
 
             return result;
+        }
+
+        // Copies raw pixel data directly into an Avalonia WriteableBitmap, avoiding
+        // the PNG encode → MemoryStream → decode round-trip that ToAvaloniaBitmap used to do.
+        public static Bitmap ToAvaloniaBitmap(SKBitmap skBitmap)
+        {
+            var src = skBitmap.GetPixels();
+            if (src == IntPtr.Zero)
+                throw new InvalidOperationException("SKBitmap has no pixel data");
+
+            var wb = new WriteableBitmap(
+                new PixelSize(skBitmap.Width, skBitmap.Height),
+                new Vector(96, 96),
+                PixelFormat.Bgra8888,
+                AlphaFormat.Unpremul);
+
+            using var fb = wb.Lock();
+
+            int rowBytes = skBitmap.Width * 4;
+            bool needsSwizzle = skBitmap.ColorType != SKColorType.Bgra8888;
+
+            if (!needsSwizzle && rowBytes == fb.RowBytes)
+            {
+                // Fastest path: formats match and rows are contiguous — single memcpy.
+                unsafe
+                {
+                    Buffer.MemoryCopy(
+                        (void*)src,
+                        (void*)fb.Address,
+                        (long)fb.RowBytes * skBitmap.Height,
+                        (long)skBitmap.RowBytes * skBitmap.Height);
+                }
+            }
+            else
+            {
+                // SKBitmap pixels are RGBA; Avalonia WriteableBitmap expects BGRA — swap R and B per pixel.
+                unsafe
+                {
+                    byte* s = (byte*)src;
+                    byte* d = (byte*)fb.Address;
+                    int w = skBitmap.Width;
+                    int h = skBitmap.Height;
+
+                    for (int y = 0; y < h; y++)
+                    {
+                        uint* srcRow = (uint*)(s + y * skBitmap.RowBytes);
+                        uint* dstRow = (uint*)(d + y * fb.RowBytes);
+                        for (int x = 0; x < w; x++)
+                        {
+                            uint px = srcRow[x];
+                            // RGBA → BGRA: swap byte 0 (R) and byte 2 (B)
+                            dstRow[x] = (px & 0xFF00FF00u)
+                                      | ((px & 0x000000FFu) << 16)
+                                      | ((px & 0x00FF0000u) >> 16);
+                        }
+                    }
+                }
+            }
+
+            return wb;
+        }
+
+        public static void SaveBitmapAsPng(SKBitmap bitmap, string path)
+        {
+            using var image = SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            var temp = path + ".tmp";
+            using (var fs = File.OpenWrite(temp))
+                data.SaveTo(fs);
+            File.Move(temp, path, overwrite: true);
+        }
+
+        public static SKBitmap ResizeBitmap(SKBitmap source, int targetWidth, int targetHeight)
+        {
+            var info = new SKImageInfo(targetWidth, targetHeight, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+            var result = new SKBitmap(info);
+            using var canvas = new SKCanvas(result);
+            canvas.Clear(SKColors.Transparent);
+            using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
+            canvas.DrawBitmap(source,
+                new SKRect(0, 0, source.Width, source.Height),
+                new SKRect(0, 0, targetWidth, targetHeight),
+                paint);
+            return result;
+        }
+
+        public static ImageBrush CreateCheckerboardBrush()
+        {
+            const int tileSize = 8;
+            const int bitmapSize = tileSize * 2;
+
+            var bmp = new WriteableBitmap(
+                new PixelSize(bitmapSize, bitmapSize),
+                new Vector(96, 96),
+                PixelFormat.Bgra8888,
+                AlphaFormat.Opaque);
+
+            using var fb = bmp.Lock();
+            for (int y = 0; y < bitmapSize; y++)
+                for (int x = 0; x < bitmapSize; x++)
+                {
+                    bool isLight = (x < tileSize) == (y < tileSize);
+                    int argb = isLight ? unchecked((int)0xFFFFFFFF) : unchecked((int)0xFFCCCCCC);
+                    Marshal.WriteInt32(fb.Address + y * fb.RowBytes + x * 4, argb);
+                }
+
+            return new ImageBrush(bmp)
+            {
+                TileMode = TileMode.Tile,
+                DestinationRect = new RelativeRect(0, 0, bitmapSize, bitmapSize, RelativeUnit.Absolute)
+            };
         }
     }
 }

@@ -42,8 +42,7 @@
 						<MenuItem x:Name="ClearItem" Header="Clear" IsEnabled="{Binding HasMedia}" Click="ClearItem_Click" ToolTip.Tip="Remove the path metadata"/>
 						<MenuItem x:Name="DeleteItem" Header="Delete" IsEnabled="{Binding FileExists}" Click="DeleteItem_Click" ToolTip.Tip="Remove the path metadata and permanently delete the file"/>
 						<Separator/>
-						<MenuItem x:Name="RemoveBackgroundItem" Header="Remove Background" IsEnabled="{Binding IsImageMedia}" Click="RemoveBackgroundItem_Click" ToolTip.Tip="Remove the background colour and make it transparent"/>
-						<MenuItem x:Name="AutoCropItem" Header="Auto Crop" IsEnabled="{Binding IsImageMedia}" Click="AutoCropItem_Click" ToolTip.Tip="Trim transparent borders from the image"/>
+						<MenuItem x:Name="EditImageItem" Header="Edit Image" IsEnabled="{Binding IsImageMedia}" Click="EditImageItem_Click" ToolTip.Tip="Remove background, crop, or resize the image"/>
 						<Separator/>
 						<MenuItem x:Name="ScrapeItem" Header="Scrape This Item"/>
 					</ContextMenu>

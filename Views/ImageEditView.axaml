@@ -1,0 +1,306 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Gamelist_Manager.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="580"
+        x:Class="Gamelist_Manager.Views.ImageEditView"
+        x:DataType="vm:ImageEditViewModel"
+        x:CompileBindings="True"
+        Title="{Binding WindowTitle}"
+        Width="760"
+        Height="580"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        FontSize="{DynamicResource GlobalFontSize}">
+
+    <Border Background="{DynamicResource CardBackground}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1"
+            CornerRadius="0,0,8,8">
+
+        <Grid RowDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+
+            <!-- Side-by-side image panels -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,10,*" Margin="14,14,14,0">
+
+                <!-- Original image -->
+                <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Row="0"
+                               Text="Original"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentTextBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,4"/>
+                    <!-- Viewbox scales the border+image as a unit so the border always hugs the image edges exactly -->
+                    <Viewbox Grid.Row="1"
+                             Stretch="Uniform"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center">
+                        <Border x:Name="OriginalImageBorder"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="2">
+                            <Image Source="{Binding OriginalImage}"
+                                   Stretch="None"/>
+                        </Border>
+                    </Viewbox>
+                    <TextBlock Grid.Row="2"
+                               Text="{Binding OriginalSizeText}"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               Foreground="{DynamicResource SubtleTextBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,0"/>
+                </Grid>
+
+                <!-- Preview image -->
+                <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Row="0"
+                               Text="Preview"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AccentTextBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,4"/>
+                    <Grid Grid.Row="1">
+                        <!-- Viewbox scales the border+image as a unit so the border always hugs the image edges exactly -->
+                        <Viewbox Stretch="Uniform"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center">
+                            <Border x:Name="PreviewImageBorder"
+                                    BorderBrush="{DynamicResource AccentBlueBorder}"
+                                    BorderThickness="2">
+                                <Image Source="{Binding PreviewImage}"
+                                       Stretch="None"/>
+                            </Border>
+                        </Viewbox>
+                        <Border Background="#88000000"
+                                IsVisible="{Binding IsBusy}">
+                            <ProgressBar IsIndeterminate="True"
+                                         Width="160"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="2"
+                               Text="{Binding PreviewSizeText}"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               Foreground="{DynamicResource SubtleTextBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,4,0,0"/>
+                </Grid>
+
+            </Grid>
+
+            <!-- Remove Background controls panel -->
+            <Border Grid.Row="1"
+                    Background="{DynamicResource PanelBackground}"
+                    BorderBrush="{DynamicResource PanelBorder}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10,8"
+                    Margin="14,10,14,0">
+                <Grid RowDefinitions="Auto,Auto">
+
+                    <WrapPanel Grid.Row="0" Orientation="Horizontal">
+                        <CheckBox Content="Remove Background"
+                                  IsChecked="{Binding RemoveBackground}"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,20,0"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <ComboBox SelectedIndex="{Binding SelectedModeIndex}"
+                                  PlaceholderText="Select a shape..."
+                                  FontSize="{DynamicResource GlobalFontSize}"
+                                  IsEnabled="{Binding RemoveBackground}"
+                                  MinWidth="150"
+                                  Margin="0,0,16,0">
+                            <ComboBoxItem>Circle</ComboBoxItem>
+                            <ComboBoxItem>Freeform</ComboBoxItem>
+                            <ComboBoxItem>Outline</ComboBoxItem>
+                        </ComboBox>
+                        <CheckBox Content="Remove enclosed regions"
+                                  IsChecked="{Binding RemoveEnclosed}"
+                                  IsEnabled="{Binding IsFreeformMode}"
+                                  Margin="0,0,16,0"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <CheckBox Content="Invert colors"
+                                  IsChecked="{Binding InvertColors}"
+                                  IsEnabled="{Binding IsFreeformMode}"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </WrapPanel>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="72,*,32" Margin="0,8,0,0"
+                          IsEnabled="{Binding RemoveBackground}">
+                        <TextBlock Grid.Column="0"
+                                   Text="Tolerance"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <Slider Grid.Column="1"
+                                Minimum="0"
+                                Maximum="50"
+                                Value="{Binding Tolerance}"
+                                IsSnapToTickEnabled="True"
+                                TickFrequency="1"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding Tolerance, StringFormat='{}{0:0}'}"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right"
+                                   Margin="6,0,0,0"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </Grid>
+
+                </Grid>
+            </Border>
+
+            <!-- Crop controls panel -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource PanelBackground}"
+                    BorderBrush="{DynamicResource PanelBorder}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10,8"
+                    Margin="14,6,14,0">
+                <Grid RowDefinitions="Auto,Auto">
+
+                    <WrapPanel Grid.Row="0" Orientation="Horizontal">
+                        <CheckBox Content="Crop Image"
+                                  IsChecked="{Binding CropImage}"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,20,0"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <CheckBox Content="Crop Vertical"
+                                  IsChecked="{Binding CropVertical}"
+                                  IsEnabled="{Binding CanCropVertical}"
+                                  Margin="0,0,16,0"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <CheckBox Content="Crop Horizontal"
+                                  IsChecked="{Binding CropHorizontal}"
+                                  IsEnabled="{Binding CanCropHorizontal}"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </WrapPanel>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="72,*,38" Margin="0,8,0,0"
+                          IsEnabled="{Binding CropImage}">
+                        <TextBlock Grid.Column="0"
+                                   Text="Padding"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <Slider Grid.Column="1"
+                                Minimum="0"
+                                Maximum="50"
+                                Value="{Binding Padding}"
+                                IsSnapToTickEnabled="True"
+                                TickFrequency="1"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding Padding, StringFormat='{}{0:0}%'}"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right"
+                                   Margin="6,0,0,0"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </Grid>
+
+                </Grid>
+            </Border>
+
+            <!-- Resize controls panel -->
+            <Border Grid.Row="3"
+                    Background="{DynamicResource PanelBackground}"
+                    BorderBrush="{DynamicResource PanelBorder}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10,8"
+                    Margin="14,6,14,0">
+                <Grid RowDefinitions="Auto">
+                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <CheckBox Content="Resize Image"
+                                  IsChecked="{Binding ResizeImage}"
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,20,0"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <TextBlock Text="W"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,4,0"
+                                   IsEnabled="{Binding ResizeImage}"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <NumericUpDown Value="{Binding ResizeWidth}"
+                                       Minimum="100"
+                                       Maximum="2000"
+                                       Increment="1"
+                                       FormatString="0"
+                                       IsEnabled="{Binding ResizeImage}"
+                                       Width="90"
+                                       Margin="0,0,12,0"/>
+                        <TextBlock Text="H"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,4,0"
+                                   IsEnabled="{Binding ResizeImage}"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <NumericUpDown Value="{Binding ResizeHeight}"
+                                       Minimum="100"
+                                       Maximum="2000"
+                                       Increment="1"
+                                       FormatString="0"
+                                       IsEnabled="{Binding ResizeImage}"
+                                       Width="90"
+                                       Margin="0,0,16,0"/>
+                        <CheckBox Content="Keep aspect ratio"
+                                  IsChecked="{Binding MaintainAspectRatio}"
+                                  IsEnabled="{Binding ResizeImage}"
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </WrapPanel>
+                </Grid>
+            </Border>
+
+            <!-- Action buttons -->
+            <StackPanel Grid.Row="4"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="14,10,14,0">
+                <Button Content="Discard"
+                        Classes="rounded grey"
+                        FontSize="{DynamicResource GlobalFontSize}"
+                        Command="{Binding DiscardCommand}"/>
+                <Button Content="Keep"
+                        Classes="rounded green"
+                        FontSize="{DynamicResource GlobalFontSize}"
+                        Command="{Binding KeepCommand}"/>
+            </StackPanel>
+
+            <!-- Status bar -->
+            <Border Grid.Row="5"
+                    Background="{DynamicResource StatusBarBackground}"
+                    CornerRadius="0,0,8,8"
+                    Margin="0,8,0,0"
+                    Padding="10,4">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding StatusText}"
+                               Foreground="{DynamicResource StatusBarForeground}"
+                               FontSize="{DynamicResource GlobalSmallFontSize}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                    <ProgressBar Grid.Column="1"
+                                 IsIndeterminate="True"
+                                 IsVisible="{Binding IsBusy}"
+                                 Width="80"
+                                 Height="4"
+                                 VerticalAlignment="Center"
+                                 Margin="8,0,0,0"/>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Border>
+
+</Window>
