@@ -14,8 +14,10 @@ namespace Gamelist_Manager.Classes.Helpers
     public enum BackgroundRemovalMode
     {
         Circle,
+        CircleEdge,
         Freeform,
-        ConvexHull
+        ConvexHull,
+        CircleFit
     }
 
     public static class ImageHelper
@@ -178,26 +180,36 @@ namespace Gamelist_Manager.Classes.Helpers
 
         // Main entry point — applies the user-selected removal strategy.
         public static (SKBitmap result, string strategy) RemoveBackground(SKBitmap source, SKColor backgroundColor, int tolerance,
-            BackgroundRemovalMode mode, bool removeEnclosed = false)
+            BackgroundRemovalMode mode, bool removeEnclosed = false, SKPointI? clickPoint = null, float edgeThreshold = 0.15f)
         {
             System.Diagnostics.Debug.WriteLine($"[BgRemove] Image: {source.Width}x{source.Height}, BgColor: #{backgroundColor.Red:X2}{backgroundColor.Green:X2}{backgroundColor.Blue:X2}, Tolerance: {tolerance}, Mode: {mode}");
 
             switch (mode)
             {
+                // Circle — fully automatic Hough-based circle detection, no click needed.
                 case BackgroundRemovalMode.Circle:
-                    return (ApplyCircleMask(source, backgroundColor, tolerance), "Circle");
+                    return (ApplyHoughCircleMask(source, null), "Circle - Automatic");
+
+                // CircleEdge — same as Circle but ray threshold is user-controlled.
+                case BackgroundRemovalMode.CircleEdge:
+                    return (ApplyHoughCircleMask(source, null, edgeThreshold, useOutermostEdge: true), "Circle - Edge Detection");
+
+                // CircleFit — Hough-based but uses click point to select the right circle
+                // when multiple are detected. User can click anywhere on the disc.
+                case BackgroundRemovalMode.CircleFit:
+                    return (ApplyHoughCircleMask(source, clickPoint), "Circle 2");
 
                 case BackgroundRemovalMode.ConvexHull:
-                {
-                    var bmp = TryRemoveByConvexHull(source, backgroundColor, tolerance, out _);
-                    if (bmp != null)
                     {
-                        System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: CONVEX HULL");
-                        return (bmp, "Outline");
+                        var bmp = TryRemoveByConvexHull(source, backgroundColor, tolerance, out _);
+                        if (bmp != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: CONVEX HULL");
+                            return (bmp, "Outline");
+                        }
+                        System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: FLOOD FILL (convex hull fallback)");
+                        return (RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed), "Flood Fill");
                     }
-                    System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: FLOOD FILL (convex hull fallback)");
-                    return (RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed), "Flood Fill");
-                }
 
                 default: // Freeform
                     System.Diagnostics.Debug.WriteLine("[BgRemove] Strategy: FLOOD FILL");
@@ -205,9 +217,374 @@ namespace Gamelist_Manager.Classes.Helpers
             }
         }
 
-        // Fits a circle mask
-        // subject bounding box, then derives centre and radius from that.
-        // Scanning inward from each edge avoids reliance on flood fill accuracy.
+        // ─── Hough Circle Detection ───────────────────────────────────────────────
+        //
+        // Shared by Circle (auto) and CircleFit (click hint).
+        //
+        // Pipeline:
+        //   1. Downsample to a working resolution to keep the accumulator fast.
+        //   2. Convert to grayscale float array.
+        //   3. 5x5 Gaussian blur — kills JPEG compression noise.
+        //   4. Sobel edge magnitude map.
+        //   5. Collect strong edge pixels (top 15% by magnitude).
+        //   6. Vote in a 2-D accumulator: for each edge pixel and each candidate
+        //      radius, vote for the center that would put this pixel on that circle.
+        //      Voting along the gradient direction keeps it fast — we only vote
+        //      two points per edge pixel (inward and outward along the gradient).
+        //   7. Find the accumulator peak closest to the click point (or image center
+        //      if no click).  Apply a 5x5 box-blur to the accumulator first to merge
+        //      nearby votes.
+        //   8. Scale the winning center and radius back to full resolution.
+        //   9. Apply feathered circle mask to the original source bitmap.
+        //
+        private static SKBitmap ApplyHoughCircleMask(SKBitmap source, SKPointI? clickPoint, float edgeThreshold = 0.15f, bool useOutermostEdge = false)
+        {
+            int srcW = source.Width, srcH = source.Height;
+
+            // ── Step 1: downsample for speed ──────────────────────────────────────
+            // Work at most 400px on the short side — plenty for circle detection.
+            const int workSize = 400;
+            float scale = Math.Min(1.0f, workSize / (float)Math.Min(srcW, srcH));
+            int w = Math.Max(1, (int)(srcW * scale));
+            int h = Math.Max(1, (int)(srcH * scale));
+
+            float[] gray;
+            if (scale < 0.99f)
+            {
+                using var smallBmp = new SKBitmap(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Unpremul));
+                using (var canvas = new SKCanvas(smallBmp))
+                {
+                    using var paint = new SKPaint { FilterQuality = SKFilterQuality.Medium };
+                    canvas.DrawBitmap(source, new SKRect(0, 0, w, h), paint);
+                }
+                gray = ToGrayscale(smallBmp, w, h);
+            }
+            else
+            {
+                gray = ToGrayscale(source, w, h);
+            }
+
+            // ── Step 2: blur + edges ───────────────────────────────────────────────
+            float[] blurred = GaussianBlur5(gray, w, h);
+            float[] edgeMag;
+            float[] edgeGx, edgeGy;
+            SobelEdges(blurred, w, h, out edgeMag, out edgeGx, out edgeGy);
+
+            // ── Step 3: collect strong edge pixels ────────────────────────────────
+            float maxMag = 0;
+            for (int i = 0; i < edgeMag.Length; i++)
+                if (edgeMag[i] > maxMag) maxMag = edgeMag[i];
+
+            float thresh = maxMag * 0.15f;
+            var edgePts = new List<(int x, int y, float gx, float gy)>();
+            for (int y = 1; y < h - 1; y++)
+                for (int x = 1; x < w - 1; x++)
+                {
+                    int idx = y * w + x;
+                    if (edgeMag[idx] >= thresh)
+                        edgePts.Add((x, y, edgeGx[idx], edgeGy[idx]));
+                }
+
+            System.Diagnostics.Debug.WriteLine($"[Hough] work={w}x{h}, scale={scale:F2}, edgePts={edgePts.Count}, maxMag={maxMag:F1}");
+
+            if (edgePts.Count < 20) return CreateTransparentCopy(source);
+
+            // ── Step 4: radius range ───────────────────────────────────────────────
+            // Disc should be between 20% and 49% of the shorter working dimension.
+            int minR = (int)(Math.Min(w, h) * 0.20);
+            int maxR = (int)(Math.Min(w, h) * 0.49);
+            int rStep = Math.Max(1, (maxR - minR) / 40); // ~40 radius levels
+
+            // ── Step 5: accumulator ────────────────────────────────────────────────
+            // 2-D array [cy * w + cx] — we sum over all tested radii.
+            // For each edge pixel, vote for center candidates along the gradient
+            // direction at each tested radius.  Two votes per pixel per radius:
+            // one inward (center is behind the gradient) and one outward.
+            var acc = new float[w * h];
+
+            foreach (var (ex, ey, gx, gy) in edgePts)
+            {
+                float gLen = MathF.Sqrt(gx * gx + gy * gy);
+                if (gLen < 1e-4f) continue;
+                float nx = gx / gLen; // unit gradient (points away from disc center)
+                float ny = gy / gLen;
+
+                for (int r = minR; r <= maxR; r += rStep)
+                {
+                    // Center candidate inward along gradient
+                    int cx0 = (int)Math.Round(ex - nx * r);
+                    int cy0 = (int)Math.Round(ey - ny * r);
+                    if ((uint)cx0 < (uint)w && (uint)cy0 < (uint)h)
+                        acc[cy0 * w + cx0] += 1.0f;
+
+                    // Center candidate outward (handles inverted gradients)
+                    int cx1 = (int)Math.Round(ex + nx * r);
+                    int cy1 = (int)Math.Round(ey + ny * r);
+                    if ((uint)cx1 < (uint)w && (uint)cy1 < (uint)h)
+                        acc[cy1 * w + cx1] += 1.0f;
+                }
+            }
+
+            // ── Step 6: smooth accumulator then find peak ─────────────────────────
+            float[] accSmooth = BoxBlur5(acc, w, h);
+
+            // Convert click point to working resolution for peak selection.
+            double refCx = clickPoint.HasValue ? clickPoint.Value.X * scale : w / 2.0;
+            double refCy = clickPoint.HasValue ? clickPoint.Value.Y * scale : h / 2.0;
+
+            // Score = accSmooth value / (1 + distanceToRef * 0.01)
+            // This biases toward the click point without ignoring strong distant peaks.
+            float bestScore = -1;
+            int bestIdx = 0;
+            for (int i = 0; i < accSmooth.Length; i++)
+            {
+                if (accSmooth[i] < 1) continue;
+                int ix = i % w, iy = i / w;
+                double dist = Math.Sqrt((ix - refCx) * (ix - refCx) + (iy - refCy) * (iy - refCy));
+                float score = accSmooth[i] / (float)(1.0 + dist * 0.01);
+                if (score > bestScore) { bestScore = score; bestIdx = i; }
+            }
+
+            int peakCx = bestIdx % w;
+            int peakCy = bestIdx / w;
+            System.Diagnostics.Debug.WriteLine($"[Hough] peak at ({peakCx},{peakCy}) score={bestScore:F1}");
+
+            // ── Step 7: find best radius for the winning center ───────────────────
+            // Cast 360 rays from the peak center outward.
+            // Automatic: strongest brightness edge wins (original behaviour).
+            // Edge Detection: outermost qualifying edge wins, avoiding inner decorative rings.
+            const int rayCount = 360;
+            var radii = new List<double>(rayCount);
+            float rayThresh = 8f * (edgeThreshold / 0.15f);
+
+            for (int a = 0; a < rayCount; a++)
+            {
+                double angle = a * Math.PI / 180.0;
+                double dx = Math.Cos(angle);
+                double dy = Math.Sin(angle);
+
+                int sampleCount = (int)(maxR * 1.1);
+                float prev = gray[Math.Clamp(peakCy, 0, h - 1) * w + Math.Clamp(peakCx, 0, w - 1)];
+
+                double bestEdge = 0;
+                double bestR = -1;
+
+                for (int r = 2; r < sampleCount; r++)
+                {
+                    int px = (int)Math.Round(peakCx + dx * r);
+                    int py = (int)Math.Round(peakCy + dy * r);
+                    if ((uint)px >= (uint)w || (uint)py >= (uint)h) break;
+
+                    float cur = gray[py * w + px];
+                    double edge = Math.Abs(cur - prev);
+
+                    if (useOutermostEdge)
+                    {
+                        // Keep overwriting — last qualifying edge wins = outermost edge
+                        if (edge > rayThresh && r > minR * 0.8)
+                            bestR = r;
+                    }
+                    else
+                    {
+                        if (edge > bestEdge) { bestEdge = edge; bestR = r; }
+                    }
+
+                    prev = cur;
+                }
+
+                if (useOutermostEdge)
+                {
+                    if (bestR > 0)
+                        radii.Add(bestR);
+                }
+                else
+                {
+                    if (bestR > minR * 0.8 && bestEdge > 8)
+                        radii.Add(bestR);
+                }
+            }
+
+            if (radii.Count < 10)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Hough] too few radius hits ({radii.Count}), using bbox fallback");
+                // Fallback: use bbox of strong edge pixels closest to peak
+                radii.Clear();
+                foreach (var (ex, ey, _, _) in edgePts)
+                {
+                    double d = Math.Sqrt((ex - peakCx) * (ex - peakCx) + (ey - peakCy) * (ey - peakCy));
+                    if (d >= minR * 0.7 && d <= maxR * 1.1)
+                        radii.Add(d);
+                }
+            }
+
+            if (radii.Count < 5) return CreateTransparentCopy(source);
+
+            radii.Sort();
+            double workRadius = radii[(int)(radii.Count * 0.75)];
+
+            // ── Step 8: scale back to full resolution ─────────────────────────────
+            double fullCx = peakCx / scale;
+            double fullCy = peakCy / scale;
+            double fullRadius = workRadius / scale;
+
+            System.Diagnostics.Debug.WriteLine($"[Hough] center=({fullCx:F1},{fullCy:F1}), r={fullRadius:F1}");
+
+            // ── Step 9: apply feathered circle mask ───────────────────────────────
+            int feather = Math.Max(2, (int)Math.Round(fullRadius) / 60);
+            int icx = (int)Math.Round(fullCx);
+            int icy = (int)Math.Round(fullCy);
+            int ir = (int)Math.Round(fullRadius);
+
+            var result = CreateTransparentCopy(source);
+
+            unsafe
+            {
+                byte* dst = (byte*)result.GetPixels();
+                int rb = result.RowBytes;
+                double inner = ir - feather;
+                double outer = ir + feather;
+                double feather2 = feather * 2.0;
+
+                Parallel.For(0, srcH, y =>
+                {
+                    byte* row = dst + y * rb;
+                    double dy2 = y - icy;
+                    for (int x = 0; x < srcW; x++)
+                    {
+                        int i = x * 4;
+                        byte origAlpha = row[i + 3];
+                        if (origAlpha == 0) continue;
+
+                        double dist = Math.Sqrt((x - icx) * (x - icx) + dy2 * dy2);
+                        byte alpha;
+                        if (dist <= inner)
+                            alpha = origAlpha;
+                        else if (dist >= outer)
+                            alpha = 0;
+                        else
+                            alpha = (byte)(origAlpha * (1.0 - (dist - inner) / feather2));
+
+                        row[i + 3] = alpha;
+                    }
+                });
+            }
+
+            return result;
+        }
+
+        // ─── Image Processing Helpers ─────────────────────────────────────────────
+
+        // Convert SKBitmap to grayscale float array (0-255).
+        private static float[] ToGrayscale(SKBitmap bmp, int w, int h)
+        {
+            var gray = new float[w * h];
+            unsafe
+            {
+                byte* p = (byte*)bmp.GetPixels();
+                int rb = bmp.RowBytes;
+                for (int y = 0; y < h; y++)
+                {
+                    byte* row = p + y * rb;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int off = x * 4;
+                        gray[y * w + x] = row[off] * 0.299f + row[off + 1] * 0.587f + row[off + 2] * 0.114f;
+                    }
+                }
+            }
+            return gray;
+        }
+
+        // 5x5 Gaussian blur — kills JPEG compression ringing around disc edges.
+        private static float[] GaussianBlur5(float[] src, int w, int h)
+        {
+            // Separable kernel: [1 4 6 4 1] / 16
+            float[] tmp = new float[w * h];
+            float[] dst = new float[w * h];
+
+            // Horizontal pass
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float v = 0;
+                    v += src[y * w + Math.Clamp(x - 2, 0, w - 1)] * 1;
+                    v += src[y * w + Math.Clamp(x - 1, 0, w - 1)] * 4;
+                    v += src[y * w + x] * 6;
+                    v += src[y * w + Math.Clamp(x + 1, 0, w - 1)] * 4;
+                    v += src[y * w + Math.Clamp(x + 2, 0, w - 1)] * 1;
+                    tmp[y * w + x] = v / 16f;
+                }
+
+            // Vertical pass
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float v = 0;
+                    v += tmp[Math.Clamp(y - 2, 0, h - 1) * w + x] * 1;
+                    v += tmp[Math.Clamp(y - 1, 0, h - 1) * w + x] * 4;
+                    v += tmp[y * w + x] * 6;
+                    v += tmp[Math.Clamp(y + 1, 0, h - 1) * w + x] * 4;
+                    v += tmp[Math.Clamp(y + 2, 0, h - 1) * w + x] * 1;
+                    dst[y * w + x] = v / 16f;
+                }
+
+            return dst;
+        }
+
+        // Sobel edge detection — returns magnitude, Gx, and Gy arrays.
+        private static void SobelEdges(float[] src, int w, int h,
+            out float[] mag, out float[] gx, out float[] gy)
+        {
+            mag = new float[w * h];
+            gx = new float[w * h];
+            gy = new float[w * h];
+
+            for (int y = 1; y < h - 1; y++)
+                for (int x = 1; x < w - 1; x++)
+                {
+                    float tl = src[(y - 1) * w + (x - 1)], tc = src[(y - 1) * w + x], tr = src[(y - 1) * w + (x + 1)];
+                    float ml = src[y * w + (x - 1)], mr = src[y * w + (x + 1)];
+                    float bl = src[(y + 1) * w + (x - 1)], bc = src[(y + 1) * w + x], br = src[(y + 1) * w + (x + 1)];
+
+                    float gxv = -tl - 2 * ml - bl + tr + 2 * mr + br;
+                    float gyv = -tl - 2 * tc - tr + bl + 2 * bc + br;
+
+                    int idx = y * w + x;
+                    gx[idx] = gxv;
+                    gy[idx] = gyv;
+                    mag[idx] = MathF.Sqrt(gxv * gxv + gyv * gyv);
+                }
+        }
+
+        // 5x5 box blur for accumulator smoothing.
+        private static float[] BoxBlur5(float[] src, int w, int h)
+        {
+            float[] tmp = new float[w * h];
+            float[] dst = new float[w * h];
+
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float v = 0;
+                    for (int k = -2; k <= 2; k++)
+                        v += src[y * w + Math.Clamp(x + k, 0, w - 1)];
+                    tmp[y * w + x] = v / 5f;
+                }
+
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    float v = 0;
+                    for (int k = -2; k <= 2; k++)
+                        v += tmp[Math.Clamp(y + k, 0, h - 1) * w + x];
+                    dst[y * w + x] = v / 5f;
+                }
+
+            return dst;
+        }
+
+        // ─── Original Circle methods (preserved for reference) ────────────────────
+        /*
         private static SKBitmap ApplyCircleMask(SKBitmap source, SKColor backgroundColor, int tolerance)
         {
             int w = source.Width, h = source.Height;
@@ -248,8 +625,6 @@ namespace Gamelist_Manager.Classes.Helpers
             radius = Math.Min(radius, maxAllowedRadius);
             int icx = (int)Math.Round(cx), icy = (int)Math.Round(cy), ir = (int)Math.Round(radius);
 
-            System.Diagnostics.Debug.WriteLine($"[Circle] bbox=({minX},{minY})-({maxX},{maxY}), cx={icx}, cy={icy}, r={ir}");
-
             var result = CreateTransparentCopy(source);
 
             unsafe
@@ -286,16 +661,147 @@ namespace Gamelist_Manager.Classes.Helpers
             return result;
         }
 
+        private static SKBitmap ApplyCircleFitMask(SKBitmap source, SKColor backgroundColor, int tolerance, SKPointI? clickPoint)
+        {
+            int w = source.Width, h = source.Height;
+
+            using var filled = RemoveBackgroundFloodFill(source, backgroundColor, tolerance, removeEnclosed: false);
+
+            int minX = w, maxX = 0, minY = h, maxY = 0;
+
+            unsafe
+            {
+                byte* p = (byte*)filled.GetPixels();
+                int rb = filled.RowBytes;
+                for (int y = 0; y < h; y++)
+                {
+                    byte* row = p + y * rb;
+                    for (int x = 0; x < w; x++)
+                    {
+                        if (row[x * 4 + 3] >= 128)
+                        {
+                            if (x < minX) minX = x;
+                            if (x > maxX) maxX = x;
+                            if (y < minY) minY = y;
+                            if (y > maxY) maxY = y;
+                        }
+                    }
+                }
+            }
+
+            if (maxX <= minX || maxY <= minY) return CreateTransparentCopy(source);
+
+            double cx = (minX + maxX) / 2.0;
+            double cy = (minY + maxY) / 2.0;
+
+            const int rayCount = 720;
+            var radii = new List<double>(rayCount);
+
+            unsafe
+            {
+                byte* p = (byte*)filled.GetPixels();
+                int rb = filled.RowBytes;
+
+                for (int a = 0; a < rayCount; a++)
+                {
+                    double angle = a * Math.PI / 360.0;
+                    double dx = Math.Cos(angle);
+                    double dy = Math.Sin(angle);
+
+                    double maxDist = double.MaxValue;
+                    if (Math.Abs(dx) > 1e-9)
+                    {
+                        double tRight = (w - 1 - cx) / dx;
+                        double tLeft = -cx / dx;
+                        double tPos = dx > 0 ? tRight : tLeft;
+                        if (tPos > 0 && tPos < maxDist) maxDist = tPos;
+                    }
+                    if (Math.Abs(dy) > 1e-9)
+                    {
+                        double tBottom = (h - 1 - cy) / dy;
+                        double tTop = -cy / dy;
+                        double tPos = dy > 0 ? tBottom : tTop;
+                        if (tPos > 0 && tPos < maxDist) maxDist = tPos;
+                    }
+                    if (maxDist <= 1 || maxDist == double.MaxValue) continue;
+
+                    double edgeR = -1;
+                    for (double r = Math.Floor(maxDist); r >= 1; r -= 1.0)
+                    {
+                        int px = (int)Math.Round(cx + dx * r);
+                        int py = (int)Math.Round(cy + dy * r);
+                        if ((uint)px >= (uint)w || (uint)py >= (uint)h) continue;
+
+                        byte alpha = *((byte*)p + py * rb + px * 4 + 3);
+                        if (alpha >= 128)
+                        {
+                            edgeR = r;
+                            break;
+                        }
+                    }
+
+                    if (edgeR > 0)
+                        radii.Add(edgeR);
+                }
+            }
+
+            if (radii.Count < 10) return CreateTransparentCopy(source);
+
+            radii.Sort();
+            int idx75 = (int)(radii.Count * 0.75);
+            double radius = radii[Math.Min(idx75, radii.Count - 1)];
+
+            int feather = Math.Max(2, (int)Math.Round(radius) / 60);
+            int icx = (int)Math.Round(cx);
+            int icy = (int)Math.Round(cy);
+            int ir = (int)Math.Round(radius);
+
+            var result = CreateTransparentCopy(source);
+
+            unsafe
+            {
+                byte* dst = (byte*)result.GetPixels();
+                int rb = result.RowBytes;
+                double inner = ir - feather;
+                double outer = ir + feather;
+                double feather2 = feather * 2.0;
+
+                Parallel.For(0, h, y =>
+                {
+                    byte* row = dst + y * rb;
+                    double dy2 = y - icy;
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = x * 4;
+                        byte origAlpha = row[i + 3];
+                        if (origAlpha == 0) continue;
+
+                        double dist = Math.Sqrt((x - icx) * (x - icx) + dy2 * dy2);
+                        byte alpha;
+                        if (dist <= inner)
+                            alpha = origAlpha;
+                        else if (dist >= outer)
+                            alpha = 0;
+                        else
+                            alpha = (byte)(origAlpha * (1.0 - (dist - inner) / feather2));
+
+                        row[i + 3] = alpha;
+                    }
+                });
+            }
+
+            return result;
+        }
+        */
+
         // ─── Geometric Masking ────────────────────────────────────────────────────
 
-        // No shape is assumed — the hull is derived entirely from the image content.
         private static SKBitmap? TryRemoveByConvexHull(SKBitmap source, SKColor backgroundColor, int tolerance, out int hullVertices)
         {
             hullVertices = 0;
             int w = source.Width, h = source.Height;
             int toleranceSq = tolerance * tolerance;
 
-            // Scan each row and column to collect the outermost non-background pixels.
             var points = new List<SKPointI>();
             int step = Math.Max(1, Math.Min(w, h) / 300);
 
@@ -361,7 +867,6 @@ namespace Gamelist_Manager.Classes.Helpers
             var result = CreateTransparentCopy(source);
             int feather = Math.Max(2, Math.Min(w, h) / 80);
 
-            // Snapshot hull as an array for thread-safe access inside Parallel.For
             var hullArray = hull;
 
             unsafe
@@ -401,7 +906,6 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             System.Diagnostics.Debug.WriteLine($"[Fill] Starting flood fill: {source.Width}x{source.Height}, bg=#{backgroundColor.Red:X2}{backgroundColor.Green:X2}{backgroundColor.Blue:X2}, tolerance={tolerance}");
 
-            // Pad the image so edge-flush subjects aren't clipped by the flood fill seeder.
             const int pad = 8;
             int paddedW = source.Width + pad * 2;
             int paddedH = source.Height + pad * 2;
@@ -419,8 +923,6 @@ namespace Gamelist_Manager.Classes.Helpers
             int totalPixels = width * height;
             int toleranceSq = tolerance * tolerance;
 
-            // Work on a flat uint[] copy of the pixel data so flood fill reads/writes
-            // are plain array operations with no struct boxing or pointer arithmetic.
             var pixels = new uint[totalPixels];
             unsafe
             {
@@ -490,7 +992,6 @@ namespace Gamelist_Manager.Classes.Helpers
             visited = null!;
             FeatherEdges(pixels, removed, width, height);
 
-            // Write the processed pixel data back into the padded bitmap.
             unsafe
             {
                 uint* dst = (uint*)padded.GetPixels();
@@ -498,7 +999,6 @@ namespace Gamelist_Manager.Classes.Helpers
                     dst[i] = pixels[i];
             }
 
-            // Crop the pad back off into a new result bitmap.
             var finalInfo = new SKImageInfo(source.Width, source.Height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
             var result = new SKBitmap(finalInfo);
             using (var canvas = new SKCanvas(result))
@@ -539,12 +1039,10 @@ namespace Gamelist_Manager.Classes.Helpers
             }
         }
 
-        // Unpacks a packed RGBA uint and tests it against the background colour.
         private static bool IsBackgroundPixelUint(uint packed, SKColor bg, int toleranceSq)
         {
-            // SKBitmap with Rgba8888 layout: byte0=R, byte1=G, byte2=B, byte3=A
             byte a = (byte)(packed >> 24);
-            if (a == 0) return true;  // fully transparent — treat as removable
+            if (a == 0) return true;
             int dr = (byte)(packed >> 0) - bg.Red;
             int dg = (byte)(packed >> 8) - bg.Green;
             int db = (byte)(packed >> 16) - bg.Blue;
@@ -559,7 +1057,6 @@ namespace Gamelist_Manager.Classes.Helpers
             return dr * dr + dg * dg + db * db <= toleranceSq;
         }
 
-        // Reads a single pixel from a raw SKBitmap byte pointer (Rgba8888 layout).
         private static unsafe SKColor ReadPixel(byte* p, int rowBytes, int x, int y)
         {
             byte* px = p + y * rowBytes + x * 4;
@@ -574,8 +1071,6 @@ namespace Gamelist_Manager.Classes.Helpers
             return dr * dr + dg * dg + db * db;
         }
 
-        // Andrew's monotone chain — returns hull vertices in winding order consistent
-        // with screen coordinates (Y-down), which the signed distance formula expects.
         private static List<SKPointI> ComputeConvexHull(List<SKPointI> points)
         {
             int n = points.Count;
@@ -607,9 +1102,6 @@ namespace Gamelist_Manager.Classes.Helpers
         private static long HullCross(SKPointI o, SKPointI a, SKPointI b)
             => (long)(a.X - o.X) * (b.Y - o.Y) - (long)(a.Y - o.Y) * (b.X - o.X);
 
-        // Returns the minimum signed distance from (px, py) to the hull boundary.
-        // Positive values mean inside; negative mean outside.
-        // For inside points the magnitude equals the distance to the nearest edge.
         private static double MinSignedDistanceToHull(int px, int py, List<SKPointI> hull)
         {
             double minDist = double.MaxValue;
@@ -628,8 +1120,6 @@ namespace Gamelist_Manager.Classes.Helpers
             return minDist;
         }
 
-        // Applies a smooth alpha ramp at the removed/kept boundary. Interior pixels are never
-        // touched, so thin strokes and fine detail keep full opacity.
         private static void FeatherEdges(uint[] pixels, bool[] removed, int width, int height)
         {
             const int featherWidth = 2;
@@ -675,9 +1165,6 @@ namespace Gamelist_Manager.Classes.Helpers
                 }
             }
 
-            // Apply alpha ramp — only boundary-adjacent kept pixels are affected.
-            // The ramp is short (featherWidth=2 pixels) so a parallel loop gives no
-            // meaningful gain here; kept sequential to avoid false-sharing overhead.
             for (int i = 0; i < length; i++)
             {
                 if (removed[i]) continue;
@@ -692,9 +1179,6 @@ namespace Gamelist_Manager.Classes.Helpers
             }
         }
 
-        // Finds the tightest bounding box that contains all non-transparent pixels,
-        // optionally adds padding, then returns a cropped copy.
-        // cropVertical trims top/bottom; cropHorizontal trims left/right.
         public static SKBitmap? AutoCrop(SKBitmap source, int paddingPercent = 0, bool cropVertical = true, bool cropHorizontal = true)
         {
             int width = source.Width;
@@ -708,7 +1192,6 @@ namespace Gamelist_Manager.Classes.Helpers
                 byte* p = (byte*)source.GetPixels();
                 int rb = source.RowBytes;
 
-                // Top edge — first row containing any non-transparent pixel
                 for (int y = 0; y < height && !found; y++)
                 {
                     byte* row = p + y * rb;
@@ -718,7 +1201,6 @@ namespace Gamelist_Manager.Classes.Helpers
 
                 if (!found) return null;
 
-                // Bottom edge
                 found = false;
                 for (int y = height - 1; y >= top && !found; y--)
                 {
@@ -727,13 +1209,11 @@ namespace Gamelist_Manager.Classes.Helpers
                         if (row[x * 4 + 3] > 0) { bottom = y; found = true; }
                 }
 
-                // Left edge
                 found = false;
                 for (int x = 0; x < width && !found; x++)
                     for (int y = top; y <= bottom && !found; y++)
                         if ((p + y * rb)[x * 4 + 3] > 0) { left = x; found = true; }
 
-                // Right edge
                 found = false;
                 for (int x = width - 1; x >= left && !found; x--)
                     for (int y = top; y <= bottom && !found; y++)
@@ -775,8 +1255,6 @@ namespace Gamelist_Manager.Classes.Helpers
             return result;
         }
 
-        // Copies raw pixel data directly into an Avalonia WriteableBitmap, avoiding
-        // the PNG encode → MemoryStream → decode round-trip that ToAvaloniaBitmap used to do.
         public static Bitmap ToAvaloniaBitmap(SKBitmap skBitmap)
         {
             var src = skBitmap.GetPixels();
@@ -796,7 +1274,6 @@ namespace Gamelist_Manager.Classes.Helpers
 
             if (!needsSwizzle && rowBytes == fb.RowBytes)
             {
-                // Fastest path: formats match and rows are contiguous — single memcpy.
                 unsafe
                 {
                     Buffer.MemoryCopy(
@@ -808,7 +1285,6 @@ namespace Gamelist_Manager.Classes.Helpers
             }
             else
             {
-                // SKBitmap pixels are RGBA; Avalonia WriteableBitmap expects BGRA — swap R and B per pixel.
                 unsafe
                 {
                     byte* s = (byte*)src;
@@ -823,7 +1299,6 @@ namespace Gamelist_Manager.Classes.Helpers
                         for (int x = 0; x < w; x++)
                         {
                             uint px = srcRow[x];
-                            // RGBA → BGRA: swap byte 0 (R) and byte 2 (B)
                             dstRow[x] = (px & 0xFF00FF00u)
                                       | ((px & 0x000000FFu) << 16)
                                       | ((px & 0x00FF0000u) >> 16);

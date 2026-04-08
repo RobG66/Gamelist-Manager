@@ -41,7 +41,8 @@
                         <Border x:Name="OriginalImageBorder"
                                 BorderBrush="{DynamicResource CardBorder}"
                                 BorderThickness="2">
-                            <Image Source="{Binding OriginalImage}"
+                            <Image x:Name="OriginalImageControl"
+                                   Source="{Binding OriginalImage}"
                                    Stretch="None"/>
                         </Border>
                     </Viewbox>
@@ -115,9 +116,13 @@
                                   IsEnabled="{Binding RemoveBackground}"
                                   MinWidth="150"
                                   Margin="0,0,16,0">
-                            <ComboBoxItem>Circle</ComboBoxItem>
+                            <ComboBoxItem>Circle - Automatic</ComboBoxItem>
+                            <ComboBoxItem>Circle - Edge Detection</ComboBoxItem>
                             <ComboBoxItem>Freeform</ComboBoxItem>
                             <ComboBoxItem>Outline</ComboBoxItem>
+                            <!-- Circle 2 disabled
+                            <ComboBoxItem ToolTip.Tip="Click on the disc in the original image to detect the circle. Uses flood fill and ray-casting for accurate circle detection.">Circle 2</ComboBoxItem>
+                            -->
                         </ComboBox>
                         <CheckBox Content="Remove enclosed regions"
                                   IsChecked="{Binding RemoveEnclosed}"
@@ -132,7 +137,7 @@
                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
                     </WrapPanel>
 
-                    <Grid Grid.Row="1" ColumnDefinitions="72,*,32" Margin="0,8,0,0"
+                    <Grid Grid.Row="1" ColumnDefinitions="72,*,32,16,Auto,80" Margin="0,8,0,0"
                           IsEnabled="{Binding RemoveBackground}">
                         <TextBlock Grid.Column="0"
                                    Text="Tolerance"
@@ -151,6 +156,20 @@
                                    TextAlignment="Right"
                                    Margin="6,0,0,0"
                                    Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <TextBlock Grid.Column="4"
+                                   Text="Edge Detection"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
+                                   IsEnabled="{Binding IsCircleMode}"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        <NumericUpDown Grid.Column="5"
+                                       Value="{Binding EdgeThreshold}"
+                                       Minimum="0.05"
+                                       Maximum="5.00"
+                                       Increment="0.05"
+                                       FormatString="0.00"
+                                       IsEnabled="{Binding IsCircleMode}"
+                                       VerticalAlignment="Center"/>
                     </Grid>
 
                 </Grid>
