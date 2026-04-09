@@ -46,15 +46,22 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private bool _enableDelete = false;
         [ObservableProperty] private bool _ignoreDuplicates = false;
         [ObservableProperty] private bool _batchProcessing = true;
+        [ObservableProperty] private bool _showLogTimestamp = false;
         [ObservableProperty] private bool _mediaViewerScaledDisplay = true;
         [ObservableProperty] private int _defaultVolume = 75;
         [ObservableProperty] private int _maxUndo = 5;
         [ObservableProperty] private int _searchDepth = 2;
         [ObservableProperty] private int _maxBatch = 300;
+        [ObservableProperty] private int _recentFilesCount = 15;
         [ObservableProperty] private int _logVerbosity = 1;
         [ObservableProperty] private string _theme = "Default";
+        [ObservableProperty] private string _color = "Blue";
+        [ObservableProperty] private int _alternatingRowColorIndex = 1;
+        [ObservableProperty] private int _gridLinesVisibilityIndex;
         [ObservableProperty] private double _appFontSize = 12;
         [ObservableProperty] private double _gridFontSize = 12;
+        [ObservableProperty] private string _userId = "root";
+        [ObservableProperty] private string _password = "linux";
 
         #endregion
 
@@ -102,6 +109,8 @@ namespace Gamelist_Manager.Services
             RomsFolder = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder, "");
             Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, "batocera");
             MamePath = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath, "");
+            UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, "root");
+            Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, "linux");
 
             VideoAutoplay = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.VideoAutoplay, false);
             ConfirmBulkChanges = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ConfirmBulkChange, true);
@@ -113,6 +122,7 @@ namespace Gamelist_Manager.Services
             EnableDelete = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.EnableDelete, false);
             IgnoreDuplicates = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.IgnoreDuplicates, false);
             BatchProcessing = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.BatchProcessing, true);
+            ShowLogTimestamp = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ShowLogTimestamp, false);
 
             MediaViewerScaledDisplay = settings.GetBool(SettingKeys.MediaViewerSection, SettingKeys.ScaledDisplay, true);
 
@@ -120,9 +130,13 @@ namespace Gamelist_Manager.Services
             MaxUndo = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.MaxUndo, 5);
             SearchDepth = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.SearchDepth, 2);
             MaxBatch = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.BatchProcessingMaximum, 300);
+            RecentFilesCount = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.RecentFilesCount, 15);
             LogVerbosity = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.LogVerbosity, 1);
 
             Theme = settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Theme, "Default");
+            Color = settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Color, "Blue");
+            AlternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, 1);
+            GridLinesVisibilityIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridLinesVisibilityIndex, 0);
             AppFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GlobalFontSize, 12);
             GridFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridFontSize, 12);
 
@@ -195,6 +209,15 @@ namespace Gamelist_Manager.Services
 
         public string? GetScraperLanguageCode(string scraperName)
         {
+            string savedLanguage = SettingsService.Instance.GetValue("Scraper", $"{scraperName}_Language", string.Empty);
+            if (!string.IsNullOrEmpty(savedLanguage))
+            {
+                string code = ExtractRegionCode(savedLanguage);
+                if (!string.IsNullOrEmpty(code))
+                    return code;
+            }
+
+            // Fall back to first language in the INI options list
             var sections = GetScraperIniSections(scraperName);
             if (!sections.TryGetValue("Languages", out var langs)) return null;
             return langs.Keys.Select(ExtractRegionCode).FirstOrDefault(c => !string.IsNullOrEmpty(c));
@@ -237,7 +260,7 @@ namespace Gamelist_Manager.Services
             if (_fileTypesCache != null)
                 return _fileTypesCache;
 
-            var iniPath = Path.Combine(AppContext.BaseDirectory, "Ini", "filetypes.ini");
+            var iniPath = Path.Combine(AppContext.BaseDirectory, "ini", "filetypes.ini");
             var sections = IniFileService.ReadIniFile(iniPath);
             _fileTypesCache = sections.TryGetValue("Filetypes", out var filetypes)
                 ? filetypes
@@ -254,7 +277,7 @@ namespace Gamelist_Manager.Services
         {
             return _scraperSectionsCache.GetOrAdd(scraperName, name =>
             {
-                var iniPath = Path.Combine(AppContext.BaseDirectory, "Ini", $"{name.ToLowerInvariant()}_options.ini");
+                var iniPath = Path.Combine(AppContext.BaseDirectory, "ini", $"{name.ToLowerInvariant()}_options.ini");
                 return IniFileService.ReadIniFile(iniPath);
             });
         }

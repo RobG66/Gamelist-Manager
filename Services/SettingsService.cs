@@ -19,7 +19,7 @@ namespace Gamelist_Manager.Services
         public SettingsService()
         {
             var programDirectory = AppContext.BaseDirectory;
-            _iniFolder = Path.Combine(programDirectory, "Ini");
+            _iniFolder = Path.Combine(programDirectory, "ini");
 
             // ProfileService handles migration and ensures the profiles folder exists
             _settingsFilePath = ProfileService.Instance.ActiveProfilePath;

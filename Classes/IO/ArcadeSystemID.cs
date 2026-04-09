@@ -9,7 +9,7 @@ namespace Gamelist_Manager.Classes.IO
 {
     public static class ArcadeSystemID
     {
-        private static readonly string DefaultIniPath = Path.Combine(AppContext.BaseDirectory, "Ini", "arcadesystems.ini");
+        private static readonly string DefaultIniPath = Path.Combine(AppContext.BaseDirectory, "ini", "arcadesystems.ini");
         private static readonly object _lock = new object();
         private static ImmutableDictionary<ushort, string> _arcadeSystems = ImmutableDictionary<ushort, string>.Empty;
         private static HashSet<string>? _systemNamesCache;

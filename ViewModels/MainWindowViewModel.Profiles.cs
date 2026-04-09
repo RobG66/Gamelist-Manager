@@ -56,8 +56,8 @@ public partial class MainWindowViewModel
         LoadColumnSettings();
         LoadRecentFilesFromSettings();
 
-        var themeIndex = ThemeService.GetThemeIndex(_settingsService.GetValue(SettingKeys.AppearanceSection, SettingKeys.Theme, "Light"));
-        var colorIndex = ThemeService.GetColorIndex(_settingsService.GetValue(SettingKeys.AppearanceSection, SettingKeys.Color, "Blue"));
+        var themeIndex = ThemeService.GetThemeIndex(_sharedData.Theme);
+        var colorIndex = ThemeService.GetColorIndex(_sharedData.Color);
         ThemeService.ApplyTheme(themeIndex, colorIndex);
 
         LoadSystems();

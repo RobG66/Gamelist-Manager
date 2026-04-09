@@ -23,7 +23,7 @@ namespace Gamelist_Manager.Services
 
         private ProfileService()
         {
-            _iniFolder = Path.Combine(AppContext.BaseDirectory, "Ini");
+            _iniFolder = Path.Combine(AppContext.BaseDirectory, "ini");
             _profilesFolder = Path.Combine(_iniFolder, "Profiles");
             _appIniPath = Path.Combine(_iniFolder, "app.ini");
 

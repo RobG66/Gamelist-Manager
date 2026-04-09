@@ -19,7 +19,7 @@ public static class CredentialHelper
     private const string CredentialsSection = "Credentials";
 
     private static string CredentialsFilePath =>
-        Path.Combine(AppContext.BaseDirectory, "Ini", "credentials.ini");
+        Path.Combine(AppContext.BaseDirectory, "ini", "credentials.ini");
 
     public static bool SaveCredentials(string service, string? userName, string? userPassword)
     {

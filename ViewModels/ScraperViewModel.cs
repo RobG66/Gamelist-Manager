@@ -214,7 +214,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             OverwriteName = _settingsService.GetBool("Scraper", "OverwriteName", true);
             OverwriteMedia = _settingsService.GetBool("Scraper", "OverwriteMedia", false);
             ScrapeHiddenItems = _settingsService.GetBool("Scraper", "ScrapeHiddenItems", false);
-            ShowLogTimestamp = _settingsService.GetBool("Behavior", "ShowLogTimestamp", false);
+            ShowLogTimestamp = _sharedData.ShowLogTimestamp;
 
             string savedScraper = _settingsService.GetValue("Scraper", "SelectedScraper", ScraperRegistry.ArcadeDB.Name);
             _currentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;

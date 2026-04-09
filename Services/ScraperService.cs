@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -369,6 +370,8 @@ namespace Gamelist_Manager.Services
                 var creds = CredentialHelper.GetCredentials(ScraperRegistry.ScreenScraper.Name);
                 baseParameters.UserID = creds.UserName;
                 baseParameters.UserPassword = creds.Password;
+
+                LogScreenScraperConfiguration(scraperName);
             }
             else if (scraperName == ScraperRegistry.EmuMovies.Name)
             {
@@ -574,6 +577,30 @@ namespace Gamelist_Manager.Services
             }
 
             return (true, maxThreads);
+        }
+
+        private void LogScreenScraperConfiguration(string scraperName)
+        {
+            var language = _sharedData.GetScraperSourceSetting(scraperName, "Language");
+            var primaryRegion = _sharedData.GetScraperSourceSetting(scraperName, "PrimaryRegion");
+            var fallbackJson = _sharedData.GetScraperSourceSetting(scraperName, "RegionFallback");
+
+            if (!string.IsNullOrEmpty(language))
+                Log($"Language: {language}");
+
+            if (!string.IsNullOrEmpty(primaryRegion))
+                Log($"Primary region: {primaryRegion}");
+
+            if (!string.IsNullOrEmpty(fallbackJson))
+            {
+                try
+                {
+                    var fallback = JsonSerializer.Deserialize<List<string>>(fallbackJson);
+                    if (fallback?.Count > 0)
+                        Log($"Region fallback: {string.Join(", ", fallback)}");
+                }
+                catch { /* Malformed fallback JSON, skip */ }
+            }
         }
     }
 }
