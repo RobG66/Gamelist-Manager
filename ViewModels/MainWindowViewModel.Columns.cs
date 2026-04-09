@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 
@@ -17,6 +18,10 @@ public partial class MainWindowViewModel
     [ObservableProperty] private bool _mediaPathsVisible;
     [ObservableProperty] private bool _descriptionPanelVisible = true;
     [ObservableProperty] private bool _sizeToFit = true;
+    #endregion
+
+    #region Public Properties
+    public bool RememberColumns => _sharedData.RememberColumns;
     #endregion
 
     #region Public Methods
@@ -53,6 +58,13 @@ public partial class MainWindowViewModel
     {
         SizeToFit = !SizeToFit;
         SaveColumnSettings();
+    }
+
+    [RelayCommand]
+    private void ToggleRememberColumns()
+    {
+        _sharedData.RememberColumns = !_sharedData.RememberColumns;
+        _settingsService.SetBool(SettingKeys.BehaviorSection, SettingKeys.RememberColumns, _sharedData.RememberColumns);
     }
 
     [RelayCommand]

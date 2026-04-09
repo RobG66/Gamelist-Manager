@@ -383,6 +383,9 @@ public partial class MainWindow : Window
 
         foreach (var decl in GamelistMetaData.GetColumnDeclarations())
         {
+            if (decl.Key == MetaDataKeys.music)
+                continue;
+
             DataGridColumn column;
 
             if (decl.DataType == MetaDataType.Bool)

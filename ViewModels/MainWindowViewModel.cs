@@ -107,6 +107,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsEditModeEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
                 break;
+            case nameof(SharedDataService.RememberColumns):
+                OnPropertyChanged(nameof(RememberColumns));
+                break;
         }
     }
 

@@ -509,6 +509,17 @@
                                           IsHitTestVisible="False"/>
                             </MenuItem.Icon>
                         </MenuItem>
+                        <MenuItem Header="Remember Columns"
+                                  StaysOpenOnClick="True"
+                                  Command="{Binding ToggleRememberColumnsCommand}"
+                                  ToolTip.Tip="Remember column visibility between sessions">
+                            <MenuItem.Icon>
+                                <CheckBox IsChecked="{Binding RememberColumns, Mode=OneWay}"
+                                          Padding="0"
+                                          BorderThickness="0"
+                                          IsHitTestVisible="False"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <Separator/>
                         <MenuItem Header="Reset to Default"
                                   StaysOpenOnClick="True"
