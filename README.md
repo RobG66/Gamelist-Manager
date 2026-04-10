@@ -12,6 +12,9 @@ A robust, cross platform (Windows/Linux) desktop application for viewing and edi
 
 <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/c7b36788-3eab-473c-b6a2-e12ee38c2596" />
 
+<img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/132cb76e-6d0f-4dba-abd3-d0f8f4d158c9" />
+
+
 </p>
 
 ## Compatibility
