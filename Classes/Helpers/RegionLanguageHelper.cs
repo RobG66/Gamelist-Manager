@@ -107,7 +107,7 @@ namespace Gamelist_Manager.Classes.Helpers
         }
 
 
-        public static string GetRegion(string romName)
+        public static string GetRegion(string romName, string fallback = "us")
         {
             var currentSystem = (SharedDataService.Instance.CurrentSystem ?? string.Empty).ToLowerInvariant();
 
@@ -144,7 +144,7 @@ namespace Gamelist_Manager.Classes.Helpers
             // if (ArcadeSystems.Contains(currentSystem))
             //    return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
 
-            return "us";
+            return fallback;
         }
 
         public static string GetLanguage(string fileName)

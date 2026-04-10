@@ -223,6 +223,18 @@ namespace Gamelist_Manager.Services
             return langs.Keys.Select(ExtractRegionCode).FirstOrDefault(c => !string.IsNullOrEmpty(c));
         }
 
+        public string? GetScraperPrimaryRegionCode(string scraperName)
+        {
+            string saved = SettingsService.Instance.GetValue("Scraper", $"{scraperName}_PrimaryRegion", string.Empty);
+            if (!string.IsNullOrEmpty(saved))
+            {
+                string code = ExtractRegionCode(saved);
+                if (!string.IsNullOrEmpty(code))
+                    return code;
+            }
+            return null;
+        }
+
         public IReadOnlyList<string> GetScraperRegionCodes(string scraperName)
         {
             var sections = GetScraperIniSections(scraperName);

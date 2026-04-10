@@ -393,10 +393,7 @@ namespace Gamelist_Manager.Classes.Api
                             var namesNode = xmlData.SelectSingleNode("/Data/jeu/noms");
                             if (namesNode != null)
                             {
-                                var regions = parameters.SSRegions != null && parameters.SSRegions.Count > 0
-                                    ? parameters.SSRegions
-                                    : DefaultRegions;
-                                string name = ParseNames(namesNode, parameters.RomFileName!, regions);
+                                string name = ParseNames(namesNode, parameters.RomFileName!, parameters);
                                 if (!string.IsNullOrEmpty(name))
                                     gameData.Data["name"] = name;
                             }
@@ -431,10 +428,11 @@ namespace Gamelist_Manager.Classes.Api
                             var datesNode = xmlData.SelectSingleNode("/Data/jeu/dates");
                             if (datesNode != null)
                             {
-                                var regions = parameters.SSRegions != null && parameters.SSRegions.Count > 0
-                                    ? parameters.SSRegions
-                                    : DefaultRegions;
-                                string releaseDate = ParseReleaseDate(datesNode, regions);
+                                string primaryRegion = parameters.SSRegions?.FirstOrDefault() ?? "wor";
+                                var dateRegions = new List<string> { primaryRegion, "wor", "us", "ss", "eu", "jp" }
+                                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                                    .ToList();
+                                string releaseDate = ParseReleaseDate(datesNode, dateRegions);
                                 if (!string.IsNullOrEmpty(releaseDate))
                                     gameData.Data["releasedate"] = releaseDate;
                             }
@@ -730,50 +728,62 @@ namespace Gamelist_Manager.Classes.Api
             return string.Empty;
         }
 
-        private static string ParseNames(
-            XmlNode namesElement,
-            string romFileName,
-            List<string> userRegions)
+        private static string ParseNames(XmlNode namesElement, string romFileName, ScraperParameters parameters)
         {
             if (namesElement == null)
                 return string.Empty;
 
-            string romRegion = RegionLanguageHelper.GetRegion(romFileName);
+            string primaryRegion = parameters.SSRegions?.FirstOrDefault() ?? "us";
+            string romRegion = RegionLanguageHelper.GetRegion(romFileName, primaryRegion);
+            string rawRomLanguages = RegionLanguageHelper.GetLanguage(romFileName);
+
+            string userLanguage = NormalizeLanguageToSsCode(parameters.SSLanguage ?? "en");
+
+            // Mirror C++ romlang logic: prefer user language if the ROM supports it,
+            // fall back to the ROM's single detected language, then to its region.
+            var romLanguages = rawRomLanguages
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            string romLang;
+            if (romLanguages.Contains(userLanguage, StringComparer.OrdinalIgnoreCase))
+                romLang = userLanguage;
+            else if (romLanguages.Count == 1)
+                romLang = romLanguages[0];
+            else
+                romLang = romRegion;
+
+            bool isJapaneseRom = romRegion == "jp" || romLang == "jp";
+            bool isJapaneseUser = userLanguage == "jp";
 
             var searchOrder = new List<string>();
 
-            // Determined ROM region
-            if (!string.IsNullOrEmpty(romRegion))
+            if (isJapaneseRom && !isJapaneseUser)
             {
+                // Mirror C++ behaviour: Japanese ROM gets its jp name first, then falls back through international regions
+                searchOrder.AddRange(new[] { "jp", "wor", "us", "ss", "eu" });
+            }
+            else
+            {
+                searchOrder.Add(romLang);
                 searchOrder.Add(romRegion);
+                searchOrder.Add(userLanguage);
+                searchOrder.AddRange(new[] { "wor", "us", "ss", "eu", "jp" });
             }
 
-            // User preferred regions
-            if (userRegions != null && userRegions.Count > 0)
-            {
-                searchOrder.AddRange(userRegions);
-            }
-
-            // ScreenScraper canonical fallback
-            searchOrder.Add("ss");
-
-            // De-duplicate while preserving order
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var uniqueOrder = searchOrder
-                .Where(r => !string.IsNullOrEmpty(r))
-                .Distinct()
+                .Where(r => !string.IsNullOrEmpty(r) && seen.Add(r))
                 .ToList();
 
-            // Try regions in order
             foreach (var region in uniqueOrder)
             {
-                XmlNode? node = namesElement.SelectSingleNode(
-                    $"nom[@region='{region}']");
-
+                XmlNode? node = namesElement.SelectSingleNode($"nom[@region='{region}']");
                 if (!string.IsNullOrWhiteSpace(node?.InnerText))
                     return node.InnerText.Trim();
             }
 
-            // Final fallback: first/any available name
+            // Final fallback: any available name
             foreach (XmlNode node in namesElement.SelectNodes("nom")!)
             {
                 if (!string.IsNullOrWhiteSpace(node.InnerText))
@@ -783,6 +793,22 @@ namespace Gamelist_Manager.Classes.Api
             return string.Empty;
         }
 
+        private static string NormalizeLanguageToSsCode(string language)
+        {
+            if (string.IsNullOrEmpty(language))
+                return "en";
+
+            // Map ISO 639-1 codes to ScreenScraper language/region codes where they differ
+            return language.ToLowerInvariant() switch
+            {
+                "ja" => "jp",
+                "zh" => "cn",
+                "ko" => "kr",
+                "sv" => "se",
+                "da" => "dk",
+                _ => language.ToLowerInvariant()
+            };
+        }
 
         private static string ConvertRating(string? rating)
         {

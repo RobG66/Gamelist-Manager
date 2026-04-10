@@ -345,7 +345,17 @@ namespace Gamelist_Manager.Services
 
             baseParameters.SystemID ??= _sharedData.GetScraperSystemId(scraperName, currentSystem);
             baseParameters.SSLanguage ??= _sharedData.GetScraperLanguageCode(scraperName);
-            baseParameters.SSRegions ??= _sharedData.GetScraperRegionCodes(scraperName).ToList();
+            if (baseParameters.SSRegions == null)
+            {
+                string? primaryRegion = _sharedData.GetScraperPrimaryRegionCode(scraperName);
+                var regions = _sharedData.GetScraperRegionCodes(scraperName).ToList();
+                if (!string.IsNullOrEmpty(primaryRegion))
+                {
+                    regions.Remove(primaryRegion);
+                    regions.Insert(0, primaryRegion);
+                }
+                baseParameters.SSRegions = regions;
+            }
 
             string resolveIfEmpty(string? current, string sectionName)
                 => string.IsNullOrEmpty(current) ? ResolveSourceValue(scraperName, sectionName) : current;
