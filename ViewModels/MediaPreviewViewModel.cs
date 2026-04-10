@@ -1,12 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Api;
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using LibVLCSharp.Shared;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -200,7 +197,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             SelectedGame.SetValue(mediaItem.PathKey, relativePath);
             _sharedData.IsDataChanged = true;
 
-           
+
             // Refresh video player if needed
             if (mediaItem.IsVideo)
             {

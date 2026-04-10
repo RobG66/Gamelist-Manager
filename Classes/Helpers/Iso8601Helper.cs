@@ -11,14 +11,14 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             if (string.IsNullOrEmpty(dateString))
                 return string.Empty;
-            
+
             string[] formats = { "yyyy", "yyyy-MM-dd", "yyyy/MM/dd" };
 
             // Try each format using LINQ
             var result = formats
-                .Select(format => 
+                .Select(format =>
                 {
-                    DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, 
+                    DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture,
                         DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var date);
                     return date;
                 })
@@ -32,7 +32,7 @@ namespace Gamelist_Manager.Classes.Helpers
             // Try general parsing as fallback
             if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsedDate))
                 return parsedDate.ToString("yyyyMMddTHHmmss", CultureInfo.InvariantCulture);
-            
+
 
             return string.Empty;
         }
@@ -41,7 +41,7 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             if (string.IsNullOrEmpty(isoDateString))
                 return string.Empty;
-            
+
             try
             {
                 var date = DateTime.ParseExact(isoDateString, "yyyyMMddTHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);

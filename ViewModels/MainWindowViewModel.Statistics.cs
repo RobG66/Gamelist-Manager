@@ -1,7 +1,6 @@
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using DynamicData;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;

@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
+using System.Collections.Generic;
 
 namespace Gamelist_Manager.ViewModels;
 

@@ -1,13 +1,12 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Api;
-using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -36,12 +35,12 @@ public partial class SettingsViewModel
     [NotifyPropertyChangedFor(nameof(IsSetupArcadeDB))]
     private int _selectedSetupScraperIndex;
 
-    [ObservableProperty] private string  _scraperUsername             = string.Empty;
-    [ObservableProperty] private string  _scraperPassword             = string.Empty;
+    [ObservableProperty] private string _scraperUsername = string.Empty;
+    [ObservableProperty] private string _scraperPassword = string.Empty;
     [ObservableProperty] private string? _selectedScraperLanguage;
     [ObservableProperty] private string? _selectedScraperPrimaryRegion;
-    [ObservableProperty] private bool    _scraperGenreAlwaysEnglish;
-    [ObservableProperty] private bool    _scraperScrapeAnyMedia;
+    [ObservableProperty] private bool _scraperGenreAlwaysEnglish;
+    [ObservableProperty] private bool _scraperScrapeAnyMedia;
     [ObservableProperty] private string? _selectedScraperAvailableRegion;
     [ObservableProperty] private string? _selectedScraperFallbackRegion;
 
@@ -49,14 +48,14 @@ public partial class SettingsViewModel
 
     #region Public Properties
 
-    public ObservableCollection<string> ScraperLanguages        { get; } = new();
-    public ObservableCollection<string> ScraperPrimaryRegions   { get; } = new();
+    public ObservableCollection<string> ScraperLanguages { get; } = new();
+    public ObservableCollection<string> ScraperPrimaryRegions { get; } = new();
     public ObservableCollection<string> ScraperAvailableRegions { get; } = new();
-    public ObservableCollection<string> ScraperFallbackRegions  { get; } = new();
+    public ObservableCollection<string> ScraperFallbackRegions { get; } = new();
 
-    public bool IsSetupScreenScraper       => SelectedSetupScraperIndex == 2;
+    public bool IsSetupScreenScraper => SelectedSetupScraperIndex == 2;
     public bool IsSetupRequiresCredentials => SelectedSetupScraperIndex > 0;
-    public bool IsSetupArcadeDB            => SelectedSetupScraperIndex == 0;
+    public bool IsSetupArcadeDB => SelectedSetupScraperIndex == 0;
 
     #endregion
 
@@ -112,7 +111,7 @@ public partial class SettingsViewModel
         SelectedScraperPrimaryRegion = ScraperPrimaryRegions.FirstOrDefault(r => r == savedRegion) ?? ScraperPrimaryRegions.FirstOrDefault();
 
         ScraperGenreAlwaysEnglish = settings.GetBool("Scraper", "ScreenScraper_GenreEnglish", false);
-        ScraperScrapeAnyMedia     = settings.GetBool("Scraper", "ScreenScraper_AnyMedia",     false);
+        ScraperScrapeAnyMedia = settings.GetBool("Scraper", "ScreenScraper_AnyMedia", false);
 
         LoadScraperFallbackRegions();
     }
@@ -127,7 +126,7 @@ public partial class SettingsViewModel
 
         var json = SettingsService.Instance.GetValue("Scraper", "ScreenScraper_RegionFallback", DefaultFallbackJson);
         List<string> fallback;
-        try   { fallback = JsonSerializer.Deserialize<List<string>>(json) ?? []; }
+        try { fallback = JsonSerializer.Deserialize<List<string>>(json) ?? []; }
         catch { fallback = JsonSerializer.Deserialize<List<string>>(DefaultFallbackJson) ?? []; }
 
         foreach (var region in fallback)
@@ -151,10 +150,10 @@ public partial class SettingsViewModel
         if (IsSetupScreenScraper)
         {
             var settings = SettingsService.Instance;
-            settings.SetValue("Scraper", "ScreenScraper_Language",       SelectedScraperLanguage      ?? string.Empty);
-            settings.SetValue("Scraper", "ScreenScraper_PrimaryRegion",  SelectedScraperPrimaryRegion ?? string.Empty);
-            settings.SetBool ("Scraper", "ScreenScraper_GenreEnglish",   ScraperGenreAlwaysEnglish);
-            settings.SetBool ("Scraper", "ScreenScraper_AnyMedia",       ScraperScrapeAnyMedia);
+            settings.SetValue("Scraper", "ScreenScraper_Language", SelectedScraperLanguage ?? string.Empty);
+            settings.SetValue("Scraper", "ScreenScraper_PrimaryRegion", SelectedScraperPrimaryRegion ?? string.Empty);
+            settings.SetBool("Scraper", "ScreenScraper_GenreEnglish", ScraperGenreAlwaysEnglish);
+            settings.SetBool("Scraper", "ScreenScraper_AnyMedia", ScraperScrapeAnyMedia);
             settings.SetValue("Scraper", "ScreenScraper_RegionFallback", JsonSerializer.Serialize(ScraperFallbackRegions.ToList()));
         }
     }
@@ -171,7 +170,7 @@ public partial class SettingsViewModel
         ScraperAvailableRegions.Remove(item);
         ScraperFallbackRegions.Add(item);
         SelectedScraperAvailableRegion = null;
-        SelectedScraperFallbackRegion  = item;
+        SelectedScraperFallbackRegion = item;
     }
 
     private bool CanAddScraperRegion() => SelectedScraperAvailableRegion != null;
@@ -183,7 +182,7 @@ public partial class SettingsViewModel
         var item = SelectedScraperFallbackRegion;
         ScraperFallbackRegions.Remove(item);
         ScraperAvailableRegions.Add(item);
-        SelectedScraperFallbackRegion  = null;
+        SelectedScraperFallbackRegion = null;
         SelectedScraperAvailableRegion = item;
     }
 

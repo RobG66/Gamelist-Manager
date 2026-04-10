@@ -1,12 +1,12 @@
+using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
+using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Models;
-using Gamelist_Manager.Views;
 
 namespace Gamelist_Manager.ViewModels;
 

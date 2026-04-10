@@ -1,4 +1,3 @@
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -6,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
 using LibVLCSharp.Shared;
+using System.Linq;
 
 namespace Gamelist_Manager;
 
@@ -39,7 +39,7 @@ public partial class App : Application
 
             // Don't crash the app - continue without video support
         }
-        
+
         AvaloniaXamlLoader.Load(this);
     }
 
@@ -50,10 +50,10 @@ public partial class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            
+
             // Load and apply saved theme settings before showing the main window
             SettingsViewModel.LoadAndApplySettingsOnStartup();
-            
+
             desktop.MainWindow = new MainWindow
             {
                 DataContext = new MainWindowViewModel(),

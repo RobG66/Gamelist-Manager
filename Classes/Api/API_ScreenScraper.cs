@@ -22,12 +22,12 @@ namespace Gamelist_Manager.Classes.Api
     internal class API_ScreenScraper
     {
         private const string ApiUrl = "https://api.screenscraper.fr/api2";
-        
+
         // Developer credentials for ScreenScraper API
         private string _devId = string.Empty;
         private string _devPassword = string.Empty;
         private const string Software = "GamelistManager";
-        
+
         private readonly HttpClient _httpClient;
         private static readonly List<string> DefaultRegions = new List<string> { "wor", "us", "ss", "eu", "jp" };
 
@@ -153,7 +153,7 @@ namespace Gamelist_Manager.Classes.Api
             string url = $"{ApiUrl}/ssuserInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={userID}&sspassword={userPassword}";
 
             var (success, xml, fetchError) = await FetchFromApi(url);
-            
+
             if (!success)
             {
                 string errorMsg = string.IsNullOrEmpty(fetchError)

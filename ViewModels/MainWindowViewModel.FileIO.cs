@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media.Imaging;
@@ -13,9 +7,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Views;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
+using Gamelist_Manager.Views;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -90,15 +90,15 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Save Error",
-                    Message = $"An error occurred while saving the gamelist.\nError: {ex.Message}",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Save Error",
+                Message = $"An error occurred while saving the gamelist.\nError: {ex.Message}",
+                IconTheme = DialogIconTheme.Error,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            });
         }
         finally
         {

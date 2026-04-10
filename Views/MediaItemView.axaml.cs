@@ -3,8 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using LibVLCSharp.Avalonia;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Linq;
@@ -271,7 +271,7 @@ public partial class MediaItemView : UserControl
             return;
 
         mediaItem.IsDragOver = false;
-               
+
         if (!IsValidDrop(e, mediaItem))
             return;
 

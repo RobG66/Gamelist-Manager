@@ -11,7 +11,7 @@ namespace Gamelist_Manager.Classes.Helpers
         public static Dictionary<string, string> Names { get; private set; } = [];
 
         // Generates the MAME name/description dictionary from -listxml output.
-        
+
         public static async Task GenerateAsync(string mameExePath)
         {
             if (string.IsNullOrEmpty(mameExePath) || !File.Exists(mameExePath))

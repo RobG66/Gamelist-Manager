@@ -1,9 +1,8 @@
-using System;
-using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
-using Avalonia.Styling;
 using Gamelist_Manager.Models;
+using System;
+using System.Globalization;
 
 namespace Gamelist_Manager.Classes.Converters;
 

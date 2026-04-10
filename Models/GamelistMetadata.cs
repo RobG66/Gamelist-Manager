@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.Models
 {
@@ -10,7 +9,7 @@ namespace Gamelist_Manager.Models
 #pragma warning disable IDE1006 // Naming Styles
     public enum MetaDataKeys
     {
-        hidden, 
+        hidden,
         favorite,
         path,
         id,
@@ -176,8 +175,8 @@ namespace Gamelist_Manager.Models
 
             // Initialize media metadata cache (Image, Document, Video - excluding Music)
             mediaMetadataCache = metaDataDictionary.Values
-                .Where(decl => decl.DataType == MetaDataType.Image || 
-                               decl.DataType == MetaDataType.Document || 
+                .Where(decl => decl.DataType == MetaDataType.Image ||
+                               decl.DataType == MetaDataType.Document ||
                                decl.DataType == MetaDataType.Video)
                 .OrderBy(decl => decl.DataType == MetaDataType.Video ? 1 : 0)
                 .ThenBy(decl => decl.Key)
@@ -228,7 +227,7 @@ namespace Gamelist_Manager.Models
 
 
         // Conversion methods
-           
+
         public static string GetMetadataNameByType(string type)
         {
             var metaDataDecl = metaDataDictionary

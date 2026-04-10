@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Gamelist_Manager.Behaviors;
 
@@ -32,10 +32,10 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
 
         if (AssociatedObject != null)
         {
-            AssociatedObject.AddHandler(InputElement.PointerPressedEvent,      OnPointerPressed,     handledEventsToo: true);
-            AssociatedObject.AddHandler(InputElement.PointerMovedEvent,        OnPointerMoved,       handledEventsToo: true);
-            AssociatedObject.AddHandler(InputElement.PointerReleasedEvent,     OnPointerReleased,    handledEventsToo: true);
-            AssociatedObject.AddHandler(InputElement.PointerCaptureLostEvent,  OnPointerCaptureLost, handledEventsToo: true);
+            AssociatedObject.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, handledEventsToo: true);
+            AssociatedObject.AddHandler(InputElement.PointerMovedEvent, OnPointerMoved, handledEventsToo: true);
+            AssociatedObject.AddHandler(InputElement.PointerReleasedEvent, OnPointerReleased, handledEventsToo: true);
+            AssociatedObject.AddHandler(InputElement.PointerCaptureLostEvent, OnPointerCaptureLost, handledEventsToo: true);
         }
     }
 
@@ -45,9 +45,9 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
 
         if (AssociatedObject != null)
         {
-            AssociatedObject.RemoveHandler(InputElement.PointerPressedEvent,     OnPointerPressed);
-            AssociatedObject.RemoveHandler(InputElement.PointerMovedEvent,       OnPointerMoved);
-            AssociatedObject.RemoveHandler(InputElement.PointerReleasedEvent,    OnPointerReleased);
+            AssociatedObject.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressed);
+            AssociatedObject.RemoveHandler(InputElement.PointerMovedEvent, OnPointerMoved);
+            AssociatedObject.RemoveHandler(InputElement.PointerReleasedEvent, OnPointerReleased);
             AssociatedObject.RemoveHandler(InputElement.PointerCaptureLostEvent, OnPointerCaptureLost);
         }
     }
@@ -71,13 +71,13 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
             return;
 
         var point = e.GetPosition(AssociatedObject);
-        var item  = GetItemAtPoint(point);
+        var item = GetItemAtPoint(point);
 
         if (item != null && AssociatedObject.SelectedItems?.Count == 1 && AssociatedObject.SelectedItems.Contains(item))
         {
-            _isPendingDrag      = true;
-            _pendingDragOrigin  = point;
-            _pendingDragItem    = item;
+            _isPendingDrag = true;
+            _pendingDragOrigin = point;
+            _pendingDragItem = item;
             return;
         }
 
@@ -115,8 +115,8 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
                 return;
 
             // Threshold crossed — promote to a full drag.
-            _isPendingDrag   = false;
-            _isDragging      = true;
+            _isPendingDrag = false;
+            _isDragging = true;
             _selectionPath.Clear();
             _selectionPath.Add(_pendingDragItem);
             _pendingDragItem = null;
@@ -159,8 +159,8 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
     #region Selection Helpers
     private void StopDragging()
     {
-        _isDragging      = false;
-        _isPendingDrag   = false;
+        _isDragging = false;
+        _isPendingDrag = false;
         _pendingDragItem = null;
         _selectionPath.Clear();
 
@@ -180,7 +180,7 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
         var items = AssociatedObject.ItemsSource.Cast<object>().ToList();
         if (items.Count == 0) return null;
 
-        var tail      = _selectionPath.LastOrDefault();
+        var tail = _selectionPath.LastOrDefault();
         var tailIndex = tail != null ? items.IndexOf(tail) : -1;
         if (tailIndex < 0) return null;
 
@@ -223,7 +223,7 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
         if (AssociatedObject == null) return null;
 
         var element = AssociatedObject.InputHitTest(point);
-        var visual  = element as Visual;
+        var visual = element as Visual;
         while (visual != null && visual != AssociatedObject)
         {
             if (visual is DataGridRow row)

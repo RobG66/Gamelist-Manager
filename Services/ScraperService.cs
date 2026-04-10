@@ -142,7 +142,7 @@ namespace Gamelist_Manager.Services
                 if (success)
                 {
                     if (scraperProperties.LogVerbosity >= 1)
-                            Log($"'{scraperParameters.RomName}'", LogLevel.Default, LogPrefix.Scrape, LogLevel.Success);
+                        Log($"'{scraperParameters.RomName}'", LogLevel.Default, LogPrefix.Scrape, LogLevel.Success);
                     if (scrapedGameData.Media.Count > 0)
                     {
                         await MediaDownloadHelper.DownloadMediaFilesAsync(scrapedGameData, scraperParameters, _fileTransfer, RecordDownload, LogAction, cancellationToken);

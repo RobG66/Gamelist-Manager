@@ -1,7 +1,7 @@
-﻿using System;
-using System.Globalization;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using System;
+using System.Globalization;
 
 namespace Gamelist_Manager.Classes.Converters
 {
@@ -11,7 +11,7 @@ namespace Gamelist_Manager.Classes.Converters
         {
             // Determine visibility - handle both booleans and objects
             bool isVisible;
-            
+
             if (value is bool boolValue)
             {
                 isVisible = boolValue;
@@ -21,7 +21,7 @@ namespace Gamelist_Manager.Classes.Converters
                 // Treat non-null objects as true, null as false
                 isVisible = value != null;
             }
-            
+
             if (!isVisible)
             {
                 return new GridLength(0);

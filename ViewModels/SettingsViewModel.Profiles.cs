@@ -1,10 +1,10 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -39,17 +39,17 @@ public partial class SettingsViewModel
 
     #region Public Properties
 
-    public ObservableCollection<string> ProfileList  { get; } = new();
+    public ObservableCollection<string> ProfileList { get; } = new();
     public ObservableCollection<string> TemplateList { get; } = new();
 
-    public string ActiveProfileName    => ProfileService.Instance.ActiveProfile;
-    public bool   CanCreateFromTemplate => SelectedTemplateName != null;
+    public string ActiveProfileName => ProfileService.Instance.ActiveProfile;
+    public bool CanCreateFromTemplate => SelectedTemplateName != null;
 
     #endregion
 
     #region Events
 
-    public event EventHandler?        ProfilesChanged;
+    public event EventHandler? ProfilesChanged;
     public event EventHandler<string>? ConfirmDeleteProfileRequested;
     public event EventHandler<string>? ConfirmSwitchProfileRequested;
     public event EventHandler<string>? DuplicateTemplateProfileRequested;
@@ -96,7 +96,7 @@ public partial class SettingsViewModel
         var connection = IniFileService.GetSection(_templatesPath, SelectedTemplateName!);
         if (connection == null) return;
         if (!ProfileService.Instance.CreateProfileFromTemplate(NewProfileName.Trim(), connection, overwrite)) return;
-        NewProfileName      = string.Empty;
+        NewProfileName = string.Empty;
         SelectedTemplateName = null;
         RefreshProfileList();
         ProfilesChanged?.Invoke(this, EventArgs.Empty);

@@ -1,5 +1,4 @@
 using Gamelist_Manager.Classes.Api;
-using Gamelist_Manager.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

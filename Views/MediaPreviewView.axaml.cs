@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Media;
-using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System.ComponentModel;
@@ -59,7 +58,7 @@ public partial class MediaPreviewView : UserControl
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
-        
+
         // Clean up all video views when panel is unloaded
         CleanupMediaGrid();
         _viewModel = null;
@@ -87,7 +86,7 @@ public partial class MediaPreviewView : UserControl
         {
             _viewModel = viewModel;
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-            
+
             // Initialize media grid for the new ViewModel instance
             if (_mediaContentGrid == null)
             {

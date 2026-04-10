@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -25,35 +25,35 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     #region Observable Properties — DAT Summary
 
-    [ObservableProperty] private string _datTotal       = "—";
-    [ObservableProperty] private string _datParents     = "—";
-    [ObservableProperty] private string _datClones      = "—";
-    [ObservableProperty] private string _datCHD         = "—";
-    [ObservableProperty] private string _datPlayable    = "—";
+    [ObservableProperty] private string _datTotal = "—";
+    [ObservableProperty] private string _datParents = "—";
+    [ObservableProperty] private string _datClones = "—";
+    [ObservableProperty] private string _datCHD = "—";
+    [ObservableProperty] private string _datPlayable = "—";
     [ObservableProperty] private string _datNonPlayable = "—";
 
     #endregion
 
     #region Observable Properties — Gamelist Summary
 
-    [ObservableProperty] private string _gamelistTotal          = "—";
-    [ObservableProperty] private string _gamelistParents        = "—";
-    [ObservableProperty] private string _gamelistClones         = "—";
-    [ObservableProperty] private string _gamelistCHD            = "—";
-    [ObservableProperty] private string _gamelistNonPlayable    = "—";
+    [ObservableProperty] private string _gamelistTotal = "—";
+    [ObservableProperty] private string _gamelistParents = "—";
+    [ObservableProperty] private string _gamelistClones = "—";
+    [ObservableProperty] private string _gamelistCHD = "—";
+    [ObservableProperty] private string _gamelistNonPlayable = "—";
     [ObservableProperty] private string _gamelistMissingParents = "—";
-    [ObservableProperty] private string _gamelistMissingClones  = "—";
-    [ObservableProperty] private string _gamelistNotInDat       = "—";
+    [ObservableProperty] private string _gamelistMissingClones = "—";
+    [ObservableProperty] private string _gamelistNotInDat = "—";
 
     #endregion
 
     #region Observable Properties — DAT Header
 
-    [ObservableProperty] private string _datFileName        = string.Empty;
-    [ObservableProperty] private string _datInfoName        = "—";
-    [ObservableProperty] private string _datInfoVersion     = "—";
-    [ObservableProperty] private string _datInfoAuthor      = "—";
-    [ObservableProperty] private string _datInfoDate        = "—";
+    [ObservableProperty] private string _datFileName = string.Empty;
+    [ObservableProperty] private string _datInfoName = "—";
+    [ObservableProperty] private string _datInfoVersion = "—";
+    [ObservableProperty] private string _datInfoAuthor = "—";
+    [ObservableProperty] private string _datInfoDate = "—";
     [ObservableProperty] private string _datInfoDescription = "—";
 
     #endregion
@@ -68,7 +68,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _includeHidden;
     [ObservableProperty] private bool _isCsvOutputEnabled;
     [ObservableProperty] private bool _csvOutput;
-    [ObservableProperty] private int  _reportViewIndex;
+    [ObservableProperty] private int _reportViewIndex;
     [ObservableProperty] private bool _missingFilterParents = true;
     [ObservableProperty] private bool _missingFilterClones;
     [ObservableProperty] private bool _missingFilterAll;
@@ -78,9 +78,9 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     #region Events
 
-    public event EventHandler?        CloseRequested;
+    public event EventHandler? CloseRequested;
     public event EventHandler<string>? ReportColumnAdded;
-    public event EventHandler?        PanelDisposing;
+    public event EventHandler? PanelDisposing;
 
     #endregion
 
@@ -116,7 +116,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     {
         if (!value) return;
         _missingFilterClones = false;
-        _missingFilterAll    = false;
+        _missingFilterAll = false;
         OnPropertyChanged(nameof(MissingFilterClones));
         OnPropertyChanged(nameof(MissingFilterAll));
     }
@@ -125,7 +125,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     {
         if (!value) return;
         _missingFilterParents = false;
-        _missingFilterAll     = false;
+        _missingFilterAll = false;
         OnPropertyChanged(nameof(MissingFilterParents));
         OnPropertyChanged(nameof(MissingFilterAll));
     }
@@ -134,7 +134,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     {
         if (!value) return;
         _missingFilterParents = false;
-        _missingFilterClones  = false;
+        _missingFilterClones = false;
         OnPropertyChanged(nameof(MissingFilterParents));
         OnPropertyChanged(nameof(MissingFilterClones));
     }
@@ -173,7 +173,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
                 summaryLookup[item.Name] = display;
         }
 
-        var lookup      = new Dictionary<string, string>(FilePathHelper.PathComparer);
+        var lookup = new Dictionary<string, string>(FilePathHelper.PathComparer);
         var gamelistData = _sharedData.GamelistData;
 
         if (gamelistData != null)
@@ -197,20 +197,20 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     public void Reset()
     {
-        DatFileName    = string.Empty;
-        DatTotal       = DatParents = DatClones = DatCHD = DatPlayable = DatNonPlayable = "—";
-        GamelistTotal  = GamelistParents = GamelistClones = GamelistCHD = "—";
+        DatFileName = string.Empty;
+        DatTotal = DatParents = DatClones = DatCHD = DatPlayable = DatNonPlayable = "—";
+        GamelistTotal = GamelistParents = GamelistClones = GamelistCHD = "—";
         GamelistNonPlayable = GamelistMissingParents = GamelistMissingClones = GamelistNotInDat = "—";
-        DatInfoName    = DatInfoVersion = DatInfoAuthor = DatInfoDate = DatInfoDescription = "—";
+        DatInfoName = DatInfoVersion = DatInfoAuthor = DatInfoDate = DatInfoDescription = "—";
 
         IsIncludeHiddenEnabled = false;
-        IncludeHidden          = false;
-        IsCsvOutputEnabled     = false;
-        CsvOutput              = false;
-        IsReportComboEnabled   = false;
-        ReportViewIndex        = 0;
-        IsFindMissingEnabled   = false;
-        IsClearReportEnabled   = false;
+        IncludeHidden = false;
+        IsCsvOutputEnabled = false;
+        CsvOutput = false;
+        IsReportComboEnabled = false;
+        ReportViewIndex = 0;
+        IsFindMissingEnabled = false;
+        IsClearReportEnabled = false;
 
         _datSummary.Clear();
         _gamelistSummary.Clear();

@@ -1,10 +1,9 @@
-using System;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.ViewModels;
+using System;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Views;
 

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Globalization;
-using Avalonia.Controls.Primitives;
+﻿using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
+using System;
+using System.Globalization;
 
 namespace Gamelist_Manager.Classes.Converters
 {

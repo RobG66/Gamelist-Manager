@@ -14,6 +14,6 @@ public enum LogLevel
 // Checked by ScraperViewModel.Logging to route entries to the correct counter.
 internal static class LogPrefix
 {
-    internal const string Scrape   = "→ ";
+    internal const string Scrape = "→ ";
     internal const string Download = "↓ ";
 }

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -17,10 +16,10 @@ namespace Gamelist_Manager.Classes.Api
     internal class API_EmuMovies
     {
         private const string ApiUrl = "https://api3.emumovies.com/api";
-        
+
         // Developer bearer token for EmuMovies API
         private string _bearerToken;
-        
+
         private readonly HttpClient _httpClient;
 
         public API_EmuMovies(HttpClient httpClient)

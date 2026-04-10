@@ -1,10 +1,9 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.ViewModels;
 

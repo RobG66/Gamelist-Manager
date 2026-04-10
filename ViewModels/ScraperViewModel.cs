@@ -1,16 +1,12 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Api;
-using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -119,14 +115,13 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     #endregion
 
     #region Observable Properties - Media Sources
-    public ObservableCollection<string> ImageSources { get; } = new();
-    public ObservableCollection<string> MarqueeSources { get; } = new();
-    public ObservableCollection<string> ThumbnailSources { get; } = new();
-    public ObservableCollection<string> CartridgeSources { get; } = new();
-    public ObservableCollection<string> VideoSources { get; } = new();
-    public ObservableCollection<string> BoxArtSources { get; } = new();
-    public ObservableCollection<string> WheelSources { get; } = new();
-
+    public ObservableCollection<string> ImageSources { get; } = [];
+    public ObservableCollection<string> MarqueeSources { get; } = [];
+    public ObservableCollection<string> ThumbnailSources { get; } = [];
+    public ObservableCollection<string> CartridgeSources { get; } = [];
+    public ObservableCollection<string> VideoSources { get; } = [];
+    public ObservableCollection<string> BoxArtSources { get; } = [];
+    public ObservableCollection<string> WheelSources { get; } = [];
     [ObservableProperty] private int _selectedImageSource = -1;
     [ObservableProperty] private int _selectedMarqueeSource = -1;
     [ObservableProperty] private int _selectedThumbnailSource = -1;
@@ -149,7 +144,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _downloadSuccessText = "0";
     [ObservableProperty] private string _downloadFailedText = "0";
 
-    public ObservableCollection<LogEntry> LogEntries { get; } = new();
+    public ObservableCollection<LogEntry> LogEntries { get; } = [];
     #endregion
 
     #region Public Properties
@@ -220,8 +215,8 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             _currentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
             SelectedScraperIndex = _currentScraper switch
             {
-                var s when s == ScraperRegistry.ArcadeDB.Name     => 0,
-                var s when s == ScraperRegistry.EmuMovies.Name    => 1,
+                var s when s == ScraperRegistry.ArcadeDB.Name => 0,
+                var s when s == ScraperRegistry.EmuMovies.Name => 1,
                 var s when s == ScraperRegistry.ScreenScraper.Name => 2,
                 _ => 0
             };
@@ -457,6 +452,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _cts?.Cancel();
         _cts?.Dispose();
         SaveScraperSettings();
+        GC.SuppressFinalize(this);
     }
     #endregion
 }

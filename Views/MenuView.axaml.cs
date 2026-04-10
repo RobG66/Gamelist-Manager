@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.ViewModels;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Gamelist_Manager.Views;
+
 public partial class MenuView : UserControl
 {
     private readonly Dictionary<string, CheckBox> _columnCheckBoxes = new();

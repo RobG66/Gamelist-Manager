@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Gamelist_Manager.ViewModels;
 

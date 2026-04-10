@@ -1,15 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Views;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -142,7 +142,7 @@ public partial class DatToolViewModel
                     FilePathHelper.PathComparer);
 
                 var missingParents = new List<(string Name, string Description, string NonPlayable, string CHDRequired)>();
-                var missingClones  = new List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)>();
+                var missingClones = new List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)>();
 
                 foreach (var datItem in _datSummary)
                 {

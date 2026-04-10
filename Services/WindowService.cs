@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Gamelist_Manager.Views;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Services;
 

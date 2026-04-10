@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.Generic;
 
 namespace Gamelist_Manager.Models
 {

@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
+using System;
+using System.Linq;
 
 namespace Gamelist_Manager.Services
 {
@@ -59,18 +59,18 @@ namespace Gamelist_Manager.Services
 
             var accentColor = colorIndex switch
             {
-                0  => Color.FromRgb(0,   120, 212),  // Blue    (#0078D4)
-                1  => Color.FromRgb(231,  72,  86),  // Red     (#E74856)
-                2  => Color.FromRgb(255, 140,   0),  // Orange  (#FF8C00)
-                3  => Color.FromRgb(16,  124,  16),  // Green   (#107C10)
-                4  => Color.FromRgb(255, 185,   0),  // Yellow  (#FFB900)
-                5  => Color.FromRgb(227,   0, 140),  // Magenta (#E3008C)
-                6  => Color.FromRgb(136,  23, 152),  // Purple  (#881798)
-                7  => Color.FromRgb(0,   183, 195),  // Teal    (#00B7C3)
-                8  => Color.FromRgb(16,  137,  62),  // Lime    (#10893E)
-                9  => Color.FromRgb(0,   188, 242),  // Lt Blue (#00BCF2)
-                10 => Color.FromRgb(92,   45, 145),  // Indigo  (#5C2D91)
-                _  => Color.FromRgb(0,   120, 212)   // Default Blue
+                0 => Color.FromRgb(0, 120, 212),  // Blue    (#0078D4)
+                1 => Color.FromRgb(231, 72, 86),  // Red     (#E74856)
+                2 => Color.FromRgb(255, 140, 0),  // Orange  (#FF8C00)
+                3 => Color.FromRgb(16, 124, 16),  // Green   (#107C10)
+                4 => Color.FromRgb(255, 185, 0),  // Yellow  (#FFB900)
+                5 => Color.FromRgb(227, 0, 140),  // Magenta (#E3008C)
+                6 => Color.FromRgb(136, 23, 152),  // Purple  (#881798)
+                7 => Color.FromRgb(0, 183, 195),  // Teal    (#00B7C3)
+                8 => Color.FromRgb(16, 137, 62),  // Lime    (#10893E)
+                9 => Color.FromRgb(0, 188, 242),  // Lt Blue (#00BCF2)
+                10 => Color.FromRgb(92, 45, 145),  // Indigo  (#5C2D91)
+                _ => Color.FromRgb(0, 120, 212)   // Default Blue
             };
 
             // Update FluentTheme palette Accent (the only property that supports runtime changes)
@@ -89,10 +89,10 @@ namespace Gamelist_Manager.Services
 
             // Update SystemAccentColor* resources used by ThemeResources.axaml custom brushes
             // Light1/Light2 are lighter (higher lightness), Dark1 is darker — derived via HSL
-            app.Resources["SystemAccentColor"]  = accentColor;
+            app.Resources["SystemAccentColor"] = accentColor;
             app.Resources["SystemAccentColorLight1"] = ShiftLightness(accentColor, +0.15f);
             app.Resources["SystemAccentColorLight2"] = ShiftLightness(accentColor, +0.30f);
-            app.Resources["SystemAccentColorDark1"]  = ShiftLightness(accentColor, -0.15f);
+            app.Resources["SystemAccentColorDark1"] = ShiftLightness(accentColor, -0.15f);
         }
 
         #region Private Methods
@@ -120,7 +120,7 @@ namespace Gamelist_Manager.Services
 
             float hRaw = max == rf ? (gf - bf) / delta + (gf < bf ? 6f : 0f)
                        : max == gf ? (bf - rf) / delta + 2f
-                       :             (rf - gf) / delta + 4f;
+                       : (rf - gf) / delta + 4f;
             h = hRaw / 6f;
         }
 
@@ -134,7 +134,7 @@ namespace Gamelist_Manager.Services
             float q = l < 0.5f ? l * (1f + s) : l + s - l * s;
             float p = 2f * l - q;
             r = (byte)(HueToRgb(p, q, h + 1f / 3f) * 255f);
-            g = (byte)(HueToRgb(p, q, h)           * 255f);
+            g = (byte)(HueToRgb(p, q, h) * 255f);
             b = (byte)(HueToRgb(p, q, h - 1f / 3f) * 255f);
         }
 
@@ -228,7 +228,7 @@ namespace Gamelist_Manager.Services
             {
                 // None
                 0 => null,
-                
+
                 // Light Colors (1-9) - Good for Light Theme
                 1 => new SolidColorBrush(Color.FromRgb(245, 245, 245)), // Light Gray
                 2 => new SolidColorBrush(Color.FromRgb(240, 248, 255)), // Light Blue (Alice Blue)
@@ -239,7 +239,7 @@ namespace Gamelist_Manager.Services
                 7 => new SolidColorBrush(Color.FromRgb(240, 255, 255)), // Light Cyan (Azure)
                 8 => new SolidColorBrush(Color.FromRgb(255, 248, 220)), // Light Cream (Cornsilk)
                 9 => new SolidColorBrush(Color.FromRgb(255, 245, 238)), // Light Peach (Seashell)
-                
+
                 // Medium Colors (10-15) - Good for Light Theme
                 10 => new SolidColorBrush(Color.FromRgb(211, 211, 211)), // Medium Gray (Light Gray)
                 11 => new SolidColorBrush(Color.FromRgb(173, 216, 230)), // Medium Blue (Light Blue)
@@ -247,7 +247,7 @@ namespace Gamelist_Manager.Services
                 13 => new SolidColorBrush(Color.FromRgb(255, 255, 153)), // Medium Yellow (Light Yellow)
                 14 => new SolidColorBrush(Color.FromRgb(255, 182, 193)), // Medium Pink (Light Pink)
                 15 => new SolidColorBrush(Color.FromRgb(216, 191, 216)), // Medium Lavender (Thistle)
-                
+
                 // Dark Colors (16-21) - Good for Dark Theme
                 16 => new SolidColorBrush(Color.FromRgb(45, 45, 45)),   // Dark Gray
                 17 => new SolidColorBrush(Color.FromRgb(25, 35, 50)),   // Dark Blue
@@ -255,7 +255,7 @@ namespace Gamelist_Manager.Services
                 19 => new SolidColorBrush(Color.FromRgb(25, 45, 45)),   // Dark Teal
                 20 => new SolidColorBrush(Color.FromRgb(40, 30, 50)),   // Dark Purple
                 21 => new SolidColorBrush(Color.FromRgb(45, 35, 30)),   // Dark Brown
-                
+
                 _ => null
             };
 
@@ -263,7 +263,7 @@ namespace Gamelist_Manager.Services
             var stylesToRemove = dataGrid.Styles
                 .Where(s => s is Style style && style.Selector?.ToString()?.Contains("DataGridRow:nth-child") == true)
                 .ToList();
-            
+
             foreach (var style in stylesToRemove)
             {
                 dataGrid.Styles.Remove(style);

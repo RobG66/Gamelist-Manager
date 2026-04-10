@@ -1,8 +1,8 @@
+using Gamelist_Manager.Views;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Gamelist_Manager.Views;
 
 namespace Gamelist_Manager.Classes.Helpers
 {

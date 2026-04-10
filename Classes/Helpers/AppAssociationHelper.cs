@@ -1,9 +1,9 @@
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using Microsoft.Win32;
 
 namespace Gamelist_Manager.Classes.Helpers
 {
@@ -97,7 +97,7 @@ namespace Gamelist_Manager.Classes.Helpers
             {
                 // Ignore
             }
-            
+
             return "Unknown UWP App";
         }
 
@@ -117,7 +117,7 @@ namespace Gamelist_Manager.Classes.Helpers
                     string? friendlyName = appKey.GetValue("FriendlyAppName")?.ToString();
                     if (!string.IsNullOrEmpty(friendlyName))
                         return friendlyName;
-                    
+
                     // Try ApplicationName
                     friendlyName = appKey.GetValue("ApplicationName")?.ToString();
                     if (!string.IsNullOrEmpty(friendlyName))

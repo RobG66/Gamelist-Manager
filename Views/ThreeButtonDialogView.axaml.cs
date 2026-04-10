@@ -1,10 +1,10 @@
-using System;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using System;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Views
 {
@@ -26,26 +26,26 @@ namespace Gamelist_Manager.Views
         public ThreeButtonDialogView(ThreeButtonDialogConfig config)
         {
             InitializeComponent();
-            
+
             _button1Result = config.Button1Result;
             _button2Result = config.Button2Result;
             _button3Result = config.Button3Result;
-            
+
             // Set window title
             Title = config.Title;
-            
+
             // Set message texts
             MessageText.Text = config.Message;
-            
+
             if (!string.IsNullOrEmpty(config.DetailMessage))
             {
                 DetailText.Text = config.DetailMessage;
                 DetailText.IsVisible = true;
             }
-            
+
             // Apply icon theme
             ApplyIconTheme(config.IconTheme);
-            
+
             // Set button texts and visibility
             if (!string.IsNullOrEmpty(config.Button1Text))
             {
@@ -54,7 +54,7 @@ namespace Gamelist_Manager.Views
             }
             else
                 Button1.IsVisible = false;
-            
+
             if (!string.IsNullOrEmpty(config.Button2Text))
             {
                 Button2.Content = config.Button2Text;
@@ -62,7 +62,7 @@ namespace Gamelist_Manager.Views
             }
             else
                 Button2.IsVisible = false;
-            
+
             if (!string.IsNullOrEmpty(config.Button3Text))
             {
                 Button3.Content = config.Button3Text;
@@ -77,9 +77,9 @@ namespace Gamelist_Manager.Views
             string assetPath = theme switch
             {
                 DialogIconTheme.Warning => "avares://Gamelist_Manager/Assets/Icons/warning-triangle.png",
-                DialogIconTheme.Info    => "avares://Gamelist_Manager/Assets/Icons/info-circle.png",
-                DialogIconTheme.Error   => "avares://Gamelist_Manager/Assets/Icons/error-circle.png",
-                _                      => "avares://Gamelist_Manager/Assets/Icons/question-circle.png"
+                DialogIconTheme.Info => "avares://Gamelist_Manager/Assets/Icons/info-circle.png",
+                DialogIconTheme.Error => "avares://Gamelist_Manager/Assets/Icons/error-circle.png",
+                _ => "avares://Gamelist_Manager/Assets/Icons/question-circle.png"
             };
 
             var uri = new Uri(assetPath);
@@ -89,9 +89,9 @@ namespace Gamelist_Manager.Views
             string borderClass = theme switch
             {
                 DialogIconTheme.Warning => "warning-icon",
-                DialogIconTheme.Info    => "info-icon",
-                DialogIconTheme.Error   => "error-icon",
-                _                      => "question-icon"
+                DialogIconTheme.Info => "info-icon",
+                DialogIconTheme.Error => "error-icon",
+                _ => "question-icon"
             };
             IconBorder.Classes.Add(borderClass);
             DetailText.Classes.Add(borderClass);

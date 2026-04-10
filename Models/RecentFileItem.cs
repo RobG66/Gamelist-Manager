@@ -17,7 +17,7 @@ namespace Gamelist_Manager.Models
             FilePath = filePath;
             FileName = Path.GetFileName(filePath);
             DirectoryPath = Path.GetDirectoryName(filePath) ?? string.Empty;
-            
+
             // Check if file exists and get last modified time
             if (File.Exists(filePath))
             {
@@ -46,10 +46,10 @@ namespace Gamelist_Manager.Models
             {
                 if (!FileExists)
                     return "[File not found]";
-                
+
                 if (LastModified.HasValue)
                     return $"Last Modified: {LastModified.Value:yyyy-MM-dd HH:mm:ss}";
-                
+
                 return string.Empty;
             }
         }

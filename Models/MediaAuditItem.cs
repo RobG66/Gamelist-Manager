@@ -7,8 +7,8 @@ namespace Gamelist_Manager.Models;
 
 public class MediaAuditItem
 {
-    private static readonly Lazy<Bitmap?> s_imageIcon    = new(() => LoadAsset("image.png"));
-    private static readonly Lazy<Bitmap?> s_videoIcon    = new(() => LoadAsset("video.png"));
+    private static readonly Lazy<Bitmap?> s_imageIcon = new(() => LoadAsset("image.png"));
+    private static readonly Lazy<Bitmap?> s_videoIcon = new(() => LoadAsset("video.png"));
     private static readonly Lazy<Bitmap?> s_documentIcon = new(() => LoadAsset("manual.png"));
 
     public string Name { get; init; } = string.Empty;
@@ -22,10 +22,10 @@ public class MediaAuditItem
     // Will show 0 references, but still used
     public Bitmap? Icon => DataType switch
     {
-        MetaDataType.Image    => s_imageIcon.Value,
-        MetaDataType.Video    => s_videoIcon.Value,
+        MetaDataType.Image => s_imageIcon.Value,
+        MetaDataType.Video => s_videoIcon.Value,
         MetaDataType.Document => s_documentIcon.Value,
-        _                     => null
+        _ => null
     };
 
     private static Bitmap? LoadAsset(string fileName)

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
@@ -14,6 +9,11 @@ using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Reflection;
 
 namespace Gamelist_Manager.Views;
 
@@ -138,9 +138,9 @@ public partial class MainWindow : Window
             _currentViewModel.PropertyChanged -= ViewModel_PropertyChanged;
             _currentViewModel.ColumnVisibilityChanged -= ApplyColumnVisibility;
             _currentViewModel.ReportColumnsCleared -= OnReportColumnsCleared;
-                _currentViewModel.FindReportColumnAdded -= OnFindReportColumnAdded;
-                _currentViewModel.RequestNavigateToItem -= ViewModel_RequestNavigateToItem;
-            }
+            _currentViewModel.FindReportColumnAdded -= OnFindReportColumnAdded;
+            _currentViewModel.RequestNavigateToItem -= ViewModel_RequestNavigateToItem;
+        }
 
         if (DataContext is MainWindowViewModel viewModel)
         {

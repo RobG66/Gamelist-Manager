@@ -176,7 +176,7 @@ namespace Gamelist_Manager.Services
             IsDataChanged = false;
         }
 
-      
+
         public void Clear()
         {
             XmlFilename = null;

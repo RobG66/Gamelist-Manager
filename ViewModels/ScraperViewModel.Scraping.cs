@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using Gamelist_Manager.Classes.Api;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 

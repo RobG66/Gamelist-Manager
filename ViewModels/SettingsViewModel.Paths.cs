@@ -1,7 +1,7 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -31,15 +31,15 @@ public partial class SettingsViewModel
         {
             var item = new MediaFolderItem
             {
-                Key            = decl.Type,
-                Label          = decl.Name,
-                DefaultPath    = decl.DefaultPath,
-                DefaultSuffix  = decl.DefaultSuffix,
+                Key = decl.Type,
+                Label = decl.Name,
+                DefaultPath = decl.DefaultPath,
+                DefaultSuffix = decl.DefaultSuffix,
                 DefaultEnabled = decl.DefaultEnabled,
             };
-            item.Enabled    = item.DefaultEnabled;
-            item.Path       = item.DefaultPath;
-            item.Suffix     = item.DefaultSuffix;
+            item.Enabled = item.DefaultEnabled;
+            item.Path = item.DefaultPath;
+            item.Suffix = item.DefaultSuffix;
             item.SfxEnabled = item.DefaultSfxEnabled;
             item.PropertyChanged += (_, e) =>
             {
@@ -73,7 +73,7 @@ public partial class SettingsViewModel
 
         foreach (var item in MediaFolderItems)
         {
-            item.Path   = item.Path.Trim();
+            item.Path = item.Path.Trim();
             item.Suffix = item.Suffix.Trim();
         }
 
@@ -106,9 +106,9 @@ public partial class SettingsViewModel
             foreach (var item in MediaFolderItems)
             {
                 if (!item.Enabled) continue;
-                var normPath       = (FilePathHelper.NormalizePathWithDotSlashPrefix(item.Path) ?? item.Path).ToLowerInvariant();
+                var normPath = (FilePathHelper.NormalizePathWithDotSlashPrefix(item.Path) ?? item.Path).ToLowerInvariant();
                 var effectiveSuffix = item.SfxEnabled ? item.Suffix.ToLowerInvariant() : "";
-                var key            = (normPath, effectiveSuffix);
+                var key = (normPath, effectiveSuffix);
 
                 if (seen.TryGetValue(key, out var firstName))
                     errors.Add($"{item.Label} and {firstName} share the same folder and filename suffix, which would cause a collision.");

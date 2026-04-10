@@ -1,8 +1,8 @@
+using Gamelist_Manager.Classes.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Gamelist_Manager.Classes.Helpers;
 using IniData = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
 
 namespace Gamelist_Manager.Services
@@ -99,7 +99,7 @@ namespace Gamelist_Manager.Services
             SetValue(section, key, value.ToString());
         }
 
-       
+
         public void SetSection(string section, Dictionary<string, string> values)
         {
             SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
@@ -119,7 +119,8 @@ namespace Gamelist_Manager.Services
             // Get all keys that start with "file" and sort them numerically
             var fileKeys = section.Keys
                 .Where(k => k.StartsWith("file"))
-                .OrderBy(k => {
+                .OrderBy(k =>
+                {
                     var numStr = k.Substring(4); // Remove "file" prefix
                     return int.TryParse(numStr, out var num) ? num : int.MaxValue;
                 })

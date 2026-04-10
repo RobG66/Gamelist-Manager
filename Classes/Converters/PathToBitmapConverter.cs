@@ -1,5 +1,4 @@
 ﻿using Avalonia.Data.Converters;
-using Avalonia.Media.Imaging;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using System;

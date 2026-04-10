@@ -1,11 +1,11 @@
-using System;
-using System.ComponentModel;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
+using System;
+using System.ComponentModel;
+using System.Linq;
 
 namespace Gamelist_Manager.Views
 {
@@ -123,8 +123,8 @@ namespace Gamelist_Manager.Views
                         return; // stay open
                     }
                     ViewModel.SaveSettings();
-                        SharedDataService.Instance.LoadFromSettings();
-                    }
+                    SharedDataService.Instance.LoadFromSettings();
+                }
 
                 // Reaches here only for DontSave or successful Save
                 Closing -= SettingsWindow_Closing;
@@ -275,5 +275,5 @@ namespace Gamelist_Manager.Views
                 item.SfxEnabled = newValue;
         }
 
-        }
+    }
 }
