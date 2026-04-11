@@ -32,6 +32,7 @@ public partial class ScraperViewModel
             return;
         }
 
+        SaveScraperSettings();
         ResetScrapeUI();
 
         _cts = new CancellationTokenSource();
@@ -42,19 +43,12 @@ public partial class ScraperViewModel
 
         try
         {
-            var baseParameters = ScraperParameters.Create(_sharedData, elementsToScrape);
+            var baseParameters = ScraperParameters.Create(_sharedData, _currentScraper, _sharedData.CurrentSystem ?? string.Empty, elementsToScrape);
             baseParameters.OverwriteName = OverwriteName;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
             baseParameters.OverwriteMedia = OverwriteMedia;
             baseParameters.ScrapeByCache = ScrapeFromCache;
             baseParameters.SkipNonCached = SkipNonCachedItems;
-            baseParameters.ImageSource = GetIniSourceValue("ImageSource", SelectedImageSource, ImageSources);
-            baseParameters.MarqueeSource = GetIniSourceValue("MarqueeSource", SelectedMarqueeSource, MarqueeSources);
-            baseParameters.ThumbnailSource = GetIniSourceValue("ThumbnailSource", SelectedThumbnailSource, ThumbnailSources);
-            baseParameters.CartridgeSource = GetIniSourceValue("CartridgeSource", SelectedCartridgeSource, CartridgeSources);
-            baseParameters.VideoSource = GetIniSourceValue("VideoSource", SelectedVideoSource, VideoSources);
-            baseParameters.BoxArtSource = GetIniSourceValue("BoxArtSource", SelectedBoxArtSource, BoxArtSources);
-            baseParameters.WheelSource = GetIniSourceValue("WheelSource", SelectedWheelSource, WheelSources);
 
             var scraperProperties = new ScraperProperties
             {
@@ -197,14 +191,6 @@ public partial class ScraperViewModel
         if (MediaBoxArt) elements.Add("boxart");
         if (MediaWheel) elements.Add("wheel");
         return elements;
-    }
-
-    private string GetIniSourceValue(string sectionName, int selectedIndex, ObservableCollection<string> sources)
-    {
-        if (selectedIndex < 0 || selectedIndex >= sources.Count) return string.Empty;
-        string displayName = sources[selectedIndex];
-        var section = _sharedData.GetScraperSources(_currentScraper, sectionName);
-        return section.TryGetValue(displayName, out var value) ? value : string.Empty;
     }
 
     private static void RestoreSource(ObservableCollection<string> collection, string savedValue, Action<int> setIndex)

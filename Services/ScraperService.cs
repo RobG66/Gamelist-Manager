@@ -43,14 +43,6 @@ namespace Gamelist_Manager.Services
         private void Log(string message, LogLevel level = LogLevel.Default, string? prefix = null, LogLevel prefixLevel = LogLevel.Default)
             => LogAction?.Invoke(message, level, prefix, prefixLevel);
 
-        public string CreateCacheFolder(string scraper, string system)
-        {
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraper, system);
-            if (!Directory.Exists(cacheFolder))
-                Directory.CreateDirectory(cacheFolder);
-            return cacheFolder;
-        }
-
         public async Task GetEmuMoviesMediaListsAsync(string systemId, ScraperProperties scraperProperties, CancellationToken cancellationToken = default)
         {
             try
@@ -343,32 +335,7 @@ namespace Gamelist_Manager.Services
                 }
             }
 
-            baseParameters.SystemID ??= _sharedData.GetScraperSystemId(scraperName, currentSystem);
-            baseParameters.SSLanguage ??= _sharedData.GetScraperLanguageCode(scraperName);
-            if (baseParameters.SSRegions == null)
-            {
-                string? primaryRegion = _sharedData.GetScraperPrimaryRegionCode(scraperName);
-                var regions = _sharedData.GetScraperRegionCodes(scraperName).ToList();
-                if (!string.IsNullOrEmpty(primaryRegion))
-                {
-                    regions.Remove(primaryRegion);
-                    regions.Insert(0, primaryRegion);
-                }
-                baseParameters.SSRegions = regions;
-            }
-
-            string resolveIfEmpty(string? current, string sectionName)
-                => string.IsNullOrEmpty(current) ? ResolveSourceValue(scraperName, sectionName) : current;
-
-            baseParameters.ImageSource = resolveIfEmpty(baseParameters.ImageSource, nameof(baseParameters.ImageSource));
-            baseParameters.MarqueeSource = resolveIfEmpty(baseParameters.MarqueeSource, nameof(baseParameters.MarqueeSource));
-            baseParameters.ThumbnailSource = resolveIfEmpty(baseParameters.ThumbnailSource, nameof(baseParameters.ThumbnailSource));
-            baseParameters.CartridgeSource = resolveIfEmpty(baseParameters.CartridgeSource, nameof(baseParameters.CartridgeSource));
-            baseParameters.VideoSource = resolveIfEmpty(baseParameters.VideoSource, nameof(baseParameters.VideoSource));
-            baseParameters.BoxArtSource = resolveIfEmpty(baseParameters.BoxArtSource, nameof(baseParameters.BoxArtSource));
-            baseParameters.WheelSource = resolveIfEmpty(baseParameters.WheelSource, nameof(baseParameters.WheelSource));
-
-            baseParameters.CacheFolder = CreateCacheFolder(scraperName, currentSystem);
+            Directory.CreateDirectory(baseParameters.CacheFolder!);
 
             if (scraperName == ScraperRegistry.ScreenScraper.Name)
             {
@@ -397,22 +364,8 @@ namespace Gamelist_Manager.Services
             return true;
         }
 
-        private string ResolveSourceValue(string scraperName, string sectionName)
-        {
-            string savedDisplayName = _sharedData.GetScraperSourceSetting(scraperName, sectionName);
-
-            if (!string.IsNullOrEmpty(savedDisplayName))
-            {
-                var sources = _sharedData.GetScraperSources(scraperName, sectionName);
-                if (sources.TryGetValue(savedDisplayName, out var apiValue) && !string.IsNullOrEmpty(apiValue))
-                    return apiValue;
-            }
-
-            return _sharedData.GetScraperDefaultSource(scraperName, sectionName);
-        }
-
-        public async Task<bool> RunScrapeAsync(
-            ScraperParameters baseParameters,
+            public async Task<bool> RunScrapeAsync(
+                ScraperParameters baseParameters,
             ScraperProperties scraperProperties,
             IReadOnlyList<GameMetadataRow> rows,
             int maxBatch,

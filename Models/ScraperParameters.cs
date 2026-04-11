@@ -1,10 +1,10 @@
-﻿using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
+﻿using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
-namespace Gamelist_Manager.Classes.Api
+namespace Gamelist_Manager.Models
 {
     public class ScraperParameters
     {
@@ -82,9 +82,18 @@ namespace Gamelist_Manager.Classes.Api
         }
 
 
-        public static ScraperParameters Create(SharedDataService sharedData, List<string> elementsToScrape)
+        public static ScraperParameters Create(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
         {
             var media = sharedData.MediaSettings;
+
+            string? primaryRegion = sharedData.GetScraperPrimaryRegionCode(scraperName);
+            var regions = sharedData.GetScraperRegionCodes(scraperName).ToList();
+            if (!string.IsNullOrEmpty(primaryRegion))
+            {
+                regions.Remove(primaryRegion);
+                regions.Insert(0, primaryRegion);
+            }
+
             return new ScraperParameters
             {
                 MediaPaths = media.ToDictionary(
@@ -98,7 +107,30 @@ namespace Gamelist_Manager.Classes.Api
                 ParentFolderPath = sharedData.GamelistDirectory,
                 VerifyImageDownloads = sharedData.VerifyImageDownloads,
                 ElementsToScrape = elementsToScrape,
+                SystemID = sharedData.GetScraperSystemId(scraperName, currentSystem),
+                SSLanguage = sharedData.GetScraperLanguageCode(scraperName),
+                SSRegions = regions,
+                ImageSource = ResolveSource(sharedData, scraperName, nameof(ImageSource)),
+                MarqueeSource = ResolveSource(sharedData, scraperName, nameof(MarqueeSource)),
+                ThumbnailSource = ResolveSource(sharedData, scraperName, nameof(ThumbnailSource)),
+                CartridgeSource = ResolveSource(sharedData, scraperName, nameof(CartridgeSource)),
+                VideoSource = ResolveSource(sharedData, scraperName, nameof(VideoSource)),
+                BoxArtSource = ResolveSource(sharedData, scraperName, nameof(BoxArtSource)),
+                WheelSource = ResolveSource(sharedData, scraperName, nameof(WheelSource)),
+                CacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraperName, currentSystem),
             };
+        }
+
+        private static string ResolveSource(SharedDataService sharedData, string scraperName, string sectionName)
+        {
+            string savedDisplayName = sharedData.GetScraperSourceSetting(scraperName, sectionName);
+            if (!string.IsNullOrEmpty(savedDisplayName))
+            {
+                var sources = sharedData.GetScraperSources(scraperName, sectionName);
+                if (sources.TryGetValue(savedDisplayName, out var apiValue) && !string.IsNullOrEmpty(apiValue))
+                    return apiValue;
+            }
+            return sharedData.GetScraperDefaultSource(scraperName, sectionName);
         }
 
         // Collections are deep-copied so each scraper thread gets its own independent state.

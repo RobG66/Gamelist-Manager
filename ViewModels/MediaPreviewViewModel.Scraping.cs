@@ -70,7 +70,7 @@ public partial class MediaPreviewViewModel
             if (elementsToScrape.Contains("video")) scrapingVideo = true;
             if (scrapingVideo) SuspendVideo();
 
-            var baseParameters = ScraperParameters.Create(_sharedData, elementsToScrape);
+            var baseParameters = ScraperParameters.Create(_sharedData, scraperName, currentSystem, elementsToScrape);
             baseParameters.OverwriteMedia = true;
 
             var scraperService = Startup.Services.GetRequiredService<ScraperService>();
