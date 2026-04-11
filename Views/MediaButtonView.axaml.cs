@@ -246,7 +246,7 @@ public partial class MediaButtonView : UserControl
                 try
                 {
                     if (command.StartsWith("shell:AppsFolder\\", StringComparison.OrdinalIgnoreCase) ||
-                        (!command.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && command.Contains("!")))
+                        (!command.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && command.Contains('!')))
                     {
                         var appId = command.Replace("shell:AppsFolder\\", "");
                         await UwpAppHelper.LaunchAppWithFileAsync(appId, targetFile, null);
@@ -379,7 +379,7 @@ public partial class MediaButtonView : UserControl
         return null;
     }
 
-    private string ConvertToFullPath(string path)
+    private static string ConvertToFullPath(string path)
     {
         if (Path.IsPathRooted(path)) return path;
 

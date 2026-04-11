@@ -75,11 +75,8 @@ public partial class MediaItemView : UserControl
 
     private void UnsubscribeFromViewModel()
     {
-        if (_subscribedViewModel != null)
-        {
-            _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-            _subscribedViewModel = null;
-        }
+        _subscribedViewModel?.PropertyChanged -= OnViewModelPropertyChanged;
+        _subscribedViewModel = null;
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)

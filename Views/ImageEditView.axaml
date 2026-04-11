@@ -7,7 +7,7 @@
         x:Class="Gamelist_Manager.Views.ImageEditView"
         x:DataType="vm:ImageEditViewModel"
         x:CompileBindings="True"
-        Title="{Binding WindowTitle}"
+        Title="Edit Image"
         Width="760"
         Height="580"
         CanResize="False"

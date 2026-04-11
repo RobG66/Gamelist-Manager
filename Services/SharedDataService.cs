@@ -196,7 +196,7 @@ namespace Gamelist_Manager.Services
             var sections = GetScraperIniSections(scraperName);
             return sections.TryGetValue(sectionName, out var section)
                 ? section
-                : new Dictionary<string, string>();
+                : [];
         }
 
         public string? GetScraperSystemId(string scraperName, string systemName)
@@ -276,7 +276,7 @@ namespace Gamelist_Manager.Services
             var sections = IniFileService.ReadIniFile(iniPath);
             _fileTypesCache = sections.TryGetValue("Filetypes", out var filetypes)
                 ? filetypes
-                : new Dictionary<string, string>();
+                : [];
 
             return _fileTypesCache;
         }

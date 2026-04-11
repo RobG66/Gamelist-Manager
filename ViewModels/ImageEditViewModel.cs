@@ -7,7 +7,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using SKPointI = SkiaSharp.SKPointI;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -50,10 +49,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _originalSizeText = string.Empty;
     [ObservableProperty] private string _previewSizeText = string.Empty;
 
-    // Circle 2 needs the user to click inside the disc
     [ObservableProperty] private bool _isCircleMode;
-    [ObservableProperty] private bool _isCircleFitMode;
-    [ObservableProperty] private bool _needsClick;
     #endregion
 
     #region Private Fields
@@ -66,7 +62,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     private int _sourceWidth;
     private int _sourceHeight;
     private bool _updatingDimensions;
-    private SKPointI? _clickPoint;
     #endregion
 
     public event Action<string?>? CloseRequested;
@@ -75,8 +70,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     {
         _imagePath = imagePath;
     }
-
-    public string WindowTitle => "Edit Image";
 
     public async Task LoadAsync()
     {
@@ -147,7 +140,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
             0 => BackgroundRemovalMode.Circle,
             1 => BackgroundRemovalMode.CircleEdge,
             3 => BackgroundRemovalMode.ConvexHull,
-            // 4 => BackgroundRemovalMode.CircleFit,  // Circle 2 disabled
             _ => BackgroundRemovalMode.Freeform
         };
         var tolerance = (int)Tolerance;
@@ -169,16 +161,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        // Circle 2 disabled — click-point guard not needed
-        // if (doBgRemove && modeIndex == 3 && _clickPoint == null)
-        // {
-        //     StatusText = "Click on the disc in the original image";
-        //     IsBusy = false;
-        //     return;
-        // }
-
-        var clickPt = _clickPoint;
-
         SKBitmap? result = null;
         string strategy = string.Empty;
         try
@@ -192,7 +174,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
                 if (doBgRemove)
                 {
                     var bgColor = ImageHelper.DetectBackgroundColor(r);
-                    var (bgResult, bgStrategy) = ImageHelper.RemoveBackground(r, bgColor, tolerance, bgMode, removeEnclosed, clickPt, edgeThreshold);
+                    var (bgResult, bgStrategy) = ImageHelper.RemoveBackground(r, bgColor, tolerance, bgMode, removeEnclosed, edgeThreshold);
                     if (owned) r.Dispose();
                     r = bgResult;
                     owned = true;
@@ -266,17 +248,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
     #endregion
 
-    #region Public Methods
-    // Circle 2 disabled — click point logic preserved for re-enabling
-    // public void SetClickPoint(int pixelX, int pixelY)
-    // {
-    //     _clickPoint = new SKPointI(pixelX, pixelY);
-    //     NeedsClick = false;
-    //     if (RemoveBackground && IsCircleFitMode)
-    //         _ = UpdatePreviewAsync();
-    // }
-    #endregion
-
     #region Property Change Callbacks
     partial void OnRemoveBackgroundChanged(bool value)
     {
@@ -297,16 +268,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     {
         IsCircleMode = value == 1;
         IsFreeformMode = value == 2;
-        // IsCircleFitMode = value == 4;  // Circle 2 disabled
-        // if (value == 4)
-        // {
-        //     _clickPoint = null;
-        //     NeedsClick = true;
-        // }
-        // else
-        // {
-        //     NeedsClick = false;
-        // }
         if (RemoveBackground) _ = UpdatePreviewAsync();
     }
 
@@ -401,5 +362,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         _currentResult?.Dispose();
         _originalBitmap?.Dispose();
         OriginalImage?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
