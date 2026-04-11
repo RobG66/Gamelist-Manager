@@ -87,7 +87,7 @@ namespace Gamelist_Manager.Models
             var media = sharedData.MediaSettings;
 
             string? primaryRegion = sharedData.GetScraperPrimaryRegionCode(scraperName);
-            var regions = sharedData.GetScraperRegionCodes(scraperName).ToList();
+            var regions = sharedData.GetScraperFallbackRegionCodes(scraperName).ToList();
             if (!string.IsNullOrEmpty(primaryRegion))
             {
                 regions.Remove(primaryRegion);

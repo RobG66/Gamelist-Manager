@@ -5,7 +5,6 @@
     <!-- Ultra-Compact DataGrid Styles -->
     
     <Styles.Resources>
-        <system:Double x:Key="DataGridFontSizeResource">12</system:Double>
         <system:Double x:Key="DataGridRowHeight">22</system:Double>
         <system:Double x:Key="DataGridHeaderHeight">20</system:Double>
         </Styles.Resources>

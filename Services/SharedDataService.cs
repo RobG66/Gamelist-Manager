@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 
 namespace Gamelist_Manager.Services
 {
@@ -240,6 +241,21 @@ namespace Gamelist_Manager.Services
             var sections = GetScraperIniSections(scraperName);
             if (!sections.TryGetValue("Regions", out var regs)) return [];
             return regs.Keys.Select(ExtractRegionCode).Where(c => !string.IsNullOrEmpty(c)).ToList();
+        }
+
+        public IReadOnlyList<string> GetScraperFallbackRegionCodes(string scraperName)
+        {
+            var json = SettingsService.Instance.GetValue("Scraper", $"{scraperName}_RegionFallback", string.Empty);
+            if (string.IsNullOrEmpty(json)) return [];
+            try
+            {
+                var displayNames = JsonSerializer.Deserialize<List<string>>(json) ?? [];
+                return displayNames.Select(ExtractRegionCode).Where(c => !string.IsNullOrEmpty(c)).ToList();
+            }
+            catch
+            {
+                return [];
+            }
         }
 
         public IReadOnlyList<string> GetScraperRegions(string scraperName)
