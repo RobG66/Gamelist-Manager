@@ -19,97 +19,54 @@ A robust, cross platform (Windows/Linux) desktop application for viewing and edi
 
 ## Features
 
-Scraping
+### Scraping
+- Scrape metadata and media from **ArcadeDB**, **ScreenScraper**, and **EmuMovies**
+- 15+ media types including screenshots, box art, videos, bezels, wheels, cartridges, marquees, fan art, and manuals
+- Multi-threaded scraping with local caching for speed
+- Per media type source selection — mix and match scrapers
+- Overwrite protection — choose what to update and what to preserve
+- Automatic filtering of corrupt or single-color images
+- Configurable language, region, and fallback settings
+- Progress monitoring and logging
 
-Scrape metadata and media from ArcadeDB, ScreenScraper, and EmuMovies
+### Metadata Editing
+- Bulk edit genres, descriptions, publishers, release dates, ratings, and player counts
+- Find and replace across all fields with filtering
+- Mark games as favorites or hidden
+- CSV export for external analysis
+- Automatic backups on save
 
-15+ media types including screenshots, box art, videos, bezels, wheels, cartridges, marquees, fan art, and manuals
+### Image Editor
+- Crop, resize, and remove backgrounds from media images
+- Edit images directly without leaving the app
 
-Multi-threaded scraping with local caching for speed
+### Collection Management
+- Scan ROM directories to find games missing from your gamelist
+- Identify gamelist entries with no matching file on disk
+- Auto-link existing media to game *(coming soon)*
+- Find and remove orphaned media files *(coming soon)*
+- Scan for bad, missing, or unnecessary media *(coming soon)*
+- DAT file import and romset analysis for **MAME** and **FBNeo**
 
-Per media type source selection — mix and match scrapers
+### Batocera Remote Management
+- Remote SSH commands
+- Network drive mapping to Batocera shares
+- Check system version and available updates
+- Control EmulationStation — restart, reboot, or shutdown remotely
 
-Overwrite protection — choose what to update and what to preserve
-
-Automatic filtering of corrupt or single-color images
-
-Configurable language, region, and fallback settings
-
-Progress monitoring and logging
-
-
-
-Metadata Editing
-
-Bulk edit genres, descriptions, publishers, release dates, ratings, and player counts
-
-Find and replace across all fields with filtering
-
-Mark games as favorites or hidden
-
-CSV export for external analysis
-
-Automatic backups on save
-
-
-
-Image Editor
-
-Crop, resize, and remove backgrounds from media images
-
-Edit images directly without leaving the app
-
-
-
-Collection Management
-
-Scan ROM directories to find games missing from your gamelist
-
-Identify gamelist entries with no matching file on disk
-
-Auto-link existing media to game (coming)
-
-Find and remove orphaned media files (coming)
-
-Scan for bad, missing, or unnecessary media (coming)
-
-DAT file import and romset analysis for MAME and FBNeo
-
-
-
-Batocera Remote Management
-
-Remote SSH commands 
-
-Network drive mapping to Batocera shares
-
-Check system version and available updates
-
-Control EmulationStation — restart, reboot, or shutdown remotely
-
-
-
-Interface
-
-Cross-platform — runs natively on Windows and Linux
-
-Built-in image and video preview
-
-Drag and drop media from disk or web browser
-
-Multiple color themes
-
-Customizable fonts, column visibility, and grid spacing
-
-Advanced filtering and search
-
-Recent files history and quick system switching
-
-
+### Interface
+- Cross-platform — runs natively on **Windows** and **Linux**
+- Built-in image and video preview
+- Drag and drop media from disk or web browser
+- Multiple color themes
+- Customizable fonts, column visibility, and grid spacing
+- Advanced filtering and search
+- Recent files history and quick system switching
 
 ## Compatibility
-
-Gamelist Manager is designed to work with any system running EmulationStation that stores its data in the standard `gamelist.xml` format. ES-DE is not supported at this time, but if there is interest and support, I will add it.
+Gamelist Manager is designed to work with any system running EmulationStation that stores its
+data in the standard `gamelist.xml` format. ES-DE is not supported at this time, but if there
+is interest and support, I
 
 ## Documentation
 
