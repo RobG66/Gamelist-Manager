@@ -278,7 +278,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     #endregion
 
     #region Private Methods
-    private string ResolveFullPath(string path)
+    internal string ResolveFullPath(string path)
     {
         if (Path.IsPathRooted(path)) return path;
 

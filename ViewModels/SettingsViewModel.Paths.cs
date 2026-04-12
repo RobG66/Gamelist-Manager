@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -65,6 +67,14 @@ public partial class SettingsViewModel
     {
         foreach (var item in MediaFolderItems)
             item.ResetToDefaults();
+    }
+
+    [RelayCommand]
+    private void ToggleAllSfx()
+    {
+        bool newValue = !MediaFolderItems.All(i => i.SfxEnabled);
+        foreach (var item in MediaFolderItems)
+            item.SfxEnabled = newValue;
     }
 
     public List<string> ValidateAndTrimPaths()

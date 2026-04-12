@@ -19,6 +19,9 @@ public partial class MediaButtonView : UserControl
 {
     public static bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+    private const double PREVIEW_WINDOW_WIDTH = 768;
+    private const double PREVIEW_WINDOW_HEIGHT = 576;
+
     private Window? _previewWindow;
 
     public MediaButtonView()
@@ -135,7 +138,7 @@ public partial class MediaButtonView : UserControl
     }
 
     private string? GetFullPath(MediaItemViewModel mediaItem) =>
-        string.IsNullOrWhiteSpace(mediaItem.MediaPath) ? null : ConvertToFullPath(mediaItem.MediaPath);
+        string.IsNullOrWhiteSpace(mediaItem.MediaPath) ? null : mediaItem.ResolveFullPath(mediaItem.MediaPath!);
 
     private static void OpenFile(string filePath)
     {
@@ -290,7 +293,7 @@ public partial class MediaButtonView : UserControl
         if (string.IsNullOrWhiteSpace(path))
             return;
 
-        var fullPath = ConvertToFullPath(path);
+        var fullPath = mediaItem.ResolveFullPath(path);
         if (!File.Exists(fullPath))
             return;
 
@@ -345,8 +348,8 @@ public partial class MediaButtonView : UserControl
             {
                 Content = host,
                 Title = Path.GetFileName(path),
-                Width = 768,
-                Height = 576,
+                Width = PREVIEW_WINDOW_WIDTH,
+                Height = PREVIEW_WINDOW_HEIGHT,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 CanResize = true
             };
@@ -366,28 +369,8 @@ public partial class MediaButtonView : UserControl
         catch { }
     }
 
-    // Walks the visual tree to find the parent MediaPreviewViewModel.
-    public MediaPreviewViewModel? FindMediaPreviewViewModel()
-    {
-        Control? current = this.Parent as Control;
-        while (current != null)
-        {
-            if (current.DataContext is MediaPreviewViewModel vm)
-                return vm;
-            current = current.Parent as Control;
-        }
-        return null;
-    }
-
-    private static string ConvertToFullPath(string path)
-    {
-        if (Path.IsPathRooted(path)) return path;
-
-        var gamelistDirectory = SharedDataService.Instance.GamelistDirectory;
-        return !string.IsNullOrEmpty(gamelistDirectory)
-            ? FilePathHelper.GamelistPathToFullPath(path, gamelistDirectory)
-            : path;
-    }
+    private MediaPreviewViewModel? FindMediaPreviewViewModel() =>
+        VisualTreeHelper.FindAncestorViewModel<MediaPreviewViewModel>(this);
 
     public void CleanupPreviewWindow()
     {

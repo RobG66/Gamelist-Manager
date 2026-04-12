@@ -41,7 +41,10 @@
             <Button Classes="NavButton" x:Name="FileButton" ToolTip.Tip="File operations">
                 <Button.Flyout>
                     <MenuFlyout Placement="Right">
-                        <MenuItem Header="New Gamelist" ToolTip.Tip="Create a new gamelist">
+                        <MenuItem Header="New Gamelist"
+                                  Command="{Binding NewGamelistCommand}"
+                                  IsEnabled="{Binding IsRomsFolderDefined}"
+                                  ToolTip.Tip="Create a new gamelist for a system folder">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/new.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
                             </MenuItem.Icon>

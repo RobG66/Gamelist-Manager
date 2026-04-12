@@ -11,6 +11,10 @@ namespace Gamelist_Manager.Views
 {
     public partial class SettingsView : Window
     {
+        private const double BASE_WIDTH = 580;
+        private const double BASE_HEIGHT = 600;
+        private const double BASE_FONT_SIZE = 12.0;
+
         private SettingsViewModel ViewModel => (SettingsViewModel)DataContext!;
 
         public SettingsView()
@@ -19,9 +23,9 @@ namespace Gamelist_Manager.Views
             DataContext = new SettingsViewModel();
 
             // Scale window dimensions proportionally to font size (base: 580x600 at font 12)
-            var scale = SharedDataService.Instance.AppFontSize / 12.0;
-            Width = Math.Round(580 * scale);
-            Height = Math.Round(600 * scale);
+            var scale = SharedDataService.Instance.AppFontSize / BASE_FONT_SIZE;
+            Width = Math.Round(BASE_WIDTH * scale);
+            Height = Math.Round(BASE_HEIGHT * scale);
 
             // Handle ESC key to close window
             KeyDown += SettingsWindow_KeyDown;
@@ -93,10 +97,8 @@ namespace Gamelist_Manager.Views
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)
         {
-            // Check if there are unsaved changes
-            if (ViewModel != null && ViewModel.IsDirty)
+            if (ViewModel.IsDirty)
             {
-                // Cancel the close to show dialog
                 e.Cancel = true;
 
                 // Show save confirmation dialog for settings
@@ -123,7 +125,6 @@ namespace Gamelist_Manager.Views
                         return; // stay open
                     }
                     ViewModel.SaveSettings();
-                    SharedDataService.Instance.LoadFromSettings();
                 }
 
                 // Reaches here only for DontSave or successful Save
@@ -162,13 +163,10 @@ namespace Gamelist_Manager.Views
 
             ViewModel.SaveSettings();
 
-            // Reload SharedDataService with updated settings
-            SharedDataService.Instance.LoadFromSettings();
-
             // Resize window to match the (possibly changed) font size
-            var scale = ViewModel.AppFontSize / 12.0;
-            Width = Math.Round(580 * scale);
-            Height = Math.Round(600 * scale);
+            var scale = ViewModel.AppFontSize / BASE_FONT_SIZE;
+            Width = Math.Round(BASE_WIDTH * scale);
+            Height = Math.Round(BASE_HEIGHT * scale);
 
             // Mark as not dirty after saving
             ViewModel.IsDirty = false;
@@ -267,13 +265,5 @@ namespace Gamelist_Manager.Views
                 item.Path = folders[0].Path.LocalPath;
         }
 
-        private void ToggleAllSfx_Click(object? sender, RoutedEventArgs e)
-        {
-            bool allOn = ViewModel.MediaFolderItems.All(i => i.SfxEnabled);
-            bool newValue = !allOn;
-            foreach (var item in ViewModel.MediaFolderItems)
-                item.SfxEnabled = newValue;
+            }
         }
-
-    }
-}

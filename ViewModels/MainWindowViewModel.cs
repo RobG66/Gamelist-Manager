@@ -7,6 +7,7 @@ using Gamelist_Manager.Services;
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -52,6 +53,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsScraping => _sharedData.IsScraping;
     public bool IsBusy => _sharedData.IsBusy;
     public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_sharedData.Hostname);
+    public bool IsRomsFolderDefined => !string.IsNullOrWhiteSpace(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder);
     public bool IsEditModeEnabled
     {
         get => _sharedData.EnableEdit;
@@ -99,6 +101,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case nameof(SharedDataService.RomsFolder):
                 LoadSystems();
+                OnPropertyChanged(nameof(IsRomsFolderDefined));
                 break;
             case nameof(SharedDataService.EnableDelete):
                 OnPropertyChanged(nameof(IsDeleteEnabled));

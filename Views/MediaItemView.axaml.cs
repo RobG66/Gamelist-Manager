@@ -1,10 +1,10 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.ViewModels;
 using LibVLCSharp.Avalonia;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using System.Linq;
@@ -14,6 +14,8 @@ namespace Gamelist_Manager.Views;
 
 public partial class MediaItemView : UserControl
 {
+    private const int VIDEOWIDTH = 400;
+    private const int VIDEOHEIGHT = 300;
     public static readonly StyledProperty<bool> IsScaledProperty =
         AvaloniaProperty.Register<MediaItemView, bool>(nameof(IsScaled));
 
@@ -133,8 +135,8 @@ public partial class MediaItemView : UserControl
 
         _videoView = new VideoView
         {
-            Width = 400,
-            Height = 300,
+            Width = VIDEOWIDTH,
+            Height = VIDEOHEIGHT,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
         };
@@ -272,7 +274,7 @@ public partial class MediaItemView : UserControl
         if (!IsValidDrop(e, mediaItem))
             return;
 
-        var parentViewModel = FindMediaPreviewViewModel();
+        var parentViewModel = VisualTreeHelper.FindAncestorViewModel<MediaPreviewViewModel>(this);
         if (parentViewModel?.SelectedGame == null)
             return;
 
@@ -291,12 +293,11 @@ public partial class MediaItemView : UserControl
         }
     }
 
-#pragma warning disable CS0618
     private static bool IsValidDrop(DragEventArgs e, MediaItemViewModel mediaItem)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.DataTransfer.Contains(DataFormat.File))
         {
-            var files = e.Data.GetFiles()?.ToList();
+            var files = e.DataTransfer.TryGetFiles()?.ToList();
             if (files?.Count == 1)
                 return mediaItem.IsValidDrop(files[0].Path.LocalPath);
             return false;
@@ -305,16 +306,17 @@ public partial class MediaItemView : UserControl
         if (mediaItem.IsVideo || mediaItem.IsManual)
             return false;
 
-        return e.Data.Contains("text/uri-list") ||
-               e.Data.Contains("text/html") ||
-               e.Data.Contains(DataFormats.Text);
+        return e.DataTransfer.Formats.Contains(DataFormat.CreateStringPlatformFormat("text/uri-list")) ||
+              e.DataTransfer.Formats.Contains(DataFormat.CreateStringPlatformFormat("text/html")) ||
+              e.DataTransfer.Formats.Contains(DataFormat.Text);
+
     }
 
     private static async Task<(string? FilePath, bool IsTemp)> GetDroppedFile(DragEventArgs e, MediaItemViewModel mediaItem)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.DataTransfer.Contains(DataFormat.File))
         {
-            var files = e.Data.GetFiles()?.ToList();
+            var files = e.DataTransfer.TryGetFiles()?.ToList();
             if (files?.Count == 1)
                 return (files[0].Path.LocalPath, false);
             return (null, false);
@@ -323,97 +325,35 @@ public partial class MediaItemView : UserControl
         if (mediaItem.IsVideo || mediaItem.IsManual)
             return (null, false);
 
-        if (e.Data.Contains("text/uri-list"))
+        var uriListFormat = DataFormat.CreateStringPlatformFormat("text/uri-list");
+        if (e.DataTransfer.Formats.Contains(uriListFormat))
         {
-            var url = e.Data.GetText()?.Trim();
+            var url = e.DataTransfer.TryGetText()?.Trim();
             if (!string.IsNullOrWhiteSpace(url))
-                return (await DownloadImageFromUrl(url), true);
+                return (await MediaDropHelper.DownloadImageFromUrlAsync(url), true);
         }
 
-        if (e.Data.Contains(DataFormats.Text))
+
+        if (e.DataTransfer.Contains(DataFormat.Text))
         {
-            var text = e.Data.GetText()?.Trim();
+            var text = e.DataTransfer.TryGetText()?.Trim();
             if (!string.IsNullOrEmpty(text) &&
                 Uri.TryCreate(text, UriKind.Absolute, out var uri) &&
                 (uri.Scheme == "http" || uri.Scheme == "https"))
-                return (await DownloadImageFromUrl(text), true);
+                return (await MediaDropHelper.DownloadImageFromUrlAsync(text), true);
         }
 
-        if (e.Data.Contains("text/html"))
+        var htmlFormat = DataFormat.CreateStringPlatformFormat("text/html");
+        if (e.DataTransfer.Formats.Contains(htmlFormat))
         {
-            var html = e.Data.GetText() ?? string.Empty;
-            var imageUrl = ExtractImageUrlFromHtml(html);
+            var html = e.DataTransfer.TryGetText() ?? string.Empty;
+            var imageUrl = MediaDropHelper.ExtractImageUrlFromHtml(html);
             if (!string.IsNullOrEmpty(imageUrl))
-                return (await DownloadImageFromUrl(imageUrl), true);
+                return (await MediaDropHelper.DownloadImageFromUrlAsync(imageUrl), true);
         }
+
 
         return (null, false);
-    }
-#pragma warning restore CS0618
-
-    private static async Task<string?> DownloadImageFromUrl(string url)
-    {
-        try
-        {
-            var factory = Startup.Services.GetRequiredService<System.Net.Http.IHttpClientFactory>();
-            using var httpClient = factory.CreateClient("MediaDropClient");
-
-            var response = await httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            var extension = "png";
-            if (response.Content.Headers.ContentType?.MediaType is { } mediaType)
-            {
-                extension = mediaType.ToLower() switch
-                {
-                    "image/jpeg" => "jpg",
-                    "image/png" => "png",
-                    "image/gif" => "gif",
-                    "image/bmp" => "bmp",
-                    "image/webp" => "webp",
-                    _ => Path.GetExtension(url).TrimStart('.').ToLower()
-                };
-            }
-            else
-            {
-                extension = Path.GetExtension(url).TrimStart('.').ToLower();
-            }
-
-            if (string.IsNullOrEmpty(extension))
-                extension = "png";
-
-            var tempPath = Path.Combine(Path.GetTempPath(), $"dropped_image_{Guid.NewGuid()}.{extension}");
-            await using var fileStream = File.Create(tempPath);
-            await response.Content.CopyToAsync(fileStream);
-            return tempPath;
-        }
-        catch { }
-        return null;
-    }
-
-    private static string? ExtractImageUrlFromHtml(string html)
-    {
-        if (string.IsNullOrEmpty(html)) return null;
-        var match = System.Text.RegularExpressions.Regex.Match(
-            html, @"<img[^>]+src=[""']([^""']+)[""']",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        return match.Success ? match.Groups[1].Value : null;
-    }
-
-    #endregion
-
-    #region Visual Tree
-
-    private MediaPreviewViewModel? FindMediaPreviewViewModel()
-    {
-        Control? current = this.Parent as Control;
-        while (current != null)
-        {
-            if (current.DataContext is MediaPreviewViewModel vm)
-                return vm;
-            current = current.Parent as Control;
-        }
-        return null;
     }
 
     #endregion

@@ -49,7 +49,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
                     // Resolve the gamelist-relative mediaFolder (e.g. "./titleshots") to an absolute
                     // directory before combining — Path.Combine does not strip the leading "./" and
-                    // would produce a malformed path like "E:\cave\./titleshots\file.png" otherwise.
+                    // would produce a malformed path 
                     string absoluteFolder = FilePathHelper.GamelistPathToFullPath(mediaFolder, parameters.ParentFolderPath!);
                     string fullPath = Path.Combine(absoluteFolder, fileName);
 

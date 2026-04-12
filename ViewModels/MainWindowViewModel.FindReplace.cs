@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Models;
@@ -94,7 +93,7 @@ public partial class MainWindowViewModel
 
     #region Column Helpers
 
-    internal void UpdateSearchableColumns(DataGrid grid)
+    internal void UpdateSearchableColumns(IEnumerable<string> visibleColumnNames)
     {
         SearchableColumns.Clear();
 
@@ -103,13 +102,8 @@ public partial class MainWindowViewModel
                 .Where(d => d.DataType != MetaDataType.Bool)
                 .Select(d => d.Name));
 
-        foreach (var header in grid.Columns
-                     .Where(c => c.IsVisible)
-                     .Select(c => c.Header?.ToString())
-                     .Where(h => !string.IsNullOrWhiteSpace(h) && nonBoolNames.Contains(h!)))
-        {
-            SearchableColumns.Add(header!);
-        }
+        foreach (var name in visibleColumnNames.Where(h => nonBoolNames.Contains(h)))
+            SearchableColumns.Add(name);
 
         if (DescriptionPanelVisible)
             SearchableColumns.Add("Description");

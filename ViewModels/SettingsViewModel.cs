@@ -195,6 +195,7 @@ public partial class SettingsViewModel : ViewModelBase
 
         SaveScraperSetup();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex);
+        _sharedData.LoadFromSettings();
 
         IsDirty = false;
     }

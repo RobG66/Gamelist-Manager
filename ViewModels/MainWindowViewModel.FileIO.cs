@@ -158,6 +158,100 @@ public partial class MainWindowViewModel
         if (!await CheckUnsavedChangesAsync()) return;
         await LoadGamelistFromFileAsync(gamelistPath);
     }
+
+    [RelayCommand]
+    private async Task NewGamelistAsync()
+    {
+        if (!await CheckUnsavedChangesAsync()) return;
+
+        var romsFolder = Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder);
+
+        var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+
+        if (topLevel == null) return;
+
+        IStorageFolder? suggestedStart = null;
+        try { suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri(romsFolder)); } catch { }
+
+        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select System Folder for New Gamelist",
+            AllowMultiple = false,
+            SuggestedStartLocation = suggestedStart
+        });
+
+        if (folders.Count == 0) return;
+
+        var selectedFolder = Path.TrimEndingDirectorySeparator(folders[0].Path.LocalPath);
+
+        // Must be exactly one level inside the ROMs folder
+        var parent = Path.GetDirectoryName(selectedFolder);
+        if (!string.Equals(parent, romsFolder, FilePathHelper.PathComparison))
+        {
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "New Gamelist",
+                Message = "The selected folder must be directly inside the ROMs folder.",
+                DetailMessage = $"Expected a folder one level inside: {romsFolder}",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            });
+            return;
+        }
+
+        var systemName = Path.GetFileName(selectedFolder)!;
+
+        // System must have file types defined in filetypes.ini
+        if (!_sharedData.GetFileTypes().ContainsKey(systemName))
+        {
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "New Gamelist",
+                Message = $"'{systemName}' is not a recognised system.",
+                DetailMessage = "No file types are configured for this system in filetypes.ini.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            });
+            return;
+        }
+
+        // Set up an empty gamelist in memory — nothing is written to disk until the user saves
+        var gamelistPath = Path.Combine(selectedFolder, "gamelist.xml");
+        _sharedData.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
+
+        ClearFilters();
+        ClearReportColumns();
+
+        _isLoadingData = true;
+        _sourceCache.Clear();
+        PopulateAvailableGenres();
+        _isLoadingData = false;
+
+        IsSaveEnabled = false;
+        IsGamelistLoaded = true;
+        FileStatusText = gamelistPath;
+        LastModifiedText = string.Empty;
+
+        var matchedSystem = Systems.FirstOrDefault(s => string.Equals(s.Name, systemName, FilePathHelper.PathComparison));
+        if (matchedSystem == null)
+        {
+            var logo = TryLoadSystemLogo(systemName);
+            matchedSystem = new SystemItem { Name = systemName, GamelistPath = gamelistPath, Logo = logo };
+        }
+
+        SelectedSystem = matchedSystem;
+        OnPropertyChanged(nameof(SystemLogo));
+        CalculateStatistics();
+
+        await FindNewItems();
+    }
+
     #endregion
 
     #region Private Methods

@@ -217,21 +217,8 @@ public partial class MainWindow : Window
 
     private void ViewModel_RequestSelectFirstItem(object? sender, EventArgs e)
     {
-        // Select the first item in the DataGrid if items exist
-        if (GameDataGrid?.ItemsSource is not null)
-        {
-            // Try to enumerate to check if there's at least one item
-            var enumerator = GameDataGrid.ItemsSource.GetEnumerator();
-            try
-            {
-                if (enumerator.MoveNext())
-                    GameDataGrid.SelectedIndex = 0;
-            }
-            finally
-            {
-                (enumerator as IDisposable)?.Dispose();
-            }
-        }
+        if (GameDataGrid.ItemsSource is System.Collections.ICollection { Count: > 0 })
+            GameDataGrid.SelectedIndex = 0;
     }
 
     private void ViewModel_RequestNavigateToItem(object? sender, GameMetadataRow row)
@@ -274,7 +261,7 @@ public partial class MainWindow : Window
         ThemeService.ApplyDataGridColumnWidths(GameDataGrid, dataGridFontSize);
 
         if (DataContext is MainWindowViewModel vm)
-            vm.UpdateSearchableColumns(GameDataGrid);
+            vm.UpdateSearchableColumns(GetVisibleColumnNames());
 
         foreach (var column in GameDataGrid.Columns)
             column.PropertyChanged += DataGridColumn_PropertyChanged;
@@ -283,23 +270,12 @@ public partial class MainWindow : Window
     private void DataGridColumn_PropertyChanged(object? sender, Avalonia.AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property.Name == nameof(DataGridColumn.IsVisible) && DataContext is MainWindowViewModel vm)
-            vm.UpdateSearchableColumns(GameDataGrid);
+            vm.UpdateSearchableColumns(GetVisibleColumnNames());
     }
-
-    /// <summary>
-    /// Handles <see cref="DatToolViewModel.ReportColumnAdded"/>. Creates a
-    /// <see cref="DataGridTemplateColumn"/> whose cell template performs a direct
-    /// dictionary lookup on the raw <see cref="GameMetadataRow.Path"/> value.
-    /// Sorting is handled by <see cref="ReportColumnComparer"/> using the same
-    /// lookup dictionary. Duplicate column names are skipped (the lookup is
-    /// refreshed in-place by the ViewModel on re-run).
-    /// </summary>
-    private void OnDatReportColumnAdded(object? sender, string columnName)
+private void OnDatReportColumnAdded(object? sender, string columnName)
     {
         if (sender is not DatToolViewModel datTool) return;
 
-        // If this report type was already run, the lookup was updated in-place by the ViewModel
-        // and the cell template closure will reflect the new values on next render.
         if (_reportColumns.Any(c => c.Header?.ToString() == columnName)) return;
 
         var lookup = datTool.ReportLookup[columnName];
@@ -469,8 +445,15 @@ public partial class MainWindow : Window
             }
         }
 
-        vm.UpdateSearchableColumns(GameDataGrid);
+        vm.UpdateSearchableColumns(GetVisibleColumnNames());
     }
+
+    private IEnumerable<string> GetVisibleColumnNames() =>
+        GameDataGrid.Columns
+            .Where(c => c.IsVisible)
+            .Select(c => c.Header?.ToString())
+            .Where(h => !string.IsNullOrWhiteSpace(h))
+            .Select(h => h!);
 
     private static FuncDataTemplate<object> CreateCheckBoxTemplate(string propertyName)
     {
@@ -498,9 +481,7 @@ public partial class MainWindow : Window
     }
 }
 
-/// <summary>
-/// Sorts DAT report column rows by their text value. Rows with no entry sort to the bottom.
-/// </summary>
+// Sorts DAT report column rows by their text value. Rows with no entry sort to the bottom.
 file sealed class ReportTextComparer(Dictionary<string, string> lookup) : System.Collections.IComparer
 {
     public int Compare(object? x, object? y)
@@ -516,9 +497,7 @@ file sealed class ReportTextComparer(Dictionary<string, string> lookup) : System
     }
 }
 
-/// <summary>
-/// Sorts Find report column rows so checked (matched) rows appear first.
-/// </summary>
+// Sorts Find report column rows so checked (matched) rows appear first.
 file sealed class ReportCheckboxComparer(HashSet<string> pathSet) : System.Collections.IComparer
 {
     public int Compare(object? x, object? y)
