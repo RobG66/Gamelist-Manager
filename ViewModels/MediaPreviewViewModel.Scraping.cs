@@ -48,7 +48,9 @@ public partial class MediaPreviewViewModel
 
             var elementsToScrape = specificElements != null
                 ? specificElements.Where(e => mediaSettings.TryGetValue(e, out var d) && d.Enabled).ToList()
-                : mediaSettings.Values.Where(d => d.Enabled).Select(d => d.Type).ToList();
+                : GamelistMetaData.GetScraperElements(scraperName)
+                    .Where(e => !mediaSettings.ContainsKey(e) || (mediaSettings.TryGetValue(e, out var d) && d.Enabled))
+                    .ToList();
 
             if (elementsToScrape.Count == 0)
             {
@@ -71,7 +73,8 @@ public partial class MediaPreviewViewModel
             if (scrapingVideo) SuspendVideo();
 
             var baseParameters = ScraperParameters.Create(_sharedData, scraperName, currentSystem, elementsToScrape);
-            baseParameters.OverwriteMedia = true;
+            baseParameters.OverwriteMedia = OverwriteMedia;
+            baseParameters.OverwriteMetadata = OverwriteMetadata;
 
             var scraperService = Startup.Services.GetRequiredService<ScraperService>();
 

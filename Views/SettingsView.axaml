@@ -477,8 +477,12 @@
 
 								<CheckBox Content="Always scrape genre in English" IsChecked="{Binding ScraperGenreAlwaysEnglish}"
 										  ToolTip.Tip="EmulationStation built-in collections are based on English genres. Enable this to ensure genres are always saved in English regardless of the selected language."/>
-								<CheckBox Content="Scrape any available media not found for regions" IsChecked="{Binding ScraperScrapeAnyMedia}"
+								<CheckBox Content="Scrape any available media not found for fallback regions" IsChecked="{Binding ScraperScrapeAnyMedia}"
 										  ToolTip.Tip="When no media is found for primary or fallback regions, download whatever is available from any region rather than leaving the field empty."/>
+								<CheckBox Content="Always scrape names by selected language first" IsChecked="{Binding ScraperNamesLanguageFirst}"
+										  ToolTip.Tip="When enabled, the selected language is always checked first when retrieving game names, overriding the ROM filename's detected region. When disabled, the ROM region takes priority."/>
+								<CheckBox Content="Always scrape media by selected region first" IsChecked="{Binding ScraperMediaRegionFirst}"
+										  ToolTip.Tip="When enabled, the selected primary region is always checked first when retrieving media, overriding the ROM filename's detected region. When disabled, the ROM region takes priority."/>
 								<Grid ColumnDefinitions="*,Auto,*">
 									<StackPanel Grid.Column="0" Spacing="3">
 										<TextBlock Text="Available Regions" FontWeight="SemiBold"

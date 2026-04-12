@@ -30,8 +30,7 @@ namespace Gamelist_Manager.Classes.Api
         private const string Software = "GamelistManager";
 
         private readonly HttpClient _httpClient;
-        private static readonly List<string> DefaultRegions = new List<string> { "wor", "us", "ss", "eu", "jp" };
-
+     
         public API_ScreenScraper(HttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -226,7 +225,7 @@ namespace Gamelist_Manager.Classes.Api
 
         private string BuildScrapeUrl(ScraperParameters parameters, string romName)
         {
-            string baseUrl = $"{ApiUrl}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={parameters.UserID}&sspassword={parameters.UserPassword}&systemeid={parameters.GameID}";
+            string baseUrl = $"{ApiUrl}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={parameters.UserID}&sspassword={parameters.UserPassword}&systemeid={parameters.SystemID}";
 
             if (!string.IsNullOrEmpty(parameters.GameID))
             {
@@ -285,16 +284,34 @@ namespace Gamelist_Manager.Classes.Api
 
         private static ScrapedGameData.MediaResult? GetMediaResult(string remoteMediaType, string mediaType, ScraperParameters parameters, XmlNode mediasNode)
         {
-            if (string.IsNullOrEmpty(remoteMediaType) || mediasNode == null)
+            if (string.IsNullOrEmpty(remoteMediaType) || mediasNode == null || string.IsNullOrEmpty(parameters.RomFileName))
                 return null;
 
             (string url, string format, string region) = (string.Empty, string.Empty, string.Empty);
 
-            // Try with user's preferred regions first
-            if (parameters.SSRegions != null && parameters.SSRegions.Count > 0)
+            var regions = new List<string>();
+
+            string? romRegion = RegionLanguageHelper.GetRegion(parameters.RomFileName);
+
+            if (parameters.ScrapeMediaRegionFirst)
             {
-                (url, format, region) = ParseMedia(remoteMediaType, mediasNode, parameters.SSRegions);
+                // Selected primary/fallback regions lead; ROM filename region appended only if not already present
+                if (parameters.SSRegions != null)
+                    regions.AddRange(parameters.SSRegions);
+
+                if (!string.IsNullOrEmpty(romRegion) && !regions.Contains(romRegion, StringComparer.OrdinalIgnoreCase))
+                    regions.Add(romRegion);
             }
+            else
+            {
+                if (!string.IsNullOrEmpty(romRegion))
+                    regions.Add(romRegion);
+
+                if (parameters.SSRegions != null)
+                    regions.AddRange(parameters.SSRegions);
+            }
+
+            (url, format, region) = ParseMedia(remoteMediaType, mediasNode, regions);
 
             // If nothing found and scrape any media is enabled, try all regions
             if (string.IsNullOrEmpty(url) && parameters.ScrapeAnyMedia)
@@ -512,12 +529,7 @@ namespace Gamelist_Manager.Classes.Api
                         break;
 
                     case "mix":
-                        var mixMedia = GetMediaResult("mixrbv2", "mix", parameters, mediasNode);
-                        if (mixMedia == null)
-                        {
-                            mixMedia = GetMediaResult("mixrbv1", "mix", parameters, mediasNode);
-                        }
-                        AddMedia(gameData, mixMedia);
+                        AddMedia(gameData, GetMediaResult(parameters.MixSource!, "mix", parameters, mediasNode));
                         break;
                 }
             }
@@ -734,42 +746,23 @@ namespace Gamelist_Manager.Classes.Api
             if (namesElement == null)
                 return string.Empty;
 
-            string primaryRegion = parameters.SSRegions?.FirstOrDefault() ?? "us";
-            string romRegion = RegionLanguageHelper.GetRegion(romFileName, primaryRegion);
-            string rawRomLanguages = RegionLanguageHelper.GetLanguage(romFileName);
-
             string userLanguage = NormalizeLanguageToSsCode(parameters.SSLanguage ?? "en");
+            string? romRegion = RegionLanguageHelper.GetRegion(romFileName);
+            var regionFallbacks = parameters.SSRegions ?? [];
 
-            // Mirror C++ romlang logic: prefer user language if the ROM supports it,
-            // fall back to the ROM's single detected language, then to its region.
-            var romLanguages = rawRomLanguages
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .ToList();
-
-            string romLang;
-            if (romLanguages.Contains(userLanguage, StringComparer.OrdinalIgnoreCase))
-                romLang = userLanguage;
-            else if (romLanguages.Count == 1)
-                romLang = romLanguages[0];
-            else
-                romLang = romRegion;
-
-            bool isJapaneseRom = romRegion == "jp" || romLang == "jp";
-            bool isJapaneseUser = userLanguage == "jp";
-
-            var searchOrder = new List<string>();
-
-            if (isJapaneseRom && !isJapaneseUser)
+            // ROM region tag takes priority by default; user language leads when ScrapeNamesLanguageFirst is set
+            IEnumerable<string> searchOrder;
+            if (parameters.ScrapeNamesLanguageFirst)
             {
-                // Mirror C++ behaviour: Japanese ROM gets its jp name first, then falls back through international regions
-                searchOrder.AddRange(new[] { "jp", "wor", "us", "ss", "eu" });
+                searchOrder = new List<string> { userLanguage }
+                    .Concat(romRegion != null ? new[] { romRegion } : [])
+                    .Concat(regionFallbacks);
             }
             else
             {
-                searchOrder.Add(romLang);
-                searchOrder.Add(romRegion);
-                searchOrder.Add(userLanguage);
-                searchOrder.AddRange(new[] { "wor", "us", "ss", "eu", "jp" });
+                searchOrder = romRegion != null
+                    ? new List<string> { romRegion }.Concat(regionFallbacks).Append(userLanguage)
+                    : new List<string> { userLanguage }.Concat(regionFallbacks);
             }
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

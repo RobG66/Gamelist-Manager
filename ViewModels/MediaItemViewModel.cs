@@ -98,6 +98,9 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         MediaPath = newPath;
         UpdateFileExistence();
 
+        if (IsVideo && newPath == null)
+            DisposeVideoPlayer();
+
         OnPropertyChanged(nameof(HasMedia));
     }
     #endregion

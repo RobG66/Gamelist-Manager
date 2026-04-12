@@ -1,4 +1,6 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
@@ -25,23 +27,67 @@ public partial class MediaPreviewView : UserControl
         Unloaded += OnUnloaded;
     }
 
-    // Done in code behind to ensure MenuFlyout is created fresh on each click
-    // Also avoids issues with MenuFlyout not showing when defined in XAML
+    // Done in code behind to ensure the flyout is created fresh on each click.
+    // A Flyout (not MenuFlyout) is used so the popup stays open when the checkboxes are toggled.
     private void OnRescrapeButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (sender is not Button button || _viewModel == null) return;
 
-        var flyout = new MenuFlyout();
+        double fontSize = (double)this.FindResource("GlobalFontSize")!;
+        Flyout? flyout = null;
+
+        var panel = new StackPanel { MinWidth = 180 };
+
         foreach (var scraper in _viewModel.Scrapers)
         {
-            flyout.Items.Add(new MenuItem
+            var scraperName = scraper.Name;
+            var item = new Button
             {
-                Header = scraper.Name,
+                Content = scraperName,
                 Command = _viewModel.ScrapeGameCommand,
-                CommandParameter = scraper.Name,
-                FontSize = (double)this.FindResource("GlobalFontSize")!
-            });
+                CommandParameter = scraperName,
+                FontSize = fontSize,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Left,
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Padding = new Thickness(8, 6)
+            };
+            item.Click += (_, _) => flyout?.Hide();
+            panel.Children.Add(item);
         }
+
+        panel.Children.Add(new Border
+        {
+            Height = 1,
+            Margin = new Thickness(0, 4),
+            Background = (IBrush?)this.FindResource("SystemControlForegroundBaseMediumLowBrush")
+        });
+
+        var overwriteMediaBox = new CheckBox
+        {
+            Content = "Overwrite Media",
+            IsChecked = _viewModel.OverwriteMedia,
+            FontSize = fontSize,
+            Margin = new Thickness(4, 2)
+        };
+        overwriteMediaBox.IsCheckedChanged += (_, _) =>
+            _viewModel.OverwriteMedia = overwriteMediaBox.IsChecked == true;
+
+        var overwriteMetadataBox = new CheckBox
+        {
+            Content = "Overwrite Metadata",
+            IsChecked = _viewModel.OverwriteMetadata,
+            FontSize = fontSize,
+            Margin = new Thickness(4, 2)
+        };
+        overwriteMetadataBox.IsCheckedChanged += (_, _) =>
+            _viewModel.OverwriteMetadata = overwriteMetadataBox.IsChecked == true;
+
+        panel.Children.Add(overwriteMediaBox);
+        panel.Children.Add(overwriteMetadataBox);
+
+        flyout = new Flyout { Content = panel };
         flyout.ShowAt(button);
     }
 
@@ -109,9 +155,7 @@ public partial class MediaPreviewView : UserControl
         }
     }
 
-    /// <summary>
-    /// Clean up the media grid and all MediaItemViews before creating new ones
-    /// </summary>
+    // Clean up the media grid and all MediaItemViews before creating new ones
     private void CleanupMediaGrid()
     {
         if (_mediaContentGrid == null) return;

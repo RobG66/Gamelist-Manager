@@ -12,17 +12,27 @@ public partial class ScraperViewModel
     {
         Dispatcher.UIThread.Post(() =>
         {
-            LogEntries.Add(new LogEntry
+            var entry = new LogEntry
             {
                 Timestamp = $"[{DateTime.Now:HH:mm:ss}]",
                 Prefix = prefix ?? string.Empty,
                 PrefixLevel = prefixLevel,
                 Message = message,
                 Level = level
-            });
+            };
 
-            while (LogEntries.Count > 100)
-                LogEntries.RemoveAt(0);
+            if (prefix == LogPrefix.Download)
+            {
+                DownloadLogEntries.Add(entry);
+                while (DownloadLogEntries.Count > 100)
+                    DownloadLogEntries.RemoveAt(0);
+            }
+            else
+            {
+                LogEntries.Add(entry);
+                while (LogEntries.Count > 100)
+                    LogEntries.RemoveAt(0);
+            }
 
             if (prefix == LogPrefix.Scrape)
             {

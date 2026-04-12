@@ -92,7 +92,7 @@ namespace Gamelist_Manager.Services
             if (itemsToScrape.Contains(nameof(MetaDataKeys.region)))
             {
                 string regionName = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
-                romRegion = RegionLanguageHelper.GetRegion(regionName);
+                romRegion = RegionLanguageHelper.GetRegion(regionName) ?? string.Empty;
                 itemsToScrape.Remove(nameof(MetaDataKeys.region));
             }
 

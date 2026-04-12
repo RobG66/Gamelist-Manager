@@ -113,6 +113,7 @@ public partial class ScraperViewModel
     private void ResetScrapeUI()
     {
         LogEntries.Clear();
+        DownloadLogEntries.Clear();
         _scrapeSuccessCount = 0;
         _scrapeFailedCount = 0;
         _dlSuccessCount = 0;
@@ -189,6 +190,7 @@ public partial class ScraperViewModel
         if (MediaCartridge) elements.Add("cartridge");
         if (MediaVideo) elements.Add("video");
         if (MediaBoxArt) elements.Add("boxart");
+        if (MediaMix) elements.Add("mix");
         if (MediaWheel) elements.Add("wheel");
         return elements;
     }

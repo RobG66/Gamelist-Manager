@@ -107,7 +107,7 @@ namespace Gamelist_Manager.Classes.Helpers
         }
 
 
-        public static string GetRegion(string romName, string fallback = "us")
+        public static string? GetRegion(string romName, string? fallback = null)
         {
             var currentSystem = (SharedDataService.Instance.CurrentSystem ?? string.Empty).ToLowerInvariant();
 

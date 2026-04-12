@@ -219,8 +219,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <!-- Left column - no source -->
                         <CheckBox Grid.Row="0" Grid.Column="0" Content="Titleshot" IsChecked="{Binding MediaTitleshot}" IsEnabled="{Binding MediaTitleshotEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download a title screen screenshot for this game"/>
                         <CheckBox Grid.Row="1" Grid.Column="0" Content="Map" IsChecked="{Binding MediaMap}" IsEnabled="{Binding MediaMapEnabled}" Margin="0,4,4,4"
@@ -272,10 +272,16 @@
                         <ComboBox Grid.Row="5" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding BoxArtSources}" SelectedIndex="{Binding SelectedBoxArtSource}" IsEnabled="{Binding MediaBoxArt}"
                                   ToolTip.Tip="Select which box art type to download from the scraper source"/>
 
-                        <CheckBox Grid.Row="6" Grid.Column="1" Content="Wheel" IsChecked="{Binding MediaWheel}" IsEnabled="{Binding MediaWheelEnabled}" Margin="0,4,4,4"
-                                  ToolTip.Tip="Download the wheel (logo) art used in carousel-style front-ends"/>
+                        <CheckBox Grid.Row="6" Grid.Column="1" Content="Mix" IsChecked="{Binding MediaMix}" IsEnabled="{Binding MediaMixEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download a composite mix image for this game"/>
                         <TextBlock Grid.Row="6" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="6" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding WheelSources}" SelectedIndex="{Binding SelectedWheelSource}" IsEnabled="{Binding MediaWheel}"
+                        <ComboBox Grid.Row="6" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding MixSources}" SelectedIndex="{Binding SelectedMixSource}" IsEnabled="{Binding MediaMix}"
+                                  ToolTip.Tip="Select which mix image type to download from the scraper source"/>
+
+                        <CheckBox Grid.Row="7" Grid.Column="1" Content="Wheel" IsChecked="{Binding MediaWheel}" IsEnabled="{Binding MediaWheelEnabled}" Margin="0,4,4,4"
+                                  ToolTip.Tip="Download the wheel (logo) art used in carousel-style front-ends"/>
+                        <TextBlock Grid.Row="7" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="7" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding WheelSources}" SelectedIndex="{Binding SelectedWheelSource}" IsEnabled="{Binding MediaWheel}"
                                   ToolTip.Tip="Select which wheel art type to download from the scraper source"/>
                     </Grid>
                 </StackPanel>
@@ -322,7 +328,7 @@
                     </Grid>
 
 
-                    <!-- Collapsible log entries -->
+                    <!-- Split log: scrapes left, downloads right -->
                     <Grid ClipToBounds="True">
                         <Grid.Transitions>
                             <Transitions>
@@ -331,47 +337,79 @@
                         </Grid.Transitions>
                         <StackPanel Spacing="4">
                             <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,2,0,0"/>
-                            <ScrollViewer Height="100" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                <i:Interaction.Behaviors>
-                                    <behaviors:AutoScrollToEndBehavior/>
-                                </i:Interaction.Behaviors>
-                                <ItemsControl ItemsSource="{Binding LogEntries}" HorizontalAlignment="Stretch">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="models:LogEntry">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" x:CompileBindings="False" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
-                                                           IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,3,0,0"/>
-                            <Grid ColumnDefinitions="*,*" Margin="0,2,0,0">
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
-                                    <TextBlock Text="&#x2192;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                                    <TextBlock Text="scraped" FontSize="{DynamicResource GlobalSmallFontSize}" Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,0,4,0"/>
-                                    <TextBlock Text="&#x2713;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                                    <TextBlock Text="{Binding ScrapeSuccessText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,4,0"/>
-                                    <TextBlock Text="&#x2717;" Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                                    <TextBlock Text="{Binding ScrapeFailedText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,0,0"/>
+                            <Grid ColumnDefinitions="*,Auto,*">
+                                <!-- Left: Scrapes -->
+                                <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,4,0">
+                                    <TextBlock Text="Scrapes" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+                                    <ScrollViewer Height="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:AutoScrollToEndBehavior/>
+                                        </i:Interaction.Behaviors>
+                                        <ItemsControl ItemsSource="{Binding LogEntries}" HorizontalAlignment="Stretch">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LogEntry">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" x:CompileBindings="False" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                                   IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                    <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock Text="&#x2713;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                        <TextBlock Text="{Binding ScrapeSuccessText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,4,0"/>
+                                        <TextBlock Text="&#x2717;" Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                        <TextBlock Text="{Binding ScrapeFailedText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,0,0"/>
+                                    </StackPanel>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
-                                    <TextBlock Text="&#x2193;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                                    <TextBlock Text="downloaded" FontSize="{DynamicResource GlobalSmallFontSize}" Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,0,4,0"/>
-                                    <TextBlock Text="&#x2713;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                                    <TextBlock Text="{Binding DownloadSuccessText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,4,0"/>
-                                    <TextBlock Text="&#x2717;" Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                                    <TextBlock Text="{Binding DownloadFailedText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,0,0"/>
+
+                                <!-- Vertical divider -->
+                                <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+
+                                <!-- Right: Downloads -->
+                                <StackPanel Grid.Column="2" Spacing="2" Margin="4,0,0,0">
+                                    <TextBlock Text="Downloads" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+                                    <ScrollViewer Height="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <i:Interaction.Behaviors>
+                                            <behaviors:AutoScrollToEndBehavior/>
+                                        </i:Interaction.Behaviors>
+                                        <ItemsControl ItemsSource="{Binding DownloadLogEntries}" HorizontalAlignment="Stretch">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:LogEntry">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" x:CompileBindings="False" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                                   IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                    <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+                                        <TextBlock Text="&#x2713;" Foreground="{DynamicResource SuccessTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                        <TextBlock Text="{Binding DownloadSuccessText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,4,0"/>
+                                        <TextBlock Text="&#x2717;" Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                                        <TextBlock Text="{Binding DownloadFailedText}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="1,0,0,0"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Grid>
+                            <Border Height="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Grid>
 

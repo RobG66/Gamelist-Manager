@@ -40,6 +40,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _scraperStatusIsError;
     [ObservableProperty] private bool _isLibVLCMissing;
     [ObservableProperty] private bool _isLibVLCInitialized;
+    [ObservableProperty] private bool _overwriteMedia;
+    [ObservableProperty] private bool _overwriteMetadata;
     #endregion
 
     #region Public Properties
@@ -150,6 +152,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         // Clearing media
         if (newPath == null)
         {
+            if (mediaItem.IsVideo)
+                mediaItem.DisposeVideoPlayer();
             SelectedGame.SetValue(mediaItem.PathKey, string.Empty);
             _sharedData.IsDataChanged = true;
             SetStatus($"Successfully cleared {mediaType}", "ok");

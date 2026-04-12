@@ -283,6 +283,9 @@ namespace Gamelist_Manager.Services
         public string GetScraperSourceSetting(string scraperName, string sectionName)
             => SettingsService.Instance.GetValue("Scraper", $"{scraperName}_{sectionName}", "");
 
+        public bool GetScraperBoolSetting(string scraperName, string settingName, bool defaultValue = false)
+            => SettingsService.Instance.GetBool("Scraper", $"{scraperName}_{settingName}", defaultValue);
+
         public IReadOnlyDictionary<string, string> GetFileTypes()
         {
             if (_fileTypesCache != null)

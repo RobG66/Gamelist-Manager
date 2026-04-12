@@ -110,6 +110,8 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _mediaVideoEnabled;
     [ObservableProperty] private bool _mediaBoxArt;
     [ObservableProperty] private bool _mediaBoxArtEnabled;
+    [ObservableProperty] private bool _mediaMix;
+    [ObservableProperty] private bool _mediaMixEnabled;
     [ObservableProperty] private bool _mediaWheel;
     [ObservableProperty] private bool _mediaWheelEnabled;
     #endregion
@@ -121,6 +123,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     public ObservableCollection<string> CartridgeSources { get; } = [];
     public ObservableCollection<string> VideoSources { get; } = [];
     public ObservableCollection<string> BoxArtSources { get; } = [];
+    public ObservableCollection<string> MixSources { get; } = [];
     public ObservableCollection<string> WheelSources { get; } = [];
     [ObservableProperty] private int _selectedImageSource = -1;
     [ObservableProperty] private int _selectedMarqueeSource = -1;
@@ -128,6 +131,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private int _selectedCartridgeSource = -1;
     [ObservableProperty] private int _selectedVideoSource = -1;
     [ObservableProperty] private int _selectedBoxArtSource = -1;
+    [ObservableProperty] private int _selectedMixSource = -1;
     [ObservableProperty] private int _selectedWheelSource = -1;
     #endregion
 
@@ -145,6 +149,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _downloadFailedText = "0";
 
     public ObservableCollection<LogEntry> LogEntries { get; } = [];
+    public ObservableCollection<LogEntry> DownloadLogEntries { get; } = [];
     #endregion
 
     #region Public Properties
@@ -322,6 +327,10 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             MediaBoxArtEnabled = boxEnabled;
             if (!boxEnabled) MediaBoxArt = false;
 
+            ApplySource(MixSources, "MixSource", v => SelectedMixSource = v, out bool mixEnabled);
+            MediaMixEnabled = mixEnabled;
+            if (!mixEnabled) MediaMix = false;
+
             ApplySource(WheelSources, "WheelSource", v => SelectedWheelSource = v, out bool whlEnabled);
             MediaWheelEnabled = whlEnabled;
             if (!whlEnabled) MediaWheel = false;
@@ -359,6 +368,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (media.GetValueOrDefault("manual")?.Enabled != true) { MediaManualEnabled = false; MediaManual = false; }
         if (media.GetValueOrDefault("fanart")?.Enabled != true) { MediaFanArtEnabled = false; MediaFanArt = false; }
         if (media.GetValueOrDefault("boxart")?.Enabled != true) { MediaBoxArtEnabled = false; MediaBoxArt = false; }
+        if (media.GetValueOrDefault("mix")?.Enabled != true) { MediaMixEnabled = false; MediaMix = false; }
         if (media.GetValueOrDefault("boxback")?.Enabled != true) { MediaBoxBackEnabled = false; MediaBoxBack = false; }
     }
 

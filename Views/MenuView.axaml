@@ -267,6 +267,7 @@
                         </MenuItem>
                         <Separator/>
                         <MenuItem Header="Video Jukebox"
+                                  IsVisible="False"
                                   IsEnabled="{Binding IsGamelistLoaded}"
                                   ToolTip.Tip="Play videos from the gamelist">
                             <MenuItem.Icon>
@@ -274,6 +275,7 @@
                             </MenuItem.Icon>
                         </MenuItem>
                         <MenuItem Header="Music Jukebox"
+                                  IsVisible="False"
                                   IsEnabled="{Binding IsGamelistLoaded}"
                                   ToolTip.Tip="Play music from the gamelist">
                             <MenuItem.Icon>

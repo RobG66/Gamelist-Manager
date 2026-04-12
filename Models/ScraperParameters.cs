@@ -20,6 +20,7 @@ namespace Gamelist_Manager.Models
         public string? ImageSource { get; set; }
         public string? ThumbnailSource { get; set; }
         public string? BoxArtSource { get; set; }
+        public string? MixSource { get; set; }
         public string? MarqueeSource { get; set; }
         public string? WheelSource { get; set; }
         public string? VideoSource { get; set; }
@@ -27,6 +28,8 @@ namespace Gamelist_Manager.Models
         public bool OverwriteName { get; set; }
         public bool ScrapeEnglishGenreOnly { get; set; }
         public bool ScrapeAnyMedia { get; set; }
+        public bool ScrapeNamesLanguageFirst { get; set; }
+        public bool ScrapeMediaRegionFirst { get; set; }
         public bool OverwriteMedia { get; set; }
         public bool OverwriteMetadata { get; set; }
         public bool VerifyImageDownloads { get; set; }
@@ -116,8 +119,11 @@ namespace Gamelist_Manager.Models
                 CartridgeSource = ResolveSource(sharedData, scraperName, nameof(CartridgeSource)),
                 VideoSource = ResolveSource(sharedData, scraperName, nameof(VideoSource)),
                 BoxArtSource = ResolveSource(sharedData, scraperName, nameof(BoxArtSource)),
+                MixSource = ResolveSource(sharedData, scraperName, nameof(MixSource)),
                 WheelSource = ResolveSource(sharedData, scraperName, nameof(WheelSource)),
                 CacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraperName, currentSystem),
+                ScrapeNamesLanguageFirst = sharedData.GetScraperBoolSetting(scraperName, "NamesLanguageFirst"),
+                ScrapeMediaRegionFirst = sharedData.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
             };
         }
 
@@ -156,6 +162,7 @@ namespace Gamelist_Manager.Models
                 ImageSource = this.ImageSource,
                 ThumbnailSource = this.ThumbnailSource,
                 BoxArtSource = this.BoxArtSource,
+                MixSource = this.MixSource,
                 MarqueeSource = this.MarqueeSource,
                 WheelSource = this.WheelSource,
                 VideoSource = this.VideoSource,
@@ -163,6 +170,8 @@ namespace Gamelist_Manager.Models
                 OverwriteName = this.OverwriteName,
                 ScrapeEnglishGenreOnly = this.ScrapeEnglishGenreOnly,
                 ScrapeAnyMedia = this.ScrapeAnyMedia,
+                ScrapeNamesLanguageFirst = this.ScrapeNamesLanguageFirst,
+                ScrapeMediaRegionFirst = this.ScrapeMediaRegionFirst,
                 OverwriteMedia = this.OverwriteMedia,
                 OverwriteMetadata = this.OverwriteMetadata,
                 VerifyImageDownloads = this.VerifyImageDownloads,

@@ -109,6 +109,7 @@ public partial class ScraperViewModel
         if (MediaCartridgeEnabled) MediaCartridge = true;
         if (MediaVideoEnabled) MediaVideo = true;
         if (MediaBoxArtEnabled) MediaBoxArt = true;
+        if (MediaMixEnabled) MediaMix = true;
         if (MediaWheelEnabled) MediaWheel = true;
     }
 
@@ -128,6 +129,7 @@ public partial class ScraperViewModel
         MediaCartridge = false;
         MediaVideo = false;
         MediaBoxArt = false;
+        MediaMix = false;
         MediaWheel = false;
     }
 
@@ -140,6 +142,7 @@ public partial class ScraperViewModel
         if (MediaCartridgeEnabled) SelectedCartridgeSource = 0;
         if (MediaVideoEnabled) SelectedVideoSource = 0;
         if (MediaBoxArtEnabled) SelectedBoxArtSource = 0;
+        if (MediaMixEnabled) SelectedMixSource = 0;
         if (MediaWheelEnabled) SelectedWheelSource = 0;
     }
     #endregion

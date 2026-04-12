@@ -134,10 +134,13 @@ public partial class MainWindowViewModel
             if (result != ThreeButtonResult.Button3) return;
         }
 
+        _mediaPreviewViewModel.SuspendVideo();
+
         foreach (var game in games)
             clearAction(game);
 
         _sourceCache.Refresh();
+        _mediaPreviewViewModel.InitializeLibVLC();
     }
 
     private List<GameMetadataRow>? GetGamesByScope(string scope) => scope switch

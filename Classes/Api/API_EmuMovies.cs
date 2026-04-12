@@ -120,6 +120,11 @@ namespace Gamelist_Manager.Classes.Api
                         AddMedia(result, GetMediaResult(url, "boxart"));
                         break;
 
+                    case "mix":
+                        url = await GetMediaUrl(parameters.MixSource, parameters, mediaLists);
+                        AddMedia(result, GetMediaResult(url, "mix"));
+                        break;
+
                     case "wheel":
                         url = await GetMediaUrl(parameters.WheelSource, parameters, mediaLists);
                         AddMedia(result, GetMediaResult(url, "wheel"));
