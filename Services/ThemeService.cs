@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using System;
@@ -50,6 +52,10 @@ namespace Gamelist_Manager.Services
                 1 => ThemeVariant.Dark,
                 _ => ThemeVariant.Light
             };
+
+            var iconName = themeIndex == 1 ? "dropicon-white.png" : "dropicon-black.png";
+            var uri = new Uri($"avares://Gamelist_Manager/Assets/Icons/{iconName}");
+            app.Resources["DropIconImage"] = new Bitmap(AssetLoader.Open(uri));
         }
 
         public static void ApplyAccentColor(int colorIndex)

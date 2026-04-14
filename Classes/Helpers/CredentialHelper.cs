@@ -130,7 +130,8 @@ public static class CredentialHelper
         {
             var plainBytes = Encoding.UTF8.GetBytes(plainText);
 
-            // Use DPAPI on Windows, fallback to base64 elsewhere
+            // Use DPAPI on Windows,
+            // to base64 elsewhere
             var encryptedBytes =
                 System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform
                     .Windows)

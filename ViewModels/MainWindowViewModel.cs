@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
@@ -26,6 +27,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SourceCache<GameMetadataRow, string> _sourceCache;
     private readonly IDisposable _filterSubscription;
     private readonly ReadOnlyObservableCollection<GameMetadataRow> _games;
+    private readonly BehaviorSubject<Func<GameMetadataRow, bool>> _filterSubject;
     private DispatcherTimer? _selectionDebounceTimer;
     private IList? _selectedGames;
     private bool _isLoadingData;
@@ -133,10 +135,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         _sourceCache = new SourceCache<GameMetadataRow, string>(game => game.Path);
+        _filterSubject = new BehaviorSubject<Func<GameMetadataRow, bool>>(BuildFilterPredicate());
 
         _filterSubscription = _sourceCache
             .Connect()
-            .Filter(FilterPredicate)
+            .Filter(_filterSubject)
             .Bind(out _games)
             .Subscribe(_ => OnGamesCollectionChanged());
 
@@ -147,8 +150,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         LoadBehaviorSettings();
         LoadColumnSettings();
+        _sharedData.RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));
         LoadRecentFilesFromSettings();
-        RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));
+        OnPropertyChanged(nameof(HasRecentFiles));
         RefreshProfiles();
         LoadSystems();
 

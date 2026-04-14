@@ -15,7 +15,7 @@ public partial class SettingsViewModel
     #region Fields
 
     private static readonly string DefaultFallbackJson =
-        "[\"USA (us)\",\"ScreenScraper (ss)\",\"Europe (eu)\",\"United Kingdom (uk)\",\"World (wor)\"]";
+        "[\"USA (us)\",\"Europe (eu)\",\"United Kingdom (uk)\",\"World (wor)\",\"Japan (jp)\",\"ScreenScraper (ss)\"]";
 
     private string SetupScraperName => SelectedSetupScraperIndex switch
     {

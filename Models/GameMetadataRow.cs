@@ -5,47 +5,11 @@ namespace Gamelist_Manager.Models
 {
     public class GameMetadataRow : ObservableObject
     {
-        private static readonly Dictionary<MetaDataKeys, string> KeyToPropertyName = new()
-        {
-            { MetaDataKeys.hidden, nameof(Hidden) },
-            { MetaDataKeys.favorite, nameof(Favorite) },
-            { MetaDataKeys.path, nameof(Path) },
-            { MetaDataKeys.id, nameof(Id) },
-            { MetaDataKeys.name, nameof(Name) },
-            { MetaDataKeys.genre, nameof(Genre) },
-            { MetaDataKeys.releasedate, nameof(Releasedate) },
-            { MetaDataKeys.players, nameof(Players) },
-            { MetaDataKeys.rating, nameof(Rating) },
-            { MetaDataKeys.lang, nameof(Lang) },
-            { MetaDataKeys.region, nameof(Region) },
-            { MetaDataKeys.publisher, nameof(Publisher) },
-            { MetaDataKeys.developer, nameof(Developer) },
-            { MetaDataKeys.playcount, nameof(Playcount) },
-            { MetaDataKeys.gametime, nameof(Gametime) },
-            { MetaDataKeys.lastplayed, nameof(Lastplayed) },
-            { MetaDataKeys.desc, nameof(Desc) },
-            { MetaDataKeys.image, nameof(Image) },
-            { MetaDataKeys.marquee, nameof(Marquee) },
-            { MetaDataKeys.thumbnail, nameof(Thumbnail) },
-            { MetaDataKeys.boxback, nameof(Boxback) },
-            { MetaDataKeys.wheel, nameof(Wheel) },
-            { MetaDataKeys.boxart, nameof(Boxart) },
-            { MetaDataKeys.fanart, nameof(Fanart) },
-            { MetaDataKeys.map, nameof(Map) },
-            { MetaDataKeys.bezel, nameof(Bezel) },
-            { MetaDataKeys.cartridge, nameof(Cartridge) },
-            { MetaDataKeys.titleshot, nameof(Titleshot) },
-            { MetaDataKeys.video, nameof(Video) },
-            { MetaDataKeys.music, nameof(Music) },
-            { MetaDataKeys.manual, nameof(Manual) },
-            { MetaDataKeys.magazine, nameof(Magazine) },
-            { MetaDataKeys.mix, nameof(Mix) },
-            { MetaDataKeys.family, nameof(Family) },
-            { MetaDataKeys.arcadesystemname, nameof(Arcadesystemname) },
-        };
-
+        #region Private Fields
         private readonly Dictionary<MetaDataKeys, object?> _values = new();
+        #endregion
 
+        #region Public Methods
         public object? GetValue(MetaDataKeys key)
             => _values.TryGetValue(key, out var value) ? value : null;
 
@@ -56,28 +20,15 @@ namespace Gamelist_Manager.Models
 
             _values[key] = value;
             OnPropertyChanged($"Item[{key}]");
-            if (KeyToPropertyName.TryGetValue(key, out var propName))
+            var propName = GamelistMetaData.GetPropertyName(key);
+            if (propName != null)
                 OnPropertyChanged(propName);
         }
 
-        // Single string indexer kept for backward compatibility
-        public object? this[string columnName]
-        {
-            get
-            {
-                if (System.Enum.TryParse<MetaDataKeys>(columnName, true, out var key))
-                    return GetValue(key);
-                return null;
-            }
-            set
-            {
-                if (System.Enum.TryParse<MetaDataKeys>(columnName, true, out var key))
-                    SetValue(key, value is bool b ? b : value);
-            }
-        }
+        public void NotifyDataChanged() => OnPropertyChanged(string.Empty);
+        #endregion
 
-        public IEnumerable<object?> GetAllValues() => _values.Values;
-
+        #region Public Properties
         private string GetString(MetaDataKeys key) => GetValue(key)?.ToString() ?? string.Empty;
         private bool GetBool(MetaDataKeys key) => GetValue(key) is true;
 
@@ -116,7 +67,6 @@ namespace Gamelist_Manager.Models
         public string Mix { get => GetString(MetaDataKeys.mix); set => SetValue(MetaDataKeys.mix, value); }
         public string Family { get => GetString(MetaDataKeys.family); set => SetValue(MetaDataKeys.family, value); }
         public string Arcadesystemname { get => GetString(MetaDataKeys.arcadesystemname); set => SetValue(MetaDataKeys.arcadesystemname, value); }
-
-        public void NotifyDataChanged() => OnPropertyChanged(string.Empty);
+        #endregion
     }
 }

@@ -1,5 +1,3 @@
-using Gamelist_Manager.Classes.Api;
-using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.Models;
 using System;
 using System.IO;
@@ -13,7 +11,7 @@ namespace Gamelist_Manager.Classes.Helpers
         public static async Task DownloadMediaFilesAsync(
             ScrapedGameData scrapedData,
             ScraperParameters parameters,
-            FileTransfer fileTransfer,
+            FileTransferHelper fileTransfer,
             Action<string> recordDownload,
             Action<string, LogLevel, string?, LogLevel>? log,
             CancellationToken cancellationToken = default)

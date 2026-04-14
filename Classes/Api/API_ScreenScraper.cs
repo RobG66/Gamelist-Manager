@@ -1,12 +1,10 @@
 ﻿using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -30,7 +28,7 @@ namespace Gamelist_Manager.Classes.Api
         private const string Software = "GamelistManager";
 
         private readonly HttpClient _httpClient;
-     
+
         public API_ScreenScraper(HttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -44,10 +42,9 @@ namespace Gamelist_Manager.Classes.Api
         {
             try
             {
-                var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+                using var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                var bytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-                string xml = Encoding.UTF8.GetString(bytes);
+                string xml = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return (true, xml, string.Empty);
             }
             catch (HttpRequestException ex)
@@ -358,13 +355,13 @@ namespace Gamelist_Manager.Classes.Api
                     case "publisher":
                         string? publisher = xmlData.SelectSingleNode("/Data/jeu/editeur")?.InnerText;
                         if (!string.IsNullOrEmpty(publisher))
-                            gameData.Data["publisher"] = publisher;
+                            gameData.Data["publisher"] = EncodingHelper.FixMojibake(publisher);
                         break;
 
                     case "developer":
                         string? developer = xmlData.SelectSingleNode("/Data/jeu/developpeur")?.InnerText;
                         if (!string.IsNullOrEmpty(developer))
-                            gameData.Data["developer"] = developer;
+                            gameData.Data["developer"] = EncodingHelper.FixMojibake(developer);
                         break;
 
                     case "players":
@@ -383,7 +380,7 @@ namespace Gamelist_Manager.Classes.Api
                         string? platformId = (xmlData.SelectSingleNode("/Data/jeu/systeme") as XmlElement)?.GetAttribute("id");
                         if (ushort.TryParse(platformId, out ushort idValue))
                         {
-                            string arcadeId = ArcadeSystemID.GetArcadeSystemNameByID(idValue);
+                            string arcadeId = ArcadeSystemIDHelper.GetArcadeSystemNameByID(idValue);
                             if (!string.IsNullOrEmpty(arcadeId))
                                 gameData.Data["arcadesystemname"] = arcadeId;
                         }
@@ -403,7 +400,7 @@ namespace Gamelist_Manager.Classes.Api
                             ?.InnerText
                             ?? xmlData.SelectSingleNode("/Data/jeu/synopsis/synopsis[@langue='en']")?.InnerText;
                         if (!string.IsNullOrEmpty(desc))
-                            gameData.Data["desc"] = desc;
+                            gameData.Data["desc"] = EncodingHelper.FixMojibake(desc);
                         break;
 
                     case "name":
@@ -413,7 +410,19 @@ namespace Gamelist_Manager.Classes.Api
                             {
                                 string name = ParseNames(namesNode, parameters.RomFileName!, parameters);
                                 if (!string.IsNullOrEmpty(name))
-                                    gameData.Data["name"] = name;
+                                    gameData.Data["name"] = EncodingHelper.FixMojibake(name);
+                            }
+                        }
+                        break;
+
+                    case "region":
+                        {
+                            var namesNode = xmlData.SelectSingleNode("/Data/jeu/noms");
+                            if (namesNode != null)
+                            {
+                                string resolvedRegion = ParseRegion(namesNode, parameters);
+                                if (!string.IsNullOrEmpty(resolvedRegion))
+                                    gameData.Data["region"] = resolvedRegion;
                             }
                         }
                         break;
@@ -426,7 +435,7 @@ namespace Gamelist_Manager.Classes.Api
                                 : (!string.IsNullOrEmpty(parameters.SSLanguage) ? parameters.SSLanguage : "en");
                             var (_, genreName) = ParseGenres(genresNode, genreLanguage);
                             if (!string.IsNullOrEmpty(genreName))
-                                gameData.Data["genre"] = genreName;
+                                gameData.Data["genre"] = EncodingHelper.FixMojibake(genreName);
                         }
                         break;
 
@@ -437,7 +446,7 @@ namespace Gamelist_Manager.Classes.Api
                             string familyLanguage = !string.IsNullOrEmpty(parameters.SSLanguage) ? parameters.SSLanguage : "en";
                             string family = ParseFamily(familyNode, familyLanguage);
                             if (!string.IsNullOrEmpty(family))
-                                gameData.Data["family"] = family;
+                                gameData.Data["family"] = EncodingHelper.FixMojibake(family);
                         }
                         break;
 
@@ -785,6 +794,35 @@ namespace Gamelist_Manager.Classes.Api
             }
 
             return string.Empty;
+        }
+
+        private static string ParseRegion(XmlNode namesNode, ScraperParameters parameters)
+        {
+            var availableRegions = namesNode
+                .SelectNodes("nom")?
+                .Cast<XmlNode>()
+                .Select(n => n.Attributes?["region"]?.Value ?? string.Empty)
+                .Where(r => !string.IsNullOrEmpty(r))
+                .ToList() ?? new List<string>();
+
+            if (availableRegions.Count == 0)
+                return string.Empty;
+
+            // Check user's configured regions in priority order
+            if (parameters.SSRegions != null)
+            {
+                foreach (string region in parameters.SSRegions)
+                {
+                    if (availableRegions.Contains(region, StringComparer.OrdinalIgnoreCase))
+                        return region;
+                }
+            }
+
+            // Fall back to "us" if available
+            if (availableRegions.Contains("us", StringComparer.OrdinalIgnoreCase))
+                return "us";
+
+            return availableRegions.First();
         }
 
         private static string NormalizeLanguageToSsCode(string language)

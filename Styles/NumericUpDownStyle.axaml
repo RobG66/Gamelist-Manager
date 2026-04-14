@@ -14,159 +14,159 @@
     </Border>
   </Design.PreviewWith>
 
-  <Style Selector="NumericUpDown">
-    <Setter Property="Background" Value="#FFFFFF"/>
-    <Setter Property="BorderBrush" Value="#CCCCCC"/>
-    <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="CornerRadius" Value="4"/>
-    <Setter Property="Foreground" Value="#1E1E1E"/>
-    <Setter Property="FontSize" Value="{DynamicResource GlobalFontSize}"/>
-    <Setter Property="MinHeight" Value="28"/>
-    <Setter Property="Padding" Value="4,0"/>
-    <Setter Property="VerticalContentAlignment" Value="Center"/>
-    <Setter Property="HorizontalContentAlignment" Value="Left"/>
-    <Setter Property="Template">
-      <ControlTemplate>
-        <ButtonSpinner Name="PART_Spinner"
-                       Background="{TemplateBinding Background}"
-                       BorderBrush="{TemplateBinding BorderBrush}"
-                       BorderThickness="{TemplateBinding BorderThickness}"
-                       CornerRadius="{TemplateBinding CornerRadius}"
-                       AllowSpin="{TemplateBinding AllowSpin}"
-                       ShowButtonSpinner="{TemplateBinding ShowButtonSpinner}"
-                       ButtonSpinnerLocation="{TemplateBinding ButtonSpinnerLocation}">
-          <TextBox Name="PART_TextBox"
-                   Background="Transparent"
-                   BorderThickness="0"
-                   Foreground="{TemplateBinding Foreground}"
-                   FontSize="{TemplateBinding FontSize}"
-                   MinWidth="40"
-                   Padding="{TemplateBinding Padding}"
-                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                   IsReadOnly="{TemplateBinding IsReadOnly}"
-                   Watermark="{TemplateBinding Watermark}"
-                   TextAlignment="{TemplateBinding TextAlignment}"
-                   Text="{TemplateBinding Text}"
-                   InnerLeftContent="{TemplateBinding InnerLeftContent}"
-                   InnerRightContent="{TemplateBinding InnerRightContent}" />
-        </ButtonSpinner>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+  <Styles.Resources>
 
-  <!-- Hover -->
-  <Style Selector="NumericUpDown:pointerover /template/ ButtonSpinner#PART_Spinner">
-    <Setter Property="BorderBrush" Value="#999999"/>
-  </Style>
+    <ControlTheme x:Key="{x:Type NumericUpDown}" TargetType="NumericUpDown">
+      <Setter Property="Background"                 Value="{DynamicResource NumericUpDownBackground}"/>
+      <Setter Property="BorderBrush"                Value="{DynamicResource NumericUpDownBorderBrush}"/>
+      <Setter Property="BorderThickness"            Value="{DynamicResource NumericUpDownBorderThickness}"/>
+      <Setter Property="CornerRadius"               Value="{DynamicResource ControlCornerRadius}"/>
+      <Setter Property="Foreground"                 Value="{DynamicResource NumericUpDownForeground}"/>
+      <Setter Property="FontSize"                   Value="{DynamicResource GlobalFontSize}"/>
+      <Setter Property="MinHeight"                  Value="{DynamicResource NumericUpDownMinHeight}"/>
+      <Setter Property="Padding"                    Value="{DynamicResource NumericUpDownPadding}"/>
+      <Setter Property="VerticalContentAlignment"   Value="Center"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
 
-  <!-- Focus -->
-  <Style Selector="NumericUpDown:focus-within /template/ ButtonSpinner#PART_Spinner">
-    <Setter Property="BorderBrush" Value="#0078D4"/>
-    <Setter Property="BorderThickness" Value="1.5"/>
-  </Style>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ButtonSpinner Name="PART_Spinner"
+                         Background="{TemplateBinding Background}"
+                         BorderBrush="{TemplateBinding BorderBrush}"
+                         BorderThickness="{TemplateBinding BorderThickness}"
+                         CornerRadius="{TemplateBinding CornerRadius}"
+                         AllowSpin="{TemplateBinding AllowSpin}"
+                         ShowButtonSpinner="{TemplateBinding ShowButtonSpinner}"
+                         ButtonSpinnerLocation="{TemplateBinding ButtonSpinnerLocation}">
+            <TextBox Name="PART_TextBox"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Foreground="{TemplateBinding Foreground}"
+                     FontSize="{TemplateBinding FontSize}"
+                     MinWidth="40"
+                     Padding="{TemplateBinding Padding}"
+                     VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                     HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                     IsReadOnly="{TemplateBinding IsReadOnly}"
+                     Watermark="{TemplateBinding Watermark}"
+                     TextAlignment="{TemplateBinding TextAlignment}"
+                     Text="{TemplateBinding Text}"
+                     InnerLeftContent="{TemplateBinding InnerLeftContent}"
+                     InnerRightContent="{TemplateBinding InnerRightContent}" />
+          </ButtonSpinner>
+        </ControlTemplate>
+      </Setter>
 
-  <!-- ReadOnly -->
-  <Style Selector="NumericUpDown:read-only /template/ ButtonSpinner#PART_Spinner">
-    <Setter Property="Background" Value="#F5F5F5"/>
-    <Setter Property="BorderBrush" Value="#DDDDDD"/>
-  </Style>
+      <!-- Hover -->
+      <Style Selector="^:pointerover /template/ ButtonSpinner#PART_Spinner">
+        <Setter Property="BorderBrush" Value="{DynamicResource NumericUpDownBorderBrushPointerOver}"/>
+      </Style>
 
-  <!-- Disabled -->
-  <Style Selector="NumericUpDown:disabled">
-    <Setter Property="Opacity" Value="0.5"/>
-  </Style>
+      <!-- Focus -->
+      <Style Selector="^:focus-within /template/ ButtonSpinner#PART_Spinner">
+        <Setter Property="BorderBrush"     Value="{DynamicResource NumericUpDownBorderBrushFocused}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource NumericUpDownBorderThicknessFocused}"/>
+      </Style>
 
-  <!-- ── ButtonSpinner: remove default chrome ── -->
-  <Style Selector="ButtonSpinner">
-    <Setter Property="Template">
-      <ControlTemplate>
-        <DataValidationErrors>
-          <Grid ColumnDefinitions="*,Auto">
-            <!-- Text content -->
-            <ContentPresenter Grid.Column="0"
-                              Name="PART_ContentHost"
-                              Content="{TemplateBinding Content}"
-                              Background="{TemplateBinding Background}"
-                              BorderBrush="{TemplateBinding BorderBrush}"
-                              BorderThickness="{TemplateBinding BorderThickness}"
-                              CornerRadius="{TemplateBinding CornerRadius}" />
+      <!-- ReadOnly -->
+      <Style Selector="^:read-only /template/ ButtonSpinner#PART_Spinner">
+        <Setter Property="Background"  Value="{DynamicResource NumericUpDownBackgroundReadOnly}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource NumericUpDownBorderBrushReadOnly}"/>
+      </Style>
 
-            <!-- Spin buttons stacked vertically on the right -->
-            <Border Grid.Column="1"
-                    IsVisible="{TemplateBinding ShowButtonSpinner}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="1,0,0,0"
-                    Background="Transparent">
-              <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+      <!-- Disabled -->
+      <Style Selector="^:disabled">
+        <Setter Property="Opacity" Value="{DynamicResource NumericUpDownDisabledOpacity}"/>
+      </Style>
 
-                <!-- Increment (Up) -->
-                <RepeatButton Name="PART_IncreaseButton"
-                              Focusable="False"
-                              IsTabStop="False"
-                              Width="20"
-                              Height="13"
-                              Padding="0,2,0,0"
-                              VerticalContentAlignment="Center"
-                              HorizontalContentAlignment="Center"
-                              Background="Transparent"
-                              BorderThickness="0">
-                  <Path Data="M 0,4 L 4,0 L 8,4"
-                        Stroke="#666666"
-                        StrokeThickness="1.5"
-                        StrokeLineCap="Round"
-                        StrokeJoin="Round"
-                        Width="8"
-                        Height="6"
-                        Stretch="Uniform"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
-                </RepeatButton>
+    </ControlTheme>
 
-                <!-- Decrement (Down) -->
-                <RepeatButton Name="PART_DecreaseButton"
-                              Focusable="False"
-                              IsTabStop="False"
-                              Width="20"
-                              Height="13"
-                              Padding="0,0,0,2"
-                              VerticalContentAlignment="Center"
-                              HorizontalContentAlignment="Center"
-                              Background="Transparent"
-                              BorderThickness="0">
-                  <Path Data="M 0,0 L 4,4 L 8,0"
-                        Stroke="#666666"
-                        StrokeThickness="1.5"
-                        StrokeLineCap="Round"
-                        StrokeJoin="Round"
-                        Width="8"
-                        Height="6"
-                        Stretch="Uniform"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"/>
-                </RepeatButton>
 
-              </StackPanel>
-            </Border>
-          </Grid>
-        </DataValidationErrors>
-      </ControlTemplate>
-    </Setter>
-  </Style>
+    <ControlTheme x:Key="{x:Type ButtonSpinner}" TargetType="ButtonSpinner">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <DataValidationErrors>
+            <Grid ColumnDefinitions="*,Auto">
 
-  <!-- Spin button hover -->
+              <ContentPresenter Grid.Column="0"
+                                Name="PART_ContentHost"
+                                Content="{TemplateBinding Content}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}" />
+
+              <Border Grid.Column="1"
+                      IsVisible="{TemplateBinding ShowButtonSpinner}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{DynamicResource ButtonSpinnerButtonDividerThickness}"
+                      Background="Transparent">
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+
+                  <RepeatButton Name="PART_IncreaseButton"
+                                Focusable="False"
+                                IsTabStop="False"
+                                Width="{DynamicResource ButtonSpinnerButtonWidth}"
+                                Height="{DynamicResource ButtonSpinnerButtonHeight}"
+                                Padding="{DynamicResource ButtonSpinnerIncreaseButtonPadding}"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0">
+                    <Path Data="M 0,4 L 4,0 L 8,4"
+                          Stroke="{DynamicResource ButtonSpinnerGlyphForeground}"
+                          StrokeThickness="{DynamicResource ButtonSpinnerGlyphStrokeThickness}"
+                          StrokeLineCap="Round"
+                          StrokeJoin="Round"
+                          Width="8" Height="6"
+                          Stretch="Uniform"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                  </RepeatButton>
+
+                  <RepeatButton Name="PART_DecreaseButton"
+                                Focusable="False"
+                                IsTabStop="False"
+                                Width="{DynamicResource ButtonSpinnerButtonWidth}"
+                                Height="{DynamicResource ButtonSpinnerButtonHeight}"
+                                Padding="{DynamicResource ButtonSpinnerDecreaseButtonPadding}"
+                                VerticalContentAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0">
+                    <Path Data="M 0,0 L 4,4 L 8,0"
+                          Stroke="{DynamicResource ButtonSpinnerGlyphForeground}"
+                          StrokeThickness="{DynamicResource ButtonSpinnerGlyphStrokeThickness}"
+                          StrokeLineCap="Round"
+                          StrokeJoin="Round"
+                          Width="8" Height="6"
+                          Stretch="Uniform"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                  </RepeatButton>
+
+                </StackPanel>
+              </Border>
+
+            </Grid>
+          </DataValidationErrors>
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+
+  </Styles.Resources>
+
+  <!-- ── ButtonSpinner RepeatButton states (must live outside ControlTheme) ── -->
   <Style Selector="ButtonSpinner RepeatButton:pointerover">
-    <Setter Property="Background" Value="#EFEFEF"/>
+    <Setter Property="Background" Value="{DynamicResource ButtonSpinnerButtonBackgroundPointerOver}"/>
   </Style>
 
-  <!-- Spin button pressed -->
   <Style Selector="ButtonSpinner RepeatButton:pressed">
-    <Setter Property="Background" Value="#E0E0E0"/>
+    <Setter Property="Background" Value="{DynamicResource ButtonSpinnerButtonBackgroundPressed}"/>
   </Style>
 
-  <!-- Disabled spin buttons -->
   <Style Selector="ButtonSpinner RepeatButton:disabled">
-    <Setter Property="Opacity" Value="0.3"/>
+    <Setter Property="Opacity" Value="{DynamicResource ButtonSpinnerButtonDisabledOpacity}"/>
   </Style>
 
 </Styles>

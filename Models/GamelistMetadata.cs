@@ -68,39 +68,34 @@ namespace Gamelist_Manager.Models
 
     public class MetaDataDecl
     {
-        public MetaDataKeys Key { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string PropertyName { get; set; } = string.Empty;
-        public MetaDataType DataType { get; set; }
-        public List<string> Scrapers { get; set; } = [];
-        public bool Viewable { get; set; } = true;
-        public bool AlwaysVisible { get; set; } = false;
-        public bool DefaultVisible { get; set; } = false;
-        public bool Editable { get; set; } = false;
+        public required MetaDataKeys Key { get; init; }
+        public required string Name { get; init; }
+        public required string Type { get; init; }
+        public required string PropertyName { get; init; }
+        public required MetaDataType DataType { get; init; }
+        public IReadOnlyList<string> Scrapers { get; init; } = [];
+        public bool Viewable { get; init; } = true;
+        public bool AlwaysVisible { get; init; }
+        public bool DefaultVisible { get; init; }
+        public bool Editable { get; init; }
 
         public bool IsMedia => DataType is not (MetaDataType.String or MetaDataType.Bool);
 
-        // Media settings defaults (set during static initialization)
         public string DefaultPath { get; init; } = string.Empty;
         public bool DefaultEnabled { get; init; } = true;
         public string DefaultSuffix { get; init; } = string.Empty;
-
-        // Runtime media settings (populated by LoadMediaSettings from INI)
-        public string MediaFolderPath { get; set; } = string.Empty;
-        public bool Enabled { get; set; } = true;
-        public string Suffix { get; set; } = string.Empty;
-        public bool SfxEnabled { get; set; } = true;
     }
 
     public static class GamelistMetaData
     {
         private static readonly Dictionary<MetaDataKeys, MetaDataDecl> metaDataDictionary;
-        private static readonly Dictionary<MetaDataKeys, object> metadataValues;
         private static readonly List<MetaDataDecl> mediaMetadataCache;
         private static readonly List<MetaDataDecl> columnDeclarationsCache;
         private static readonly List<MetaDataDecl> toggleableColumnCache;
-        private static readonly List<MetaDataDecl> allMediaFolderCache; // All media folder types in declaration order (Image, Document, Video, Music)
+        private static readonly List<MetaDataDecl> allMediaFolderCache;
+        private static readonly Dictionary<string, MetaDataDecl> typeToDecl;
+        private static readonly Dictionary<string, MetaDataDecl> nameToDecl;
+        private static readonly Dictionary<string, List<string>> scraperElementsCache;
 
 
         static GamelistMetaData()
@@ -142,38 +137,18 @@ namespace Gamelist_Manager.Models
                 new() { Key = MetaDataKeys.mix, Type = "mix", Name = "Mix", PropertyName = nameof(GameMetadataRow.Mix), DataType = MetaDataType.Image, Scrapers = ["ScreenScraper", "EmuMovies"], Viewable = true, Editable = false, DefaultPath = "./images", DefaultEnabled = true, DefaultSuffix = "mix" },
                 new() { Key = MetaDataKeys.family, Type = "family", Name = "Family", PropertyName = nameof(GameMetadataRow.Family), DataType = MetaDataType.String, Scrapers = ["ScreenScraper"], Viewable = true, Editable = true },
                 new() { Key = MetaDataKeys.arcadesystemname, Type = "arcadesystemname", Name = "Arcade System Name", PropertyName = nameof(GameMetadataRow.Arcadesystemname), DataType = MetaDataType.String, Scrapers = ["ScreenScraper"], Viewable = true, Editable = true },
-                //new MetaDataDecl { Key = MetaDataKeys.genreIds, Type = "genreIds", Name = "Genre Ids", DataType = MetaDataType.String, Scrapers = new List<string>{ "ScreenScraper" }, Viewable = true, editible = true },
-                //new MetaDataDecl { Key = MetaDataKeys.kidgame, Type = "kidgame", Name = "Kid Game", DataType = MetaDataType.Bool, Viewable = false, editible = false },
-                //new MetaDataDecl { Key = MetaDataKeys.crc32, Type = "crc32", Name = "Crc32", DataType = MetaDataType.String, Viewable = false, editible = false },
-                //new MetaDataDecl { Key = MetaDataKeys.md5, Type = "md5", Name = "Md5", DataType = MetaDataType.String, Viewable = false, editible = false },
-                //new MetaDataDecl { Key = MetaDataKeys.cheevosHash, Type = "cheevosHash", Name = "Cheevos Hash", DataType = MetaDataType.String, Viewable = false, editible = false },
-                //new MetaDataDecl { Key = MetaDataKeys.cheevosId, Type = "cheevosId", Name = "Cheevos Id", DataType = MetaDataType.String, Viewable = false, editible = false },
-                //new MetaDataDecl { Key = MetaDataKeys.scraperId, Type = "scraperId", Name = "Scraper Id", DataType = MetaDataType.String, Viewable = false, editible = false },
             };
 
-            // Initialize the dictionary
             metaDataDictionary = gameDecls.ToDictionary(
                 decl => decl.Key,
                 decl => decl
             );
 
-            metadataValues = [];
-
-            // Initialize runtime media settings from defaults
-            foreach (var decl in metaDataDictionary.Values)
-            {
-                if (decl.DataType is MetaDataType.String or MetaDataType.Bool)
-                    continue;
-                decl.MediaFolderPath = decl.DefaultPath;
-                decl.Enabled = decl.DefaultEnabled;
-                decl.Suffix = decl.DefaultSuffix;
-            }
-
             allMediaFolderCache = gameDecls
-                .Where(d => d.DataType != MetaDataType.String && d.DataType != MetaDataType.Bool)
+                .Where(d => d.IsMedia)
                 .ToList();
 
-            // Initialize media metadata cache (Image, Document, Video - excluding Music)
+            // Scrapeable media types — excludes Music which has no visual preview
             mediaMetadataCache = metaDataDictionary.Values
                 .Where(decl => decl.DataType == MetaDataType.Image ||
                                decl.DataType == MetaDataType.Document ||
@@ -193,23 +168,33 @@ namespace Gamelist_Manager.Models
                             && d.Key != MetaDataKeys.desc
                             && !d.IsMedia)
                 .ToList();
+
+            typeToDecl = gameDecls.ToDictionary(
+                d => d.Type,
+                d => d,
+                StringComparer.OrdinalIgnoreCase);
+
+            nameToDecl = gameDecls.ToDictionary(
+                d => d.Name,
+                d => d,
+                StringComparer.OrdinalIgnoreCase);
+
+            scraperElementsCache = gameDecls
+                .SelectMany(d => d.Scrapers, (d, scraper) => (d, scraper))
+                .GroupBy(x => x.scraper)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.d.Type).ToList());
         }
 
-        public static Dictionary<string, string> NameToTypeMap => metaDataDictionary
-           .ToDictionary(
-               kvp => kvp.Value.Type,  // Element type
-               kvp => kvp.Value.Name   // Dataset column type
-           );
-
-        public static List<string> GetScraperElements(string scraperName)
+        public static IReadOnlyList<string> GetScraperElements(string scraperName)
         {
-            return metaDataDictionary.Values
-                .Where(decl => decl.Scrapers.Contains(scraperName))
-                .Select(decl => decl.Type)
-                .ToList();
+            return scraperElementsCache.TryGetValue(scraperName, out var elements)
+                ? elements
+                : [];
         }
 
-        public static Dictionary<MetaDataKeys, MetaDataDecl> GetMetaDataDictionary()
+        public static IReadOnlyDictionary<MetaDataKeys, MetaDataDecl> GetMetaDataDictionary()
         {
             return metaDataDictionary;
         }
@@ -218,7 +203,7 @@ namespace Gamelist_Manager.Models
 
         public static IReadOnlyList<MetaDataDecl> GetToggleableColumns() => toggleableColumnCache;
 
-        public static List<MetaDataDecl> GetMediaMetadata()
+        public static IReadOnlyList<MetaDataDecl> GetMediaMetadata()
         {
             return mediaMetadataCache;
         }
@@ -226,35 +211,24 @@ namespace Gamelist_Manager.Models
         public static IReadOnlyList<MetaDataDecl> GetAllMediaFolderTypes() => allMediaFolderCache;
 
 
-        // Conversion methods
+        public static string? GetPropertyName(MetaDataKeys key)
+        {
+            return metaDataDictionary.TryGetValue(key, out var decl) ? decl.PropertyName : null;
+        }
 
         public static string GetMetadataNameByType(string type)
         {
-            var metaDataDecl = metaDataDictionary
-                .Values
-                .FirstOrDefault(decl => decl.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
-
-            // Return the DataType (enum) type in lowercase
-            return metaDataDecl?.Name ?? string.Empty;
+            return typeToDecl.TryGetValue(type, out var decl) ? decl.Name : string.Empty;
         }
 
         public static string GetMetadataDataTypeByType(string type)
         {
-            var metaDataDecl = metaDataDictionary
-                .Values
-                .FirstOrDefault(decl => decl.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
-
-            // Return the DataType (enum) type in lowercase
-            return metaDataDecl?.DataType.ToString() ?? string.Empty;
+            return typeToDecl.TryGetValue(type, out var decl) ? decl.DataType.ToString() : string.Empty;
         }
 
         public static string GetMetadataTypeByName(string name)
         {
-            var metaDataDecl = metaDataDictionary
-                .Values
-                .FirstOrDefault(decl => decl.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-
-            return metaDataDecl?.Type ?? string.Empty;
+            return nameToDecl.TryGetValue(name, out var decl) ? decl.Type : string.Empty;
         }
 
     }

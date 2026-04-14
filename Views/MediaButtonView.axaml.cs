@@ -4,7 +4,6 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
 using System.Collections.Generic;

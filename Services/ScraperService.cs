@@ -1,6 +1,5 @@
 using Gamelist_Manager.Classes.Api;
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
@@ -18,7 +17,7 @@ namespace Gamelist_Manager.Services
         private readonly API_ArcadeDB _arcadeDb;
         private readonly API_EmuMovies _emuMovies;
         private readonly API_ScreenScraper _screenScraper;
-        private readonly FileTransfer _fileTransfer;
+        private readonly FileTransferHelper _fileTransfer;
         private readonly SharedDataService _sharedData;
         private readonly Dictionary<string, int> _downloadStats = new();
         private readonly object _downloadStatsLock = new();
@@ -30,7 +29,7 @@ namespace Gamelist_Manager.Services
             API_ArcadeDB arcadeDb,
             API_EmuMovies emuMovies,
             API_ScreenScraper screenScraper,
-            FileTransfer fileTransfer,
+            FileTransferHelper fileTransfer,
             SharedDataService sharedData)
         {
             _arcadeDb = arcadeDb;
@@ -93,7 +92,11 @@ namespace Gamelist_Manager.Services
             {
                 string regionName = !string.IsNullOrEmpty(mameArcadeName) ? mameArcadeName : romFileNameNoExtension;
                 romRegion = RegionLanguageHelper.GetRegion(regionName) ?? string.Empty;
-                itemsToScrape.Remove(nameof(MetaDataKeys.region));
+
+                // If region was resolved from the ROM name, or this isn't ScreenScraper, handle it locally.
+                // For ScreenScraper with no ROM region, leave it in the list so ParseRegion can resolve it from <noms>.
+                if (!string.IsNullOrEmpty(romRegion) || currentScraper != ScraperRegistry.ScreenScraper.Name)
+                    itemsToScrape.Remove(nameof(MetaDataKeys.region));
             }
 
             if (itemsToScrape.Contains(nameof(MetaDataKeys.lang)))
@@ -148,7 +151,7 @@ namespace Gamelist_Manager.Services
             if (!string.IsNullOrEmpty(romLanguage))
                 scrapedGameData.Data[nameof(MetaDataKeys.lang)] = romLanguage;
 
-            if (!success)
+            if (!success && !scraperParameters.SkipNonCached)
             {
                 if (scraperProperties.LogVerbosity >= 1)
                     Log($"'{scraperParameters.RomName}'", LogLevel.Default, LogPrefix.Scrape, LogLevel.Error);
@@ -323,12 +326,12 @@ namespace Gamelist_Manager.Services
 
             if (scraperName == ScraperRegistry.ArcadeDB.Name)
             {
-                if (!ArcadeSystemID.IsInitialized)
+                if (!ArcadeSystemIDHelper.IsInitialized)
                 {
                     Log("Arcade systems configuration is missing.", LogLevel.Error);
                     return false;
                 }
-                if (!ArcadeSystemID.HasArcadeSystemName(currentSystem))
+                if (!ArcadeSystemIDHelper.HasArcadeSystemName(currentSystem))
                 {
                     Log($"'{currentSystem}' is not an arcade system.", LogLevel.Error);
                     return false;
@@ -364,15 +367,15 @@ namespace Gamelist_Manager.Services
             return true;
         }
 
-            public async Task<bool> RunScrapeAsync(
-                ScraperParameters baseParameters,
-            ScraperProperties scraperProperties,
-            IReadOnlyList<GameMetadataRow> rows,
-            int maxBatch,
-            Action<int, int, string> onProgress,
-            Action<int, int>? onLimitUpdate,
-            Action? onDataChanged,
-            CancellationToken cancellationToken)
+        public async Task<bool> RunScrapeAsync(
+            ScraperParameters baseParameters,
+        ScraperProperties scraperProperties,
+        IReadOnlyList<GameMetadataRow> rows,
+        int maxBatch,
+        Action<int, int, string> onProgress,
+        Action<int, int>? onLimitUpdate,
+        Action? onDataChanged,
+        CancellationToken cancellationToken)
         {
             if (ScraperRegistry.Find(scraperProperties.ScraperName)?.SupportsBatchProcessing == true
                 && scraperProperties.BatchProcessing && rows.Count >= BatchProcessingMinimum)

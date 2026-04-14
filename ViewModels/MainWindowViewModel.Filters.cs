@@ -1,7 +1,6 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DynamicData;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
@@ -55,7 +54,6 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Private Properties
-    private Func<GameMetadataRow, bool>? _customFilterPredicate;
     private DispatcherTimer? _customFilterDebounceTimer;
 
     private string SelectedGenreLabel =>
@@ -70,7 +68,7 @@ public partial class MainWindowViewModel
         OnPropertyChanged(nameof(GenreFilterMenuText));
         OnPropertyChanged(nameof(IsGenreFilterActive));
         if (_isLoadingData) return;
-        _sourceCache.Refresh();
+        ApplyFilter();
     }
 
     partial void OnSelectedCustomFilterModeChanged(string value)
@@ -78,12 +76,12 @@ public partial class MainWindowViewModel
         if (!IsCustomFilterTextEnabled)
             CustomFilterText = string.Empty;
         OnPropertyChanged(nameof(IsCustomFilterTextEnabled));
-        TryApplyCustomFilterImmediately();
+        ApplyFilter();
     }
 
     partial void OnSelectedCustomFilterColumnChanged(string? value)
     {
-        TryApplyCustomFilterImmediately();
+        ApplyFilter();
     }
 
     partial void OnCustomFilterTextChanged(string value)
@@ -91,11 +89,8 @@ public partial class MainWindowViewModel
         _customFilterDebounceTimer?.Stop();
         if (string.IsNullOrEmpty(value))
         {
-            if (_customFilterPredicate != null)
-            {
-                _customFilterPredicate = null;
-                _sourceCache.Refresh();
-            }
+            if (!string.IsNullOrWhiteSpace(SelectedCustomFilterColumn))
+                ApplyFilter();
             return;
         }
         _customFilterDebounceTimer?.Start();
@@ -109,7 +104,7 @@ public partial class MainWindowViewModel
         ShowAllItems = true;
         ShowVisibleOnly = false;
         ShowHiddenOnly = false;
-        _sourceCache.Refresh();
+        ApplyFilter();
     }
 
     [RelayCommand]
@@ -118,7 +113,7 @@ public partial class MainWindowViewModel
         ShowAllItems = false;
         ShowVisibleOnly = true;
         ShowHiddenOnly = false;
-        _sourceCache.Refresh();
+        ApplyFilter();
     }
 
     [RelayCommand]
@@ -127,7 +122,7 @@ public partial class MainWindowViewModel
         ShowAllItems = false;
         ShowVisibleOnly = false;
         ShowHiddenOnly = true;
-        _sourceCache.Refresh();
+        ApplyFilter();
     }
 
     [RelayCommand]
@@ -161,10 +156,9 @@ public partial class MainWindowViewModel
         {
             // switching TO genre mode — reset custom filter
             _customFilterDebounceTimer?.Stop();
-            _customFilterPredicate = null;
             CustomFilterText = string.Empty;
             SelectedCustomFilterColumn = null;
-            _sourceCache.Refresh();
+            ApplyFilter();
         }
         IsGenreFilterMode = !IsGenreFilterMode;
     }
@@ -173,10 +167,9 @@ public partial class MainWindowViewModel
     private void ClearCustomFilter()
     {
         _customFilterDebounceTimer?.Stop();
-        _customFilterPredicate = null;
         CustomFilterText = string.Empty;
         SelectedCustomFilterColumn = null;
-        _sourceCache.Refresh();
+        ApplyFilter();
     }
     #endregion
 
@@ -187,7 +180,7 @@ public partial class MainWindowViewModel
         _customFilterDebounceTimer.Tick += (_, _) =>
         {
             _customFilterDebounceTimer.Stop();
-            TryApplyCustomFilterImmediately();
+            ApplyFilter();
         };
     }
 
@@ -198,52 +191,60 @@ public partial class MainWindowViewModel
         ShowVisibleOnly = false;
         ShowHiddenOnly = false;
         GenreFilterSelection = "All Genre";
-        _customFilterPredicate = null;
         CustomFilterText = string.Empty;
         SelectedCustomFilterColumn = null;
     }
 
-    private void TryApplyCustomFilterImmediately()
+    // Captures all filter state as local variables so the returned delegate is a
+    // stable snapshot — every item in a single pass sees the same criteria.
+    private Func<GameMetadataRow, bool> BuildFilterPredicate()
     {
-        if (string.IsNullOrWhiteSpace(SelectedCustomFilterColumn))
-            return;
+        bool showAll = ShowAllItems;
+        bool showVisible = ShowVisibleOnly;
+        bool showHidden = ShowHiddenOnly;
+        string genre = GenreFilterSelection;
 
-        if (IsCustomFilterTextEnabled && string.IsNullOrEmpty(CustomFilterText))
-            return;
-
-        _customFilterPredicate = FilterService.MakeFilter(
-            SelectedCustomFilterColumn,
-            CustomFilterText,
-            SelectedCustomFilterMode ?? "Is Like");
-        _sourceCache.Refresh();
-    }
-
-    private bool FilterPredicate(GameMetadataRow game)
-    {
-        bool passesVisibilityFilter = ShowAllItems ||
-                                     (ShowVisibleOnly && game.GetValue(MetaDataKeys.hidden) is false) ||
-                                     (ShowHiddenOnly && game.GetValue(MetaDataKeys.hidden) is true);
-
-        if (!passesVisibilityFilter) return false;
-
-        if (GenreFilterSelection != "All Genre")
+        Func<GameMetadataRow, bool>? customFilter = null;
+        if (!string.IsNullOrWhiteSpace(SelectedCustomFilterColumn))
         {
-            var gameGenre = game.GetValue(MetaDataKeys.genre)?.ToString();
-            if (GenreFilterSelection == "Empty Genre")
+            if (!IsCustomFilterTextEnabled || !string.IsNullOrEmpty(CustomFilterText))
             {
-                if (!string.IsNullOrEmpty(gameGenre)) return false;
-            }
-            else
-            {
-                if (!string.Equals(gameGenre, GenreFilterSelection, StringComparison.OrdinalIgnoreCase)) return false;
+                customFilter = FilterService.MakeFilter(
+                    SelectedCustomFilterColumn,
+                    CustomFilterText,
+                    SelectedCustomFilterMode ?? "Is Like");
             }
         }
 
-        if (_customFilterPredicate != null && !_customFilterPredicate(game))
-            return false;
+        return game =>
+        {
+            bool passesVisibility = showAll ||
+                                    (showVisible && game.GetValue(MetaDataKeys.hidden) is false) ||
+                                    (showHidden && game.GetValue(MetaDataKeys.hidden) is true);
 
-        return true;
+            if (!passesVisibility) return false;
+
+            if (genre != "All Genre")
+            {
+                var gameGenre = game.GetValue(MetaDataKeys.genre)?.ToString();
+                if (genre == "Empty Genre")
+                {
+                    if (!string.IsNullOrEmpty(gameGenre)) return false;
+                }
+                else
+                {
+                    if (!string.Equals(gameGenre, genre, StringComparison.OrdinalIgnoreCase)) return false;
+                }
+            }
+
+            if (customFilter != null && !customFilter(game))
+                return false;
+
+            return true;
+        };
     }
+
+    private void ApplyFilter() => _filterSubject.OnNext(BuildFilterPredicate());
 
     private void PopulateAvailableGenres()
     {

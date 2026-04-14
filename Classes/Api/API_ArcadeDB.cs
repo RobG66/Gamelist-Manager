@@ -24,9 +24,9 @@ namespace Gamelist_Manager.Classes.Api
         {
             try
             {
-                var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+                using var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return (true, json, string.Empty);
             }
             catch (OperationCanceledException)

@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
 
-namespace Gamelist_Manager.Classes.IO
+namespace Gamelist_Manager.Classes.Helpers
 {
     public static class Startup
     {
@@ -33,10 +33,10 @@ namespace Gamelist_Manager.Classes.IO
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
             });
 
-            services.AddTransient<API_ScreenScraper>();
-            services.AddTransient<API_ArcadeDB>();
-            services.AddTransient<API_EmuMovies>();
-            services.AddTransient<FileTransfer>();
+            services.AddHttpClient<API_ScreenScraper>("ScraperClient");
+            services.AddHttpClient<API_ArcadeDB>("ScraperClient");
+            services.AddHttpClient<API_EmuMovies>("ScraperClient");
+            services.AddHttpClient<FileTransferHelper>("ScraperClient");
             services.AddSingleton(SharedDataService.Instance);
             services.AddTransient<ScraperService>();
         }

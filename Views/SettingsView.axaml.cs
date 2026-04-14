@@ -5,7 +5,6 @@ using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
 using System.ComponentModel;
-using System.Linq;
 
 namespace Gamelist_Manager.Views
 {
@@ -167,9 +166,6 @@ namespace Gamelist_Manager.Views
             var scale = ViewModel.AppFontSize / BASE_FONT_SIZE;
             Width = Math.Round(BASE_WIDTH * scale);
             Height = Math.Round(BASE_HEIGHT * scale);
-
-            // Mark as not dirty after saving
-            ViewModel.IsDirty = false;
         }
 
         private void ButtonClose_Click(object? sender, RoutedEventArgs e)
@@ -265,5 +261,5 @@ namespace Gamelist_Manager.Views
                 item.Path = folders[0].Path.LocalPath;
         }
 
-            }
-        }
+    }
+}

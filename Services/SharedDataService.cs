@@ -73,6 +73,8 @@ namespace Gamelist_Manager.Services
         // The raw gamelist rows — single source of truth for all controls and ViewModels.
         public ObservableCollection<GameMetadataRow>? GamelistData { get; set; }
 
+        public ObservableCollection<RecentFileItem> RecentFiles { get; } = new();
+
         // Set by MainWindowViewModel after the DynamicData pipeline is bound.
         public ReadOnlyObservableCollection<GameMetadataRow>? FilteredGamelistData { get; set; }
 
@@ -85,8 +87,8 @@ namespace Gamelist_Manager.Services
                 : null;
 
         // Keyed by media type string (e.g. "image", "video").
-        public IReadOnlyDictionary<string, MetaDataDecl> MediaSettings { get; private set; }
-            = new Dictionary<string, MetaDataDecl>();
+        public IReadOnlyDictionary<string, MediaTypeSettings> MediaSettings { get; private set; }
+            = new Dictionary<string, MediaTypeSettings>();
 
         public event EventHandler? SettingsApplied;
 
@@ -141,28 +143,33 @@ namespace Gamelist_Manager.Services
             AppFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GlobalFontSize, 12);
             GridFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridFontSize, 12);
 
-            // Populate runtime properties directly on MetaDataDecl objects from the MediaPaths section.
+            // Build runtime media settings from user preferences, falling back to declaration defaults.
             var mediaPaths = settings.GetSection("MediaPaths")
                              ?? new Dictionary<string, string>();
 
-            var mediaSettingsDict = new Dictionary<string, MetaDataDecl>(StringComparer.OrdinalIgnoreCase);
+            var mediaSettingsDict = new Dictionary<string, MediaTypeSettings>(StringComparer.OrdinalIgnoreCase);
             foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
             {
-                decl.Enabled = mediaPaths.TryGetValue($"{decl.Type}_enabled", out var enabled)
-                    ? bool.TryParse(enabled, out var eb) && eb
-                    : decl.DefaultEnabled;
+                var ms = new MediaTypeSettings
+                {
+                    Type = decl.Type,
 
-                decl.MediaFolderPath = mediaPaths.TryGetValue(decl.Type, out var path)
-                    ? path : decl.DefaultPath;
+                    Enabled = mediaPaths.TryGetValue($"{decl.Type}_enabled", out var enabled)
+                        ? bool.TryParse(enabled, out var eb) && eb
+                        : decl.DefaultEnabled,
 
-                decl.Suffix = mediaPaths.TryGetValue($"{decl.Type}_suffix", out var suffix)
-                    ? suffix : decl.DefaultSuffix;
+                    Path = mediaPaths.TryGetValue(decl.Type, out var path)
+                        ? path : decl.DefaultPath,
 
-                decl.SfxEnabled = mediaPaths.TryGetValue($"{decl.Type}_sfx_enabled", out var sfxEnabled)
-                    ? bool.TryParse(sfxEnabled, out var seb) && seb
-                    : !string.IsNullOrEmpty(decl.DefaultSuffix);
+                    Suffix = mediaPaths.TryGetValue($"{decl.Type}_suffix", out var suffix)
+                        ? suffix : decl.DefaultSuffix,
 
-                mediaSettingsDict[decl.Type] = decl;
+                    SfxEnabled = mediaPaths.TryGetValue($"{decl.Type}_sfx_enabled", out var sfxEnabled)
+                        ? bool.TryParse(sfxEnabled, out var seb) && seb
+                        : !string.IsNullOrEmpty(decl.DefaultSuffix),
+                };
+
+                mediaSettingsDict[decl.Type] = ms;
             }
             MediaSettings = mediaSettingsDict;
 

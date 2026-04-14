@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace Gamelist_Manager.Classes.Api
+namespace Gamelist_Manager.Models
 {
     public class ScrapedGameData
     {

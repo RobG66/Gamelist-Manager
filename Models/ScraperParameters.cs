@@ -101,7 +101,7 @@ namespace Gamelist_Manager.Models
             {
                 MediaPaths = media.ToDictionary(
                     kvp => kvp.Key,
-                    kvp => kvp.Value.MediaFolderPath,
+                    kvp => kvp.Value.Path,
                     StringComparer.OrdinalIgnoreCase),
                 MediaSuffixes = media.ToDictionary(
                     kvp => kvp.Key,

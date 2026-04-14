@@ -47,6 +47,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     #region Public Properties
     public bool IsMediaPreviewEnabled => !_sharedData.IsScraping && !_sharedData.IsBusy;
     public bool IsScraping => _sharedData.IsScraping;
+    public bool VideoAutoplay => _sharedData.VideoAutoplay;
     public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
     public LibVLC? LibVLC { get; private set; }
     public static bool IsLibVLCInstalled { get; private set; } = true;
@@ -160,10 +161,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        var mediaDecl = _sharedData.MediaSettings.GetValueOrDefault(mediaItem.MediaTypeKey);
+        var mediaSettings = _sharedData.MediaSettings.GetValueOrDefault(mediaItem.MediaTypeKey);
         var gamelistDir = _sharedData.GamelistDirectory;
 
-        if (mediaDecl == null || string.IsNullOrEmpty(gamelistDir))
+        if (mediaSettings == null || string.IsNullOrEmpty(gamelistDir))
         {
             SetStatus($"Media path not configured for {mediaType}", "error");
             return;
@@ -172,7 +173,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         try
         {
             // Resolve destination folder
-            var destFolder = FilePathHelper.GamelistPathToFullPath(mediaDecl.MediaFolderPath, gamelistDir);
+            var destFolder = FilePathHelper.GamelistPathToFullPath(mediaSettings.Path, gamelistDir);
             if (!Directory.Exists(destFolder))
                 Directory.CreateDirectory(destFolder);
 
@@ -180,8 +181,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             var romPath = SelectedGame.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             var romName = FilePathHelper.NormalizeRomName(romPath);
             var extension = Path.GetExtension(newPath);
-            var suffix = mediaDecl.SfxEnabled && !string.IsNullOrEmpty(mediaDecl.Suffix)
-                ? $"-{mediaDecl.Suffix}"
+            var suffix = mediaSettings.SfxEnabled && !string.IsNullOrEmpty(mediaSettings.Suffix)
+                ? $"-{mediaSettings.Suffix}"
                 : string.Empty;
             var destFileName = $"{romName}{suffix}{extension}";
             var destFullPath = Path.Combine(destFolder, destFileName);
@@ -312,8 +313,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
                 newVisible = true;
             else if (ShowAllMedia)
             {
-                var decl = GamelistMetaData.GetMetaDataDictionary().GetValueOrDefault(item.PathKey);
-                newVisible = decl?.Enabled ?? false;
+                newVisible = _sharedData.MediaSettings.TryGetValue(item.MediaTypeKey, out var ms) && ms.Enabled;
             }
             else
                 newVisible = false;

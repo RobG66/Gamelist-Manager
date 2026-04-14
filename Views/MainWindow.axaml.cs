@@ -272,7 +272,7 @@ public partial class MainWindow : Window
         if (e.Property.Name == nameof(DataGridColumn.IsVisible) && DataContext is MainWindowViewModel vm)
             vm.UpdateSearchableColumns(GetVisibleColumnNames());
     }
-private void OnDatReportColumnAdded(object? sender, string columnName)
+    private void OnDatReportColumnAdded(object? sender, string columnName)
     {
         if (sender is not DatToolViewModel datTool) return;
 

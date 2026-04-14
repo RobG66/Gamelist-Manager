@@ -4,9 +4,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 
-namespace Gamelist_Manager.Classes.IO
+namespace Gamelist_Manager.Classes.Helpers
 {
-    public static class ArcadeSystemID
+    public static class ArcadeSystemIDHelper
     {
         private static readonly string DefaultIniPath = Path.Combine(AppContext.BaseDirectory, "ini", "arcadesystems.ini");
         private static readonly object _lock = new object();
@@ -16,7 +16,7 @@ namespace Gamelist_Manager.Classes.IO
         public static IReadOnlyDictionary<ushort, string> ArcadeSystems => _arcadeSystems;
         public static bool IsInitialized => _arcadeSystems.Count > 0;
 
-        static ArcadeSystemID()
+        static ArcadeSystemIDHelper()
         {
             try
             {

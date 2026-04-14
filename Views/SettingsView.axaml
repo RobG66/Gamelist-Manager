@@ -484,12 +484,15 @@
 								<CheckBox Content="Always scrape media by selected region first" IsChecked="{Binding ScraperMediaRegionFirst}"
 										  ToolTip.Tip="When enabled, the selected primary region is always checked first when retrieving media, overriding the ROM filename's detected region. When disabled, the ROM region takes priority."/>
 								<Grid ColumnDefinitions="*,Auto,*">
+							
 									<StackPanel Grid.Column="0" Spacing="3">
 										<TextBlock Text="Available Regions" FontWeight="SemiBold"
 												   ToolTip.Tip="All regions supported by ScreenScraper. Select a region and click the arrow to add it to your fallback list."/>
+						                  <Border BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColor}"> 
 										<ListBox ItemsSource="{Binding ScraperAvailableRegions}" SelectedItem="{Binding SelectedScraperAvailableRegion}" Height="120"
 												 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 												 ToolTip.Tip="Select a region here, then click the right arrow to add it to your fallback regions list."/>
+										</Border>
 									</StackPanel>
 									<StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5,0">
 										<Button Classes="icon" Command="{Binding AddScraperRegionCommand}" Width="26" Margin="0,0,0,4"
@@ -504,10 +507,12 @@
 									<StackPanel Grid.Column="2" Spacing="3">
 										<TextBlock Text="Fallback Regions" FontWeight="SemiBold"
 												   ToolTip.Tip="Regions tried in order when media is not found for the primary region. The primary region is always checked first."/>
+										   <Border BorderThickness="1" BorderBrush="{DynamicResource SystemAccentColor}"> 
 										<ListBox ItemsSource="{Binding ScraperFallbackRegions}" SelectedItem="{Binding SelectedScraperFallbackRegion}" Height="120"
 												 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 												 ToolTip.Tip="Regions tried in order when media is not available for the primary region. Use the arrows to reorder the priority."/>
-										<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+										</Border>
+											   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
 											<Button Classes="icon" Command="{Binding MoveScraperRegionUpCommand}" Width="26" Margin="0,0,6,0"
 													ToolTip.Tip="Move the selected fallback region higher in priority (checked earlier during scraping).">
 												<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueup.png" Width="18" Height="18"/>

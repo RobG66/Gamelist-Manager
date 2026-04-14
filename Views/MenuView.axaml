@@ -92,40 +92,7 @@
             <!-- RECENT FILES Menu -->
             <Button Classes="NavButton" x:Name="RecentButton" ToolTip.Tip="Recent Gamelists" IsEnabled="{Binding HasRecentFiles}">
                 <Button.Flyout>
-                    <Flyout Placement="Right" ShowMode="Standard">
-                        <StackPanel>
-                            <ScrollViewer MaxHeight="450"
-                                          VerticalScrollBarVisibility="Auto">
-                                <StackPanel>
-                                    <ItemsControl ItemsSource="{Binding RecentFiles}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Tag="{Binding FilePath}"
-                                                        Classes="NavButton"
-                                                        Click="RecentFileButton_Click">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <Image Source="/Assets/Icons/load.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding DisplayPath}"
-                                                                   VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   ToolTip.Tip="{Binding ToolTip}"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <Border Height="1"
-                                            Background="{DynamicResource SeparatorBrush}"
-                                            Margin="0,8"
-                                            IsVisible="{Binding HasRecentFiles}"/>
-                                    <Button Classes="NavButton"
-                                            Content="Clear Recent Files"
-                                            Command="{Binding ClearRecentFilesCommand}"
-                                            IsEnabled="{Binding HasRecentFiles}"/>
-                                </StackPanel>
-                            </ScrollViewer>
-                        </StackPanel>
-                    </Flyout>
+                    <MenuFlyout Placement="Right"/>
                 </Button.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Image Source="/Assets/Icons/reload.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
@@ -150,22 +117,7 @@
                                     MaxWidth="280"
                                     BoxShadow="0 4 12 0 #40000000">
                                 <ScrollViewer MaxHeight="450" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl ItemsSource="{Binding Systems}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Classes="NavButton"
-                                                        Tag="{Binding GamelistPath}"
-                                                        Click="SystemItemButton_Click"
-                                                        ToolTip.Tip="{Binding GamelistPath}">
-                                                    <Image Source="{Binding Logo}"
-                                                           MaxWidth="200"
-                                                           MaxHeight="38"
-                                                           Stretch="Uniform"
-                                                           HorizontalAlignment="Center"/>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <StackPanel x:Name="SystemsPanel"/>
                                 </ScrollViewer>
                             </Border>
                         </Flyout>
@@ -608,20 +560,6 @@
             <Border Height="1"
                     Background="{DynamicResource SeparatorBrush}"
                     Margin="0,8"/>
-
-            <!-- Clear Report Columns Button -->
-            <Button Classes="NavButton"
-                    x:Name="ClearReportColumnsButton"
-                    Command="{Binding ClearReportColumnsCommand}"
-                    IsEnabled="{Binding HasReportColumns}"
-                    ToolTip.Tip="Remove report columns from the datagrid">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Clear Reporting"
-                               VerticalAlignment="Center"
-                               IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
 
             <!-- Edit Mode Toggle -->
             <Button Classes="NavButton"

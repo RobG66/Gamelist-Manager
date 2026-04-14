@@ -15,7 +15,7 @@
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,2"/>
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
             <Setter Property="FontSize" Value="{DynamicResource GlobalHeaderFontSize}"/>
         </Style>
         
@@ -44,13 +44,17 @@
         </Style>
     </UserControl.Styles>
     
-    <!-- Main container for media item -->
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>   <!-- Header -->
-            <RowDefinition Height="*"/>      <!-- Media -->
-            <RowDefinition Height="Auto"/>   <!-- Buttons -->
-        </Grid.RowDefinitions>
+    <!-- Card wrapper for each media item -->
+    <Border Background="{DynamicResource PanelBackground}"
+            CornerRadius="8"
+            Margin="6"
+            Padding="8,6,8,8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>   <!-- Header -->
+                <RowDefinition Height="*"/>      <!-- Media -->
+                <RowDefinition Height="Auto"/>   <!-- Buttons -->
+            </Grid.RowDefinitions>
         
         <!-- Header with media type -->
         <TextBlock Grid.Row="0"
@@ -116,7 +120,7 @@
                 
                 <!-- Drop icon (no path defined - show when ShowAll is on, not manual or video) -->
                 <Image Classes="MediaImage"
-                       Source="/Assets/Icons/dropicon.png"
+                       Source="{DynamicResource DropIconImage}"
                        Opacity="0.4">
                     <Image.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -147,6 +151,7 @@
                                      Margin="0,0,0,5"
                                      VerticalAlignment="Bottom"
                                      HorizontalAlignment="Center"/>
-    </Grid>
-    
-</UserControl>
+            </Grid>
+        </Border>
+
+    </UserControl>

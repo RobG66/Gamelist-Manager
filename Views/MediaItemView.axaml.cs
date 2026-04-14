@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Classes.IO;
 using Gamelist_Manager.ViewModels;
 using LibVLCSharp.Avalonia;
 using System;
@@ -16,6 +15,7 @@ public partial class MediaItemView : UserControl
 {
     private const int VIDEOWIDTH = 400;
     private const int VIDEOHEIGHT = 300;
+    private const int VIDEOASPECTRATIO = VIDEOWIDTH / VIDEOHEIGHT;
     public static readonly StyledProperty<bool> IsScaledProperty =
         AvaloniaProperty.Register<MediaItemView, bool>(nameof(IsScaled));
 
@@ -179,22 +179,19 @@ public partial class MediaItemView : UserControl
 
         _lastViewboxSize = newSize;
 
-        const double videoWidth = 400;
-        const double videoHeight = 300;
-        var videoAspect = videoWidth / videoHeight;
         var viewboxAspect = newSize.Width / newSize.Height;
 
         double scaledWidth, scaledHeight;
 
-        if (viewboxAspect > videoAspect)
+        if (viewboxAspect > VIDEOASPECTRATIO)
         {
             scaledHeight = newSize.Height;
-            scaledWidth = scaledHeight * videoAspect;
+            scaledWidth = scaledHeight * VIDEOASPECTRATIO;
         }
         else
         {
             scaledWidth = newSize.Width;
-            scaledHeight = scaledWidth / videoAspect;
+            scaledHeight = scaledWidth / VIDEOASPECTRATIO;
         }
 
         _videoView.Width = Math.Max(1, scaledWidth);

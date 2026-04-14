@@ -1,16 +1,15 @@
-﻿using Gamelist_Manager.Classes.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Gamelist_Manager.Classes.IO
+namespace Gamelist_Manager.Classes.Helpers
 {
-    internal class FileTransfer
+    internal class FileTransferHelper
     {
         private readonly HttpClient _httpClientService;
 
-        public FileTransfer(HttpClient httpClientService)
+        public FileTransferHelper(HttpClient httpClientService)
         {
             _httpClientService = httpClientService;
         }

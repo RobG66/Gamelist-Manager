@@ -109,11 +109,10 @@ public partial class MainWindowViewModel
             .FirstOrDefault(g => g.PlayCount > 0);
 
         var auditItems = s_mediaTypeInfo.Value
-            .Where(kvp => kvp.MediaType.Enabled)
+            .Where(kvp => _sharedData.MediaSettings.TryGetValue(kvp.MediaType.Type, out var ms) && ms.Enabled)
             .Select(kvp =>
             {
-                var key = kvp.MediaType.Key.ToString();
-                var count = filteredGames.Count(g => !string.IsNullOrWhiteSpace(g[key]?.ToString()));
+                var count = filteredGames.Count(g => !string.IsNullOrWhiteSpace(g.GetValue(kvp.MediaType.Key)?.ToString()));
                 return new MediaAuditItem { Name = kvp.MediaType.Name, Count = count, Total = total, BarBrush = kvp.Brush, DataType = kvp.MediaType.DataType };
             })
             .ToList();

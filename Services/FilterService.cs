@@ -58,8 +58,8 @@ namespace Gamelist_Manager.Services
         private static string? GetProperty(GameMetadataRow game, string propertyName)
         {
             var type = GamelistMetaData.GetMetadataTypeByName(propertyName);
-            if (!string.IsNullOrEmpty(type))
-                return game[type]?.ToString();
+            if (!string.IsNullOrEmpty(type) && Enum.TryParse<MetaDataKeys>(type, true, out var key))
+                return game.GetValue(key)?.ToString();
             return null;
         }
     }

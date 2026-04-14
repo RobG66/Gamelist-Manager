@@ -11,7 +11,7 @@ namespace Gamelist_Manager.Services
 {
     public class GamelistService
     {
-        private static readonly Lazy<Dictionary<MetaDataKeys, MetaDataDecl>> s_metaDataDict =
+        private static readonly Lazy<IReadOnlyDictionary<MetaDataKeys, MetaDataDecl>> s_metaDataDict =
             new(() => GamelistMetaData.GetMetaDataDictionary());
 
         public static (ObservableCollection<GameMetadataRow> Games, List<string> Duplicates) LoadGamelist(string xmlFilePath, bool ignoreDuplicates = false)

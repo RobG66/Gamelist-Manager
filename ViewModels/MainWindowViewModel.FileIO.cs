@@ -24,8 +24,7 @@ public partial class MainWindowViewModel
     private const string BackupFolderName = "Gamelist Backups";
 
     #region Properties & Events
-    public ObservableCollection<RecentFileItem> RecentFiles { get; } = new();
-    public bool HasRecentFiles => RecentFiles.Count > 0;
+    public bool HasRecentFiles => _sharedData.RecentFiles.Count > 0;
     public event EventHandler? RequestSelectFirstItem;
 
     [ObservableProperty] private string _fileStatusText = "No file loaded";
@@ -36,7 +35,7 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private void ClearRecentFiles()
     {
-        RecentFiles.Clear();
+        _sharedData.RecentFiles.Clear();
         _settingsService.SaveRecentFiles(new List<string>());
     }
 
@@ -284,26 +283,26 @@ public partial class MainWindowViewModel
 
     private void LoadRecentFilesFromSettings()
     {
-        RecentFiles.Clear();
+        _sharedData.RecentFiles.Clear();
         foreach (var file in _settingsService.GetRecentFiles())
-            RecentFiles.Add(new RecentFileItem(file));
+            _sharedData.RecentFiles.Add(new RecentFileItem(file));
     }
 
     private void AddRecentFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath)) return;
 
-        var existing = RecentFiles.FirstOrDefault(r => r.FilePath.Equals(filePath, FilePathHelper.PathComparison));
+        var existing = _sharedData.RecentFiles.FirstOrDefault(r => r.FilePath.Equals(filePath, FilePathHelper.PathComparison));
         if (existing != null)
-            RecentFiles.Remove(existing);
+            _sharedData.RecentFiles.Remove(existing);
 
-        RecentFiles.Insert(0, new RecentFileItem(filePath));
+        _sharedData.RecentFiles.Insert(0, new RecentFileItem(filePath));
 
         var maxRecentFiles = _settingsService.GetInt(SettingKeys.AdvancedSection, SettingKeys.RecentFilesCount, 15);
-        while (RecentFiles.Count > maxRecentFiles)
-            RecentFiles.RemoveAt(RecentFiles.Count - 1);
+        while (_sharedData.RecentFiles.Count > maxRecentFiles)
+            _sharedData.RecentFiles.RemoveAt(_sharedData.RecentFiles.Count - 1);
 
-        _settingsService.SaveRecentFiles(RecentFiles.Select(r => r.FilePath).ToList());
+        _settingsService.SaveRecentFiles(_sharedData.RecentFiles.Select(r => r.FilePath).ToList());
     }
 
     private async Task<bool> CheckUnsavedChangesAsync()

@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System.ComponentModel;
 using System.Linq;
@@ -282,7 +281,7 @@ public partial class MediaPreviewView : UserControl
 
         UpdateColumnWidths();
 
-        var autoPlay = SharedDataService.Instance.VideoAutoplay;
+        var autoPlay = _viewModel.VideoAutoplay;
         foreach (var mediaItem in _viewModel.MediaItems.Where(m => m.IsVideo))
         {
             mediaItem.DisposeVideoPlayer();
