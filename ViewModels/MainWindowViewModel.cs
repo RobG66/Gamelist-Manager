@@ -55,7 +55,16 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsScraping => _sharedData.IsScraping;
     public bool IsBusy => _sharedData.IsBusy;
     public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_sharedData.Hostname);
-    public bool IsRomsFolderDefined => !string.IsNullOrWhiteSpace(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder);
+    public bool IsNewGamelistEnabled
+    {
+        get
+        {
+            bool romsOk = !string.IsNullOrWhiteSpace(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder);
+            return _sharedData.IsEsDeMode
+                ? romsOk && !string.IsNullOrWhiteSpace(_sharedData.EsDeRoot) && Directory.Exists(_sharedData.EsDeRoot)
+                : romsOk;
+        }
+    }
     public bool IsEditModeEnabled
     {
         get => _sharedData.EnableEdit;
@@ -103,7 +112,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case nameof(SharedDataService.RomsFolder):
                 LoadSystems();
-                OnPropertyChanged(nameof(IsRomsFolderDefined));
+                OnPropertyChanged(nameof(IsNewGamelistEnabled));
+                break;
+            case nameof(SharedDataService.EsDeRoot):
+                LoadSystems();
+                OnPropertyChanged(nameof(IsNewGamelistEnabled));
                 break;
             case nameof(SharedDataService.EnableDelete):
                 OnPropertyChanged(nameof(IsDeleteEnabled));

@@ -16,6 +16,7 @@ namespace Gamelist_Manager.Views;
 public partial class MenuView : UserControl
 {
     private readonly Dictionary<string, CheckBox> _columnCheckBoxes = new();
+    private readonly List<(MenuItem Item, MetaDataDecl Decl)> _columnMenuItems = new();
     private MenuFlyout? _recentFilesFlyout;
     private Bitmap? _loadIconBitmap;
 
@@ -34,10 +35,18 @@ public partial class MenuView : UserControl
         {
             vm.ColumnVisibilityChanged -= RefreshColumnCheckBoxes;
             vm.ColumnVisibilityChanged += RefreshColumnCheckBoxes;
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
+            vm.PropertyChanged += OnViewModelPropertyChanged;
             RefreshColumnCheckBoxes();
             BuildRecentMenuItems();
             BuildSystemMenuItems();
         }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.IsGamelistLoaded))
+            RefreshColumnMenuVisibility();
     }
 
     private void OnRecentFilesChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -52,7 +61,7 @@ public partial class MenuView : UserControl
         var insertPoint = flyout.Items.OfType<Separator>().Skip(1).FirstOrDefault();
         var insertIndex = insertPoint != null ? flyout.Items.IndexOf(insertPoint) : flyout.Items.Count;
 
-        foreach (var decl in GamelistMetaData.GetToggleableColumns())
+        foreach (var decl in GamelistMetaData.GetAllToggleableColumns())
         {
             var checkBox = new CheckBox
             {
@@ -72,7 +81,19 @@ public partial class MenuView : UserControl
             menuItem.Click += ColumnMenuItem_Click;
 
             flyout.Items.Insert(insertIndex, menuItem);
+            _columnMenuItems.Add((menuItem, decl));
             insertIndex++;
+        }
+
+        RefreshColumnMenuVisibility();
+    }
+
+    private void RefreshColumnMenuVisibility()
+    {
+        var isEsDe = SharedDataService.Instance.IsEsDeMode;
+        foreach (var (item, decl) in _columnMenuItems)
+        {
+            item.IsVisible = isEsDe ? !decl.StandardOnly : !decl.EsDeOnly;
         }
     }
 

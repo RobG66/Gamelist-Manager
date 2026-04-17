@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using System;
 using System.Collections.ObjectModel;
@@ -35,6 +36,9 @@ public partial class SettingsViewModel
     [NotifyCanExecuteChangedFor(nameof(RenameProfileCommand))]
     private string _newProfileName = string.Empty;
 
+    [ObservableProperty]
+    private bool _isNewProfileEsDe;
+
     #endregion
 
     #region Public Properties
@@ -44,6 +48,10 @@ public partial class SettingsViewModel
 
     public string ActiveProfileName => ProfileService.Instance.ActiveProfile;
     public bool CanCreateFromTemplate => SelectedTemplateName != null;
+
+    // Read-only info about the profile selected in the profile list.
+    public bool SelectedProfileIsEsDe => GetSelectedProfileType() == SettingKeys.ProfileTypeEsDe;
+    public string SelectedProfileEsDeMediaRoot => GetSelectedProfileMediaRoot();
 
     #endregion
 
@@ -83,7 +91,13 @@ public partial class SettingsViewModel
         if (saveFirst) SaveSettings();
         ProfileService.Instance.SetActiveProfile(SelectedProfileName);
         SettingsService.Instance.SwitchProfile(ProfileService.Instance.ActiveProfilePath);
+
+        // Refresh shared data first so IsEsDeMode is correct before LoadSettings reads it.
+        SharedDataService.Instance.LoadFromSettings();
         LoadSettings();
+
+        // Save immediately so any missing keys are written with their defaults
+        // and the INI file stays normalized after a profile switch.
         SaveSettings();
         SharedDataService.Instance.LoadFromSettings();
         RefreshProfileList();
@@ -105,6 +119,12 @@ public partial class SettingsViewModel
     #endregion
 
     #region Partial Handlers
+
+    partial void OnSelectedProfileNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(SelectedProfileIsEsDe));
+        OnPropertyChanged(nameof(SelectedProfileEsDeMediaRoot));
+    }
 
     partial void OnSelectedTemplateNameChanged(string? value)
     {
@@ -146,7 +166,10 @@ public partial class SettingsViewModel
     [RelayCommand(CanExecute = nameof(CanCreateNewProfile))]
     private void CreateNewProfile()
     {
-        if (!ProfileService.Instance.CreateProfile(NewProfileName.Trim(), copyFromActive: false)) return;
+        var profileType = IsNewProfileEsDe ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeStandard;
+        var created = ProfileService.Instance.CreateTypedProfile(NewProfileName.Trim(), profileType);
+        if (created == null) return;
+        IsNewProfileEsDe = false;
         NewProfileName = string.Empty;
         RefreshProfileList();
         ProfilesChanged?.Invoke(this, EventArgs.Empty);
@@ -210,6 +233,20 @@ public partial class SettingsViewModel
         foreach (var name in IniFileService.ReadIniFile(_templatesPath).Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
             TemplateList.Add(name);
         SelectedTemplateName = null;
+    }
+
+    private string GetSelectedProfileType()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedProfileName)) return SettingKeys.ProfileTypeStandard;
+        return ProfileService.Instance.GetProfileType(SelectedProfileName);
+    }
+
+    private string GetSelectedProfileMediaRoot()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedProfileName)) return string.Empty;
+        var path = ProfileService.Instance.GetProfilePath(SelectedProfileName);
+        var section = IniFileService.GetSection(path, SettingKeys.EsDeSection);
+        return section != null && section.TryGetValue(SettingKeys.EsDeRoot, out var v) ? v : string.Empty;
     }
 
     #endregion

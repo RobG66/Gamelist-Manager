@@ -67,7 +67,8 @@
                 Classes="MediaBorder"
                 Classes.DropEnabled="{Binding !IsVideo}"
                 Classes.DragOver="{Binding IsDragOver}"
-                DragDrop.AllowDrop="True">
+                DragDrop.AllowDrop="True"
+                ClipToBounds="True">
             
             <Panel>
                 <!-- Image content (when file exists and not manual or video) -->

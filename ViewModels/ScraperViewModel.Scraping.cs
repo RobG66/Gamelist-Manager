@@ -205,7 +205,7 @@ public partial class ScraperViewModel
     private void ApplySource(ObservableCollection<string> collection, string sectionName, Action<int> setIndex, out bool enabled)
     {
         collection.Clear();
-        var sources = _sharedData.GetScraperSources(_currentScraper, sectionName);
+        var sources = ScraperConfigService.Instance.GetScraperSources(_currentScraper, sectionName);
         if (sources.Count > 0)
         {
             foreach (var key in sources.Keys)

@@ -90,7 +90,9 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
     private void RefreshFromGameCore()
     {
-        var newPath = _game?.GetValue(_pathKey)?.ToString();
+        string? newPath;
+
+        newPath = _game?.GetValue(_pathKey)?.ToString();
         if (string.IsNullOrEmpty(newPath))
             newPath = null;
 

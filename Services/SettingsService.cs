@@ -7,7 +7,7 @@ using IniData = System.Collections.Generic.Dictionary<string, System.Collections
 
 namespace Gamelist_Manager.Services
 {
-    public class SettingsService
+    public partial class SettingsService
     {
         private static SettingsService? _instance;
         public static SettingsService Instance => _instance ??= new SettingsService();
@@ -16,7 +16,7 @@ namespace Gamelist_Manager.Services
         private readonly string _iniFolder;
         private Dictionary<string, Dictionary<string, string>>? _cachedSections;
 
-        public SettingsService()
+        private SettingsService()
         {
             var programDirectory = AppContext.BaseDirectory;
             _iniFolder = Path.Combine(programDirectory, "ini");
@@ -24,7 +24,9 @@ namespace Gamelist_Manager.Services
             // ProfileService handles migration and ensures the profiles folder exists
             _settingsFilePath = ProfileService.Instance.ActiveProfilePath;
 
-            if (!File.Exists(_settingsFilePath))
+            // Don't auto-create the profile file when no profiles exist.
+            // The UI will prompt the user to pick a profile type first.
+            if (!ProfileService.Instance.NoProfilesExist && !File.Exists(_settingsFilePath))
             {
                 CreateDefaultSettings();
             }
@@ -177,7 +179,7 @@ namespace Gamelist_Manager.Services
             CreateDefaultSettings();
         }
 
-        public static IniData BuildDefaultSections()
+        public IniData BuildDefaultSections()
         {
             return new IniData
             {
@@ -217,7 +219,10 @@ namespace Gamelist_Manager.Services
                 {
                     [SettingKeys.HostName] = "batocera",
                     [SettingKeys.UserID] = "root",
-                    [SettingKeys.Password] = "linux",
+                    [SettingKeys.Password] = "linux"
+                },
+                [SettingKeys.FolderPathsSection] = new Dictionary<string, string>
+                {
                     [SettingKeys.MamePath] = "",
                     [SettingKeys.RomsFolder] = ""
                 },
@@ -255,7 +260,8 @@ namespace Gamelist_Manager.Services
                     ["magazine_enabled"] = "false",
                     ["mix"] = "./images",
                     ["mix_enabled"] = "true"
-                }
+                },
+                [SettingKeys.EsDeSection] = BuildEsDeDefaults()
             };
         }
     }

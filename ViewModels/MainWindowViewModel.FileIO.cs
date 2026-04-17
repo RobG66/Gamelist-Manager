@@ -116,10 +116,33 @@ public partial class MainWindowViewModel
 
         if (topLevel == null) return;
 
+        IStorageFolder? suggestedStart = null;
+        try
+        {
+            string? startPath = null;
+            if (_sharedData.IsEsDeMode)
+            {
+                var gamelistsFolder = !string.IsNullOrEmpty(_sharedData.EsDeRoot)
+                    ? Path.Combine(_sharedData.EsDeRoot, "gamelists")
+                    : null;
+                if (gamelistsFolder != null && Directory.Exists(gamelistsFolder))
+                    startPath = gamelistsFolder;
+            }
+            else if (!string.IsNullOrEmpty(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder))
+            {
+                startPath = _sharedData.RomsFolder;
+            }
+
+            if (startPath != null)
+                suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
+        }
+        catch { }
+
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Load Gamelist XML",
             AllowMultiple = false,
+            SuggestedStartLocation = suggestedStart,
             FileTypeFilter =
             [
                 new FilePickerFileType("Gamelist XML") { Patterns = ["gamelist.xml"] },
@@ -163,7 +186,9 @@ public partial class MainWindowViewModel
     {
         if (!await CheckUnsavedChangesAsync()) return;
 
-        var romsFolder = Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder);
+        var rootFolder = _sharedData.IsEsDeMode
+            ? Path.Combine(Path.TrimEndingDirectorySeparator(_sharedData.EsDeRoot), "gamelists")
+            : Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder);
 
         var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
@@ -172,7 +197,7 @@ public partial class MainWindowViewModel
         if (topLevel == null) return;
 
         IStorageFolder? suggestedStart = null;
-        try { suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri(romsFolder)); } catch { }
+        try { suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + rootFolder)); } catch { }
 
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
@@ -185,15 +210,16 @@ public partial class MainWindowViewModel
 
         var selectedFolder = Path.TrimEndingDirectorySeparator(folders[0].Path.LocalPath);
 
-        // Must be exactly one level inside the ROMs folder
+        // Must be exactly one level inside the root folder
         var parent = Path.GetDirectoryName(selectedFolder);
-        if (!string.Equals(parent, romsFolder, FilePathHelper.PathComparison))
+        if (!string.Equals(parent, rootFolder, FilePathHelper.PathComparison))
         {
+            var rootLabel = _sharedData.IsEsDeMode ? "ES-DE gamelists folder" : "ROMs folder";
             await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
                 Title = "New Gamelist",
-                Message = "The selected folder must be directly inside the ROMs folder.",
-                DetailMessage = $"Expected a folder one level inside: {romsFolder}",
+                Message = $"The selected folder must be directly inside the {rootLabel}.",
+                DetailMessage = $"Expected a folder one level inside: {rootFolder}",
                 IconTheme = DialogIconTheme.Warning,
                 Button1Text = "",
                 Button2Text = "",
@@ -258,15 +284,18 @@ public partial class MainWindowViewModel
     {
         Systems.Clear();
 
-        var romsFolder = _sharedData.RomsFolder;
-        if (string.IsNullOrWhiteSpace(romsFolder) || !Directory.Exists(romsFolder))
+        var scanFolder = _sharedData.IsEsDeMode
+            ? Path.Combine(_sharedData.EsDeRoot, "gamelists")
+            : _sharedData.RomsFolder;
+
+        if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
         {
-            StatusText = "Set ROMs folder in Settings";
+            StatusText = _sharedData.IsEsDeMode ? "Set ES-DE root folder in Settings" : "Set ROMs folder in Settings";
             IsSystemsComboBoxEnabled = false;
             return;
         }
 
-        foreach (var dir in Directory.EnumerateDirectories(romsFolder).OrderBy(Path.GetFileName))
+        foreach (var dir in Directory.EnumerateDirectories(scanFolder).OrderBy(Path.GetFileName))
         {
             var gamelistPath = Path.Combine(dir, "gamelist.xml");
             if (!File.Exists(gamelistPath)) continue;
@@ -278,7 +307,9 @@ public partial class MainWindowViewModel
         }
 
         IsSystemsComboBoxEnabled = Systems.Count > 0;
-        StatusText = Systems.Count == 0 ? "No systems found in ROMs folder" : string.Empty;
+        StatusText = Systems.Count == 0
+            ? (_sharedData.IsEsDeMode ? "No systems found in ES-DE gamelists folder" : "No systems found in ROMs folder")
+            : string.Empty;
     }
 
     private void LoadRecentFilesFromSettings()
@@ -342,6 +373,10 @@ public partial class MainWindowViewModel
         ClearFilters();
         ClearReportColumns();
 
+        // Ensure the active profile type matches the gamelist type before loading.
+        // This may prompt the user to switch or create a profile; abort if they cancel.
+        if (!await EnsureMatchingProfileAsync(filePath)) return;
+
         _sharedData.IsBusy = true;
         try
         {
@@ -380,6 +415,14 @@ public partial class MainWindowViewModel
 
             _sharedData.SetGamelist(filePath, systemName, loadedGames);
 
+            // In ES-DE mode, resolve media paths from the filesystem and write them into
+            // the row values so all downstream consumers work without mode branching.
+            if (_sharedData.IsEsDeMode)
+            {
+                var mediaDir = _sharedData.EsDeMediaDirectory;
+                await Task.Run(() => GamelistService.PopulateMediaPaths(loadedGames, mediaDir));
+            }
+
             _isLoadingData = true;
             _sourceCache.Clear();
             _sourceCache.AddOrUpdate(loadedGames);
@@ -408,6 +451,10 @@ public partial class MainWindowViewModel
 
             if (Games.Count > 0)
                 RequestSelectFirstItem?.Invoke(this, EventArgs.Empty);
+
+            // Prompt for the ES-DE media root after the load is fully complete so the
+            // dialog does not appear while the file picker is still being torn down.
+            await PromptEsDeMediaRootIfNeededAsync();
         }
         finally
         {

@@ -22,7 +22,7 @@
             <converters:BooleanToScrollBarVisibilityConverter x:Key="BooleanToScrollBarVisibilityConverter"/>
             <converters:BoolToTextConverter x:Key="BoolToTextConverter"/>
             <converters:PathToBitmapConverter x:Key="PathToBitmapConverter"/>
-            <converters:BooleanToWatermarkConverter x:Key="BooleanToWatermarkConverter"/>
+            <converters:BooleanToPlaceholderTextConverter x:Key="BooleanToPlaceholderTextConverter"/>
             <converters:NullBrushConverter x:Key="NullBrushConverter"/>
 
         </ResourceDictionary>

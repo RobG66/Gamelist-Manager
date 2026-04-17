@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
+using Gamelist_Manager.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -33,6 +35,38 @@ public partial class MainWindowViewModel
         ActiveProfileName = _profileService.ActiveProfile;
         OnPropertyChanged(nameof(HasMultipleProfiles));
     }
+
+    // Called once from MainWindow_Loaded when no profiles exist on disk.
+    public async Task ResolveMissingProfileAsync()
+    {
+        if (!_profileService.NoProfilesExist)
+            return;
+
+        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        {
+            Title = "No Profiles Found",
+            Message = "No profiles were found.",
+            DetailMessage = "A new Default profile will be created. What type should it be?",
+            IconTheme = DialogIconTheme.Warning,
+            Button1Text = "ES-DE",
+            Button2Text = "",
+            Button3Text = "Standard"
+        });
+
+        var profileType = result == ThreeButtonResult.Button1
+            ? SettingKeys.ProfileTypeEsDe
+            : SettingKeys.ProfileTypeStandard;
+
+        _profileService.CreateDefaultProfile(profileType);
+
+        if (profileType == SettingKeys.ProfileTypeEsDe)
+            await PromptEsDeRootAsync("An ES-DE profile has been created.");
+
+        ApplyProfileSwitch(ProfileService.DefaultProfileName);
+
+        _profileService.ClearNoProfilesFlag();
+        RefreshProfiles();
+    }
     #endregion
 
     #region Commands
@@ -46,7 +80,13 @@ public partial class MainWindowViewModel
             return;
 
         UnloadGamelist();
+        ApplyProfileSwitch(profileName);
+    }
+    #endregion
 
+    #region Private Methods
+    private void ApplyProfileSwitch(string profileName)
+    {
         _profileService.SetActiveProfile(profileName);
         _settingsService.SwitchProfile(_profileService.ActiveProfilePath);
         _sharedData.LoadFromSettings();

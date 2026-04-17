@@ -52,7 +52,9 @@ public partial class MainWindowViewModel
         new(Color.FromRgb(104, 118, 138)),
     ];
 
-    private static readonly Lazy<IReadOnlyList<(MetaDataDecl MediaType, SolidColorBrush Brush)>> s_mediaTypeInfo = new(() =>
+    // Builds the media type + brush pairs fresh each call so mode switches (standard ↔ ES-DE)
+    // are always reflected in the audit panel.
+    private static IReadOnlyList<(MetaDataDecl MediaType, SolidColorBrush Brush)> GetMediaTypeInfo()
     {
         var mediaDecls = GamelistMetaData.GetColumnDeclarations()
             .Where(d => d.IsMedia)
@@ -63,7 +65,7 @@ public partial class MainWindowViewModel
             result.Add((mediaDecls[i], s_mediaBrushes[i % s_mediaBrushes.Length]));
 
         return result;
-    });
+    }
     #endregion
 
     #region Private Methods
@@ -108,7 +110,7 @@ public partial class MainWindowViewModel
             .OrderByDescending(g => g.PlayCount)
             .FirstOrDefault(g => g.PlayCount > 0);
 
-        var auditItems = s_mediaTypeInfo.Value
+        var auditItems = GetMediaTypeInfo()
             .Where(kvp => _sharedData.MediaSettings.TryGetValue(kvp.MediaType.Type, out var ms) && ms.Enabled)
             .Select(kvp =>
             {

@@ -7,9 +7,11 @@ public static class SettingKeys
     public const string BehaviorSection = "Behavior";
     public const string AdvancedSection = "Advanced";
     public const string ConnectionSection = "Connection";
+    public const string FolderPathsSection = "FolderPaths";
     public const string MediaPathsSection = "MediaPaths";
     public const string MediaViewerSection = "MediaViewer";
     public const string RecentFilesSection = "RecentFiles";
+    public const string ScraperSection = "Scraper";
 
     // Appearance keys
     public const string Theme = "Theme";
@@ -45,10 +47,21 @@ public static class SettingKeys
     public const string HostName = "HostName";
     public const string UserID = "UserID";
     public const string Password = "Password";
+
+    // Folder paths keys
     public const string MamePath = "MamePath";
     public const string RomsFolder = "RomsFolder";
 
     // MediaViewer keys
     public const string ScaledDisplay = "ScaledDisplay";
+
+    // ES-DE keys
+    public const string EsDeSection = "EsDe";
+    public const string EsDeRoot = "EsDeRoot";
+    public const string ProfileType = "ProfileType";
+
+    // ProfileType values
+    public const string ProfileTypeStandard = "standard";
+    public const string ProfileTypeEsDe = "esde";
 }
 

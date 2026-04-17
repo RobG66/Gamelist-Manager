@@ -96,19 +96,28 @@ public partial class SettingsViewModel : ViewModelBase
         Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, "batocera");
         UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, "root");
         Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, "linux");
-        MamePath = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath);
-        RomsPath = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder);
+
+        // Folder paths live in their own section; fall back to Connection for old profiles.
+        MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath,
+                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath));
+        RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder,
+                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder));
 
         foreach (var item in MediaFolderItems)
         {
-            item.Path = LoadMediaPath(settings.GetValue("MediaPaths", item.Key, item.DefaultPath), item.DefaultPath);
-            item.Enabled = settings.GetBool("MediaPaths", $"{item.Key}_enabled", item.DefaultEnabled);
-            item.Suffix = settings.GetValue("MediaPaths", $"{item.Key}_suffix", item.DefaultSuffix);
-            item.SfxEnabled = settings.GetBool("MediaPaths", $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
+            item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
+            item.Suffix = settings.GetValue(SettingKeys.MediaPathsSection, $"{item.Key}_suffix", item.DefaultSuffix);
+            item.SfxEnabled = settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
+
+            // Unsupported ES-DE types are always disabled regardless of what the INI says.
+            var isEsDe = _sharedData.IsEsDeMode;
+            item.Enabled = (!isEsDe || item.IsEsDeSupported) &&
+                           settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_enabled", item.DefaultEnabled);
         }
 
         LoadScraperCredentials();
         RefreshProfileList();
+        LoadEsDeSettings();
 
         IsDirty = false;
         _isLoading = false;
@@ -176,24 +185,30 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 [SettingKeys.HostName] = Hostname,
                 [SettingKeys.UserID] = UserId,
-                [SettingKeys.Password] = Password,
+                [SettingKeys.Password] = Password
+            },
+            [SettingKeys.FolderPathsSection] = new()
+            {
                 [SettingKeys.MamePath] = MamePath,
                 [SettingKeys.RomsFolder] = RomsPath
             },
-            [SettingKeys.MediaPathsSection] = MediaFolderItems
-                .SelectMany(item => new[]
-                {
-                    new KeyValuePair<string, string>(item.Key,                      item.Path),
-                    new KeyValuePair<string, string>($"{item.Key}_enabled",         item.Enabled.ToString()),
-                    new KeyValuePair<string, string>($"{item.Key}_suffix",          item.Suffix),
-                    new KeyValuePair<string, string>($"{item.Key}_sfx_enabled",     item.SfxEnabled.ToString()),
-                })
-                .ToDictionary(kv => kv.Key, kv => kv.Value)
+            [SettingKeys.MediaPathsSection] = _sharedData.IsEsDeMode
+                ? new Dictionary<string, string>()
+                : MediaFolderItems
+                    .SelectMany(item => new[]
+                    {
+                        new KeyValuePair<string, string>(item.Key,                      item.Path),
+                        new KeyValuePair<string, string>($"{item.Key}_enabled",         item.Enabled.ToString()),
+                        new KeyValuePair<string, string>($"{item.Key}_suffix",          item.Suffix),
+                        new KeyValuePair<string, string>($"{item.Key}_sfx_enabled",     item.SfxEnabled.ToString()),
+                    })
+                    .ToDictionary(kv => kv.Key, kv => kv.Value)
         };
 
         SettingsService.Instance.SaveAllSettings(settings);
 
         SaveScraperSetup();
+        SaveEsDeSettings();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex);
         _sharedData.LoadFromSettings();
 
@@ -208,9 +223,33 @@ public partial class SettingsViewModel : ViewModelBase
 
     public static void LoadAndApplySettingsOnStartup()
     {
-        var settings = new SettingsViewModel();
-        ThemeService.ApplyTheme(settings.SelectedThemeIndex, settings.SelectedColorIndex);
-        ThemeService.ApplyFontSizes(settings.AppFontSize, settings.GridFontSize);
+        var shared = SharedDataService.Instance;
+
+        var themeIndex = shared.Theme switch
+        {
+            "Light" => 0,
+            "Dark" => 1,
+            _ => 0
+        };
+
+        var colorIndex = shared.Color switch
+        {
+            "Blue" => 0,
+            "Red" => 1,
+            "Orange" => 2,
+            "Green" => 3,
+            "Yellow" => 4,
+            "Magenta" => 5,
+            "Purple" => 6,
+            "Teal" => 7,
+            "Lime" => 8,
+            "Light Blue" => 9,
+            "Indigo" => 10,
+            _ => 0
+        };
+
+        ThemeService.ApplyTheme(themeIndex, colorIndex);
+        ThemeService.ApplyFontSizes(shared.AppFontSize, shared.GridFontSize);
     }
 
     #endregion

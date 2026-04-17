@@ -9,7 +9,7 @@ using System.Xml.Linq;
 
 namespace Gamelist_Manager.Services
 {
-    public class GamelistService
+    public partial class GamelistService
     {
         private static readonly Lazy<IReadOnlyDictionary<MetaDataKeys, MetaDataDecl>> s_metaDataDict =
             new(() => GamelistMetaData.GetMetaDataDictionary());
@@ -176,10 +176,14 @@ namespace Gamelist_Manager.Services
                 gameElement.SetAttributeValue("id", gameId);
             }
 
-            // Update elements — id is saved as an attribute above, not a child element
+            // Update elements — id is saved as an attribute above, not a child element.
+            // In ES-DE mode, skip media fields — they are populated at load time from the
+            // filesystem and must not be written back into the XML.
+            var isEsDe = SharedDataService.Instance.IsEsDeMode;
             foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
+                if (isEsDe && metaDecl.IsMedia) continue;
 
                 var elementName = metaDecl.Type;
                 var value = game.GetValue(metaDecl.Key);
@@ -217,10 +221,13 @@ namespace Gamelist_Manager.Services
                 gameElement.SetAttributeValue("id", gameId);
             }
 
-            // Add all metadata elements — id is saved as an attribute above, not a child element
+            // Add all metadata elements — id is saved as an attribute above, not a child element.
+            // In ES-DE mode, skip media fields (runtime-only, resolved from filesystem at load time).
+            var isEsDe = SharedDataService.Instance.IsEsDeMode;
             foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
+                if (isEsDe && metaDecl.IsMedia) continue;
 
                 var elementName = metaDecl.Type;
                 var value = game.GetValue(metaDecl.Key);

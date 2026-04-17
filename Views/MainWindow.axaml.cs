@@ -175,6 +175,11 @@ public partial class MainWindow : Window
         {
             ApplyColumnVisibility();
         }
+        else if (e.PropertyName == nameof(MainWindowViewModel.IsGamelistLoaded))
+        {
+            BuildDataGridColumns();
+            ApplyColumnVisibility();
+        }
         else if (e.PropertyName == nameof(MainWindowViewModel.DatToolPanelViewModel))
         {
             // When the DatTool panel opens, subscribe to its column-add and dispose events.
@@ -246,7 +251,7 @@ public partial class MainWindow : Window
         ThemeService.ApplyDataGridColumnWidths(GameDataGrid, sharedData.GridFontSize);
     }
 
-    private void MainWindow_Loaded(object? sender, EventArgs e)
+    private async void MainWindow_Loaded(object? sender, EventArgs e)
     {
         var settings = SettingsService.Instance;
         var alternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, 1);
@@ -261,7 +266,10 @@ public partial class MainWindow : Window
         ThemeService.ApplyDataGridColumnWidths(GameDataGrid, dataGridFontSize);
 
         if (DataContext is MainWindowViewModel vm)
+        {
             vm.UpdateSearchableColumns(GetVisibleColumnNames());
+            await vm.ResolveMissingProfileAsync();
+        }
 
         foreach (var column in GameDataGrid.Columns)
             column.PropertyChanged += DataGridColumn_PropertyChanged;

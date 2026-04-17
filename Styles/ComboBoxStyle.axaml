@@ -1,53 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="using:System">
-  <Design.PreviewWith>
-    <Border Padding="20">
-      <StackPanel Spacing="10">
-        <ComboBox PlaceholderText="Select an item">
-          <ComboBoxItem>Item 1</ComboBoxItem>
-          <ComboBoxItem>Item 2</ComboBoxItem>
-        </ComboBox>
-        <ComboBox IsEnabled="False"
-                  Width="200"
-                  SelectedIndex="1"
-                  HorizontalContentAlignment="Center">
-          <ComboBoxItem>Item 1</ComboBoxItem>
-          <ComboBoxItem>Item 2</ComboBoxItem>
-        </ComboBox>
-
-        <ComboBox PlaceholderText="Error">
-          <DataValidationErrors.Error>
-            <sys:Exception>
-              <x:Arguments>
-                <x:String>Error</x:String>
-              </x:Arguments>
-            </sys:Exception>
-          </DataValidationErrors.Error>
-        </ComboBox>
-
-        <ComboBox SelectedIndex="1" IsEditable="True">
-          <ComboBoxItem>Item A</ComboBoxItem>
-          <ComboBoxItem>Item b</ComboBoxItem>
-          <ComboBoxItem>Item c</ComboBoxItem>
-        </ComboBox>
-
-        <ComboBox SelectedIndex="0">
-          <ComboBox.SelectionBoxItemTemplate>
-            <DataTemplate>
-              <Border Padding="20" BorderBrush="Red" BorderThickness="1">
-                <TextBlock Text="{ReflectionBinding}"/>
-              </Border>
-            </DataTemplate>
-          </ComboBox.SelectionBoxItemTemplate>
-          <ComboBoxItem>Item A</ComboBoxItem>
-          <ComboBoxItem>Item b</ComboBoxItem>
-          <ComboBoxItem>Item c</ComboBoxItem>
-        </ComboBox>
-      </StackPanel>
-    </Border>
-  </Design.PreviewWith>
-
+  
   <Styles.Resources>
     <Thickness x:Key="ComboBoxTopHeaderMargin">0,0,0,4</Thickness>
   <x:Int32 x:Key="ComboBoxPopupMaxNumberOfItems">15</x:Int32>
@@ -125,7 +79,7 @@
                      Foreground="{TemplateBinding Foreground}"
                      Background="Transparent"
                      Text="{TemplateBinding Text, Mode=TwoWay}"
-                     Watermark="{TemplateBinding PlaceholderText}"
+                     PlaceholderText="{TemplateBinding PlaceholderText}"
                      BorderThickness="0"
                      IsVisible="{TemplateBinding IsEditable}">
               <TextBox.Resources>

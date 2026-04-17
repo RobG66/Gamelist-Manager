@@ -547,9 +547,10 @@ namespace Gamelist_Manager.Services
 
         private void LogScreenScraperConfiguration(string scraperName)
         {
-            var language = _sharedData.GetScraperSourceSetting(scraperName, "Language");
-            var primaryRegion = _sharedData.GetScraperSourceSetting(scraperName, "PrimaryRegion");
-            var fallbackJson = _sharedData.GetScraperSourceSetting(scraperName, "RegionFallback");
+            var scraperConfig = ScraperConfigService.Instance;
+            var language = scraperConfig.GetScraperSourceSetting(scraperName, "Language");
+            var primaryRegion = scraperConfig.GetScraperSourceSetting(scraperName, "PrimaryRegion");
+            var fallbackJson = scraperConfig.GetScraperSourceSetting(scraperName, "RegionFallback");
 
             if (!string.IsNullOrEmpty(language))
                 Log($"Language: {language}");

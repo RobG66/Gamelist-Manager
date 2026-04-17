@@ -1,19 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <Design.PreviewWith>
-    <Border Padding="20" Background="#F3F3F3">
-      <StackPanel Spacing="12">
-        <NumericUpDown Value="42" />
-        <NumericUpDown Value="0" Minimum="0" Maximum="100" />
-        <NumericUpDown Value="3.14" FormatString="F2" />
-        <NumericUpDown IsReadOnly="True" Value="99" />
-        <NumericUpDown IsEnabled="False" Value="10" />
-        <NumericUpDown Watermark="Enter value..." />
-      </StackPanel>
-    </Border>
-  </Design.PreviewWith>
-
+ 
   <Styles.Resources>
 
     <ControlTheme x:Key="{x:Type NumericUpDown}" TargetType="NumericUpDown">
@@ -48,7 +36,7 @@
                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                      IsReadOnly="{TemplateBinding IsReadOnly}"
-                     Watermark="{TemplateBinding Watermark}"
+                     PlaceholderText="{TemplateBinding PlaceholderText}"
                      TextAlignment="{TemplateBinding TextAlignment}"
                      Text="{TemplateBinding Text}"
                      InnerLeftContent="{TemplateBinding InnerLeftContent}"

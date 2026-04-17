@@ -34,9 +34,11 @@ namespace Gamelist_Manager.Models
 
         public bool Hidden { get => GetBool(MetaDataKeys.hidden); set => SetValue(MetaDataKeys.hidden, value); }
         public bool Favorite { get => GetBool(MetaDataKeys.favorite); set => SetValue(MetaDataKeys.favorite, value); }
+        public bool Kidgame { get => GetBool(MetaDataKeys.kidgame); set => SetValue(MetaDataKeys.kidgame, value); }
         public string Path { get => GetString(MetaDataKeys.path); set => SetValue(MetaDataKeys.path, value); }
         public string Id { get => GetString(MetaDataKeys.id); set => SetValue(MetaDataKeys.id, value); }
         public string Name { get => GetString(MetaDataKeys.name); set => SetValue(MetaDataKeys.name, value); }
+        public string Sortname { get => GetString(MetaDataKeys.sortname); set => SetValue(MetaDataKeys.sortname, value); }
         public string Genre { get => GetString(MetaDataKeys.genre); set => SetValue(MetaDataKeys.genre, value); }
         public string Releasedate { get => GetString(MetaDataKeys.releasedate); set => SetValue(MetaDataKeys.releasedate, value); }
         public string Players { get => GetString(MetaDataKeys.players); set => SetValue(MetaDataKeys.players, value); }
@@ -45,8 +47,11 @@ namespace Gamelist_Manager.Models
         public string Region { get => GetString(MetaDataKeys.region); set => SetValue(MetaDataKeys.region, value); }
         public string Publisher { get => GetString(MetaDataKeys.publisher); set => SetValue(MetaDataKeys.publisher, value); }
         public string Developer { get => GetString(MetaDataKeys.developer); set => SetValue(MetaDataKeys.developer, value); }
+        public bool Completed { get => GetBool(MetaDataKeys.completed); set => SetValue(MetaDataKeys.completed, value); }
+        public bool Broken { get => GetBool(MetaDataKeys.broken); set => SetValue(MetaDataKeys.broken, value); }
         public string Playcount { get => GetString(MetaDataKeys.playcount); set => SetValue(MetaDataKeys.playcount, value); }
         public string Gametime { get => GetString(MetaDataKeys.gametime); set => SetValue(MetaDataKeys.gametime, value); }
+        public string Playtime { get => GetString(MetaDataKeys.playtime); set => SetValue(MetaDataKeys.playtime, value); }
         public string Lastplayed { get => GetString(MetaDataKeys.lastplayed); set => SetValue(MetaDataKeys.lastplayed, value); }
         public string Desc { get => GetString(MetaDataKeys.desc); set => SetValue(MetaDataKeys.desc, value); }
         public string Image { get => GetString(MetaDataKeys.image); set => SetValue(MetaDataKeys.image, value); }
@@ -67,6 +72,13 @@ namespace Gamelist_Manager.Models
         public string Mix { get => GetString(MetaDataKeys.mix); set => SetValue(MetaDataKeys.mix, value); }
         public string Family { get => GetString(MetaDataKeys.family); set => SetValue(MetaDataKeys.family, value); }
         public string Arcadesystemname { get => GetString(MetaDataKeys.arcadesystemname); set => SetValue(MetaDataKeys.arcadesystemname, value); }
+        public string Collectionsortname { get => GetString(MetaDataKeys.collectionsortname); set => SetValue(MetaDataKeys.collectionsortname, value); }
+        public bool Nogamecount { get => GetBool(MetaDataKeys.nogamecount); set => SetValue(MetaDataKeys.nogamecount, value); }
+        public bool Nomultiscrape { get => GetBool(MetaDataKeys.nomultiscrape); set => SetValue(MetaDataKeys.nomultiscrape, value); }
+        public bool Hidemetadata { get => GetBool(MetaDataKeys.hidemetadata); set => SetValue(MetaDataKeys.hidemetadata, value); }
+        public string Controller { get => GetString(MetaDataKeys.controller); set => SetValue(MetaDataKeys.controller, value); }
+        public string Altemulator { get => GetString(MetaDataKeys.altemulator); set => SetValue(MetaDataKeys.altemulator, value); }
+        public string Folderlink { get => GetString(MetaDataKeys.folderlink); set => SetValue(MetaDataKeys.folderlink, value); }
         #endregion
     }
 }

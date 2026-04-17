@@ -43,7 +43,7 @@
                     <MenuFlyout Placement="Right">
                         <MenuItem Header="New Gamelist"
                                   Command="{Binding NewGamelistCommand}"
-                                  IsEnabled="{Binding IsRomsFolderDefined}"
+                                  IsEnabled="{Binding IsNewGamelistEnabled}"
                                   ToolTip.Tip="Create a new gamelist for a system folder">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/new.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>

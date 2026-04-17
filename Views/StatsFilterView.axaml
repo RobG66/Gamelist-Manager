@@ -98,7 +98,7 @@
                                     IsVisible="{Binding !IsGenreFilterMode}">
                             <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
                             <ComboBox ItemsSource="{Binding FilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" Watermark="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
                             <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="icon" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>

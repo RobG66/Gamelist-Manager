@@ -99,23 +99,23 @@ public partial class SettingsViewModel
         ScraperLanguages.Clear();
         ScraperPrimaryRegions.Clear();
 
-        foreach (var region in _sharedData.GetScraperRegions(ScraperRegistry.ScreenScraper.Name))
+        foreach (var region in ScraperConfigService.Instance.GetScraperRegions(ScraperRegistry.ScreenScraper.Name))
             ScraperPrimaryRegions.Add(region);
 
-        foreach (var lang in _sharedData.GetScraperLanguages(ScraperRegistry.ScreenScraper.Name))
+        foreach (var lang in ScraperConfigService.Instance.GetScraperLanguages(ScraperRegistry.ScreenScraper.Name))
             ScraperLanguages.Add(lang);
 
         var settings = SettingsService.Instance;
-        var savedLanguage = settings.GetValue("Scraper", "ScreenScraper_Language", string.Empty);
+        var savedLanguage = settings.GetValue(SettingKeys.ScraperSection, "ScreenScraper_Language", string.Empty);
         SelectedScraperLanguage = ScraperLanguages.FirstOrDefault(l => l == savedLanguage) ?? ScraperLanguages.FirstOrDefault();
 
-        var savedRegion = settings.GetValue("Scraper", "ScreenScraper_PrimaryRegion", string.Empty);
+        var savedRegion = settings.GetValue(SettingKeys.ScraperSection, "ScreenScraper_PrimaryRegion", string.Empty);
         SelectedScraperPrimaryRegion = ScraperPrimaryRegions.FirstOrDefault(r => r == savedRegion) ?? ScraperPrimaryRegions.FirstOrDefault();
 
-        ScraperGenreAlwaysEnglish = settings.GetBool("Scraper", "ScreenScraper_GenreEnglish", false);
-        ScraperScrapeAnyMedia = settings.GetBool("Scraper", "ScreenScraper_AnyMedia", false);
-        ScraperNamesLanguageFirst = settings.GetBool("Scraper", "ScreenScraper_NamesLanguageFirst", false);
-        ScraperMediaRegionFirst = settings.GetBool("Scraper", "ScreenScraper_MediaRegionFirst", false);
+        ScraperGenreAlwaysEnglish = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_GenreEnglish", false);
+        ScraperScrapeAnyMedia = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_AnyMedia", false);
+        ScraperNamesLanguageFirst = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_NamesLanguageFirst", false);
+        ScraperMediaRegionFirst = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_MediaRegionFirst", false);
 
         LoadScraperFallbackRegions();
     }
@@ -128,7 +128,7 @@ public partial class SettingsViewModel
         foreach (var region in ScraperPrimaryRegions)
             ScraperAvailableRegions.Add(region);
 
-        var json = SettingsService.Instance.GetValue("Scraper", "ScreenScraper_RegionFallback", DefaultFallbackJson);
+        var json = SettingsService.Instance.GetValue(SettingKeys.ScraperSection, "ScreenScraper_RegionFallback", DefaultFallbackJson);
         List<string> fallback;
         try { fallback = JsonSerializer.Deserialize<List<string>>(json) ?? []; }
         catch { fallback = JsonSerializer.Deserialize<List<string>>(DefaultFallbackJson) ?? []; }
@@ -154,13 +154,13 @@ public partial class SettingsViewModel
         if (IsSetupScreenScraper)
         {
             var settings = SettingsService.Instance;
-            settings.SetValue("Scraper", "ScreenScraper_Language", SelectedScraperLanguage ?? string.Empty);
-            settings.SetValue("Scraper", "ScreenScraper_PrimaryRegion", SelectedScraperPrimaryRegion ?? string.Empty);
-            settings.SetBool("Scraper", "ScreenScraper_GenreEnglish", ScraperGenreAlwaysEnglish);
-            settings.SetBool("Scraper", "ScreenScraper_AnyMedia", ScraperScrapeAnyMedia);
-            settings.SetBool("Scraper", "ScreenScraper_NamesLanguageFirst", ScraperNamesLanguageFirst);
-            settings.SetBool("Scraper", "ScreenScraper_MediaRegionFirst", ScraperMediaRegionFirst);
-            settings.SetValue("Scraper", "ScreenScraper_RegionFallback", JsonSerializer.Serialize(ScraperFallbackRegions.ToList()));
+            settings.SetValue(SettingKeys.ScraperSection, "ScreenScraper_Language", SelectedScraperLanguage ?? string.Empty);
+            settings.SetValue(SettingKeys.ScraperSection, "ScreenScraper_PrimaryRegion", SelectedScraperPrimaryRegion ?? string.Empty);
+            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_GenreEnglish", ScraperGenreAlwaysEnglish);
+            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_AnyMedia", ScraperScrapeAnyMedia);
+            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_NamesLanguageFirst", ScraperNamesLanguageFirst);
+            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_MediaRegionFirst", ScraperMediaRegionFirst);
+            settings.SetValue(SettingKeys.ScraperSection, "ScreenScraper_RegionFallback", JsonSerializer.Serialize(ScraperFallbackRegions.ToList()));
         }
     }
 

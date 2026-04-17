@@ -23,6 +23,9 @@ public partial class SettingsViewModel
 
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
 
+    // False when in ES-DE mode — suffixes have no meaning for ES-DE gamelists.
+    public bool SuffixesEnabled => !_sharedData.IsEsDeMode;
+
     #endregion
 
     #region Initialization
@@ -38,6 +41,7 @@ public partial class SettingsViewModel
                 DefaultPath = decl.DefaultPath,
                 DefaultSuffix = decl.DefaultSuffix,
                 DefaultEnabled = decl.DefaultEnabled,
+                EsDeFolderName = decl.EsDeFolderName,
             };
             item.Enabled = item.DefaultEnabled;
             item.Path = item.DefaultPath;
@@ -115,11 +119,24 @@ public partial class SettingsViewModel
             var seen = new Dictionary<(string path, string suffix), string>();
             foreach (var item in MediaFolderItems)
             {
-                if (!item.Enabled) continue;
-                var normPath = (FilePathHelper.NormalizePathWithDotSlashPrefix(item.Path) ?? item.Path).ToLowerInvariant();
-                var effectiveSuffix = item.SfxEnabled ? item.Suffix.ToLowerInvariant() : "";
-                var key = (normPath, effectiveSuffix);
+                if (!item.EffectiveEnabled) continue;
 
+                // In ES-DE mode each type lives in its own named subfolder, so use that
+                // as the collision key rather than the generic relative path.
+                string effectivePath;
+                string effectiveSuffix;
+                if (_sharedData.IsEsDeMode)
+                {
+                    effectivePath = item.EsDeFolderName.ToLowerInvariant();
+                    effectiveSuffix = "";
+                }
+                else
+                {
+                    effectivePath = (FilePathHelper.NormalizePathWithDotSlashPrefix(item.Path) ?? item.Path).ToLowerInvariant();
+                    effectiveSuffix = item.SfxEnabled ? item.Suffix.ToLowerInvariant() : "";
+                }
+
+                var key = (effectivePath, effectiveSuffix);
                 if (seen.TryGetValue(key, out var firstName))
                     errors.Add($"{item.Label} and {firstName} share the same folder and filename suffix, which would cause a collision.");
                 else

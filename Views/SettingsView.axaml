@@ -258,56 +258,77 @@
 								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
 							<StackPanel Spacing="5">
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
-									<TextBlock Text="Connection Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+									<TextBlock Text="Folder Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
-								<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
-									<TextBlock Grid.Row="0" Grid.Column="0" Text="MAME Exe:" VerticalAlignment="Center" Margin="0,0,6,4"
-											   ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
-									<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MamePath}" Watermark="C:\MAME\mame.exe" Margin="0,0,6,4"
-											 ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
-									<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
-											ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
-									<TextBlock Grid.Row="1" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,0"
-											   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
-									<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RomsPath}" Watermark="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"
-											 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
-									<Button Grid.Row="1" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green" Click="BrowseRomsFolder_Click"
-											ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
-								</Grid>
-							</StackPanel>
-						</Border>
+										<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+											<TextBlock Grid.Row="0" Grid.Column="0" Text="MAME Exe:" VerticalAlignment="Center" Margin="0,0,6,4"
+													   ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
+											<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MamePath}" PlaceholderText="C:\MAME\mame.exe" Margin="0,0,6,4"
+													 ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
+											<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
+													ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
+											<Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1"
+													   Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4,0,8"
+													   IsVisible="{Binding EsDePathsVisible}"/>
+											<TextBlock Grid.Row="2" Grid.Column="0" Text="ES-DE Root:" VerticalAlignment="Center" Margin="0,0,6,4"
+													   IsVisible="{Binding EsDePathsVisible}"
+													   ToolTip.Tip="The ES-DE root folder (e.g. C:\Users\You\ES-DE). This folder contains the downloaded_media and gamelists subfolders."/>
+											<TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EsDeRoot}" Margin="0,0,6,4"
+													 IsVisible="{Binding EsDePathsVisible}"
+													 ToolTip.Tip="The ES-DE root folder containing downloaded_media and gamelists subfolders."/>
+											<Button Grid.Row="2" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green"
+													Command="{Binding BrowseEsDeRootCommand}"
+													IsVisible="{Binding EsDePathsVisible}"
+													ToolTip.Tip="Browse for the ES-DE root folder."/>
+											<TextBlock Grid.Row="3" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,0"
+													   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
+											<TextBox Grid.Row="3" Grid.Column="1" Text="{Binding RomsPath}" PlaceholderText="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"
+													 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
+											<Button Grid.Row="3" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green" Click="BrowseRomsFolder_Click"
+													ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
+										</Grid>
+									</StackPanel>
+								</Border>
+
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
 								Background="{DynamicResource CardBackground}"
 								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
 							<StackPanel Spacing="5">
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
-									<Grid ColumnDefinitions="*,Auto">
-										<TextBlock Text="Media Folder Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"/>
-										<Button Grid.Column="1" Content="Reset to Defaults" Classes="rounded orange" Padding="8,4" Click="Button_Reset_Click"
+									<Grid ColumnDefinitions="*,Auto,Auto">
+											<TextBlock Text="Media Folder Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}" VerticalAlignment="Center"/>
+											<TextBlock Grid.Column="1" Text="(read-only)"
+													   FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+													   VerticalAlignment="Center" Margin="8,0,8,0"
+													   IsVisible="{Binding IsEsDeProfile}"/>
+											<Button Grid.Column="2" Content="Reset to Defaults" Classes="rounded orange" Padding="8,4" Click="Button_Reset_Click"
+												IsVisible="{Binding !IsEsDeProfile}"
 												ToolTip.Tip="Restore all media folder paths and suffixes to their factory default values."/>
 									</Grid>
 								</Border>
 								<StackPanel Grid.IsSharedSizeScope="True" Spacing="0">
 									<!-- Headers -->
-									<Grid>
-										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol0"/>
-											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
-											<ColumnDefinition Width="3*"/>
-											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
-											<ColumnDefinition Width="*"/>
-											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol5"/>
-										</Grid.ColumnDefinitions>
+										<Grid>
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol0"/>
+												<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
+												<ColumnDefinition Width="3*"/>
+												<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
+												<ColumnDefinition Width="{Binding SuffixesEnabled, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
+												<ColumnDefinition Width="{Binding SuffixesEnabled, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
+											</Grid.ColumnDefinitions>
 										<TextBlock Grid.Column="0" Text="On"     FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" HorizontalAlignment="Center" Margin="0,0,0,4"
 												   ToolTip.Tip="Enable or disable this media type. Disabled types are ignored during scraping and media operations."/>
 										<TextBlock Grid.Column="1" Text="Type"   FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="4,0,6,4"/>
 										<TextBlock Grid.Column="2" Text="Folder" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,0,0,4"
 												   ToolTip.Tip="Subfolder path relative to the ROMs folder where this media type is stored (e.g. 'images' or 'media/screenshots')."/>
 										<TextBlock Grid.Column="4" Text="Suffix" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="2,0,0,4"
-												   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
+													   IsVisible="{Binding SuffixesEnabled}"
+													   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
 										<Button    Grid.Column="5" Classes="icon" Command="{Binding ToggleAllSfxCommand}"
-												   Width="14" Height="14" HorizontalAlignment="Center" Margin="3,0,0,4"
-												   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
+													   Width="14" Height="14" HorizontalAlignment="Center" Margin="3,0,0,4"
+													   IsVisible="{Binding SuffixesEnabled}"
+													   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
 											<Image Source="avares://Gamelist_Manager/Assets/Icons/reset2.png" Width="14" Height="14"/>
 										</Button>
 									</Grid>
@@ -321,40 +342,48 @@
 														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
 														<ColumnDefinition Width="3*"/>
 														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
-														<ColumnDefinition Width="*"/>
-														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol5"/>
+														<ColumnDefinition Width="{Binding IsNotEsDeMode, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
+														<ColumnDefinition Width="{Binding IsNotEsDeMode, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
 													</Grid.ColumnDefinitions>
-													<CheckBox  Grid.Column="0" IsChecked="{Binding Enabled}"    VerticalAlignment="Center"
+													<CheckBox  Grid.Column="0" IsChecked="{Binding Enabled}"
+															   IsEnabled="{Binding IsCheckboxEnabled}"
+															   VerticalAlignment="Center"
 															   ToolTip.Tip="Enable or disable this media type for scraping and display."/>
 													<TextBlock Grid.Column="1" Text="{Binding Label}"           VerticalAlignment="Center" Margin="4,0,6,0" IsEnabled="{Binding Enabled}"/>
-													<TextBox   Grid.Column="2" Text="{Binding Path}"            Padding="3,2"              IsEnabled="{Binding Enabled}"
+													<TextBox   Grid.Column="2" Text="{Binding DisplayPath}"     Padding="3,2"              IsEnabled="{Binding Enabled}"
+															   IsReadOnly="{Binding IsPathReadOnly}"
 															   ToolTip.Tip="Subfolder path relative to the ROMs folder where this media type is stored."/>
 													<Button    Grid.Column="3" Classes="icon"                   VerticalAlignment="Center" Margin="2,0,0,0" IsEnabled="{Binding Enabled}"
+															   IsVisible="{Binding IsNotEsDeMode}"
 															   Click="BrowseMediaFolder_Click" ToolTip.Tip="Browse for the media folder.">
 														<Image Source="/Assets/Icons/foldericon.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
 													</Button>
-													<TextBox   Grid.Column="4" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding Enabled}"
+													<TextBox   Grid.Column="4" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
+															   IsVisible="{Binding IsNotEsDeMode}"
 															   ToolTip.Tip="Optional filename suffix appended when scraping this media type."/>
-													<CheckBox  Grid.Column="5" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding Enabled}"
-															   ToolTip.Tip="When checked, the optional suffix will be appended to scraped files for this media type."/>       </Grid>
+													<CheckBox  Grid.Column="5" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
+															   IsVisible="{Binding IsNotEsDeMode}"
+															   ToolTip.Tip="When checked, the optional suffix will be appended to scraped files for this media type."/>
+												</Grid>
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
 								</StackPanel>
 							</StackPanel>
 						</Border>
-					</StackPanel>
-				</ScrollViewer>
-			</TabItem>
 
-			<!-- Remote Tab -->
-			<TabItem>
-				<TabItem.Header>
-					<StackPanel Orientation="Horizontal" Spacing="4">
-						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
-						<TextBlock Text="Remote" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
-					</StackPanel>
-				</TabItem.Header>
+										</StackPanel>
+									</ScrollViewer>
+								</TabItem>
+
+								<!-- Remote Tab -->
+								<TabItem>
+									<TabItem.Header>
+										<StackPanel Orientation="Horizontal" Spacing="4">
+											<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+											<TextBlock Text="Remote" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+										</StackPanel>
+									</TabItem.Header>
 				<ScrollViewer Padding="0,8,0,0" VerticalScrollBarVisibility="Auto">
 					<StackPanel Spacing="8">
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
@@ -366,15 +395,15 @@
 								</Border>
 								<Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
 									<TextBlock Grid.Row="0" Grid.Column="0" Text="Hostname / IP:" VerticalAlignment="Center" Margin="0,0,8,5"/>
-									<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Hostname}" Watermark="batocera, retropie, recalbox, knulli, jelos, 192.168.1.x" Margin="0,0,0,5"
+									<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Hostname}" PlaceholderText="batocera, retropie, recalbox, knulli, jelos, 192.168.1.x" Margin="0,0,0,5"
 											 ToolTip.Tip="Hostname or IP of the remote device. Use a profile template to auto-fill."/>
 								</Grid>
 								<Grid ColumnDefinitions="Auto,160,16,Auto,*">
 									<TextBlock Grid.Column="0" Text="Username:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-									<TextBox Grid.Column="1" Text="{Binding UserId}" Watermark="root"
+									<TextBox Grid.Column="1" Text="{Binding UserId}" PlaceholderText="root"
 											 ToolTip.Tip="SSH username. Use a profile template to auto-fill for your system."/>
 									<TextBlock Grid.Column="3" Text="Password:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-									<TextBox Grid.Column="4" Text="{Binding Password}" PasswordChar="*" Watermark="linux"
+									<TextBox Grid.Column="4" Text="{Binding Password}" PasswordChar="*" PlaceholderText="linux"
 											 ToolTip.Tip="SSH password. Use a profile template to auto-fill for your system."/>
 								</Grid>
 							</StackPanel>
@@ -581,6 +610,30 @@
 							</StackPanel>
 						</Border>
 
+						<!-- Selected profile ES-DE info -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+							<StackPanel Spacing="4">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="Selected Profile Info" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<StackPanel Orientation="Horizontal" Spacing="6">
+									<TextBlock Text="Type:" VerticalAlignment="Center"/>
+									<TextBlock Text="ES-DE" IsVisible="{Binding SelectedProfileIsEsDe}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+									<TextBlock Text="Standard" IsVisible="{Binding !SelectedProfileIsEsDe}" VerticalAlignment="Center"/>
+								</StackPanel>
+								<StackPanel IsVisible="{Binding SelectedProfileIsEsDe}" Spacing="4">
+									<StackPanel Orientation="Horizontal" Spacing="6">
+										<TextBlock Text="ES-DE Root:" VerticalAlignment="Center"/>
+										<TextBlock Text="{Binding SelectedProfileEsDeMediaRoot}" FontStyle="Italic" VerticalAlignment="Center" TextWrapping="Wrap"/>
+									</StackPanel>
+									<TextBlock Text="To edit the ES-DE Root path, set this profile as active and go to the Paths tab."
+											   FontSize="{DynamicResource GlobalSmallFontSize}" FontStyle="Italic" Opacity="0.7" TextWrapping="Wrap"/>
+								</StackPanel>
+							</StackPanel>
+						</Border>
+
 						<!-- Create / Rename -->
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
 								Background="{DynamicResource CardBackground}"
@@ -592,7 +645,7 @@
 								<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
 									<TextBox Grid.Column="0"
 											 Text="{Binding NewProfileName}"
-											 Watermark="Profile name…"
+											 PlaceholderText="Profile name…"
 											 FontSize="{DynamicResource GlobalFontSize}"
 											 Margin="0,0,6,0"
 											 ToolTip.Tip="Enter a name for the new profile or the new name when renaming"/>
@@ -614,6 +667,8 @@
 												ToolTip.Tip="Rename the profile selected in the list above to this name"/>
 									</StackPanel>
 								</Grid>
+								<CheckBox IsChecked="{Binding IsNewProfileEsDe}" Content="ES-DE Profile"
+										  ToolTip.Tip="When checked, the new profile will be created as an ES-DE profile type. This affects how gamelists and media paths are handled."/>
 
 								<!-- From Template sub-section -->
 								<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="0,1,0,0" Margin="0,4,0,0" Padding="0,6,0,0">

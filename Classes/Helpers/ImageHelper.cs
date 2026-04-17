@@ -183,10 +183,10 @@ namespace Gamelist_Manager.Classes.Helpers
             switch (mode)
             {
                 case BackgroundRemovalMode.Circle:
-                    return (ApplyHoughCircleMask(source, null), "Circle - Automatic");
+                    return (ApplyHoughCircleMask(source), "Circle - Automatic");
 
                 case BackgroundRemovalMode.CircleEdge:
-                    return (ApplyHoughCircleMask(source, null, edgeThreshold, useOutermostEdge: true), "Circle - Edge Detection");
+                    return (ApplyHoughCircleMask(source, edgeThreshold, useOutermostEdge: true), "Circle - Edge Detection");
 
                 case BackgroundRemovalMode.ConvexHull:
                     {
@@ -348,11 +348,11 @@ namespace Gamelist_Manager.Classes.Helpers
             var result = new SKBitmap(info);
             using var canvas = new SKCanvas(result);
             canvas.Clear(SKColors.Transparent);
-            using var paint = new SKPaint { FilterQuality = SKFilterQuality.High };
-            canvas.DrawBitmap(source,
+            using var srcImage = SKImage.FromBitmap(source);
+            canvas.DrawImage(srcImage,
                 new SKRect(0, 0, source.Width, source.Height),
                 new SKRect(0, 0, targetWidth, targetHeight),
-                paint);
+                new SKSamplingOptions(SKCubicResampler.Mitchell));
             return result;
         }
 
@@ -387,7 +387,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
         #region Hough Circle Detection
 
-        private static SKBitmap ApplyHoughCircleMask(SKBitmap source, SKPointI? clickPoint, float edgeThreshold = 0.15f, bool useOutermostEdge = false)
+        private static SKBitmap ApplyHoughCircleMask(SKBitmap source, float edgeThreshold = 0.15f, bool useOutermostEdge = false)
         {
             int srcW = source.Width, srcH = source.Height;
 
@@ -402,8 +402,9 @@ namespace Gamelist_Manager.Classes.Helpers
                 using var smallBmp = new SKBitmap(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Unpremul));
                 using (var canvas = new SKCanvas(smallBmp))
                 {
-                    using var paint = new SKPaint { FilterQuality = SKFilterQuality.Medium };
-                    canvas.DrawBitmap(source, new SKRect(0, 0, w, h), paint);
+                    using var srcImage = SKImage.FromBitmap(source);
+                    canvas.DrawImage(srcImage, new SKRect(0, 0, w, h),
+                        new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear));
                 }
                 gray = ToGrayscale(smallBmp, w, h);
             }
@@ -462,8 +463,8 @@ namespace Gamelist_Manager.Classes.Helpers
 
             float[] accSmooth = BoxBlur5(acc, w, h);
 
-            double refCx = clickPoint.HasValue ? clickPoint.Value.X * scale : w / 2.0;
-            double refCy = clickPoint.HasValue ? clickPoint.Value.Y * scale : h / 2.0;
+            double refCx = w / 2.0;
+            double refCy = h / 2.0;
 
             float bestScore = -1;
             int bestIdx = 0;
@@ -603,7 +604,7 @@ namespace Gamelist_Manager.Classes.Helpers
             int w = source.Width, h = source.Height;
             int toleranceSq = tolerance * tolerance;
 
-            var points = new List<SKPointI>();
+            var points = new List<PixelPoint>();
             int step = Math.Max(1, Math.Min(w, h) / 300);
 
             unsafe
@@ -619,14 +620,14 @@ namespace Gamelist_Manager.Classes.Helpers
                         int i = x * 4;
                         var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
                         if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                        { points.Add(new SKPointI(x, y)); break; }
+                        { points.Add(new PixelPoint(x, y)); break; }
                     }
                     for (int x = w - 1; x >= 0; x--)
                     {
                         int i = x * 4;
                         var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
                         if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                        { points.Add(new SKPointI(x, y)); break; }
+                        { points.Add(new PixelPoint(x, y)); break; }
                     }
                 }
 
@@ -638,7 +639,7 @@ namespace Gamelist_Manager.Classes.Helpers
                         int i = x * 4;
                         var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
                         if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                        { points.Add(new SKPointI(x, y)); break; }
+                        { points.Add(new PixelPoint(x, y)); break; }
                     }
                     for (int y = h - 1; y >= 0; y--)
                     {
@@ -646,7 +647,7 @@ namespace Gamelist_Manager.Classes.Helpers
                         int i = x * 4;
                         var px = new SKColor(row[i], row[i + 1], row[i + 2], row[i + 3]);
                         if (px.Alpha > 0 && !IsBackgroundPixel(px, backgroundColor, toleranceSq))
-                        { points.Add(new SKPointI(x, y)); break; }
+                        { points.Add(new PixelPoint(x, y)); break; }
                     }
                 }
             }
@@ -700,14 +701,14 @@ namespace Gamelist_Manager.Classes.Helpers
             return result;
         }
 
-        private static List<SKPointI> ComputeConvexHull(List<SKPointI> points)
+        private static List<PixelPoint> ComputeConvexHull(List<PixelPoint> points)
         {
             int n = points.Count;
-            if (n < 3) return new List<SKPointI>(points);
+            if (n < 3) return new List<PixelPoint>(points);
 
             points.Sort((a, b) => a.X != b.X ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
 
-            var hull = new List<SKPointI>(2 * n);
+            var hull = new List<PixelPoint>(2 * n);
 
             foreach (var p in points)
             {
@@ -728,10 +729,10 @@ namespace Gamelist_Manager.Classes.Helpers
             return hull;
         }
 
-        private static long HullCross(SKPointI o, SKPointI a, SKPointI b)
+        private static long HullCross(PixelPoint o, PixelPoint a, PixelPoint b)
             => (long)(a.X - o.X) * (b.Y - o.Y) - (long)(a.Y - o.Y) * (b.X - o.X);
 
-        private static double MinSignedDistanceToHull(int px, int py, List<SKPointI> hull)
+        private static double MinSignedDistanceToHull(int px, int py, List<PixelPoint> hull)
         {
             double minDist = double.MaxValue;
             int n = hull.Count;

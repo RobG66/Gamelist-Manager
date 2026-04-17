@@ -17,10 +17,10 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private async Task FindNewItems()
     {
-        var gamelistDir = _sharedData.GamelistDirectory;
+        var scanDir = _sharedData.RomScanDirectory;
         var systemName = _sharedData.CurrentSystem;
 
-        if (string.IsNullOrEmpty(gamelistDir) || string.IsNullOrEmpty(systemName))
+        if (string.IsNullOrEmpty(scanDir) || string.IsNullOrEmpty(systemName))
             return;
 
         var fileTypes = _sharedData.GetFileTypes();
@@ -48,14 +48,14 @@ public partial class MainWindowViewModel
         if (_sharedData.GamelistData != null)
         {
             foreach (var row in _sharedData.GamelistData)
-                existingPaths.Add(FilePathHelper.GamelistPathToFullPath(row.Path, gamelistDir));
+                existingPaths.Add(FilePathHelper.GamelistPathToFullPath(row.Path, scanDir));
         }
 
         List<string> newFiles;
         try
         {
             newFiles = await Task.Run(() =>
-                EnumerateFilesUpToDepth(gamelistDir, _sharedData.SearchDepth)
+                EnumerateFilesUpToDepth(scanDir, _sharedData.SearchDepth)
                     .Where(f => extensions.Contains(Path.GetExtension(f)))
                     .Where(f => !existingPaths.Contains(f))
                     .ToList());
@@ -102,7 +102,7 @@ public partial class MainWindowViewModel
 
         if (result != ThreeButtonResult.Button3) return;
 
-        var newRows = newFiles.Select(f => BuildNewItemRow(f, gamelistDir)).ToList();
+        var newRows = newFiles.Select(f => BuildNewItemRow(f, scanDir)).ToList();
         AddNewFoundItems(newRows);
 
         var newPaths = new HashSet<string>(newRows.Select(r => r.Path), FilePathHelper.PathComparer);

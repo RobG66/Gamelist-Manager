@@ -189,7 +189,7 @@
                                          Width="120"
                                          MaxLength="50"
                                          VerticalAlignment="Center"
-                                         Watermark="Search text..."
+                                         PlaceholderText="Search text..."
                                          Text="{Binding FindText, Mode=TwoWay}"
                                          Margin="0,0,8,0">
                                     <TextBox.KeyBindings>
@@ -225,7 +225,7 @@
                                          Width="120"
                                          MaxLength="50"
                                          VerticalAlignment="Center"
-                                         Watermark="Replace with..."
+                                         PlaceholderText="Replace with..."
                                          Text="{Binding ReplaceToText, Mode=TwoWay}"
                                          IsEnabled="{Binding IsReplaceEnabled}"
                                          Margin="0,0,8,0"/>
@@ -280,7 +280,7 @@
                                  Text="{Binding FirstSelectedGame.Desc, Mode=TwoWay}"
                                  VerticalAlignment="Top"
                                  IsReadOnly="{Binding !IsEditingAllowed}"
-                                 Watermark="{Binding HasGameSelected, Converter={StaticResource BooleanToWatermarkConverter}}"
+                                 PlaceholderText="{Binding HasGameSelected, Converter={StaticResource BooleanToPlaceholderTextConverter}}"
                                  BorderThickness="0"
                                  Background="Transparent"
                                  Margin="10,0,10,0"/>
