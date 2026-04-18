@@ -279,7 +279,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     }
     #endregion
 
-    #region Private Methods
+    #region Internal Methods
     internal string ResolveFullPath(string path)
     {
         if (Path.IsPathRooted(path)) return path;
@@ -289,7 +289,9 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             ? FilePathHelper.GamelistPathToFullPath(path, gamelistDirectory)
             : path;
     }
+    #endregion
 
+    #region Private Methods
     private void OnMediaPlayerPlaying(object? sender, EventArgs e)
     {
         if (_previewSeekPending)

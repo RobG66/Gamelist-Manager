@@ -1,9 +1,12 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -11,20 +14,33 @@ public partial class SettingsViewModel
 {
     #region Observable Properties
 
-    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    [ObservableProperty]
     private string _mamePath = string.Empty;
 
-    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    [ObservableProperty]
     private string _romsPath = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(EsDePathsVisible))]
+    private bool _isEsDeProfile;
+
+    [ObservableProperty]
+    private string _esDeRoot = string.Empty;
+
+    [ObservableProperty]
+    private string _esDeMediaBase = string.Empty;
 
     #endregion
 
-    #region Public Members
+    #region Public Properties
 
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
 
     // False when in ES-DE mode — suffixes have no meaning for ES-DE gamelists.
     public bool SuffixesEnabled => !_sharedData.IsEsDeMode;
+
+    // Controls visibility of the ES-DE Root row in the Paths tab.
+    public bool EsDePathsVisible => IsEsDeProfile;
 
     #endregion
 
@@ -62,6 +78,51 @@ public partial class SettingsViewModel
 
     private static string LoadMediaPath(string raw, string defaultPath) =>
         FilePathHelper.NormalizePathWithDotSlashPrefix(raw) ?? defaultPath;
+
+    #endregion
+
+    #region Commands
+
+    [RelayCommand]
+    private async Task BrowseEsDeRootAsync()
+    {
+        var chosen = await FolderPickerHelper.BrowseForFolderAsync(
+            "Select ES-DE Root Folder",
+            EsDeRoot);
+
+        if (string.IsNullOrEmpty(chosen))
+            return;
+
+        EsDeRoot = chosen;
+
+        // Always re-detect — the user may have changed es_settings.xml outside this app.
+        var detected = SettingsService.ReadPathsFromEsDeSettings(chosen);
+        RomsPath = detected.RomDirectory ?? string.Empty;
+        EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+    }
+
+    #endregion
+
+    #region Internal Methods
+
+    internal void LoadEsDeSettings()
+    {
+        var profileType = SettingsService.Instance.GetValue(SettingKeys.EsDeSection, SettingKeys.ProfileType, SettingKeys.ProfileTypeStandard);
+        IsEsDeProfile = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, System.StringComparison.OrdinalIgnoreCase);
+        EsDeRoot = SettingsService.Instance.GetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, string.Empty);
+
+        // Always re-detect — the user may have changed es_settings.xml outside this app.
+        var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
+        RomsPath = detected.RomDirectory ?? string.Empty;
+        EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+    }
+
+    internal void SaveEsDeSettings()
+    {
+        SettingsService.Instance.SetValue(SettingKeys.EsDeSection, SettingKeys.ProfileType,
+            IsEsDeProfile ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeStandard);
+        SettingsService.Instance.SetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, EsDeRoot);
+    }
 
     #endregion
 

@@ -260,35 +260,66 @@
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
 									<TextBlock Text="Folder Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
-										<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-											<TextBlock Grid.Row="0" Grid.Column="0" Text="MAME Exe:" VerticalAlignment="Center" Margin="0,0,6,4"
-													   ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
-											<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MamePath}" PlaceholderText="C:\MAME\mame.exe" Margin="0,0,6,4"
-													 ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
-											<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
-													ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
-											<Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1"
-													   Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4,0,8"
-													   IsVisible="{Binding EsDePathsVisible}"/>
-											<TextBlock Grid.Row="2" Grid.Column="0" Text="ES-DE Root:" VerticalAlignment="Center" Margin="0,0,6,4"
-													   IsVisible="{Binding EsDePathsVisible}"
-													   ToolTip.Tip="The ES-DE root folder (e.g. C:\Users\You\ES-DE). This folder contains the downloaded_media and gamelists subfolders."/>
-											<TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EsDeRoot}" Margin="0,0,6,4"
-													 IsVisible="{Binding EsDePathsVisible}"
-													 ToolTip.Tip="The ES-DE root folder containing downloaded_media and gamelists subfolders."/>
-											<Button Grid.Row="2" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green"
-													Command="{Binding BrowseEsDeRootCommand}"
-													IsVisible="{Binding EsDePathsVisible}"
-													ToolTip.Tip="Browse for the ES-DE root folder."/>
-											<TextBlock Grid.Row="3" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,0"
-													   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
-											<TextBox Grid.Row="3" Grid.Column="1" Text="{Binding RomsPath}" PlaceholderText="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"
-													 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
-											<Button Grid.Row="3" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green" Click="BrowseRomsFolder_Click"
-													ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
-										</Grid>
+										<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+												<TextBlock Grid.Row="0" Grid.Column="0" Text="MAME Exe:" VerticalAlignment="Center" Margin="0,0,6,4"
+														   ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
+												<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding MamePath}" PlaceholderText="C:\MAME\mame.exe" Margin="0,0,6,4"
+														 ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
+												<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
+														ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
+												<TextBlock Grid.Row="1" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,0"
+														   IsVisible="{Binding !IsEsDeProfile}"
+														   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
+												<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RomsPath}" PlaceholderText="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"
+														 IsVisible="{Binding !IsEsDeProfile}"
+														 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
+												<Button Grid.Row="1" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green"
+														IsVisible="{Binding !IsEsDeProfile}"
+														Click="BrowseRomsFolder_Click"
+														ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
+											</Grid>
 									</StackPanel>
 								</Border>
+
+						<!-- ES-DE Paths card — only visible when an ES-DE profile is active -->
+						<Border BorderThickness="1" CornerRadius="4" Padding="8"
+								Background="{DynamicResource CardBackground}"
+								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+								IsVisible="{Binding EsDePathsVisible}">
+							<StackPanel Spacing="5">
+								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+									<TextBlock Text="ES-DE Paths" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+								</Border>
+								<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+									<TextBlock Grid.Row="0" Grid.Column="0" Text="ES-DE Root:" VerticalAlignment="Center" Margin="0,0,6,4"
+											   ToolTip.Tip="The ES-DE root folder (e.g. C:\Users\You\ES-DE). This folder contains the downloaded_media and gamelists subfolders."/>
+									<TextBox Grid.Row="0" Grid.Column="1" Text="{Binding EsDeRoot}" Margin="0,0,6,4"
+											 ToolTip.Tip="The ES-DE root folder containing downloaded_media and gamelists subfolders."/>
+									<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green"
+											Command="{Binding BrowseEsDeRootCommand}"
+											ToolTip.Tip="Browse for the ES-DE root folder."/>
+									<Separator Grid.Row="1" Grid.ColumnSpan="3" Height="1"
+											   Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Margin="0,4,0,8"/>
+									<TextBlock Grid.Row="2" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,4"
+											   ToolTip.Tip="ROM path detected from ES-DE's es_settings.xml."/>
+									<TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RomsPath}" Margin="0,0,6,4"
+											   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+											   VerticalAlignment="Center"
+											   ToolTip.Tip="{Binding RomsPath}"/>
+									<TextBlock Grid.Row="3" Grid.Column="0" Text="Media Path:" VerticalAlignment="Center" Margin="0,0,6,4"
+											   ToolTip.Tip="Media base path detected from ES-DE's es_settings.xml."/>
+									<TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding EsDeMediaBase}" Margin="0,0,6,4"
+											   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+											   VerticalAlignment="Center"
+											   ToolTip.Tip="{Binding EsDeMediaBase}"/>
+								</Grid>
+								<TextBlock Text="Paths are derived from ES-DE's es_settings.xml and cannot be changed here."
+										   FontStyle="Italic"
+										   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+										   FontSize="{DynamicResource GlobalSmallFontSize}"
+										   Margin="0,4,0,0"/>
+							</StackPanel>
+						</Border>
 
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
 								Background="{DynamicResource CardBackground}"
@@ -377,7 +408,7 @@
 								</TabItem>
 
 								<!-- Remote Tab -->
-								<TabItem>
+									<TabItem IsVisible="{Binding !IsEsDeProfile}">
 									<TabItem.Header>
 										<StackPanel Orientation="Horizontal" Spacing="4">
 											<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>

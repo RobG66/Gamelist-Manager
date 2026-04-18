@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using IniData = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
 
 namespace Gamelist_Manager.Services
@@ -233,14 +234,14 @@ namespace Gamelist_Manager.Services
                 },
                 [SettingKeys.ConnectionSection] = new Dictionary<string, string>
                 {
-                    [SettingKeys.HostName] = SettingKeys.DefaultHostName,
-                    [SettingKeys.UserID] = SettingKeys.DefaultUserID,
-                    [SettingKeys.Password] = SettingKeys.DefaultPassword
+                    [SettingKeys.HostName] = string.Empty,
+                    [SettingKeys.UserID] = string.Empty,
+                    [SettingKeys.Password] = string.Empty
                 },
                 [SettingKeys.FolderPathsSection] = new Dictionary<string, string>
                 {
-                    [SettingKeys.MamePath] = "",
-                    [SettingKeys.RomsFolder] = ""
+                    [SettingKeys.MamePath] = string.Empty,
+                    [SettingKeys.RomsFolder] = string.Empty
                 },
                 [SettingKeys.MediaPathsSection] = new Dictionary<string, string>
                 {
@@ -289,5 +290,70 @@ namespace Gamelist_Manager.Services
                 [SettingKeys.EsDeRoot] = string.Empty
             };
         }
+
+        public static EsDeDetectedPaths ReadPathsFromEsDeSettings(string esDeRoot)
+        {
+            if (string.IsNullOrWhiteSpace(esDeRoot))
+                return new EsDeDetectedPaths(null, null);
+
+            string? romDirectory = null;
+            string? mediaDirectory = null;
+
+            var settingsPath = Path.Combine(esDeRoot, "settings", "es_settings.xml");
+            if (File.Exists(settingsPath))
+            {
+                try
+                {
+                    var doc = XDocument.Load(settingsPath);
+
+                    var romDir = doc.Descendants("string")
+                        .FirstOrDefault(e => string.Equals(e.Attribute("name")?.Value, "ROMDirectory", StringComparison.Ordinal))
+                        ?.Attribute("value")?.Value;
+
+                    if (!string.IsNullOrWhiteSpace(romDir))
+                    {
+                        var trimmed = Path.TrimEndingDirectorySeparator(romDir);
+                        if (Directory.Exists(trimmed))
+                            romDirectory = trimmed;
+                    }
+
+                    var mediaDir = doc.Descendants("string")
+                        .FirstOrDefault(e => string.Equals(e.Attribute("name")?.Value, "MediaDirectory", StringComparison.Ordinal))
+                        ?.Attribute("value")?.Value;
+
+                    if (!string.IsNullOrWhiteSpace(mediaDir))
+                    {
+                        var trimmed = Path.TrimEndingDirectorySeparator(mediaDir);
+                        if (Directory.Exists(trimmed))
+                            mediaDirectory = trimmed;
+                    }
+                }
+                catch { }
+            }
+
+            // ROMDirectory fallback: sibling ROMS folder one level up from ES-DE root
+            if (romDirectory == null)
+            {
+                var parentDir = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(esDeRoot));
+                if (parentDir != null)
+                {
+                    var fallback = Path.Combine(parentDir, "ROMS");
+                    if (Directory.Exists(fallback))
+                        romDirectory = fallback;
+                }
+            }
+
+            // MediaDirectory fallback: downloaded_media inside ES-DE root
+            if (mediaDirectory == null)
+            {
+                var fallback = Path.Combine(esDeRoot, "downloaded_media");
+                if (Directory.Exists(fallback))
+                    mediaDirectory = fallback;
+            }
+
+            return new EsDeDetectedPaths(romDirectory, mediaDirectory);
+        }
+
+        public record EsDeDetectedPaths(string? RomDirectory, string? MediaDirectory);
     }
 }

@@ -314,42 +314,6 @@ namespace Gamelist_Manager.Services
             }
         }
 
-        internal static string? ReadRomDirectoryFromEsDeSettings(string esDeRoot)
-        {
-            if (string.IsNullOrWhiteSpace(esDeRoot)) return null;
-
-            var settingsPath = Path.Combine(esDeRoot, "settings", "es_settings.xml");
-            if (File.Exists(settingsPath))
-            {
-                try
-                {
-                    var doc = XDocument.Load(settingsPath);
-                    var romDir = doc.Descendants("string")
-                        .FirstOrDefault(e => string.Equals(e.Attribute("name")?.Value, "ROMDirectory", StringComparison.Ordinal))
-                        ?.Attribute("value")?.Value;
-
-                    if (!string.IsNullOrWhiteSpace(romDir))
-                    {
-                        var trimmed = Path.TrimEndingDirectorySeparator(romDir);
-                        if (Directory.Exists(trimmed))
-                            return trimmed;
-                    }
-                }
-                catch { }
-            }
-
-            // Default location is one level up from the ES-DE root, in a folder named ROMS
-            var parentDir = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(esDeRoot));
-            if (parentDir != null)
-            {
-                var fallback = Path.Combine(parentDir, "ROMS");
-                if (Directory.Exists(fallback))
-                    return fallback;
-            }
-
-            return null;
-        }
-
         #endregion
 
     }

@@ -25,8 +25,27 @@ public partial class MenuView : UserControl
         InitializeComponent();
         BuildColumnMenuItems();
         _recentFilesFlyout = RecentButton.Flyout as MenuFlyout;
-        SharedDataService.Instance.RecentFiles.CollectionChanged += OnRecentFilesChanged;
+        AttachedToVisualTree += OnAttachedToVisualTree;
+        DetachedFromVisualTree += OnDetachedFromVisualTree;
         DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        SharedDataService.Instance.RecentFiles.CollectionChanged += OnRecentFilesChanged;
+    }
+
+    private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        SharedDataService.Instance.RecentFiles.CollectionChanged -= OnRecentFilesChanged;
+
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.ColumnVisibilityChanged -= RefreshColumnCheckBoxes;
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+
+        ClearSystemButtonHandlers();
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
@@ -148,10 +167,29 @@ public partial class MenuView : UserControl
         });
     }
 
+    private void ClearSystemButtonHandlers()
+    {
+        foreach (var child in SystemsPanel.Children)
+        {
+            if (child is Button btn)
+                btn.Click -= OnSystemButtonClick;
+        }
+    }
+
+    private void OnSystemButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string path } && DataContext is MainWindowViewModel vm)
+        {
+            vm.OpenSystemGamelistCommand.Execute(path);
+            SystemsButton.Flyout?.Hide();
+        }
+    }
+
     private void BuildSystemMenuItems()
     {
         if (DataContext is not MainWindowViewModel vm) return;
 
+        ClearSystemButtonHandlers();
         SystemsPanel.Children.Clear();
 
         foreach (var system in vm.Systems)
@@ -170,11 +208,7 @@ public partial class MenuView : UserControl
                 },
             };
             ToolTip.SetTip(button, system.GamelistPath);
-            button.Click += (_, _) =>
-            {
-                vm.OpenSystemGamelistCommand.Execute(system.GamelistPath);
-                SystemsButton.Flyout?.Hide();
-            };
+            button.Click += OnSystemButtonClick;
             SystemsPanel.Children.Add(button);
         }
     }

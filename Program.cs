@@ -16,6 +16,8 @@ sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(new Win32PlatformOptions { OverlayPopups = false })
+            .With(new X11PlatformOptions { OverlayPopups = false })
             .WithInterFont()
             .LogToTrace();
 }

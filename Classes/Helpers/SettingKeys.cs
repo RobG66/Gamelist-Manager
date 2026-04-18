@@ -91,8 +91,8 @@ public static class SettingKeys
     public const int DefaultLogVerbosity = 1;
     public const int DefaultVolume = 75;
 
-    public const string DefaultHostName = "batocera";
-    public const string DefaultUserID = "root";
-    public const string DefaultPassword = "linux";
+    public const string DefaultHostName = "";
+    public const string DefaultUserID = "";
+    public const string DefaultPassword = "";
 }
 

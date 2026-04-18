@@ -58,7 +58,6 @@ namespace Gamelist_Manager.ViewModels
             }
             catch
             {
-                // Silently fail if URL cannot be opened
             }
         }
     }

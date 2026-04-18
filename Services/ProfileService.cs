@@ -193,6 +193,11 @@ namespace Gamelist_Manager.Services
             SettingsService.Instance.SwitchProfile(path);
         }
 
+        public void ClearNoProfilesFlag()
+        {
+            NoProfilesExist = false;
+        }
+
         #region Private Methods
 
         // ES-DE profiles don't use batocera connection defaults or media paths.
@@ -225,11 +230,6 @@ namespace Gamelist_Manager.Services
                     [ActiveProfileKey] = profileName
                 }
             });
-        }
-
-        public void ClearNoProfilesFlag()
-        {
-            NoProfilesExist = false;
         }
 
         #endregion

@@ -81,9 +81,9 @@ public partial class SettingsViewModel : ViewModelBase
         DefaultVolume = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.Volume, 75);
         LogVerbosityIndex = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.LogVerbosity, 1);
 
-        Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, "batocera");
-        UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, "root");
-        Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, "linux");
+        Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, string.Empty);
+        UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, string.Empty);
+        Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, string.Empty);
 
         // Folder paths live in their own section; fall back to Connection for old profiles.
         MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath,
@@ -91,6 +91,7 @@ public partial class SettingsViewModel : ViewModelBase
         RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder,
                    settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder));
 
+        var isEsDe = _sharedData.IsEsDeMode;
         foreach (var item in MediaFolderItems)
         {
             item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
@@ -98,7 +99,6 @@ public partial class SettingsViewModel : ViewModelBase
             item.SfxEnabled = settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
 
             // Unsupported ES-DE types are always disabled regardless of what the INI says.
-            var isEsDe = _sharedData.IsEsDeMode;
             item.Enabled = (!isEsDe || item.IsEsDeSupported) &&
                            settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_enabled", item.DefaultEnabled);
         }

@@ -157,6 +157,8 @@ namespace Gamelist_Manager.Models
                 CacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraperName, currentSystem),
                 ScrapeNamesLanguageFirst = scraperConfig.GetScraperBoolSetting(scraperName, "NamesLanguageFirst"),
                 ScrapeMediaRegionFirst = scraperConfig.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
+                ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
+                ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
             };
         }
 

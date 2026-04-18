@@ -24,14 +24,14 @@ namespace Gamelist_Manager.Services
 
         [ObservableProperty] private string? _xmlFilename;
         [ObservableProperty] private string? _currentSystem;
-        [ObservableProperty] private bool _isDataChanged = false;
-        [ObservableProperty] private bool _isScraping = false;
-        [ObservableProperty] private bool _isBusy = false;
+        [ObservableProperty] private bool _isDataChanged;
+        [ObservableProperty] private bool _isScraping;
+        [ObservableProperty] private bool _isBusy;
 
         [ObservableProperty] private string _romsFolder = string.Empty;
         [ObservableProperty] private string _hostname = "batocera";
         [ObservableProperty] private string _mamePath = string.Empty;
-        [ObservableProperty] private bool _enableEdit = false;
+        [ObservableProperty] private bool _enableEdit;
         [ObservableProperty] private bool _videoAutoplay = false;
         [ObservableProperty] private bool _confirmBulkChanges = true;
         [ObservableProperty] private bool _enableSaveReminder = true;
@@ -39,10 +39,10 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private bool _showGamelistStats = true;
         [ObservableProperty] private bool _rememberColumns = false;
         [ObservableProperty] private bool _rememberAutosize = false;
-        [ObservableProperty] private bool _enableDelete = false;
-        [ObservableProperty] private bool _ignoreDuplicates = false;
+        [ObservableProperty] private bool _enableDelete;
+        [ObservableProperty] private bool _ignoreDuplicates;
         [ObservableProperty] private bool _batchProcessing = true;
-        [ObservableProperty] private bool _showLogTimestamp = false;
+        [ObservableProperty] private bool _showLogTimestamp;
         [ObservableProperty] private bool _mediaViewerScaledDisplay = true;
         [ObservableProperty] private int _defaultVolume = 75;
         [ObservableProperty] private int _maxUndo = 5;
@@ -59,6 +59,7 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private string _userId = "root";
         [ObservableProperty] private string _password = "linux";
         [ObservableProperty] private string _esDeRoot = string.Empty;
+        [ObservableProperty] private string _esDeMediaBase = string.Empty;
 
         #endregion
 
@@ -68,10 +69,11 @@ namespace Gamelist_Manager.Services
         // so it doesn't re-read the INI on every access.
         public bool IsEsDeMode => _isEsDeMode;
 
-        // Resolved media base path for the currently loaded system: <EsDeRoot>/downloaded_media/<systemname>
+        // Resolved media path for the currently loaded system.
+        // Uses the configured EsDeMediaBase (from es_settings.xml) with the system name appended.
         public string EsDeMediaDirectory =>
-            !string.IsNullOrEmpty(EsDeRoot) && !string.IsNullOrEmpty(CurrentSystem)
-                ? Path.Combine(EsDeRoot, "downloaded_media", CurrentSystem)
+            !string.IsNullOrEmpty(EsDeMediaBase) && !string.IsNullOrEmpty(CurrentSystem)
+                ? Path.Combine(EsDeMediaBase, CurrentSystem)
                 : string.Empty;
 
         #endregion
@@ -136,11 +138,11 @@ namespace Gamelist_Manager.Services
 
             RomsFolder = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder,
                          settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder, ""));
-            Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, SettingKeys.DefaultHostName);
+            Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, string.Empty);
             MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath,
                        settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath, ""));
-            UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, SettingKeys.DefaultUserID);
-            Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, SettingKeys.DefaultPassword);
+            UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, string.Empty);
+            Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, string.Empty);
 
             VideoAutoplay = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.VideoAutoplay, false);
             ConfirmBulkChanges = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ConfirmBulkChange, SettingKeys.DefaultConfirmBulkChange);
@@ -225,7 +227,6 @@ namespace Gamelist_Manager.Services
             IsDataChanged = false;
         }
 
-
         public void Clear()
         {
             XmlFilename = null;
@@ -260,6 +261,11 @@ namespace Gamelist_Manager.Services
             OnPropertyChanged(nameof(EsDeMediaDirectory));
         }
 
+        partial void OnEsDeMediaBaseChanged(string value)
+        {
+            OnPropertyChanged(nameof(EsDeMediaDirectory));
+        }
+
         partial void OnCurrentSystemChanged(string? value)
         {
             OnPropertyChanged(nameof(EsDeMediaDirectory));
@@ -285,6 +291,10 @@ namespace Gamelist_Manager.Services
             }
 
             EsDeRoot = settings.GetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, string.Empty);
+
+            // Always re-detect from es_settings.xml — the user may have changed paths outside this app.
+            var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
+            EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
         }
 
         #endregion
