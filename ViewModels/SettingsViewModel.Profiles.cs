@@ -31,8 +31,8 @@ public partial class SettingsViewModel
     private string? _selectedTemplateName;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CreateNewProfileCommand))]
-    [NotifyCanExecuteChangedFor(nameof(CreateCopyProfileCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CreateProfileCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CopyProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(RenameProfileCommand))]
     private string _newProfileName = string.Empty;
 
@@ -73,8 +73,8 @@ public partial class SettingsViewModel
             ProfileList.Add(p);
         SelectedProfileName = ProfileService.Instance.ActiveProfile;
         OnPropertyChanged(nameof(ActiveProfileName));
-        CreateNewProfileCommand.NotifyCanExecuteChanged();
-        CreateCopyProfileCommand.NotifyCanExecuteChanged();
+        CreateProfileCommand.NotifyCanExecuteChanged();
+        CopyProfileCommand.NotifyCanExecuteChanged();
         RenameProfileCommand.NotifyCanExecuteChanged();
         DeleteProfileCommand.NotifyCanExecuteChanged();
     }
@@ -136,11 +136,7 @@ public partial class SettingsViewModel
 
     #region CanExecute
 
-    private bool CanCreateNewProfile() =>
-        !string.IsNullOrWhiteSpace(NewProfileName) &&
-        !ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase);
-
-    private bool CanCreateCopyProfile() =>
+    private bool CanCreateProfile() =>
         !string.IsNullOrWhiteSpace(NewProfileName) &&
         !ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase);
 
@@ -163,8 +159,8 @@ public partial class SettingsViewModel
 
     #region Commands
 
-    [RelayCommand(CanExecute = nameof(CanCreateNewProfile))]
-    private void CreateNewProfile()
+    [RelayCommand(CanExecute = nameof(CanCreateProfile))]
+    private void CreateProfile()
     {
         var profileType = IsNewProfileEsDe ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeStandard;
         var created = ProfileService.Instance.CreateTypedProfile(NewProfileName.Trim(), profileType);
@@ -175,8 +171,8 @@ public partial class SettingsViewModel
         ProfilesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    [RelayCommand(CanExecute = nameof(CanCreateCopyProfile))]
-    private void CreateCopyProfile()
+    [RelayCommand(CanExecute = nameof(CanCreateProfile))]
+    private void CopyProfile()
     {
         if (!ProfileService.Instance.CreateProfile(NewProfileName.Trim(), copyFromActive: true)) return;
         NewProfileName = string.Empty;

@@ -58,7 +58,6 @@ namespace Gamelist_Manager.Models
         // to avoid one File.Exists network round-trip per media item per game on remote paths.
         public Dictionary<string, HashSet<string>>? ExistingMediaFiles { get; set; }
 
-
         // Cached once before the scraping loop; rebuilt lazily if ElementsToScrape changes.
         private Dictionary<string, (string Type, string Column)>? _metaLookup;
 
@@ -84,11 +83,51 @@ namespace Gamelist_Manager.Models
             }
         }
 
-
         public static ScraperParameters Create(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
         {
-            var media = sharedData.MediaSettings;
+            return sharedData.IsEsDeMode
+                ? CreateForEsDeProfile(sharedData, scraperName, currentSystem, elementsToScrape)
+                : CreateForStandardProfile(sharedData, scraperName, currentSystem, elementsToScrape);
+        }
 
+        private static ScraperParameters CreateForStandardProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        {
+            var media = sharedData.MediaSettings;
+            var parameters = BuildCommonParameters(sharedData, scraperName, currentSystem, elementsToScrape);
+
+            parameters.MediaPaths = media.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Path,
+                StringComparer.OrdinalIgnoreCase);
+
+            parameters.MediaSuffixes = media.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (kvp.Value.Suffix, kvp.Value.SfxEnabled),
+                StringComparer.OrdinalIgnoreCase);
+
+            return parameters;
+        }
+
+        private static ScraperParameters CreateForEsDeProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        {
+            var parameters = BuildCommonParameters(sharedData, scraperName, currentSystem, elementsToScrape);
+            var mediaDirectory = sharedData.EsDeMediaDirectory;
+
+            parameters.MediaPaths = GamelistMetaData.GetAllMediaFolderTypes()
+                .Where(decl => decl.IsEsDeSupported)
+                .ToDictionary(
+                    decl => decl.Type,
+                    decl => Path.Combine(mediaDirectory, decl.EsDeFolderName),
+                    StringComparer.OrdinalIgnoreCase);
+
+            // Suffixes are not applicable in ES-DE mode — filenames follow the ROM name exactly.
+            parameters.MediaSuffixes = new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase);
+
+            return parameters;
+        }
+
+        private static ScraperParameters BuildCommonParameters(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        {
             var scraperConfig = ScraperConfigService.Instance;
 
             string? primaryRegion = scraperConfig.GetScraperPrimaryRegionCode(scraperName);
@@ -101,14 +140,6 @@ namespace Gamelist_Manager.Models
 
             return new ScraperParameters
             {
-                MediaPaths = media.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Path,
-                    StringComparer.OrdinalIgnoreCase),
-                MediaSuffixes = media.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => (kvp.Value.Suffix, kvp.Value.SfxEnabled),
-                    StringComparer.OrdinalIgnoreCase),
                 ParentFolderPath = sharedData.GamelistDirectory,
                 VerifyImageDownloads = sharedData.VerifyImageDownloads,
                 ElementsToScrape = elementsToScrape,
@@ -184,7 +215,9 @@ namespace Gamelist_Manager.Models
                 CacheFolder = this.CacheFolder,
                 ScrapeByCache = this.ScrapeByCache,
                 SkipNonCached = this.SkipNonCached,
-                ExistingMediaFiles = this.ExistingMediaFiles
+                ExistingMediaFiles = this.ExistingMediaFiles?.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new HashSet<string>(kvp.Value, kvp.Value.Comparer))
             };
         }
     }

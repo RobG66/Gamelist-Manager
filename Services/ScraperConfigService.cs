@@ -14,6 +14,8 @@ namespace Gamelist_Manager.Services
 
         private static ScraperConfigService? _instance;
 
+        private readonly SettingsService _settings;
+
         // Cached per scraper name to avoid re-reading INI files on every access.
         private readonly ConcurrentDictionary<string, Dictionary<string, Dictionary<string, string>>> _scraperSectionsCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -21,13 +23,16 @@ namespace Gamelist_Manager.Services
 
         #region Public Properties
 
-        public static ScraperConfigService Instance => _instance ??= new ScraperConfigService();
+        public static ScraperConfigService Instance => _instance ??= new ScraperConfigService(SettingsService.Instance);
 
         #endregion
 
         #region Constructor
 
-        private ScraperConfigService() { }
+        private ScraperConfigService(SettingsService settings)
+        {
+            _settings = settings;
+        }
 
         #endregion
 
@@ -51,7 +56,7 @@ namespace Gamelist_Manager.Services
 
         public string? GetScraperLanguageCode(string scraperName)
         {
-            string savedLanguage = SettingsService.Instance.GetValue(SettingKeys.ScraperSection, $"{scraperName}_Language", string.Empty);
+            string savedLanguage = _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_Language", string.Empty);
             if (!string.IsNullOrEmpty(savedLanguage))
             {
                 string code = ExtractRegionCode(savedLanguage);
@@ -66,7 +71,7 @@ namespace Gamelist_Manager.Services
 
         public string? GetScraperPrimaryRegionCode(string scraperName)
         {
-            string saved = SettingsService.Instance.GetValue(SettingKeys.ScraperSection, $"{scraperName}_PrimaryRegion", string.Empty);
+            string saved = _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_PrimaryRegion", string.Empty);
             if (!string.IsNullOrEmpty(saved))
             {
                 string code = ExtractRegionCode(saved);
@@ -85,7 +90,7 @@ namespace Gamelist_Manager.Services
 
         public IReadOnlyList<string> GetScraperFallbackRegionCodes(string scraperName)
         {
-            var json = SettingsService.Instance.GetValue(SettingKeys.ScraperSection, $"{scraperName}_RegionFallback", string.Empty);
+            var json = _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_RegionFallback", string.Empty);
             if (string.IsNullOrEmpty(json)) return [];
             try
             {
@@ -129,10 +134,10 @@ namespace Gamelist_Manager.Services
         }
 
         public string GetScraperSourceSetting(string scraperName, string sectionName)
-            => SettingsService.Instance.GetValue(SettingKeys.ScraperSection, $"{scraperName}_{sectionName}", "");
+            => _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_{sectionName}", "");
 
         public bool GetScraperBoolSetting(string scraperName, string settingName, bool defaultValue = false)
-            => SettingsService.Instance.GetBool(SettingKeys.ScraperSection, $"{scraperName}_{settingName}", defaultValue);
+            => _settings.GetBool(SettingKeys.ScraperSection, $"{scraperName}_{settingName}", defaultValue);
 
         #endregion
 

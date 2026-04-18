@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using System.Collections.Generic;
+using System;
 using System.Linq;
 
 namespace Gamelist_Manager.ViewModels;
@@ -12,6 +13,13 @@ public partial class SettingsViewModel : ViewModelBase
 
     private readonly SharedDataService _sharedData = SharedDataService.Instance;
     private bool _isLoading;
+
+    private static readonly string[] ThemeNames = ["Light", "Dark"];
+    private static readonly string[] ColorNames =
+    [
+        "Blue", "Red", "Orange", "Green", "Yellow",
+        "Magenta", "Purple", "Teal", "Lime", "Light Blue", "Indigo"
+    ];
 
     #endregion
 
@@ -46,28 +54,8 @@ public partial class SettingsViewModel : ViewModelBase
 
         var settings = SettingsService.Instance;
 
-        SelectedThemeIndex = settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Theme, "Light") switch
-        {
-            "Light" => 0,
-            "Dark" => 1,
-            _ => 0
-        };
-
-        SelectedColorIndex = settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Color, "Blue") switch
-        {
-            "Blue" => 0,
-            "Red" => 1,
-            "Orange" => 2,
-            "Green" => 3,
-            "Yellow" => 4,
-            "Magenta" => 5,
-            "Purple" => 6,
-            "Teal" => 7,
-            "Lime" => 8,
-            "Light Blue" => 9,
-            "Indigo" => 10,
-            _ => 0
-        };
+        SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Theme, "Light"));
+        SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Color, "Blue"));
 
         SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, 1);
         SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridLinesVisibilityIndex);
@@ -129,22 +117,8 @@ public partial class SettingsViewModel : ViewModelBase
         {
             [SettingKeys.AppearanceSection] = new()
             {
-                [SettingKeys.Theme] = SelectedThemeIndex switch { 0 => "Light", 1 => "Dark", _ => "Light" },
-                [SettingKeys.Color] = SelectedColorIndex switch
-                {
-                    0 => "Blue",
-                    1 => "Red",
-                    2 => "Orange",
-                    3 => "Green",
-                    4 => "Yellow",
-                    5 => "Magenta",
-                    6 => "Purple",
-                    7 => "Teal",
-                    8 => "Lime",
-                    9 => "Light Blue",
-                    10 => "Indigo",
-                    _ => "Blue"
-                },
+                [SettingKeys.Theme] = IndexToName(ThemeNames, SelectedThemeIndex),
+                [SettingKeys.Color] = IndexToName(ColorNames, SelectedColorIndex),
                 [SettingKeys.AlternatingRowColorIndex] = SelectedAlternatingRowColorIndex.ToString(),
                 [SettingKeys.GridLinesVisibilityIndex] = SelectedGridLinesVisibilityIndex.ToString(),
                 [SettingKeys.GridLineVisibility] = SelectedGridLinesVisibilityIndex switch
@@ -193,7 +167,9 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.RomsFolder] = RomsPath
             },
             [SettingKeys.MediaPathsSection] = _sharedData.IsEsDeMode
-                ? new Dictionary<string, string>()
+                ? MediaFolderItems
+                    .Select(item => new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString()))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value)
                 : MediaFolderItems
                     .SelectMany(item => new[]
                     {
@@ -221,35 +197,30 @@ public partial class SettingsViewModel : ViewModelBase
         LoadSettings();
     }
 
-    public static void LoadAndApplySettingsOnStartup()
+    public static void ApplyThemeOnStartup()
     {
         var shared = SharedDataService.Instance;
 
-        var themeIndex = shared.Theme switch
-        {
-            "Light" => 0,
-            "Dark" => 1,
-            _ => 0
-        };
-
-        var colorIndex = shared.Color switch
-        {
-            "Blue" => 0,
-            "Red" => 1,
-            "Orange" => 2,
-            "Green" => 3,
-            "Yellow" => 4,
-            "Magenta" => 5,
-            "Purple" => 6,
-            "Teal" => 7,
-            "Lime" => 8,
-            "Light Blue" => 9,
-            "Indigo" => 10,
-            _ => 0
-        };
+        var themeIndex = NameToIndex(ThemeNames, shared.Theme);
+        var colorIndex = NameToIndex(ColorNames, shared.Color);
 
         ThemeService.ApplyTheme(themeIndex, colorIndex);
         ThemeService.ApplyFontSizes(shared.AppFontSize, shared.GridFontSize);
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private static int NameToIndex(string[] names, string name)
+    {
+        var index = Array.IndexOf(names, name);
+        return index >= 0 ? index : 0;
+    }
+
+    private static string IndexToName(string[] names, int index)
+    {
+        return (uint)index < (uint)names.Length ? names[index] : names[0];
     }
 
     #endregion

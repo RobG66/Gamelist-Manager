@@ -48,7 +48,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {            
             // Load and apply saved theme settings before showing the main window
-            SettingsViewModel.LoadAndApplySettingsOnStartup();
+            SettingsViewModel.ApplyThemeOnStartup();
 
             desktop.MainWindow = new MainWindow
             {

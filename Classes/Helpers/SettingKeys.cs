@@ -63,5 +63,36 @@ public static class SettingKeys
     // ProfileType values
     public const string ProfileTypeStandard = "standard";
     public const string ProfileTypeEsDe = "esde";
+
+    // Default values (shared between BuildDefaultSections and LoadFromSettings)
+    public const string DefaultTheme = "Light";
+    public const string DefaultColor = "Blue";
+    public const int DefaultAlternatingRowColorIndex = 1;
+    public const int DefaultGridLinesVisibilityIndex = 0;
+    public const string DefaultGridLineVisibility = "Horizontal";
+    public const int DefaultGlobalFontSize = 12;
+    public const int DefaultGridFontSize = 12;
+
+    public const bool DefaultConfirmBulkChange = true;
+    public const bool DefaultSaveReminder = true;
+    public const bool DefaultVerifyDownloadedImages = true;
+    public const bool DefaultShowGamelistStats = true;
+    public const bool DefaultVideoAutoplay = true;
+    public const bool DefaultRememberColumns = false;
+    public const bool DefaultRememberAutoSize = false;
+    public const bool DefaultEnableDelete = false;
+    public const bool DefaultIgnoreDuplicates = false;
+    public const bool DefaultBatchProcessing = true;
+
+    public const int DefaultMaxUndo = 5;
+    public const int DefaultSearchDepth = 2;
+    public const int DefaultRecentFilesCount = 15;
+    public const int DefaultBatchProcessingMaximum = 300;
+    public const int DefaultLogVerbosity = 1;
+    public const int DefaultVolume = 75;
+
+    public const string DefaultHostName = "batocera";
+    public const string DefaultUserID = "root";
+    public const string DefaultPassword = "linux";
 }
 

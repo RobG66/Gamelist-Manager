@@ -28,7 +28,7 @@
         
         <Style Selector="Border.MediaBorder.DropEnabled">
             <Setter Property="Effect">
-                <DropShadowEffect Color="Black" OffsetX="10" OffsetY="10" BlurRadius="15" Opacity="0.7"/>
+                <DropShadowEffect Color="Black" OffsetX="5" OffsetY="5" BlurRadius="10" Opacity="0.4"/>
             </Setter>
         </Style>
 
@@ -67,8 +67,7 @@
                 Classes="MediaBorder"
                 Classes.DropEnabled="{Binding !IsVideo}"
                 Classes.DragOver="{Binding IsDragOver}"
-                DragDrop.AllowDrop="True"
-                ClipToBounds="True">
+                DragDrop.AllowDrop="True">
             
             <Panel>
                 <!-- Image content (when file exists and not manual or video) -->

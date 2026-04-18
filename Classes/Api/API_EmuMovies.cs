@@ -27,7 +27,7 @@ namespace Gamelist_Manager.Classes.Api
         {
             _httpClient = httpClient;
             // Get bearer token from configuration service (with environment variable fallback)
-            _bearerToken = Gamelist_Manager.Services.ApiCredentialsService.GetEmuMoviesBearerToken();
+            _bearerToken = Gamelist_Manager.Services.Secrets.EmuMoviesBearerToken;
         }
 
         private static string GetFileExtension(string url)

@@ -81,6 +81,11 @@ public partial class ScraperViewModel
         }
     }
 
+    private void OnSettingsApplied(object? sender, EventArgs e)
+    {
+        LoadScraperSettings();
+    }
+
     private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)

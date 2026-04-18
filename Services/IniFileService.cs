@@ -90,9 +90,9 @@ namespace Gamelist_Manager.Services
                 {
                     sections = ReadIniFile(filePath);
                 }
-                catch
+                catch (System.Exception ex)
                 {
-                    // If file is corrupt, start fresh
+                    System.Diagnostics.Debug.WriteLine($"Failed to read INI file '{filePath}', starting fresh: {ex.Message}");
                 }
             }
 

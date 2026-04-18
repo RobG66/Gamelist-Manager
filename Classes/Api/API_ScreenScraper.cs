@@ -34,8 +34,8 @@ namespace Gamelist_Manager.Classes.Api
             _httpClient = httpClient;
 
             // Get dev credentials from configuration service (with environment variable fallback)
-            _devId = Gamelist_Manager.Services.ApiCredentialsService.GetScreenScraperDevId();
-            _devPassword = Gamelist_Manager.Services.ApiCredentialsService.GetScreenScraperDevPassword();
+            _devId = Gamelist_Manager.Services.Secrets.ScreenScraperDevId;
+            _devPassword = Gamelist_Manager.Services.Secrets.ScreenScraperDevPassword;
         }
 
         private async Task<(bool Success, string Xml, string ErrorMessage)> FetchFromApi(string url)

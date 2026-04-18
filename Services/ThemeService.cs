@@ -12,6 +12,53 @@ namespace Gamelist_Manager.Services
 {
     public class ThemeService
     {
+        #region Private Fields
+
+        private static readonly (Color Color, string Name)[] AccentColors =
+        [
+            (Color.FromRgb(0, 120, 212),   "Blue"),
+            (Color.FromRgb(231, 72, 86),   "Red"),
+            (Color.FromRgb(255, 140, 0),   "Orange"),
+            (Color.FromRgb(16, 124, 16),   "Green"),
+            (Color.FromRgb(255, 185, 0),   "Yellow"),
+            (Color.FromRgb(227, 0, 140),   "Magenta"),
+            (Color.FromRgb(136, 23, 152),  "Purple"),
+            (Color.FromRgb(0, 183, 195),   "Teal"),
+            (Color.FromRgb(16, 137, 62),   "Lime"),
+            (Color.FromRgb(0, 188, 242),   "Light Blue"),
+            (Color.FromRgb(92, 45, 145),   "Indigo"),
+        ];
+
+        private static readonly Color DefaultAccentColor = AccentColors[0].Color;
+
+        // Index 0 = None (null), indices 1–21 map to alternating row brushes.
+        private static readonly Color?[] AlternatingRowColors =
+        [
+            null,                              // 0: None
+            Color.FromRgb(245, 245, 245),      // 1: Light Gray
+            Color.FromRgb(240, 248, 255),      // 2: Light Blue (Alice Blue)
+            Color.FromRgb(255, 250, 205),      // 3: Light Yellow (Lemon Chiffon)
+            Color.FromRgb(240, 255, 240),      // 4: Light Green (Honeydew)
+            Color.FromRgb(255, 228, 225),      // 5: Light Pink (Misty Rose)
+            Color.FromRgb(255, 250, 240),      // 6: Light Ivory (Floral White)
+            Color.FromRgb(240, 255, 255),      // 7: Light Cyan (Azure)
+            Color.FromRgb(255, 248, 220),      // 8: Light Cream (Cornsilk)
+            Color.FromRgb(255, 245, 238),      // 9: Light Peach (Seashell)
+            Color.FromRgb(211, 211, 211),      // 10: Medium Gray
+            Color.FromRgb(173, 216, 230),      // 11: Medium Blue
+            Color.FromRgb(144, 238, 144),      // 12: Medium Green
+            Color.FromRgb(255, 255, 153),      // 13: Medium Yellow
+            Color.FromRgb(255, 182, 193),      // 14: Medium Pink
+            Color.FromRgb(216, 191, 216),      // 15: Medium Lavender (Thistle)
+            Color.FromRgb(45, 45, 45),         // 16: Dark Gray
+            Color.FromRgb(25, 35, 50),         // 17: Dark Blue
+            Color.FromRgb(25, 45, 35),         // 18: Dark Green
+            Color.FromRgb(25, 45, 45),         // 19: Dark Teal
+            Color.FromRgb(40, 30, 50),         // 20: Dark Purple
+            Color.FromRgb(45, 35, 30),         // 21: Dark Brown
+        ];
+
+        #endregion
 
         #region Public Methods
 
@@ -63,21 +110,9 @@ namespace Gamelist_Manager.Services
             var app = Application.Current;
             if (app == null) return;
 
-            var accentColor = colorIndex switch
-            {
-                0 => Color.FromRgb(0, 120, 212),  // Blue    (#0078D4)
-                1 => Color.FromRgb(231, 72, 86),  // Red     (#E74856)
-                2 => Color.FromRgb(255, 140, 0),  // Orange  (#FF8C00)
-                3 => Color.FromRgb(16, 124, 16),  // Green   (#107C10)
-                4 => Color.FromRgb(255, 185, 0),  // Yellow  (#FFB900)
-                5 => Color.FromRgb(227, 0, 140),  // Magenta (#E3008C)
-                6 => Color.FromRgb(136, 23, 152),  // Purple  (#881798)
-                7 => Color.FromRgb(0, 183, 195),  // Teal    (#00B7C3)
-                8 => Color.FromRgb(16, 137, 62),  // Lime    (#10893E)
-                9 => Color.FromRgb(0, 188, 242),  // Lt Blue (#00BCF2)
-                10 => Color.FromRgb(92, 45, 145),  // Indigo  (#5C2D91)
-                _ => Color.FromRgb(0, 120, 212)   // Default Blue
-            };
+            var accentColor = colorIndex >= 0 && colorIndex < AccentColors.Length
+                ? AccentColors[colorIndex].Color
+                : DefaultAccentColor;
 
             // Update FluentTheme palette Accent (the only property that supports runtime changes)
             foreach (var style in app.Styles)
@@ -168,21 +203,9 @@ namespace Gamelist_Manager.Services
 
         public static string GetAccentColorName(int colorIndex)
         {
-            return colorIndex switch
-            {
-                0 => "Blue",
-                1 => "Red",
-                2 => "Orange",
-                3 => "Green",
-                4 => "Yellow",
-                5 => "Magenta",
-                6 => "Purple",
-                7 => "Teal",
-                8 => "Lime",
-                9 => "Light Blue",
-                10 => "Indigo",
-                _ => "Blue"
-            };
+            return colorIndex >= 0 && colorIndex < AccentColors.Length
+                ? AccentColors[colorIndex].Name
+                : AccentColors[0].Name;
         }
 
         public static int GetThemeIndex(string themeName)
@@ -197,22 +220,12 @@ namespace Gamelist_Manager.Services
 
         public static int GetColorIndex(string colorName)
         {
-            return colorName?.ToLower() switch
+            for (int i = 0; i < AccentColors.Length; i++)
             {
-                "blue" => 0,
-                "red" => 1,
-                "orange" => 2,
-                "green" => 3,
-                "yellow" => 4,
-                "magenta" => 5,
-                "purple" => 6,
-                "teal" => 7,
-                "lime" => 8,
-                "light blue" => 9,
-                "lightblue" => 9,
-                "indigo" => 10,
-                _ => 0
-            };
+                if (string.Equals(AccentColors[i].Name, colorName, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+            return 0;
         }
 
         public static void ApplyDataGridAppearance(DataGrid? dataGrid, int alternatingRowColorIndex, int gridLinesVisibilityIndex)
@@ -230,40 +243,13 @@ namespace Gamelist_Manager.Services
             };
 
             // Apply Alternating Row Color using proper Avalonia DataGrid property
-            var alternatingBrush = alternatingRowColorIndex switch
+            SolidColorBrush? alternatingBrush = null;
+            if (alternatingRowColorIndex > 0 && alternatingRowColorIndex < AlternatingRowColors.Length)
             {
-                // None
-                0 => null,
-
-                // Light Colors (1-9) - Good for Light Theme
-                1 => new SolidColorBrush(Color.FromRgb(245, 245, 245)), // Light Gray
-                2 => new SolidColorBrush(Color.FromRgb(240, 248, 255)), // Light Blue (Alice Blue)
-                3 => new SolidColorBrush(Color.FromRgb(255, 250, 205)), // Light Yellow (Lemon Chiffon)
-                4 => new SolidColorBrush(Color.FromRgb(240, 255, 240)), // Light Green (Honeydew)
-                5 => new SolidColorBrush(Color.FromRgb(255, 228, 225)), // Light Pink (Misty Rose)
-                6 => new SolidColorBrush(Color.FromRgb(255, 250, 240)), // Light Ivory (Floral White)
-                7 => new SolidColorBrush(Color.FromRgb(240, 255, 255)), // Light Cyan (Azure)
-                8 => new SolidColorBrush(Color.FromRgb(255, 248, 220)), // Light Cream (Cornsilk)
-                9 => new SolidColorBrush(Color.FromRgb(255, 245, 238)), // Light Peach (Seashell)
-
-                // Medium Colors (10-15) - Good for Light Theme
-                10 => new SolidColorBrush(Color.FromRgb(211, 211, 211)), // Medium Gray (Light Gray)
-                11 => new SolidColorBrush(Color.FromRgb(173, 216, 230)), // Medium Blue (Light Blue)
-                12 => new SolidColorBrush(Color.FromRgb(144, 238, 144)), // Medium Green (Light Green)
-                13 => new SolidColorBrush(Color.FromRgb(255, 255, 153)), // Medium Yellow (Light Yellow)
-                14 => new SolidColorBrush(Color.FromRgb(255, 182, 193)), // Medium Pink (Light Pink)
-                15 => new SolidColorBrush(Color.FromRgb(216, 191, 216)), // Medium Lavender (Thistle)
-
-                // Dark Colors (16-21) - Good for Dark Theme
-                16 => new SolidColorBrush(Color.FromRgb(45, 45, 45)),   // Dark Gray
-                17 => new SolidColorBrush(Color.FromRgb(25, 35, 50)),   // Dark Blue
-                18 => new SolidColorBrush(Color.FromRgb(25, 45, 35)),   // Dark Green
-                19 => new SolidColorBrush(Color.FromRgb(25, 45, 45)),   // Dark Teal
-                20 => new SolidColorBrush(Color.FromRgb(40, 30, 50)),   // Dark Purple
-                21 => new SolidColorBrush(Color.FromRgb(45, 35, 30)),   // Dark Brown
-
-                _ => null
-            };
+                var color = AlternatingRowColors[alternatingRowColorIndex];
+                if (color.HasValue)
+                    alternatingBrush = new SolidColorBrush(color.Value);
+            }
 
             // Remove any existing alternating row styles first
             var stylesToRemove = dataGrid.Styles

@@ -34,7 +34,7 @@ public partial class MainWindow : Window
             ? "Gamelist Manager"
             : $"Gamelist Manager {version}";
 
-        Services.WindowService.Instance.SetOwner(this);
+        Services.WindowService.Instance.SetOwner(this);  // SetOwner is now part of IWindowService
 
         SharedDataService.Instance.SettingsApplied += OnSettingsApplied;
 
@@ -463,8 +463,9 @@ public partial class MainWindow : Window
             .Where(h => !string.IsNullOrWhiteSpace(h))
             .Select(h => h!);
 
-    private static FuncDataTemplate<object> CreateCheckBoxTemplate(string propertyName)
+    private FuncDataTemplate<object> CreateCheckBoxTemplate(string propertyName)
     {
+        var dataGrid = GameDataGrid;
         return new FuncDataTemplate<object>((_, _) =>
         {
             var checkBox = new Avalonia.Controls.CheckBox
@@ -475,12 +476,10 @@ public partial class MainWindow : Window
             checkBox.Bind(Avalonia.Controls.CheckBox.IsCheckedProperty,
                 new Binding(propertyName) { Mode = BindingMode.TwoWay });
             checkBox.Bind(Avalonia.Controls.CheckBox.IsEnabledProperty,
-                new Binding("!IsReadOnly")
+                new Binding(nameof(DataGrid.IsReadOnly))
                 {
-                    RelativeSource = new Avalonia.Data.RelativeSource(Avalonia.Data.RelativeSourceMode.FindAncestor)
-                    {
-                        AncestorType = typeof(DataGrid)
-                    }
+                    Source = dataGrid,
+                    Converter = Avalonia.Data.Converters.BoolConverters.Not
                 });
             checkBox[!Avalonia.Controls.CheckBox.FontSizeProperty] =
                 new DynamicResourceExtension("DataGridFontSizeResource");

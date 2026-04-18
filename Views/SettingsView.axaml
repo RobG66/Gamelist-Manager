@@ -651,12 +651,12 @@
 											 ToolTip.Tip="Enter a name for the new profile or the new name when renaming"/>
 									<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
 										<Button Content="Create New"
-												Command="{Binding CreateNewProfileCommand}"
+												Command="{Binding CreateProfileCommand}"
 												Classes="rounded green"
 												FontSize="{DynamicResource GlobalFontSize}"
 												ToolTip.Tip="Create a new empty profile with this name"/>
 										<Button Content="Copy Active"
-												Command="{Binding CreateCopyProfileCommand}"
+												Command="{Binding CopyProfileCommand}"
 												Classes="rounded green"
 												FontSize="{DynamicResource GlobalFontSize}"
 												ToolTip.Tip="Create a new profile that starts as a copy of the current active profile"/>

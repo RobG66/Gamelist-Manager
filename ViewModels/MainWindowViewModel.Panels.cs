@@ -57,29 +57,9 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Property Change Callbacks
-    partial void OnIsScraperVisibleChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsBottomPanelVisible));
-        OnPropertyChanged(nameof(BottomSplitterHeight));
-        OnPropertyChanged(nameof(BottomPanelHeight));
-        OnPropertyChanged(nameof(IsGridSelectionLocked));
-    }
-
-    partial void OnIsMediaPreviewVisibleChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsBottomPanelVisible));
-        OnPropertyChanged(nameof(BottomSplitterHeight));
-        OnPropertyChanged(nameof(BottomPanelHeight));
-        OnPropertyChanged(nameof(IsGridSelectionLocked));
-    }
-
-    partial void OnIsDatToolVisibleChanged(bool value)
-    {
-        OnPropertyChanged(nameof(IsBottomPanelVisible));
-        OnPropertyChanged(nameof(BottomSplitterHeight));
-        OnPropertyChanged(nameof(BottomPanelHeight));
-        OnPropertyChanged(nameof(IsGridSelectionLocked));
-    }
+    partial void OnIsScraperVisibleChanged(bool value) => RaiseBottomPanelLayoutChanged();
+    partial void OnIsMediaPreviewVisibleChanged(bool value) => RaiseBottomPanelLayoutChanged();
+    partial void OnIsDatToolVisibleChanged(bool value) => RaiseBottomPanelLayoutChanged();
 
     partial void OnSelectedSystemChanged(SystemItem? value)
     {
@@ -101,11 +81,7 @@ public partial class MainWindowViewModel
     {
         if (!IsMediaPreviewVisible)
         {
-            if (IsScraperVisible)
-                ToggleScraper();
-
-            if (IsDatToolVisible)
-                CloseDatTool();
+            CloseOtherPanels();
 
             _mediaPreviewViewModel.SelectedGame =
                 SelectedGames?.OfType<GameMetadataRow>().FirstOrDefault();
@@ -126,14 +102,7 @@ public partial class MainWindowViewModel
     {
         if (!IsScraperVisible)
         {
-            if (IsMediaPreviewVisible)
-            {
-                IsMediaPreviewVisible = false;
-                _mediaPreviewViewModel.SuspendVideo();
-            }
-
-            if (IsDatToolVisible)
-                CloseDatTool();
+            CloseOtherPanels();
 
             ScraperPanelViewModel?.Dispose();
             ScraperPanelViewModel = new ScraperViewModel();
@@ -145,24 +114,13 @@ public partial class MainWindowViewModel
             CloseScraper();
         }
     }
-    /// <summary>
-    /// Toggles the DatTool bottom panel. Opening it closes any other active panel
-    /// (media preview or scraper) first. Creates a fresh <see cref="DatToolViewModel"/>
-    /// each time so report state does not persist across sessions.
-    /// </summary>
+
     [RelayCommand]
     public void ToggleDatTool()
     {
         if (!IsDatToolVisible)
         {
-            if (IsMediaPreviewVisible)
-            {
-                IsMediaPreviewVisible = false;
-                _mediaPreviewViewModel.SuspendVideo();
-            }
-
-            if (IsScraperVisible)
-                CloseScraper();
+            CloseOtherPanels();
 
             DatToolPanelViewModel?.Dispose();
             DatToolPanelViewModel = new DatToolViewModel();
@@ -203,6 +161,29 @@ public partial class MainWindowViewModel
         return Math.Round(baseValue * (_sharedData.AppFontSize / baseFontSize));
     }
 
+    private void RaiseBottomPanelLayoutChanged()
+    {
+        OnPropertyChanged(nameof(IsBottomPanelVisible));
+        OnPropertyChanged(nameof(BottomSplitterHeight));
+        OnPropertyChanged(nameof(BottomPanelHeight));
+        OnPropertyChanged(nameof(IsGridSelectionLocked));
+    }
+
+    private void CloseOtherPanels()
+    {
+        if (IsMediaPreviewVisible)
+        {
+            IsMediaPreviewVisible = false;
+            _mediaPreviewViewModel.SuspendVideo();
+        }
+
+        if (IsScraperVisible)
+            CloseScraper();
+
+        if (IsDatToolVisible)
+            CloseDatTool();
+    }
+
     private void CloseScraper()
     {
         IsScraperVisible = false;
@@ -211,10 +192,7 @@ public partial class MainWindowViewModel
         ScraperPanelViewModel = null;
     }
 
-    /// <summary>
-    /// Tears down the DatTool panel: hides it, unsubscribes events, and disposes the ViewModel.
-    /// Report columns are not removed here — that is managed by ClearReportColumnsCommand.
-    /// </summary>
+    // Report columns are not removed here — that is managed by ClearReportColumnsCommand.
     private void CloseDatTool()
     {
         IsDatToolVisible = false;

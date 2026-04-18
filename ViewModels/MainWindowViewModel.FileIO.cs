@@ -69,6 +69,7 @@ public partial class MainWindowViewModel
                 _sharedData.IsDataChanged = false;
                 IsSaveEnabled = false;
                 UpdateStatusBar(_sharedData.XmlFilename);
+                AddRecentFile(_sharedData.XmlFilename);
 
                 ShowSaveConfirmation = true;
                 _ = Task.Delay(2000).ContinueWith(_ =>
@@ -197,7 +198,8 @@ public partial class MainWindowViewModel
         if (topLevel == null) return;
 
         IStorageFolder? suggestedStart = null;
-        try { suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + rootFolder)); } catch { }
+        if (Directory.Exists(rootFolder))
+            try { suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + rootFolder)); } catch { }
 
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {

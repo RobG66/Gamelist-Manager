@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 
 namespace Gamelist_Manager.ViewModels;
@@ -163,6 +162,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     public ScraperViewModel()
     {
         _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
+        _sharedData.SettingsApplied += OnSettingsApplied;
 
         LoadSettings();
         RefreshCacheCount();
@@ -336,7 +336,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             if (!whlEnabled) MediaWheel = false;
 
             ApplyPathsEnabledConstraints();
-            LoadSavedPreferences();
+            ApplySavedPreferences();
 
             if (ScrapeFromCacheEnabled)
             {
@@ -372,40 +372,25 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (media.GetValueOrDefault("boxback")?.Enabled != true) { MediaBoxBackEnabled = false; MediaBoxBack = false; }
     }
 
-    private void LoadSavedPreferences()
+    private void ApplySavedPreferences()
     {
-        string p = _currentScraper;
-        var type = GetType();
-
         if (ScrapeFromCacheEnabled)
-            ScrapeFromCache = _settingsService.GetBool("Scraper", $"{p}_ScrapeFromCache", ScrapeFromCache);
+            ScrapeFromCache = _settingsService.GetBool("Scraper", $"{_currentScraper}_ScrapeFromCache", ScrapeFromCache);
         if (SkipNonCachedItemsEnabled)
-            SkipNonCachedItems = _settingsService.GetBool("Scraper", $"{p}_SkipNonCachedItems", false);
+            SkipNonCachedItems = _settingsService.GetBool("Scraper", $"{_currentScraper}_SkipNonCachedItems", false);
         if (OverwriteMetadataEnabled)
-            OverwriteMetadata = _settingsService.GetBool("Scraper", $"{p}_OverwriteMetadata", false);
+            OverwriteMetadata = _settingsService.GetBool("Scraper", $"{_currentScraper}_OverwriteMetadata", false);
 
-        foreach (PropertyInfo prop in type.GetProperties())
+        foreach (var (name, getEnabled, _, setValue) in GetBoolToggles())
         {
-            if (prop.PropertyType != typeof(bool)) continue;
-            string name = prop.Name;
-            if (name.EndsWith("Enabled")) continue;
-            if (!name.StartsWith("Meta") && !name.StartsWith("Media")) continue;
-            var enabledProp = type.GetProperty($"{name}Enabled");
-            if (enabledProp != null && !(bool)enabledProp.GetValue(this)!) continue;
-            prop.SetValue(this, _settingsService.GetBool("Scraper", $"{p}_{name}", false));
+            if (!getEnabled()) continue;
+            setValue(_settingsService.GetBool("Scraper", $"{_currentScraper}_{name}", false));
         }
 
-        foreach (PropertyInfo prop in type.GetProperties())
+        foreach (var (name, sources, _, setSelected) in GetSourceToggles())
         {
-            if (prop.PropertyType != typeof(ObservableCollection<string>)) continue;
-            string collectionName = prop.Name;
-            if (!collectionName.EndsWith("Sources")) continue;
-            string keyName = collectionName[..^1];
-            var selectedProp = type.GetProperty($"Selected{keyName}");
-            if (selectedProp == null) continue;
-            var collection = (ObservableCollection<string>)prop.GetValue(this)!;
-            string savedValue = _settingsService.GetValue("Scraper", $"{p}_{keyName}", "");
-            RestoreSource(collection, savedValue, idx => selectedProp.SetValue(this, idx));
+            string savedValue = _settingsService.GetValue("Scraper", $"{_currentScraper}_{name}", "");
+            RestoreSource(sources, savedValue, setSelected);
         }
     }
 
@@ -413,8 +398,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     {
         if (_settingsService is null) return;
 
-        string p = _currentScraper;
-        var type = GetType();
         var values = new Dictionary<string, string>
         {
             ["ScrapeAllMode"] = ScrapeAllMode.ToString(),
@@ -422,35 +405,68 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             ["OverwriteMedia"] = OverwriteMedia.ToString(),
             ["ScrapeHiddenItems"] = ScrapeHiddenItems.ToString(),
             ["SelectedScraper"] = _currentScraper,
-            [$"{p}_ScrapeFromCache"] = ScrapeFromCache.ToString(),
-            [$"{p}_SkipNonCachedItems"] = SkipNonCachedItems.ToString(),
-            [$"{p}_OverwriteMetadata"] = OverwriteMetadata.ToString(),
+            [$"{_currentScraper}_ScrapeFromCache"] = ScrapeFromCache.ToString(),
+            [$"{_currentScraper}_SkipNonCachedItems"] = SkipNonCachedItems.ToString(),
+            [$"{_currentScraper}_OverwriteMetadata"] = OverwriteMetadata.ToString(),
         };
 
-        foreach (PropertyInfo prop in type.GetProperties())
-        {
-            if (prop.PropertyType != typeof(bool)) continue;
-            string name = prop.Name;
-            if (name.EndsWith("Enabled")) continue;
-            if (!name.StartsWith("Meta") && !name.StartsWith("Media")) continue;
-            values[$"{p}_{name}"] = ((bool)prop.GetValue(this)!).ToString();
-        }
+        foreach (var (name, _, getValue, _) in GetBoolToggles())
+            values[$"{_currentScraper}_{name}"] = getValue().ToString();
 
-        foreach (PropertyInfo prop in type.GetProperties())
+        foreach (var (name, sources, getSelected, _) in GetSourceToggles())
         {
-            if (prop.PropertyType != typeof(ObservableCollection<string>)) continue;
-            string collectionName = prop.Name;
-            if (!collectionName.EndsWith("Sources")) continue;
-            string keyName = collectionName[..^1];
-            var selectedProp = type.GetProperty($"Selected{keyName}");
-            if (selectedProp == null) continue;
-            var collection = (ObservableCollection<string>)prop.GetValue(this)!;
-            int idx = (int)selectedProp.GetValue(this)!;
-            values[$"{p}_{keyName}"] = idx >= 0 && idx < collection.Count ? collection[idx] : "";
+            int idx = getSelected();
+            values[$"{_currentScraper}_{name}"] = idx >= 0 && idx < sources.Count ? sources[idx] : "";
         }
 
         _settingsService.SetSection("Scraper", values);
     }
+    #endregion
+
+    #region Private Methods
+    private (string Name, Func<bool> GetEnabled, Func<bool> GetValue, Action<bool> SetValue)[] GetBoolToggles() =>
+    [
+        ("MetaName", () => MetaNameEnabled, () => MetaName, v => MetaName = v),
+        ("MetaDescription", () => MetaDescriptionEnabled, () => MetaDescription, v => MetaDescription = v),
+        ("MetaGenre", () => MetaGenreEnabled, () => MetaGenre, v => MetaGenre = v),
+        ("MetaPlayers", () => MetaPlayersEnabled, () => MetaPlayers, v => MetaPlayers = v),
+        ("MetaRating", () => MetaRatingEnabled, () => MetaRating, v => MetaRating = v),
+        ("MetaRegion", () => MetaRegionEnabled, () => MetaRegion, v => MetaRegion = v),
+        ("MetaLanguage", () => MetaLanguageEnabled, () => MetaLanguage, v => MetaLanguage = v),
+        ("MetaReleaseDate", () => MetaReleaseDateEnabled, () => MetaReleaseDate, v => MetaReleaseDate = v),
+        ("MetaDeveloper", () => MetaDeveloperEnabled, () => MetaDeveloper, v => MetaDeveloper = v),
+        ("MetaPublisher", () => MetaPublisherEnabled, () => MetaPublisher, v => MetaPublisher = v),
+        ("MetaArcadeName", () => MetaArcadeNameEnabled, () => MetaArcadeName, v => MetaArcadeName = v),
+        ("MetaFamily", () => MetaFamilyEnabled, () => MetaFamily, v => MetaFamily = v),
+        ("MetaGameId", () => MetaGameIdEnabled, () => MetaGameId, v => MetaGameId = v),
+        ("MediaTitleshot", () => MediaTitleshotEnabled, () => MediaTitleshot, v => MediaTitleshot = v),
+        ("MediaMap", () => MediaMapEnabled, () => MediaMap, v => MediaMap = v),
+        ("MediaManual", () => MediaManualEnabled, () => MediaManual, v => MediaManual = v),
+        ("MediaBezel", () => MediaBezelEnabled, () => MediaBezel, v => MediaBezel = v),
+        ("MediaFanArt", () => MediaFanArtEnabled, () => MediaFanArt, v => MediaFanArt = v),
+        ("MediaBoxBack", () => MediaBoxBackEnabled, () => MediaBoxBack, v => MediaBoxBack = v),
+        ("MediaMusic", () => MediaMusicEnabled, () => MediaMusic, v => MediaMusic = v),
+        ("MediaImage", () => MediaImageEnabled, () => MediaImage, v => MediaImage = v),
+        ("MediaMarquee", () => MediaMarqueeEnabled, () => MediaMarquee, v => MediaMarquee = v),
+        ("MediaThumbnail", () => MediaThumbnailEnabled, () => MediaThumbnail, v => MediaThumbnail = v),
+        ("MediaCartridge", () => MediaCartridgeEnabled, () => MediaCartridge, v => MediaCartridge = v),
+        ("MediaVideo", () => MediaVideoEnabled, () => MediaVideo, v => MediaVideo = v),
+        ("MediaBoxArt", () => MediaBoxArtEnabled, () => MediaBoxArt, v => MediaBoxArt = v),
+        ("MediaMix", () => MediaMixEnabled, () => MediaMix, v => MediaMix = v),
+        ("MediaWheel", () => MediaWheelEnabled, () => MediaWheel, v => MediaWheel = v),
+    ];
+
+    private (string Name, ObservableCollection<string> Sources, Func<int> GetSelected, Action<int> SetSelected)[] GetSourceToggles() =>
+    [
+        ("ImageSource", ImageSources, () => SelectedImageSource, v => SelectedImageSource = v),
+        ("MarqueeSource", MarqueeSources, () => SelectedMarqueeSource, v => SelectedMarqueeSource = v),
+        ("ThumbnailSource", ThumbnailSources, () => SelectedThumbnailSource, v => SelectedThumbnailSource = v),
+        ("CartridgeSource", CartridgeSources, () => SelectedCartridgeSource, v => SelectedCartridgeSource = v),
+        ("VideoSource", VideoSources, () => SelectedVideoSource, v => SelectedVideoSource = v),
+        ("BoxArtSource", BoxArtSources, () => SelectedBoxArtSource, v => SelectedBoxArtSource = v),
+        ("MixSource", MixSources, () => SelectedMixSource, v => SelectedMixSource = v),
+        ("WheelSource", WheelSources, () => SelectedWheelSource, v => SelectedWheelSource = v),
+    ];
     #endregion
 
     #region Dispose
@@ -459,6 +475,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (_isDisposed) return;
         _isDisposed = true;
         _sharedData.PropertyChanged -= OnSharedDataPropertyChanged;
+        _sharedData.SettingsApplied -= OnSettingsApplied;
         _cts?.Cancel();
         _cts?.Dispose();
         SaveScraperSettings();

@@ -6,7 +6,8 @@ namespace Gamelist_Manager.Services;
 
 public class WindowService : IWindowService
 {
-    public static readonly WindowService Instance = new();
+    private static WindowService? _instance;
+    public static WindowService Instance => _instance ??= new WindowService();
 
     private Window? _owner;
 

@@ -7,7 +7,7 @@ using IniData = System.Collections.Generic.Dictionary<string, System.Collections
 
 namespace Gamelist_Manager.Services
 {
-    public partial class SettingsService
+    public class SettingsService
     {
         private static SettingsService? _instance;
         public static SettingsService Instance => _instance ??= new SettingsService();
@@ -15,6 +15,7 @@ namespace Gamelist_Manager.Services
         private string _settingsFilePath;
         private readonly string _iniFolder;
         private Dictionary<string, Dictionary<string, string>>? _cachedSections;
+        private Dictionary<string, string>? _fileTypesCache;
 
         private SettingsService()
         {
@@ -83,6 +84,21 @@ namespace Gamelist_Manager.Services
         {
             var sections = GetCachedSections();
             return sections.TryGetValue(sectionName, out var section) ? section : null;
+        }
+
+        // Reads the standalone filetypes.ini data file (not profile-specific).
+        public IReadOnlyDictionary<string, string> GetFileTypes()
+        {
+            if (_fileTypesCache != null)
+                return _fileTypesCache;
+
+            var iniPath = Path.Combine(_iniFolder, "filetypes.ini");
+            var sections = IniFileService.ReadIniFile(iniPath);
+            _fileTypesCache = sections.TryGetValue("Filetypes", out var filetypes)
+                ? filetypes
+                : [];
+
+            return _fileTypesCache;
         }
 
         public void SetValue(string section, string key, string value)
@@ -185,41 +201,41 @@ namespace Gamelist_Manager.Services
             {
                 [SettingKeys.AppearanceSection] = new Dictionary<string, string>
                 {
-                    [SettingKeys.Theme] = "Light",
-                    [SettingKeys.Color] = "Blue",
-                    [SettingKeys.AlternatingRowColorIndex] = "1",
-                    [SettingKeys.GridLinesVisibilityIndex] = "0",
-                    [SettingKeys.GridLineVisibility] = "Horizontal",
-                    [SettingKeys.GlobalFontSize] = "12",
-                    [SettingKeys.GridFontSize] = "12"
+                    [SettingKeys.Theme] = SettingKeys.DefaultTheme,
+                    [SettingKeys.Color] = SettingKeys.DefaultColor,
+                    [SettingKeys.AlternatingRowColorIndex] = SettingKeys.DefaultAlternatingRowColorIndex.ToString(),
+                    [SettingKeys.GridLinesVisibilityIndex] = SettingKeys.DefaultGridLinesVisibilityIndex.ToString(),
+                    [SettingKeys.GridLineVisibility] = SettingKeys.DefaultGridLineVisibility,
+                    [SettingKeys.GlobalFontSize] = SettingKeys.DefaultGlobalFontSize.ToString(),
+                    [SettingKeys.GridFontSize] = SettingKeys.DefaultGridFontSize.ToString()
                 },
                 [SettingKeys.BehaviorSection] = new Dictionary<string, string>
                 {
-                    [SettingKeys.ConfirmBulkChange] = "True",
-                    [SettingKeys.SaveReminder] = "True",
-                    [SettingKeys.VerifyDownloadedImages] = "True",
-                    [SettingKeys.ShowGamelistStats] = "True",
-                    [SettingKeys.VideoAutoplay] = "True",
-                    [SettingKeys.RememberColumns] = "False",
-                    [SettingKeys.RememberAutoSize] = "False",
-                    [SettingKeys.EnableDelete] = "False",
-                    [SettingKeys.IgnoreDuplicates] = "False",
-                    [SettingKeys.BatchProcessing] = "True"
+                    [SettingKeys.ConfirmBulkChange] = SettingKeys.DefaultConfirmBulkChange.ToString(),
+                    [SettingKeys.SaveReminder] = SettingKeys.DefaultSaveReminder.ToString(),
+                    [SettingKeys.VerifyDownloadedImages] = SettingKeys.DefaultVerifyDownloadedImages.ToString(),
+                    [SettingKeys.ShowGamelistStats] = SettingKeys.DefaultShowGamelistStats.ToString(),
+                    [SettingKeys.VideoAutoplay] = SettingKeys.DefaultVideoAutoplay.ToString(),
+                    [SettingKeys.RememberColumns] = SettingKeys.DefaultRememberColumns.ToString(),
+                    [SettingKeys.RememberAutoSize] = SettingKeys.DefaultRememberAutoSize.ToString(),
+                    [SettingKeys.EnableDelete] = SettingKeys.DefaultEnableDelete.ToString(),
+                    [SettingKeys.IgnoreDuplicates] = SettingKeys.DefaultIgnoreDuplicates.ToString(),
+                    [SettingKeys.BatchProcessing] = SettingKeys.DefaultBatchProcessing.ToString()
                 },
                 [SettingKeys.AdvancedSection] = new Dictionary<string, string>
                 {
-                    [SettingKeys.MaxUndo] = "5",
-                    [SettingKeys.SearchDepth] = "2",
-                    [SettingKeys.RecentFilesCount] = "15",
-                    [SettingKeys.BatchProcessingMaximum] = "300",
-                    [SettingKeys.LogVerbosity] = "1",
-                    [SettingKeys.Volume] = "75"
+                    [SettingKeys.MaxUndo] = SettingKeys.DefaultMaxUndo.ToString(),
+                    [SettingKeys.SearchDepth] = SettingKeys.DefaultSearchDepth.ToString(),
+                    [SettingKeys.RecentFilesCount] = SettingKeys.DefaultRecentFilesCount.ToString(),
+                    [SettingKeys.BatchProcessingMaximum] = SettingKeys.DefaultBatchProcessingMaximum.ToString(),
+                    [SettingKeys.LogVerbosity] = SettingKeys.DefaultLogVerbosity.ToString(),
+                    [SettingKeys.Volume] = SettingKeys.DefaultVolume.ToString()
                 },
                 [SettingKeys.ConnectionSection] = new Dictionary<string, string>
                 {
-                    [SettingKeys.HostName] = "batocera",
-                    [SettingKeys.UserID] = "root",
-                    [SettingKeys.Password] = "linux"
+                    [SettingKeys.HostName] = SettingKeys.DefaultHostName,
+                    [SettingKeys.UserID] = SettingKeys.DefaultUserID,
+                    [SettingKeys.Password] = SettingKeys.DefaultPassword
                 },
                 [SettingKeys.FolderPathsSection] = new Dictionary<string, string>
                 {
@@ -262,6 +278,15 @@ namespace Gamelist_Manager.Services
                     ["mix_enabled"] = "true"
                 },
                 [SettingKeys.EsDeSection] = BuildEsDeDefaults()
+            };
+        }
+
+        private Dictionary<string, string> BuildEsDeDefaults()
+        {
+            return new Dictionary<string, string>
+            {
+                [SettingKeys.ProfileType] = SettingKeys.ProfileTypeStandard,
+                [SettingKeys.EsDeRoot] = string.Empty
             };
         }
     }
