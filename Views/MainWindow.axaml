@@ -303,7 +303,6 @@
             <!-- Row 1: Stats + Filters Panel (full width) -->
             <views:StatsFilterView Grid.Row="1" Grid.ColumnSpan="3"
                                  Margin="2.5,0,2.5,2.5"
-                                 IsVisible="{Binding ShowGamelistStats}"
                                  IsEnabled="{Binding IsStatsCardEnabled}"/>
 
 

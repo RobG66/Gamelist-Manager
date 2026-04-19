@@ -262,59 +262,5 @@ namespace Gamelist_Manager.Services
 
             return string.IsNullOrWhiteSpace(stringValue) ? null : stringValue;
         }
-
-        #region ES-DE Helpers
-
-        private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];
-        private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
-        private static readonly string[] ManualExtensions = [".pdf"];
-
-        // Resolves ES-DE media paths from the filesystem and writes them into the row values so
-        // all downstream consumers (grid, preview, statistics) can read them without branching.
-        internal static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
-        {
-            if (string.IsNullOrEmpty(mediaDirectory)) return;
-
-            var mediaDecls = GamelistMetaData.GetAllMediaFolderTypes();
-
-            foreach (var game in games)
-            {
-                var romPath = game.Path;
-                if (string.IsNullOrEmpty(romPath)) continue;
-
-                var romName = FilePathHelper.NormalizeRomName(romPath);
-                if (string.IsNullOrEmpty(romName)) continue;
-
-                foreach (var decl in mediaDecls)
-                {
-                    if (!decl.IsEsDeSupported) continue;
-
-                    var folder = Path.Combine(mediaDirectory, decl.EsDeFolderName);
-
-                    var extensions = decl.DataType switch
-                    {
-                        MetaDataType.Video => VideoExtensions,
-                        MetaDataType.Document => ManualExtensions,
-                        _ => ImageExtensions
-                    };
-
-                    string? resolved = null;
-                    foreach (var ext in extensions)
-                    {
-                        var candidate = Path.Combine(folder, romName + ext);
-                        if (File.Exists(candidate))
-                        {
-                            resolved = candidate;
-                            break;
-                        }
-                    }
-
-                    game.SetValue(decl.Key, resolved ?? string.Empty);
-                }
-            }
-        }
-
-        #endregion
-
     }
 }

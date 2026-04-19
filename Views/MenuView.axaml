@@ -455,7 +455,7 @@
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator/>
-                        <MenuItem Header="Size To Fit" 
+                        <MenuItem Header="AutoSize To Fit" 
                                   StaysOpenOnClick="True"
                                   Command="{Binding ToggleSizeToFitCommand}"
                                   ToolTip.Tip="Auto-fit columns to window width">
@@ -472,6 +472,17 @@
                                   ToolTip.Tip="Remember column visibility between sessions">
                             <MenuItem.Icon>
                                 <CheckBox IsChecked="{Binding RememberColumns, Mode=OneWay}"
+                                          Padding="0"
+                                          BorderThickness="0"
+                                          IsHitTestVisible="False"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Remember Autosize"
+                                  StaysOpenOnClick="True"
+                                  Command="{Binding ToggleRememberAutosizeCommand}"
+                                  ToolTip.Tip="Remember column autosize between sessions">
+                            <MenuItem.Icon>
+                                <CheckBox IsChecked="{Binding RememberAutosize, Mode=OneWay}"
                                           Padding="0"
                                           BorderThickness="0"
                                           IsHitTestVisible="False"/>

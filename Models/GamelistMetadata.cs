@@ -117,7 +117,6 @@ namespace Gamelist_Manager.Models
             {
                 new() { Key = MetaDataKeys.hidden, Type = "hidden", Name = "Hidden", PropertyName = nameof(GameMetadataRow.Hidden), DataType = MetaDataType.Bool, Viewable = true, AlwaysVisible = true, Editable = false },
                 new() { Key = MetaDataKeys.favorite, Type = "favorite", Name = "Favorite", PropertyName = nameof(GameMetadataRow.Favorite), DataType = MetaDataType.Bool, Viewable = true, Editable = false },
-                new() { Key = MetaDataKeys.kidgame, Type = "kidgame", Name = "Kid Game", PropertyName = nameof(GameMetadataRow.Kidgame), DataType = MetaDataType.Bool, Viewable = true, Editable = true },
                 new() { Key = MetaDataKeys.path, Type = "path", Name = "Rom Path", PropertyName = nameof(GameMetadataRow.Path), DataType = MetaDataType.String, Viewable = true, AlwaysVisible = true, Editable = false },
                 new() { Key = MetaDataKeys.id, Type = "id", Name = "Game Id", PropertyName = nameof(GameMetadataRow.Id), DataType = MetaDataType.String, Viewable = true, Editable = true, StandardOnly = true },
                 new() { Key = MetaDataKeys.name, Type = "name", Name = "Name", PropertyName = nameof(GameMetadataRow.Name), DataType = MetaDataType.String, Viewable = true, AlwaysVisible = true, Editable = true },
@@ -136,6 +135,7 @@ namespace Gamelist_Manager.Models
                 new() { Key = MetaDataKeys.nogamecount, Type = "nogamecount", Name = "No Game Count", PropertyName = nameof(GameMetadataRow.Nogamecount), DataType = MetaDataType.Bool, Viewable = true, Editable = true, EsDeOnly = true },
                 new() { Key = MetaDataKeys.nomultiscrape, Type = "nomultiscrape", Name = "No Multi-Scrape", PropertyName = nameof(GameMetadataRow.Nomultiscrape), DataType = MetaDataType.Bool, Viewable = true, Editable = true, EsDeOnly = true },
                 new() { Key = MetaDataKeys.hidemetadata, Type = "hidemetadata", Name = "Hide Metadata", PropertyName = nameof(GameMetadataRow.Hidemetadata), DataType = MetaDataType.Bool, Viewable = true, Editable = true, EsDeOnly = true },
+                new() { Key = MetaDataKeys.kidgame, Type = "kidgame", Name = "Kid Game", PropertyName = nameof(GameMetadataRow.Kidgame), DataType = MetaDataType.Bool, Viewable = true, Editable = true },
                 new() { Key = MetaDataKeys.playcount, Type = "playcount", Name = "Play Count", PropertyName = nameof(GameMetadataRow.Playcount), DataType = MetaDataType.String, Viewable = true, Editable = false },
                 new() { Key = MetaDataKeys.gametime, Type = "gametime", Name = "Game Time", PropertyName = nameof(GameMetadataRow.Gametime), DataType = MetaDataType.String, Viewable = true, Editable = false, StandardOnly = true },
                 new() { Key = MetaDataKeys.playtime, Type = "playtime", Name = "Play Time", PropertyName = nameof(GameMetadataRow.Playtime), DataType = MetaDataType.String, Viewable = true, Editable = false, EsDeOnly = true },

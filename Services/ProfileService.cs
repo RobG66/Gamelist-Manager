@@ -1,4 +1,5 @@
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -39,6 +40,9 @@ namespace Gamelist_Manager.Services
 
             NoProfilesExist = !Directory.EnumerateFiles(_profilesFolder, "*.ini").Any();
             ActiveProfile = ReadActiveProfile();
+
+            if (!NoProfilesExist)
+                MigrateProfile(ActiveProfilePath);
         }
 
         public string ActiveProfilePath => GetProfilePath(ActiveProfile);
@@ -56,6 +60,7 @@ namespace Gamelist_Manager.Services
 
         public void SetActiveProfile(string profileName)
         {
+            MigrateProfile(GetProfilePath(profileName));
             ActiveProfile = profileName;
             WriteActiveProfile(profileName);
         }
@@ -123,7 +128,7 @@ namespace Gamelist_Manager.Services
             return true;
         }
 
-        // Creates a new profile with default settings and sets its ProfileType in the [EsDe]
+        // Creates a new profile with default settings and sets its ProfileType in the [Profile]
         // section. Appends a numeric suffix to the name if it is already taken.
         // Returns the final profile name, or null if creation failed.
         public string? CreateTypedProfile(string name, string profileType)
@@ -137,7 +142,7 @@ namespace Gamelist_Manager.Services
                 finalName = $"{candidate} {counter++}";
 
             var sections = SettingsService.Instance.BuildDefaultSections();
-            sections[SettingKeys.EsDeSection][SettingKeys.ProfileType] = profileType;
+            sections[SettingKeys.ProfileSection][SettingKeys.ProfileType.Key] = profileType;
 
             if (profileType == SettingKeys.ProfileTypeEsDe)
                 ApplyEsDeDefaults(sections);
@@ -146,15 +151,15 @@ namespace Gamelist_Manager.Services
             return finalName;
         }
 
-        // Reads the ProfileType from the given profile's INI file,
-        // defaulting to Standard if not set.
+        // Reads the ProfileType from the given profile's INI file.
+        // Reads the ProfileType from the given profile's [Profile] section.
         public string GetProfileType(string profileName)
         {
             var path = GetProfilePath(profileName);
-            var section = IniFileService.GetSection(path, SettingKeys.EsDeSection);
-            if (section != null && section.TryGetValue(SettingKeys.ProfileType, out var value))
+            var profileSection = IniFileService.GetSection(path, SettingKeys.ProfileSection);
+            if (profileSection != null && profileSection.TryGetValue(SettingKeys.ProfileType.Key, out var value))
                 return value;
-            return SettingKeys.ProfileTypeStandard;
+            return SettingKeys.ProfileTypeEs;
         }
 
         public bool DeleteProfile(string name)
@@ -180,7 +185,7 @@ namespace Gamelist_Manager.Services
                 File.Delete(path);
 
             var sections = SettingsService.Instance.BuildDefaultSections();
-            sections[SettingKeys.EsDeSection][SettingKeys.ProfileType] = profileType;
+            sections[SettingKeys.ProfileSection][SettingKeys.ProfileType.Key] = profileType;
 
             if (profileType == SettingKeys.ProfileTypeEsDe)
                 ApplyEsDeDefaults(sections);
@@ -203,9 +208,9 @@ namespace Gamelist_Manager.Services
         // ES-DE profiles don't use batocera connection defaults or media paths.
         private static void ApplyEsDeDefaults(IniData sections)
         {
-            sections[SettingKeys.ConnectionSection][SettingKeys.HostName] = "";
-            sections[SettingKeys.ConnectionSection][SettingKeys.UserID] = "";
-            sections[SettingKeys.ConnectionSection][SettingKeys.Password] = "";
+            sections[SettingKeys.ConnectionSection][SettingKeys.HostName.Key] = "";
+            sections[SettingKeys.ConnectionSection][SettingKeys.UserID.Key] = "";
+            sections[SettingKeys.ConnectionSection][SettingKeys.Password.Key] = "";
             sections[SettingKeys.MediaPathsSection].Clear();
         }
 
@@ -230,6 +235,106 @@ namespace Gamelist_Manager.Services
                     [ActiveProfileKey] = profileName
                 }
             });
+        }
+
+        // Normalises a single profile INI file against the current set of known settings.
+        // For sections driven by AllDefinitions: adds missing keys with defaults, removes obsolete keys.
+        // For the Scraper section: adds missing known keys only — never removes (source keys are dynamic).
+        // MediaPaths and RecentFiles are left entirely untouched.
+        // Writes the file back only if at least one change was made.
+        private static void MigrateProfile(string profilePath)
+        {
+            if (!File.Exists(profilePath)) return;
+
+            var sections = IniFileService.ReadIniFile(profilePath);
+            var changed = false;
+
+            // Build the expected key/default map grouped by section from AllDefinitions.
+            var expectedBySection = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var def in SettingKeys.AllDefinitions)
+            {
+                var (section, key, defaultStr) = def switch
+                {
+                    SettingDef<string> s => (s.Section, s.Key, s.Default),
+                    SettingDef<bool>   b => (b.Section, b.Key, b.Default.ToString()),
+                    SettingDef<int>    i => (i.Section, i.Key, i.Default.ToString()),
+                    _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
+                };
+
+                if (!expectedBySection.TryGetValue(section, out var sectionMap))
+                {
+                    sectionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    expectedBySection[section] = sectionMap;
+                }
+                sectionMap[key] = defaultStr;
+            }
+
+            // Add missing keys and prune obsolete keys for each managed section.
+            foreach (var (section, expectedKeys) in expectedBySection)
+            {
+                if (!sections.TryGetValue(section, out var existing))
+                {
+                    existing = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    sections[section] = existing;
+                }
+
+                // Add any key that is missing.
+                foreach (var (key, defaultValue) in expectedKeys)
+                {
+                    if (!existing.ContainsKey(key))
+                    {
+                        existing[key] = defaultValue;
+                        changed = true;
+                    }
+                }
+
+                // Remove any key that is no longer in the definition set.
+                var obsolete = existing.Keys
+                    .Where(k => !expectedKeys.ContainsKey(k))
+                    .ToList();
+                foreach (var key in obsolete)
+                {
+                    existing.Remove(key);
+                    changed = true;
+                }
+            }
+
+            // Scraper section: add missing known keys only, never remove.
+            var knownScraperKeys = BuildKnownScraperKeys();
+            if (!sections.TryGetValue(SettingKeys.ScraperSection, out var scraperSection))
+            {
+                scraperSection = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                sections[SettingKeys.ScraperSection] = scraperSection;
+            }
+            foreach (var (key, defaultValue) in knownScraperKeys)
+            {
+                if (!scraperSection.ContainsKey(key))
+                {
+                    scraperSection[key] = defaultValue;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                IniFileService.WriteIniFile(profilePath, sections);
+        }
+
+        // Builds the expected key/default pairs for the Scraper section, derived from
+        // ScraperRegistry so the list stays in sync if scrapers are added or removed.
+        private static Dictionary<string, string> BuildKnownScraperKeys()
+        {
+            var keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var scraper in ScraperRegistry.All)
+            {
+                keys[$"{scraper.Name}_Language"]         = "";
+                keys[$"{scraper.Name}_PrimaryRegion"]    = "";
+                keys[$"{scraper.Name}_GenreEnglish"]     = "False";
+                keys[$"{scraper.Name}_AnyMedia"]         = "False";
+                keys[$"{scraper.Name}_NamesLanguageFirst"] = "False";
+                keys[$"{scraper.Name}_MediaRegionFirst"] = "False";
+                keys[$"{scraper.Name}_RegionFallback"]   = "";
+            }
+            return keys;
         }
 
         #endregion

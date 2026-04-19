@@ -81,6 +81,11 @@ namespace Gamelist_Manager.Services
             return int.TryParse(value, out var result) ? result : defaultValue;
         }
 
+        // Convenience overloads that pull section, key, and default from a SettingDef.
+        public string GetValue(SettingDef<string> def) => GetValue(def.Section, def.Key, def.Default);
+        public bool GetBool(SettingDef<bool> def) => GetBool(def.Section, def.Key, def.Default);
+        public int GetInt(SettingDef<int> def) => GetInt(def.Section, def.Key, def.Default);
+
         public Dictionary<string, string>? GetSection(string sectionName)
         {
             var sections = GetCachedSections();
@@ -198,97 +203,65 @@ namespace Gamelist_Manager.Services
 
         public IniData BuildDefaultSections()
         {
-            return new IniData
-            {
-                [SettingKeys.AppearanceSection] = new Dictionary<string, string>
-                {
-                    [SettingKeys.Theme] = SettingKeys.DefaultTheme,
-                    [SettingKeys.Color] = SettingKeys.DefaultColor,
-                    [SettingKeys.AlternatingRowColorIndex] = SettingKeys.DefaultAlternatingRowColorIndex.ToString(),
-                    [SettingKeys.GridLinesVisibilityIndex] = SettingKeys.DefaultGridLinesVisibilityIndex.ToString(),
-                    [SettingKeys.GridLineVisibility] = SettingKeys.DefaultGridLineVisibility,
-                    [SettingKeys.GlobalFontSize] = SettingKeys.DefaultGlobalFontSize.ToString(),
-                    [SettingKeys.GridFontSize] = SettingKeys.DefaultGridFontSize.ToString()
-                },
-                [SettingKeys.BehaviorSection] = new Dictionary<string, string>
-                {
-                    [SettingKeys.ConfirmBulkChange] = SettingKeys.DefaultConfirmBulkChange.ToString(),
-                    [SettingKeys.SaveReminder] = SettingKeys.DefaultSaveReminder.ToString(),
-                    [SettingKeys.VerifyDownloadedImages] = SettingKeys.DefaultVerifyDownloadedImages.ToString(),
-                    [SettingKeys.ShowGamelistStats] = SettingKeys.DefaultShowGamelistStats.ToString(),
-                    [SettingKeys.VideoAutoplay] = SettingKeys.DefaultVideoAutoplay.ToString(),
-                    [SettingKeys.RememberColumns] = SettingKeys.DefaultRememberColumns.ToString(),
-                    [SettingKeys.RememberAutoSize] = SettingKeys.DefaultRememberAutoSize.ToString(),
-                    [SettingKeys.EnableDelete] = SettingKeys.DefaultEnableDelete.ToString(),
-                    [SettingKeys.IgnoreDuplicates] = SettingKeys.DefaultIgnoreDuplicates.ToString(),
-                    [SettingKeys.BatchProcessing] = SettingKeys.DefaultBatchProcessing.ToString()
-                },
-                [SettingKeys.AdvancedSection] = new Dictionary<string, string>
-                {
-                    [SettingKeys.MaxUndo] = SettingKeys.DefaultMaxUndo.ToString(),
-                    [SettingKeys.SearchDepth] = SettingKeys.DefaultSearchDepth.ToString(),
-                    [SettingKeys.RecentFilesCount] = SettingKeys.DefaultRecentFilesCount.ToString(),
-                    [SettingKeys.BatchProcessingMaximum] = SettingKeys.DefaultBatchProcessingMaximum.ToString(),
-                    [SettingKeys.LogVerbosity] = SettingKeys.DefaultLogVerbosity.ToString(),
-                    [SettingKeys.Volume] = SettingKeys.DefaultVolume.ToString()
-                },
-                [SettingKeys.ConnectionSection] = new Dictionary<string, string>
-                {
-                    [SettingKeys.HostName] = string.Empty,
-                    [SettingKeys.UserID] = string.Empty,
-                    [SettingKeys.Password] = string.Empty
-                },
-                [SettingKeys.FolderPathsSection] = new Dictionary<string, string>
-                {
-                    [SettingKeys.MamePath] = string.Empty,
-                    [SettingKeys.RomsFolder] = string.Empty
-                },
-                [SettingKeys.MediaPathsSection] = new Dictionary<string, string>
-                {
-                    ["image"] = "./images",
-                    ["image_enabled"] = "true",
-                    ["titleshot"] = "./images",
-                    ["titleshot_enabled"] = "true",
-                    ["marquee"] = "./images",
-                    ["marquee_enabled"] = "true",
-                    ["wheel"] = "./images",
-                    ["wheel_enabled"] = "false",
-                    ["thumbnail"] = "./images",
-                    ["thumbnail_enabled"] = "true",
-                    ["cartridge"] = "./images",
-                    ["cartridge_enabled"] = "true",
-                    ["video"] = "./videos",
-                    ["video_enabled"] = "true",
-                    ["music"] = "./music",
-                    ["music_enabled"] = "true",
-                    ["map"] = "./images",
-                    ["map_enabled"] = "false",
-                    ["bezel"] = "./images",
-                    ["bezel_enabled"] = "true",
-                    ["manual"] = "./manuals",
-                    ["manual_enabled"] = "true",
-                    ["fanart"] = "./images",
-                    ["fanart_enabled"] = "true",
-                    ["boxart"] = "./images",
-                    ["boxart_enabled"] = "true",
-                    ["boxback"] = "./images",
-                    ["boxback_enabled"] = "true",
-                    ["magazine"] = "./images",
-                    ["magazine_enabled"] = "false",
-                    ["mix"] = "./images",
-                    ["mix_enabled"] = "true"
-                },
-                [SettingKeys.EsDeSection] = BuildEsDeDefaults()
-            };
-        }
+            // Build sections from the master definitions list.
+            var result = new IniData();
 
-        private Dictionary<string, string> BuildEsDeDefaults()
-        {
-            return new Dictionary<string, string>
+            foreach (var def in SettingKeys.AllDefinitions)
             {
-                [SettingKeys.ProfileType] = SettingKeys.ProfileTypeStandard,
-                [SettingKeys.EsDeRoot] = string.Empty
+                var (section, key, defaultStr) = def switch
+                {
+                    SettingDef<string> s => (s.Section, s.Key, s.Default),
+                    SettingDef<bool> b   => (b.Section, b.Key, b.Default.ToString()),
+                    SettingDef<int> i    => (i.Section, i.Key, i.Default.ToString()),
+                    _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
+                };
+
+                if (!result.TryGetValue(section, out var dict))
+                {
+                    dict = new Dictionary<string, string>();
+                    result[section] = dict;
+                }
+                dict[key] = defaultStr;
+            }
+
+            // MediaPaths have their own structure — not driven by SettingDef.
+            result[SettingKeys.MediaPathsSection] = new Dictionary<string, string>
+            {
+                ["image"] = "./images",
+                ["image_enabled"] = "true",
+                ["titleshot"] = "./images",
+                ["titleshot_enabled"] = "true",
+                ["marquee"] = "./images",
+                ["marquee_enabled"] = "true",
+                ["wheel"] = "./images",
+                ["wheel_enabled"] = "false",
+                ["thumbnail"] = "./images",
+                ["thumbnail_enabled"] = "true",
+                ["cartridge"] = "./images",
+                ["cartridge_enabled"] = "true",
+                ["video"] = "./videos",
+                ["video_enabled"] = "true",
+                ["music"] = "./music",
+                ["music_enabled"] = "true",
+                ["map"] = "./images",
+                ["map_enabled"] = "false",
+                ["bezel"] = "./images",
+                ["bezel_enabled"] = "true",
+                ["manual"] = "./manuals",
+                ["manual_enabled"] = "true",
+                ["fanart"] = "./images",
+                ["fanart_enabled"] = "true",
+                ["boxart"] = "./images",
+                ["boxart_enabled"] = "true",
+                ["boxback"] = "./images",
+                ["boxback_enabled"] = "true",
+                ["magazine"] = "./images",
+                ["magazine_enabled"] = "false",
+                ["mix"] = "./images",
+                ["mix_enabled"] = "true"
             };
+
+            return result;
         }
 
         public static EsDeDetectedPaths ReadPathsFromEsDeSettings(string esDeRoot)

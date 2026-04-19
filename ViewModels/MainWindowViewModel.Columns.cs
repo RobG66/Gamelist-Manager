@@ -20,6 +20,7 @@ public partial class MainWindowViewModel
 
     #region Public Properties
     public bool RememberColumns => _sharedData.RememberColumns;
+    public bool RememberAutosize => _sharedData.RememberAutosize;
     #endregion
 
     #region Public Methods
@@ -62,7 +63,14 @@ public partial class MainWindowViewModel
     private void ToggleRememberColumns()
     {
         _sharedData.RememberColumns = !_sharedData.RememberColumns;
-        _settingsService.SetBool(SettingKeys.BehaviorSection, SettingKeys.RememberColumns, _sharedData.RememberColumns);
+        _settingsService.SetBool(SettingKeys.RememberColumns.Section, SettingKeys.RememberColumns.Key, _sharedData.RememberColumns);
+    }
+
+    [RelayCommand]
+    private void ToggleRememberAutosize()
+    {
+        _sharedData.RememberAutosize = !_sharedData.RememberAutosize;
+        _settingsService.SetBool(SettingKeys.RememberAutoSize.Section, SettingKeys.RememberAutoSize.Key, _sharedData.RememberAutosize);
     }
 
     [RelayCommand]

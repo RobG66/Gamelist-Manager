@@ -38,7 +38,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isSaveEnabled;
     [ObservableProperty] private bool _isGamelistLoaded;
     [ObservableProperty] private bool _isAlwaysOnTop;
-    [ObservableProperty] private bool _showGamelistStats = true;
     [ObservableProperty] private bool _hasGameSelected;
     [ObservableProperty] private bool _showSaveConfirmation;
     [ObservableProperty] private bool _isSystemsComboBoxEnabled;
@@ -139,8 +138,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnSettingsApplied(object? sender, EventArgs e)
     {
-        ShowGamelistStats = _sharedData.ShowGamelistStats;
         UpdateScaledLayoutWidths();
+        LoadSystems();
     }
     #endregion
 
@@ -161,7 +160,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
         _sharedData.SettingsApplied += OnSettingsApplied;
 
-        LoadBehaviorSettings();
         LoadColumnSettings();
         _sharedData.RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));
         LoadRecentFilesFromSettings();
@@ -297,11 +295,7 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Private Methods
-    private void LoadBehaviorSettings()
-    {
-        ShowGamelistStats = _sharedData.ShowGamelistStats;
-    }
-
+   
     private void UnloadGamelist()
     {
         _isLoadingData = true;

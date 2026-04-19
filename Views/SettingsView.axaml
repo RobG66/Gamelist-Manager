@@ -175,11 +175,7 @@
 											  ToolTip.Tip="Show a confirmation dialog before applying changes to multiple items at once."/>
 									<CheckBox IsChecked="{Binding EnableSaveReminder}" Content="Save Reminder" Margin="0,0,4,2"
 											  ToolTip.Tip="Prompt to save when closing a gamelist that has unsaved changes."/>
-									<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads" Margin="0,4,4,2"
-											  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
-									<CheckBox IsChecked="{Binding ShowGamelistStats}" Content="Show Gamelist Stats" Margin="0,4,4,2"
-											  ToolTip.Tip="Display a statistics bar at the top of the main window showing total games, visible, hidden, favorites, genres, and playtime."/>
-									<CheckBox IsChecked="{Binding VideoAutoplay}" Content="Video Autoplay" Margin="0,4,4,2"
+									<CheckBox IsChecked="{Binding VideoAutoplay}" Content="Video Autoplay" Margin="0,0,4,2"
 											  ToolTip.Tip="Automatically start playing video previews when a game is selected in the media viewer."/>
 									<CheckBox IsChecked="{Binding RememberColumns}" Content="Remember Columns" Margin="0,4,4,2"
 											  ToolTip.Tip="Save and restore the visibility of each data grid column between sessions."/>
@@ -187,11 +183,9 @@
 											  ToolTip.Tip="Save and restore the column auto-fit (Size to Fit) state between sessions, independently of Remember Columns."/>
 									<CheckBox IsChecked="{Binding EnableDelete}" Content="Enable Deletion" Margin="0,4,4,2"
 											  ToolTip.Tip="Show Delete options in menus and allow permanent removal of game entries from the gamelist. Disabled by default to prevent accidental deletion."/>
-									<CheckBox IsChecked="{Binding IgnoreDuplicates}" Content="Ignore Duplicates" Margin="0,4,4,2"
-											  ToolTip.Tip="Skip entries with duplicate ROM paths when importing or merging gamelists."/>
-									<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Scraper Log Timestamps" Margin="0,4,4,2"
-											  ToolTip.Tip="Show the time of each entry in the scraper log."/>
-								</UniformGrid>
+										<CheckBox IsChecked="{Binding IgnoreDuplicates}" Content="Ignore Item Duplicates" Margin="0,4,4,2"
+												  ToolTip.Tip="Skip entries with duplicate ROM paths when importing or merging gamelists."/>
+									</UniformGrid>
 							</StackPanel>
 						</Border>
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
@@ -452,22 +446,48 @@
 					</StackPanel>
 				</TabItem.Header>
 				<ScrollViewer VerticalScrollBarVisibility="Auto">
-					<StackPanel Spacing="8" Margin="0,8,0,8">
-						<Border BorderThickness="1" CornerRadius="4" Padding="8"
-								Background="{DynamicResource CardBackground}"
-								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
-							<StackPanel Spacing="5">
-								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
-									<TextBlock Text="Scraper" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
-								</Border>
-								<ComboBox SelectedIndex="{Binding SelectedSetupScraperIndex}" Width="180" HorizontalAlignment="Left"
-										  ToolTip.Tip="Choose which scraping service to use when fetching game metadata and media.&#10;ArcadeDB: free arcade-focused database.&#10;EmuMovies: media-rich service (account required).&#10;ScreenScraper: comprehensive multi-system database (account required).">
-									<ComboBoxItem Content="ArcadeDB"/>
-									<ComboBoxItem Content="EmuMovies"/>
-									<ComboBoxItem Content="ScreenScraper"/>
-								</ComboBox>
-							</StackPanel>
-						</Border>
+						<StackPanel Spacing="8" Margin="0,8,0,8">
+							<Border BorderThickness="1" CornerRadius="4" Padding="8"
+									Background="{DynamicResource CardBackground}"
+									BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+								<StackPanel Spacing="5">
+									<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+										<TextBlock Text="Options" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+									</Border>
+									<UniformGrid Columns="3">
+											<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads" Margin="0,0,4,2"
+													  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
+											<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Scraper Log Timestamps" Margin="0,0,4,2"
+													  ToolTip.Tip="Show the time of each entry in the scraper log."/>
+										</UniformGrid>
+										<StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+											<TextBlock Text="Save Scraper Configuration:" VerticalAlignment="Center"
+													   ToolTip.Tip="Controls whether scraper settings (selected metadata, media, sources) are persisted between sessions.&#10;Don't Save: settings reset each session.&#10;Save Per Scraper: one set of settings per scraper.&#10;Save Per System: separate settings for each system per scraper."/>
+											<ComboBox SelectedIndex="{Binding ScraperConfigSaveIndex}" MinWidth="160"
+													  ToolTip.Tip="Controls whether scraper settings (selected metadata, media, sources) are persisted between sessions.&#10;Don't Save: settings reset each session.&#10;Save Per Scraper: one set of settings per scraper.&#10;Save Per System: separate settings for each system per scraper.">
+												<ComboBoxItem Content="Don't Save"/>
+												<ComboBoxItem Content="Save Per Scraper"/>
+												<ComboBoxItem Content="Save Per System"/>
+											</ComboBox>
+										</StackPanel>
+								</StackPanel>
+							</Border>
+
+							<Border BorderThickness="1" CornerRadius="4" Padding="8"
+									Background="{DynamicResource CardBackground}"
+									BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
+								<StackPanel Spacing="5">
+									<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
+										<TextBlock Text="Scraper" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+									</Border>
+									<ComboBox SelectedIndex="{Binding SelectedSetupScraperIndex}" Width="180" HorizontalAlignment="Left"
+											  ToolTip.Tip="Choose which scraping service to use when fetching game metadata and media.&#10;ArcadeDB: free arcade-focused database.&#10;EmuMovies: media-rich service (account required).&#10;ScreenScraper: comprehensive multi-system database (account required).">
+										<ComboBoxItem Content="ArcadeDB"/>
+										<ComboBoxItem Content="EmuMovies"/>
+										<ComboBoxItem Content="ScreenScraper"/>
+									</ComboBox>
+								</StackPanel>
+							</Border>
 
 						<!-- ArcadeDB Options -->
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
@@ -611,7 +631,7 @@
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
 									<TextBlock Text="Profiles" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
-								<Grid ColumnDefinitions="*,Auto,Auto">
+								<Grid ColumnDefinitions="*,Auto,Auto,Auto">
 									<TextBlock Text="{Binding ActiveProfileName, StringFormat='Active profile: {0}'}"
 											   FontStyle="Italic" FontSize="{DynamicResource GlobalSmallFontSize}" Opacity="0.7"
 											   VerticalAlignment="Center"/>
@@ -623,6 +643,13 @@
 											Margin="0,0,4,0"
 											ToolTip.Tip="Make the selected profile the active profile"/>
 									<Button Grid.Column="2"
+											Content="Rename"
+											Command="{Binding RenameProfileCommand}"
+											Classes="rounded"
+											FontSize="{DynamicResource GlobalFontSize}"
+											Margin="0,0,4,0"
+											ToolTip.Tip="Rename the profile selected in the list above to this name"/>
+									<Button Grid.Column="3"
 											Content="Delete"
 											Command="{Binding DeleteProfileCommand}"
 											Classes="rounded orange"
@@ -652,7 +679,7 @@
 								<StackPanel Orientation="Horizontal" Spacing="6">
 									<TextBlock Text="Type:" VerticalAlignment="Center"/>
 									<TextBlock Text="ES-DE" IsVisible="{Binding SelectedProfileIsEsDe}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-									<TextBlock Text="Standard" IsVisible="{Binding !SelectedProfileIsEsDe}" VerticalAlignment="Center"/>
+									<TextBlock Text="ES" IsVisible="{Binding !SelectedProfileIsEsDe}" VerticalAlignment="Center"/>
 								</StackPanel>
 								<StackPanel IsVisible="{Binding SelectedProfileIsEsDe}" Spacing="4">
 									<StackPanel Orientation="Horizontal" Spacing="6">
@@ -665,13 +692,13 @@
 							</StackPanel>
 						</Border>
 
-						<!-- Create / Rename -->
+						<!-- Create -->
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
 								Background="{DynamicResource CardBackground}"
 								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}">
 							<StackPanel Spacing="6">
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
-									<TextBlock Text="Create / Rename" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
+									<TextBlock Text="Create Profile" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
 								<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
 									<TextBox Grid.Column="0"
@@ -691,18 +718,25 @@
 												Classes="rounded green"
 												FontSize="{DynamicResource GlobalFontSize}"
 												ToolTip.Tip="Create a new profile that starts as a copy of the current active profile"/>
-										<Button Content="Rename Selected"
-												Command="{Binding RenameProfileCommand}"
-												Classes="rounded"
-												FontSize="{DynamicResource GlobalFontSize}"
-												ToolTip.Tip="Rename the profile selected in the list above to this name"/>
+
 									</StackPanel>
 								</Grid>
-								<CheckBox IsChecked="{Binding IsNewProfileEsDe}" Content="ES-DE Profile"
-										  ToolTip.Tip="When checked, the new profile will be created as an ES-DE profile type. This affects how gamelists and media paths are handled."/>
+								<StackPanel Orientation="Horizontal" Spacing="12">
+									<RadioButton Content="ES"
+												 GroupName="ProfileType"
+												 IsChecked="{Binding IsNewProfileTypeEsDe, Converter={x:Static BoolConverters.Not}}"
+												 FontSize="{DynamicResource GlobalFontSize}"
+												 ToolTip.Tip="Create a standard EmulationStation profile."/>
+									<RadioButton Content="ES-DE"
+												 GroupName="ProfileType"
+												 IsChecked="{Binding IsNewProfileTypeEsDe}"
+												 FontSize="{DynamicResource GlobalFontSize}"
+												 ToolTip.Tip="Create an ES-DE profile type. This affects how gamelists and media paths are handled."/>
+								</StackPanel>
 
 								<!-- From Template sub-section -->
-								<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="0,1,0,0" Margin="0,4,0,0" Padding="0,6,0,0">
+								<Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="0,1,0,0" Margin="0,4,0,0" Padding="0,6,0,0"
+									   IsVisible="False">
 									<StackPanel Spacing="4">
 										<TextBlock Text="From Template" FontWeight="SemiBold" FontSize="{DynamicResource GlobalFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 										<TextBlock Text="Pre-fills connection settings (hostname, credentials, ROMs path) for known EmulationStation systems. Edit Ini/templates.ini to add or remove templates."

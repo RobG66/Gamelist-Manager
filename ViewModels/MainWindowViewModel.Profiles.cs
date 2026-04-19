@@ -59,7 +59,7 @@ public partial class MainWindowViewModel
 
         var profileType = result == ThreeButtonResult.Button1
             ? SettingKeys.ProfileTypeEsDe
-            : SettingKeys.ProfileTypeStandard;
+            : SettingKeys.ProfileTypeEs;
 
         _profileService.CreateDefaultProfile(profileType);
 
@@ -86,7 +86,7 @@ public partial class MainWindowViewModel
         if (gamelistIsEsDe == profileIsEsDe)
             return true;
 
-        var requiredType = gamelistIsEsDe ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeStandard;
+        var requiredType = gamelistIsEsDe ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
         var requiredLabel = gamelistIsEsDe ? EsDeLabel : EsLabel;
 
         // Find existing profiles whose type matches what is required.
@@ -144,69 +144,45 @@ public partial class MainWindowViewModel
 
         ApplyProfileSwitch(switchTo);
         RefreshProfiles();
+
+        if (gamelistIsEsDe)
+            await PromptEsDeRootAsync($"The active profile has been switched to '{switchTo}'.");
+
         return true;
     }
 
-    // Prompts the user to confirm or override the ES-DE media root if ES-DE mode is active
-    // and the current root is not yet set to an existing directory.
-    internal async Task PromptEsDeMediaRootIfNeededAsync()
-    {
-        if (!_sharedData.IsEsDeMode) return;
-
-        if (!string.IsNullOrWhiteSpace(_sharedData.EsDeRoot) &&
-            Directory.Exists(_sharedData.EsDeRoot))
-            return;
-
-        await PromptEsDeRootAsync();
-    }
-
-    #endregion
-
-    #region Commands
-    [RelayCommand]
-    private async Task SwitchProfile(string profileName)
-    {
-        if (string.Equals(profileName, _profileService.ActiveProfile, StringComparison.OrdinalIgnoreCase))
-            return;
-
-        if (!await CheckUnsavedChangesAsync())
-            return;
-
-        UnloadGamelist();
-        ApplyProfileSwitch(profileName);
-    }
-    #endregion
-
-    #region Private Methods
-    private void ApplyProfileSwitch(string profileName)
-    {
-        _profileService.SetActiveProfile(profileName);
-        _settingsService.SwitchProfile(_profileService.ActiveProfilePath);
-        _sharedData.LoadFromSettings();
-
-        LoadBehaviorSettings();
-        LoadColumnSettings();
-        LoadRecentFilesFromSettings();
-
-        var themeIndex = ThemeService.GetThemeIndex(_sharedData.Theme);
-        var colorIndex = ThemeService.GetColorIndex(_sharedData.Color);
-        ThemeService.ApplyTheme(themeIndex, colorIndex);
-
-        LoadSystems();
-        ActiveProfileName = profileName;
-    }
-
-    // Returns true when the gamelist file path contains the ES-DE gamelists folder pattern.
-    private static bool IsEsDeGamelistPath(string path)
-    {
-        var normalized = path.Replace('\\', '/');
-        return normalized.IndexOf("/ES-DE/gamelists/", StringComparison.OrdinalIgnoreCase) >= 0;
-    }
-
-    private async Task PromptEsDeRootAsync(string contextMessage = "An ES-DE gamelist has been detected.")
+    internal async Task PromptEsDeRootAsync(string contextMessage = "An ES-DE gamelist has been detected.")
     {
         var currentRoot = _sharedData.EsDeRoot;
         var hasRoot = !string.IsNullOrWhiteSpace(currentRoot) && Directory.Exists(currentRoot);
+
+        // If no root is set yet, check the home folder for a default ES-DE installation.
+        if (!hasRoot)
+        {
+            var homeEsDe = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "ES-DE");
+
+            if (Directory.Exists(homeEsDe))
+            {
+                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+                {
+                    Title = "ES-DE Location",
+                    Message = contextMessage,
+                    DetailMessage = $"An ES-DE folder was found in your home directory and will be used by default:\n{homeEsDe}",
+                    IconTheme = DialogIconTheme.Info,
+                    Button1Text = "",
+                    Button2Text = "",
+                    Button3Text = "OK"
+                });
+
+                _sharedData.SaveEsDeRoot(homeEsDe);
+
+                var autoDetected = SettingsService.ReadPathsFromEsDeSettings(homeEsDe);
+                _sharedData.RomsFolder = autoDetected.RomDirectory ?? string.Empty;
+                _sharedData.EsDeMediaBase = autoDetected.MediaDirectory ?? string.Empty;
+                return;
+            }
+        }
 
         var detailMessage = hasRoot
             ? $"The ES-DE root folder is currently set to:\n{currentRoot}\n\nPress Browse to keep or change this location."
@@ -238,5 +214,48 @@ public partial class MainWindowViewModel
         _sharedData.RomsFolder = detected.RomDirectory ?? string.Empty;
         _sharedData.EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
     }
+
+    #endregion
+
+    #region Commands
+    [RelayCommand]
+    private async Task SwitchProfile(string profileName)
+    {
+        if (string.Equals(profileName, _profileService.ActiveProfile, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (!await CheckUnsavedChangesAsync())
+            return;
+
+        UnloadGamelist();
+        ApplyProfileSwitch(profileName);
+    }
+    #endregion
+
+    #region Private Methods
+    private void ApplyProfileSwitch(string profileName)
+    {
+        _profileService.SetActiveProfile(profileName);
+        _settingsService.SwitchProfile(_profileService.ActiveProfilePath);
+        _sharedData.LoadFromSettings();
+
+        LoadColumnSettings();
+        LoadRecentFilesFromSettings();
+
+        var themeIndex = ThemeService.GetThemeIndex(_sharedData.Theme);
+        var colorIndex = ThemeService.GetColorIndex(_sharedData.Color);
+        ThemeService.ApplyTheme(themeIndex, colorIndex);
+
+        LoadSystems();
+        ActiveProfileName = profileName;
+    }
+
+    // Returns true when the gamelist file path contains the ES-DE gamelists folder pattern.
+    private static bool IsEsDeGamelistPath(string path)
+    {
+        var normalized = path.Replace('\\', '/');
+        return normalized.IndexOf("/ES-DE/gamelists/", StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
     #endregion
 }

@@ -6,7 +6,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <Version>9.3.0</Version>
+        <Version>9.4.0-beta</Version>
         <AssemblyVersion>9.0.0.0</AssemblyVersion>
         <FileVersion>9.0.0.0</FileVersion>
     </PropertyGroup>
@@ -34,6 +34,14 @@
       <None Include=".github\copilot-instructions.md" />
       <None Include=".github\workflows\release.yml" />
     </ItemGroup>
+
+    <!-- Exclude native PDB files (e.g. from SkiaSharp/HarfBuzz) from publish output.
+         These are debug symbols for native libraries and serve no purpose in a release package. -->
+    <Target Name="RemoveNativePdbsFromPublish" AfterTargets="ComputeFilesToPublish">
+      <ItemGroup>
+        <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.Extension)' == '.pdb'" />
+      </ItemGroup>
+    </Target>
 
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="12.0.1" />

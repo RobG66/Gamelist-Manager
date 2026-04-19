@@ -21,7 +21,6 @@ public partial class SettingsViewModel
     [ObservableProperty] private bool _confirmBulkChanges = true;
     [ObservableProperty] private bool _enableSaveReminder = true;
     [ObservableProperty] private bool _verifyImageDownloads = true;
-    [ObservableProperty] private bool _showGamelistStats = true;
     [ObservableProperty] private bool _videoAutoplay;
     [ObservableProperty] private bool _rememberColumns;
     [ObservableProperty] private bool _rememberAutosize;
@@ -29,6 +28,7 @@ public partial class SettingsViewModel
     [ObservableProperty] private bool _ignoreDuplicates;
     [ObservableProperty] private bool _batchProcessing = true;
     [ObservableProperty] private bool _showLogTimestamp;
+    [ObservableProperty] private int _scraperConfigSaveIndex;
     [ObservableProperty] private string _maxUndo = "15";
     [ObservableProperty] private string _maxBatch = "300";
     [ObservableProperty] private string _searchDepth = "2";

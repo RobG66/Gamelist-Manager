@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
@@ -156,6 +157,15 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     public bool IsBusy => _sharedData.IsBusy;
     private bool CanStop => IsScraping && !_isStopping;
     private bool CanStart => !IsScraping;
+
+    // 0 = Don't Save, 1 = Save Per Scraper, 2 = Save Per System
+    private int ScraperConfigSaveMode => _settingsService.GetInt(SettingKeys.ScraperConfigSave);
+
+    // Key prefix used when persisting or restoring per-scraper/per-system settings.
+    private string ScraperSettingsKey => ScraperConfigSaveMode == 2 && !string.IsNullOrEmpty(_sharedData.CurrentSystem)
+        ? $"{_currentScraper}_{_sharedData.CurrentSystem}"
+        : _currentScraper;
+
     #endregion
 
     #region Constructor
@@ -374,22 +384,26 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     private void ApplySavedPreferences()
     {
+        if (ScraperConfigSaveMode == 0) return;
+
+        var key = ScraperSettingsKey;
+
         if (ScrapeFromCacheEnabled)
-            ScrapeFromCache = _settingsService.GetBool("Scraper", $"{_currentScraper}_ScrapeFromCache", ScrapeFromCache);
+            ScrapeFromCache = _settingsService.GetBool("Scraper", $"{key}_ScrapeFromCache", ScrapeFromCache);
         if (SkipNonCachedItemsEnabled)
-            SkipNonCachedItems = _settingsService.GetBool("Scraper", $"{_currentScraper}_SkipNonCachedItems", false);
+            SkipNonCachedItems = _settingsService.GetBool("Scraper", $"{key}_SkipNonCachedItems", false);
         if (OverwriteMetadataEnabled)
-            OverwriteMetadata = _settingsService.GetBool("Scraper", $"{_currentScraper}_OverwriteMetadata", false);
+            OverwriteMetadata = _settingsService.GetBool("Scraper", $"{key}_OverwriteMetadata", false);
 
         foreach (var (name, getEnabled, _, setValue) in GetBoolToggles())
         {
             if (!getEnabled()) continue;
-            setValue(_settingsService.GetBool("Scraper", $"{_currentScraper}_{name}", false));
+            setValue(_settingsService.GetBool("Scraper", $"{key}_{name}", false));
         }
 
         foreach (var (name, sources, _, setSelected) in GetSourceToggles())
         {
-            string savedValue = _settingsService.GetValue("Scraper", $"{_currentScraper}_{name}", "");
+            string savedValue = _settingsService.GetValue("Scraper", $"{key}_{name}", "");
             RestoreSource(sources, savedValue, setSelected);
         }
     }
@@ -405,18 +419,23 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             ["OverwriteMedia"] = OverwriteMedia.ToString(),
             ["ScrapeHiddenItems"] = ScrapeHiddenItems.ToString(),
             ["SelectedScraper"] = _currentScraper,
-            [$"{_currentScraper}_ScrapeFromCache"] = ScrapeFromCache.ToString(),
-            [$"{_currentScraper}_SkipNonCachedItems"] = SkipNonCachedItems.ToString(),
-            [$"{_currentScraper}_OverwriteMetadata"] = OverwriteMetadata.ToString(),
         };
 
-        foreach (var (name, _, getValue, _) in GetBoolToggles())
-            values[$"{_currentScraper}_{name}"] = getValue().ToString();
-
-        foreach (var (name, sources, getSelected, _) in GetSourceToggles())
+        if (ScraperConfigSaveMode != 0)
         {
-            int idx = getSelected();
-            values[$"{_currentScraper}_{name}"] = idx >= 0 && idx < sources.Count ? sources[idx] : "";
+            var key = ScraperSettingsKey;
+            values[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
+            values[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
+            values[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
+
+            foreach (var (name, _, getValue, _) in GetBoolToggles())
+                values[$"{key}_{name}"] = getValue().ToString();
+
+            foreach (var (name, sources, getSelected, _) in GetSourceToggles())
+            {
+                int idx = getSelected();
+                values[$"{key}_{name}"] = idx >= 0 && idx < sources.Count ? sources[idx] : "";
+            }
         }
 
         _settingsService.SetSection("Scraper", values);

@@ -37,7 +37,7 @@ public partial class SettingsViewModel
     private string _newProfileName = string.Empty;
 
     [ObservableProperty]
-    private bool _isNewProfileEsDe;
+    private string _newProfileType = SettingKeys.ProfileTypeEs;
 
     #endregion
 
@@ -48,6 +48,12 @@ public partial class SettingsViewModel
 
     public string ActiveProfileName => ProfileService.Instance.ActiveProfile;
     public bool CanCreateFromTemplate => SelectedTemplateName != null;
+
+    public bool IsNewProfileTypeEsDe
+    {
+        get => NewProfileType == SettingKeys.ProfileTypeEsDe;
+        set => NewProfileType = value ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
+    }
 
     // Read-only info about the profile selected in the profile list.
     public bool SelectedProfileIsEsDe => GetSelectedProfileType() == SettingKeys.ProfileTypeEsDe;
@@ -61,6 +67,7 @@ public partial class SettingsViewModel
     public event EventHandler<string>? ConfirmDeleteProfileRequested;
     public event EventHandler<string>? ConfirmSwitchProfileRequested;
     public event EventHandler<string>? DuplicateTemplateProfileRequested;
+    public event EventHandler<string>? ConfirmActivateEsDeProfileRequested;
 
     #endregion
 
@@ -120,6 +127,11 @@ public partial class SettingsViewModel
 
     #region Partial Handlers
 
+    partial void OnNewProfileTypeChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsNewProfileTypeEsDe));
+    }
+
     partial void OnSelectedProfileNameChanged(string value)
     {
         OnPropertyChanged(nameof(SelectedProfileIsEsDe));
@@ -162,13 +174,16 @@ public partial class SettingsViewModel
     [RelayCommand(CanExecute = nameof(CanCreateProfile))]
     private void CreateProfile()
     {
-        var profileType = IsNewProfileEsDe ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeStandard;
-        var created = ProfileService.Instance.CreateTypedProfile(NewProfileName.Trim(), profileType);
+        var isEsDe = NewProfileType == SettingKeys.ProfileTypeEsDe;
+        var created = ProfileService.Instance.CreateTypedProfile(NewProfileName.Trim(), NewProfileType);
         if (created == null) return;
-        IsNewProfileEsDe = false;
+        NewProfileType = SettingKeys.ProfileTypeEs;
         NewProfileName = string.Empty;
         RefreshProfileList();
         ProfilesChanged?.Invoke(this, EventArgs.Empty);
+
+        if (isEsDe)
+            ConfirmActivateEsDeProfileRequested?.Invoke(this, created);
     }
 
     [RelayCommand(CanExecute = nameof(CanCreateProfile))]
@@ -233,7 +248,7 @@ public partial class SettingsViewModel
 
     private string GetSelectedProfileType()
     {
-        if (string.IsNullOrWhiteSpace(SelectedProfileName)) return SettingKeys.ProfileTypeStandard;
+        if (string.IsNullOrWhiteSpace(SelectedProfileName)) return SettingKeys.ProfileTypeEs;
         return ProfileService.Instance.GetProfileType(SelectedProfileName);
     }
 
@@ -242,7 +257,7 @@ public partial class SettingsViewModel
         if (string.IsNullOrWhiteSpace(SelectedProfileName)) return string.Empty;
         var path = ProfileService.Instance.GetProfilePath(SelectedProfileName);
         var section = IniFileService.GetSection(path, SettingKeys.EsDeSection);
-        return section != null && section.TryGetValue(SettingKeys.EsDeRoot, out var v) ? v : string.Empty;
+        return section != null && section.TryGetValue(SettingKeys.EsDeRoot.Key, out var v) ? v : string.Empty;
     }
 
     #endregion

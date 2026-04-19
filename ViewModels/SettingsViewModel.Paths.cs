@@ -107,9 +107,9 @@ public partial class SettingsViewModel
 
     internal void LoadEsDeSettings()
     {
-        var profileType = SettingsService.Instance.GetValue(SettingKeys.EsDeSection, SettingKeys.ProfileType, SettingKeys.ProfileTypeStandard);
+        var profileType = SettingsService.Instance.GetValue(SettingKeys.ProfileType);
         IsEsDeProfile = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, System.StringComparison.OrdinalIgnoreCase);
-        EsDeRoot = SettingsService.Instance.GetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, string.Empty);
+        EsDeRoot = SettingsService.Instance.GetValue(SettingKeys.EsDeRoot);
 
         // Always re-detect — the user may have changed es_settings.xml outside this app.
         var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
@@ -119,9 +119,9 @@ public partial class SettingsViewModel
 
     internal void SaveEsDeSettings()
     {
-        SettingsService.Instance.SetValue(SettingKeys.EsDeSection, SettingKeys.ProfileType,
-            IsEsDeProfile ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeStandard);
-        SettingsService.Instance.SetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, EsDeRoot);
+        SettingsService.Instance.SetValue(SettingKeys.ProfileType.Section, SettingKeys.ProfileType.Key,
+            IsEsDeProfile ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs);
+        SettingsService.Instance.SetValue(SettingKeys.EsDeRoot.Section, SettingKeys.EsDeRoot.Key, EsDeRoot);
     }
 
     #endregion

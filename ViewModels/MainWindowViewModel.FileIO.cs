@@ -52,10 +52,6 @@ public partial class MainWindowViewModel
             var filename = _sharedData.XmlFilename;
             var system = _sharedData.CurrentSystem;
 
-            // Run backup + save together on a background thread so the UI thread
-            // is never blocked by file I/O (also avoids the Avalonia PopupRoot
-            // "PlatformImpl is null" trace that fires when the MenuFlyout closes
-            // and the UI loop processes stale events during an await suspension)
             bool success = await Task.Run(() =>
             {
                 var backupPath = CreateBackupBeforeSave(filename, system);
@@ -331,7 +327,7 @@ public partial class MainWindowViewModel
 
         _sharedData.RecentFiles.Insert(0, new RecentFileItem(filePath));
 
-        var maxRecentFiles = _settingsService.GetInt(SettingKeys.AdvancedSection, SettingKeys.RecentFilesCount, 15);
+        var maxRecentFiles = _settingsService.GetInt(SettingKeys.RecentFilesCount);
         while (_sharedData.RecentFiles.Count > maxRecentFiles)
             _sharedData.RecentFiles.RemoveAt(_sharedData.RecentFiles.Count - 1);
 
@@ -422,7 +418,7 @@ public partial class MainWindowViewModel
             if (_sharedData.IsEsDeMode)
             {
                 var mediaDir = _sharedData.EsDeMediaDirectory;
-                await Task.Run(() => GamelistService.PopulateMediaPaths(loadedGames, mediaDir));
+                await Task.Run(() => PopulateMediaPaths(loadedGames, mediaDir));
             }
 
             _isLoadingData = true;
@@ -454,9 +450,6 @@ public partial class MainWindowViewModel
             if (Games.Count > 0)
                 RequestSelectFirstItem?.Invoke(this, EventArgs.Empty);
 
-            // Prompt for the ES-DE media root after the load is fully complete so the
-            // dialog does not appear while the file picker is still being torn down.
-            await PromptEsDeMediaRootIfNeededAsync();
         }
         finally
         {
@@ -510,6 +503,59 @@ public partial class MainWindowViewModel
         {
             System.Diagnostics.Debug.WriteLine($"Backup failed: {ex.Message}");
             return null;
+        }
+    }
+
+    #endregion
+
+    #region ES-DE Media Helpers
+
+    private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];
+    private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
+    private static readonly string[] ManualExtensions = [".pdf"];
+
+    // Resolves ES-DE media paths from the filesystem and writes them into the row values so
+    // all downstream consumers (grid, preview, statistics) can read them without branching.
+    private static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
+    {
+        if (string.IsNullOrEmpty(mediaDirectory)) return;
+
+        var mediaDecls = GamelistMetaData.GetAllMediaFolderTypes();
+
+        foreach (var game in games)
+        {
+            var romPath = game.Path;
+            if (string.IsNullOrEmpty(romPath)) continue;
+
+            var romName = FilePathHelper.NormalizeRomName(romPath);
+            if (string.IsNullOrEmpty(romName)) continue;
+
+            foreach (var decl in mediaDecls)
+            {
+                if (!decl.IsEsDeSupported) continue;
+
+                var folder = Path.Combine(mediaDirectory, decl.EsDeFolderName);
+
+                var extensions = decl.DataType switch
+                {
+                    MetaDataType.Video => VideoExtensions,
+                    MetaDataType.Document => ManualExtensions,
+                    _ => ImageExtensions
+                };
+
+                string? resolved = null;
+                foreach (var ext in extensions)
+                {
+                    var candidate = Path.Combine(folder, romName + ext);
+                    if (File.Exists(candidate))
+                    {
+                        resolved = candidate;
+                        break;
+                    }
+                }
+
+                game.SetValue(decl.Key, resolved ?? string.Empty);
+            }
         }
     }
 

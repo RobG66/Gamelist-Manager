@@ -92,6 +92,30 @@ namespace Gamelist_Manager.Views
                 if (result == ThreeButtonResult.Button3)
                     ViewModel.DoCreateFromTemplate(overwrite: true);
             };
+
+            // After creating an ES-DE profile, offer to make it active and prompt for root
+            ViewModel.ConfirmActivateEsDeProfileRequested += async (_, profileName) =>
+            {
+                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                {
+                    Title = "Activate Profile",
+                    Message = $"ES-DE profile '{profileName}' has been created.",
+                    DetailMessage = "Would you like to make it the active profile now?\n\n" +
+                                   "This is required to configure the ES-DE root folder.",
+                    IconTheme = DialogIconTheme.Info,
+                    Button1Text = "No",
+                    Button2Text = "",
+                    Button3Text = "Yes"
+                });
+                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+                if (result != ThreeButtonResult.Button3) return;
+
+                ViewModel.SelectedProfileName = profileName;
+                ViewModel.DoSwitchProfile(saveFirst: ViewModel.IsDirty);
+
+                if (Owner is MainWindow { DataContext: MainWindowViewModel mainVm })
+                    await mainVm.PromptEsDeRootAsync($"Profile '{profileName}' is now active.");
+            };
         }
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)

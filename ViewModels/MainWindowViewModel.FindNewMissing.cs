@@ -93,7 +93,7 @@ public partial class MainWindowViewModel
         {
             Title = "Find New Items",
             Message = $"Found {newFiles.Count} new {itemLabel} not in the gamelist.",
-            DetailMessage = "Add them with genre 'New Item'?",
+            DetailMessage = "Do you want to add them?",
             IconTheme = DialogIconTheme.Question,
             Button1Text = "No",
             Button2Text = "",
@@ -102,11 +102,17 @@ public partial class MainWindowViewModel
 
         if (result != ThreeButtonResult.Button3) return;
 
+        bool newGamelist = _sharedData.GamelistData == null;
+
         var newRows = newFiles.Select(f => BuildNewItemRow(f, scanDir)).ToList();
         AddNewFoundItems(newRows);
 
-        var newPaths = new HashSet<string>(newRows.Select(r => r.Path), FilePathHelper.PathComparer);
-        RaiseFindReportColumn("Find: New", newPaths);
+        // Don't report new items for a new gamelist
+        if (!newGamelist)
+        { 
+            var newPaths = new HashSet<string>(newRows.Select(r => r.Path), FilePathHelper.PathComparer);
+            RaiseFindReportColumn("Find: New", newPaths);
+        }
     }
 
     [RelayCommand]
@@ -187,7 +193,7 @@ public partial class MainWindowViewModel
         var row = new GameMetadataRow();
         row.SetValue(MetaDataKeys.path, FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, gamelistDir));
         row.SetValue(MetaDataKeys.name, Path.GetFileNameWithoutExtension(fullPath));
-        row.SetValue(MetaDataKeys.genre, "New Item");
+        // row.SetValue(MetaDataKeys.genre, "New Item");
         return row;
     }
 

@@ -174,6 +174,7 @@ public partial class MainWindow : Window
         else if (e.PropertyName == nameof(MainWindowViewModel.IsGamelistLoaded))
         {
             BuildDataGridColumns();
+            ApplySizeToFitToDataGrid(viewModel.SizeToFit);
             ApplyColumnVisibility();
         }
         else if (e.PropertyName == nameof(MainWindowViewModel.DatToolPanelViewModel))
@@ -214,8 +215,8 @@ public partial class MainWindow : Window
 
         ThemeService.ApplyFontSizes(sharedData.AppFontSize, sharedData.GridFontSize);
 
-        var alternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, 1);
-        var gridLinesVisibilityIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridLinesVisibilityIndex);
+        var alternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
+        var gridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
         ThemeService.ApplyDataGridAppearance(GameDataGrid, alternatingRowColorIndex, gridLinesVisibilityIndex);
         ThemeService.ApplyDataGridColumnWidths(GameDataGrid, sharedData.GridFontSize);
     }
@@ -223,15 +224,15 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object? sender, EventArgs e)
     {
         var settings = SettingsService.Instance;
-        var alternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, 1);
-        var gridLinesVisibilityIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridLinesVisibilityIndex);
+        var alternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
+        var gridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
 
         ThemeService.ApplyDataGridAppearance(
             GameDataGrid,
             alternatingRowColorIndex,
             gridLinesVisibilityIndex);
 
-        var dataGridFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridFontSize, 12);
+        var dataGridFontSize = settings.GetInt(SettingKeys.GridFontSize);
         ThemeService.ApplyDataGridColumnWidths(GameDataGrid, dataGridFontSize);
 
         if (DataContext is MainWindowViewModel vm)

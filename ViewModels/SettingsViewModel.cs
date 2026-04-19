@@ -54,42 +54,42 @@ public partial class SettingsViewModel : ViewModelBase
 
         var settings = SettingsService.Instance;
 
-        SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Theme, "Light"));
-        SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Color, "Blue"));
+        SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.Theme));
+        SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.Color));
 
-        SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, 1);
-        SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridLinesVisibilityIndex);
-        AppFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GlobalFontSize, 12);
-        GridFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridFontSize, 12);
+        SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
+        SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
+        AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
+        GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
 
-        ConfirmBulkChanges = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ConfirmBulkChange, true);
-        EnableSaveReminder = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.SaveReminder, true);
-        VerifyImageDownloads = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.VerifyDownloadedImages, true);
-        ShowGamelistStats = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ShowGamelistStats, true);
-        VideoAutoplay = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.VideoAutoplay, true);
-        RememberColumns = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.RememberColumns);
-        RememberAutosize = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.RememberAutoSize);
-        EnableDelete = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.EnableDelete);
-        IgnoreDuplicates = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.IgnoreDuplicates);
-        BatchProcessing = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.BatchProcessing, true);
-        ShowLogTimestamp = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ShowLogTimestamp, false);
+        ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
+        EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
+        VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
+        VideoAutoplay = settings.GetBool(SettingKeys.VideoAutoplay);
+        RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
+        RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
+        EnableDelete = settings.GetBool(SettingKeys.EnableDelete);
+        IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
+        BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
+        ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
+        ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
 
-        MaxUndo = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.MaxUndo, 5).ToString();
-        SearchDepth = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.SearchDepth, 2).ToString();
-        RecentFilesCount = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.RecentFilesCount, 15).ToString();
-        MaxBatch = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.BatchProcessingMaximum, 300).ToString();
-        DefaultVolume = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.Volume, 75);
-        LogVerbosityIndex = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.LogVerbosity, 1);
+        MaxUndo = settings.GetInt(SettingKeys.MaxUndo).ToString();
+        SearchDepth = settings.GetInt(SettingKeys.SearchDepth).ToString();
+        RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount).ToString();
+        MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum).ToString();
+        DefaultVolume = settings.GetInt(SettingKeys.Volume);
+        LogVerbosityIndex = settings.GetInt(SettingKeys.LogVerbosity);
 
-        Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, string.Empty);
-        UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, string.Empty);
-        Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, string.Empty);
+        Hostname = settings.GetValue(SettingKeys.HostName);
+        UserId = settings.GetValue(SettingKeys.UserID);
+        Password = settings.GetValue(SettingKeys.Password);
 
         // Folder paths live in their own section; fall back to Connection for old profiles.
-        MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath,
-                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath));
-        RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder,
-                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder));
+        MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key,
+                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath.Key));
+        RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key,
+                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder.Key));
 
         var isEsDe = _sharedData.IsEsDeMode;
         foreach (var item in MediaFolderItems)
@@ -117,11 +117,11 @@ public partial class SettingsViewModel : ViewModelBase
         {
             [SettingKeys.AppearanceSection] = new()
             {
-                [SettingKeys.Theme] = IndexToName(ThemeNames, SelectedThemeIndex),
-                [SettingKeys.Color] = IndexToName(ColorNames, SelectedColorIndex),
-                [SettingKeys.AlternatingRowColorIndex] = SelectedAlternatingRowColorIndex.ToString(),
-                [SettingKeys.GridLinesVisibilityIndex] = SelectedGridLinesVisibilityIndex.ToString(),
-                [SettingKeys.GridLineVisibility] = SelectedGridLinesVisibilityIndex switch
+                [SettingKeys.Theme.Key] = IndexToName(ThemeNames, SelectedThemeIndex),
+                [SettingKeys.Color.Key] = IndexToName(ColorNames, SelectedColorIndex),
+                [SettingKeys.AlternatingRowColorIndex.Key] = SelectedAlternatingRowColorIndex.ToString(),
+                [SettingKeys.GridLinesVisibilityIndex.Key] = SelectedGridLinesVisibilityIndex.ToString(),
+                [SettingKeys.GridLineVisibility.Key] = SelectedGridLinesVisibilityIndex switch
                 {
                     0 => "Horizontal",
                     1 => "Vertical",
@@ -129,42 +129,42 @@ public partial class SettingsViewModel : ViewModelBase
                     3 => "None",
                     _ => "Horizontal"
                 },
-                [SettingKeys.GlobalFontSize] = AppFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                [SettingKeys.GridFontSize] = GridFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                [SettingKeys.GlobalFontSize.Key] = AppFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                [SettingKeys.GridFontSize.Key] = GridFontSize.ToString(System.Globalization.CultureInfo.InvariantCulture)
             },
             [SettingKeys.BehaviorSection] = new()
             {
-                [SettingKeys.ConfirmBulkChange] = ConfirmBulkChanges.ToString(),
-                [SettingKeys.SaveReminder] = EnableSaveReminder.ToString(),
-                [SettingKeys.VerifyDownloadedImages] = VerifyImageDownloads.ToString(),
-                [SettingKeys.ShowGamelistStats] = ShowGamelistStats.ToString(),
-                [SettingKeys.VideoAutoplay] = VideoAutoplay.ToString(),
-                [SettingKeys.RememberColumns] = RememberColumns.ToString(),
-                [SettingKeys.RememberAutoSize] = RememberAutosize.ToString(),
-                [SettingKeys.EnableDelete] = EnableDelete.ToString(),
-                [SettingKeys.IgnoreDuplicates] = IgnoreDuplicates.ToString(),
-                [SettingKeys.BatchProcessing] = BatchProcessing.ToString(),
-                [SettingKeys.ShowLogTimestamp] = ShowLogTimestamp.ToString()
+                [SettingKeys.ConfirmBulkChange.Key] = ConfirmBulkChanges.ToString(),
+                [SettingKeys.SaveReminder.Key] = EnableSaveReminder.ToString(),
+                [SettingKeys.VerifyDownloadedImages.Key] = VerifyImageDownloads.ToString(),
+                [SettingKeys.VideoAutoplay.Key] = VideoAutoplay.ToString(),
+                [SettingKeys.RememberColumns.Key] = RememberColumns.ToString(),
+                [SettingKeys.RememberAutoSize.Key] = RememberAutosize.ToString(),
+                [SettingKeys.EnableDelete.Key] = EnableDelete.ToString(),
+                [SettingKeys.IgnoreDuplicates.Key] = IgnoreDuplicates.ToString(),
+                [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
+                [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
+                [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString()
             },
             [SettingKeys.AdvancedSection] = new()
             {
-                [SettingKeys.MaxUndo] = MaxUndo,
-                [SettingKeys.SearchDepth] = SearchDepth,
-                [SettingKeys.RecentFilesCount] = RecentFilesCount,
-                [SettingKeys.BatchProcessingMaximum] = MaxBatch,
-                [SettingKeys.LogVerbosity] = LogVerbosityIndex.ToString(),
-                [SettingKeys.Volume] = DefaultVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                [SettingKeys.MaxUndo.Key] = MaxUndo,
+                [SettingKeys.SearchDepth.Key] = SearchDepth,
+                [SettingKeys.RecentFilesCount.Key] = RecentFilesCount,
+                [SettingKeys.BatchProcessingMaximum.Key] = MaxBatch,
+                [SettingKeys.LogVerbosity.Key] = LogVerbosityIndex.ToString(),
+                [SettingKeys.Volume.Key] = DefaultVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
             },
             [SettingKeys.ConnectionSection] = new()
             {
-                [SettingKeys.HostName] = Hostname,
-                [SettingKeys.UserID] = UserId,
-                [SettingKeys.Password] = Password
+                [SettingKeys.HostName.Key] = Hostname,
+                [SettingKeys.UserID.Key] = UserId,
+                [SettingKeys.Password.Key] = Password
             },
             [SettingKeys.FolderPathsSection] = new()
             {
-                [SettingKeys.MamePath] = MamePath,
-                [SettingKeys.RomsFolder] = RomsPath
+                [SettingKeys.MamePath.Key] = MamePath,
+                [SettingKeys.RomsFolder.Key] = RomsPath
             },
             [SettingKeys.MediaPathsSection] = _sharedData.IsEsDeMode
                 ? MediaFolderItems

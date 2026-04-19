@@ -36,7 +36,6 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private bool _confirmBulkChanges = true;
         [ObservableProperty] private bool _enableSaveReminder = true;
         [ObservableProperty] private bool _verifyImageDownloads = true;
-        [ObservableProperty] private bool _showGamelistStats = true;
         [ObservableProperty] private bool _rememberColumns = false;
         [ObservableProperty] private bool _rememberAutosize = false;
         [ObservableProperty] private bool _enableDelete;
@@ -136,41 +135,42 @@ namespace Gamelist_Manager.Services
         {
             var settings = _settings;
 
-            RomsFolder = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder,
-                         settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder, ""));
-            Hostname = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.HostName, string.Empty);
-            MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath,
-                       settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath, ""));
-            UserId = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.UserID, string.Empty);
-            Password = settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.Password, string.Empty);
+            // Folder paths with fallback to old Connection section
+            RomsFolder = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key,
+                         settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder.Key, ""));
+            MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key,
+                       settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath.Key, ""));
 
-            VideoAutoplay = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.VideoAutoplay, false);
-            ConfirmBulkChanges = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ConfirmBulkChange, SettingKeys.DefaultConfirmBulkChange);
-            EnableSaveReminder = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.SaveReminder, SettingKeys.DefaultSaveReminder);
-            VerifyImageDownloads = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.VerifyDownloadedImages, SettingKeys.DefaultVerifyDownloadedImages);
-            ShowGamelistStats = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ShowGamelistStats, SettingKeys.DefaultShowGamelistStats);
-            RememberColumns = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.RememberColumns, SettingKeys.DefaultRememberColumns);
-            RememberAutosize = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.RememberAutoSize, SettingKeys.DefaultRememberAutoSize);
-            EnableDelete = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.EnableDelete, SettingKeys.DefaultEnableDelete);
-            IgnoreDuplicates = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.IgnoreDuplicates, SettingKeys.DefaultIgnoreDuplicates);
-            BatchProcessing = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.BatchProcessing, SettingKeys.DefaultBatchProcessing);
-            ShowLogTimestamp = settings.GetBool(SettingKeys.BehaviorSection, SettingKeys.ShowLogTimestamp, false);
+            Hostname = settings.GetValue(SettingKeys.HostName);
+            UserId = settings.GetValue(SettingKeys.UserID);
+            Password = settings.GetValue(SettingKeys.Password);
 
-            MediaViewerScaledDisplay = settings.GetBool(SettingKeys.MediaViewerSection, SettingKeys.ScaledDisplay, true);
+            VideoAutoplay = settings.GetBool(SettingKeys.VideoAutoplay);
+            ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
+            EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
+            VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
+            RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
+            RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
+            EnableDelete = settings.GetBool(SettingKeys.EnableDelete);
+            IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
+            BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
+            ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
 
-            DefaultVolume = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.Volume, SettingKeys.DefaultVolume);
-            MaxUndo = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.MaxUndo, SettingKeys.DefaultMaxUndo);
-            SearchDepth = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.SearchDepth, SettingKeys.DefaultSearchDepth);
-            MaxBatch = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.BatchProcessingMaximum, SettingKeys.DefaultBatchProcessingMaximum);
-            RecentFilesCount = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.RecentFilesCount, SettingKeys.DefaultRecentFilesCount);
-            LogVerbosity = settings.GetInt(SettingKeys.AdvancedSection, SettingKeys.LogVerbosity, SettingKeys.DefaultLogVerbosity);
+            MediaViewerScaledDisplay = settings.GetBool(SettingKeys.ScaledDisplay);
 
-            Theme = settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Theme, SettingKeys.DefaultTheme);
-            Color = settings.GetValue(SettingKeys.AppearanceSection, SettingKeys.Color, SettingKeys.DefaultColor);
-            AlternatingRowColorIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.AlternatingRowColorIndex, SettingKeys.DefaultAlternatingRowColorIndex);
-            GridLinesVisibilityIndex = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridLinesVisibilityIndex, SettingKeys.DefaultGridLinesVisibilityIndex);
-            AppFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GlobalFontSize, SettingKeys.DefaultGlobalFontSize);
-            GridFontSize = settings.GetInt(SettingKeys.AppearanceSection, SettingKeys.GridFontSize, SettingKeys.DefaultGridFontSize);
+            DefaultVolume = settings.GetInt(SettingKeys.Volume);
+            MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
+            SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
+            MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
+            RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
+            LogVerbosity = settings.GetInt(SettingKeys.LogVerbosity);
+
+            Theme = settings.GetValue(SettingKeys.Theme);
+            Color = settings.GetValue(SettingKeys.Color);
+            AlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
+            GridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
+            AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
+            GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
 
             // Build runtime media settings from user preferences, falling back to declaration defaults.
             var mediaPaths = settings.GetSection(SettingKeys.MediaPathsSection)
@@ -180,7 +180,7 @@ namespace Gamelist_Manager.Services
 
             // Determine ES-DE mode once before iterating media types.
             bool isEsDe = string.Equals(
-                settings.GetValue(SettingKeys.EsDeSection, SettingKeys.ProfileType, SettingKeys.ProfileTypeStandard),
+                settings.GetValue(SettingKeys.ProfileType),
                 SettingKeys.ProfileTypeEsDe,
                 System.StringComparison.OrdinalIgnoreCase);
 
@@ -237,7 +237,7 @@ namespace Gamelist_Manager.Services
 
         public void SaveMediaViewerPreferences()
         {
-            _settings.SetValue(SettingKeys.MediaViewerSection, SettingKeys.ScaledDisplay, MediaViewerScaledDisplay.ToString());
+            _settings.SetValue(SettingKeys.ScaledDisplay.Section, SettingKeys.ScaledDisplay.Key, MediaViewerScaledDisplay.ToString());
         }
 
         public IReadOnlyDictionary<string, string> GetFileTypes()
@@ -249,7 +249,7 @@ namespace Gamelist_Manager.Services
         public void SaveEsDeRoot(string path)
         {
             EsDeRoot = path;
-            _settings.SetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, path);
+            _settings.SetValue(SettingKeys.EsDeRoot.Section, SettingKeys.EsDeRoot.Key, path);
         }
 
         #endregion
@@ -280,7 +280,7 @@ namespace Gamelist_Manager.Services
             var settings = _settings;
 
             var newValue = string.Equals(
-                settings.GetValue(SettingKeys.EsDeSection, SettingKeys.ProfileType, SettingKeys.ProfileTypeStandard),
+                settings.GetValue(SettingKeys.ProfileType),
                 SettingKeys.ProfileTypeEsDe,
                 System.StringComparison.OrdinalIgnoreCase);
 
@@ -290,7 +290,7 @@ namespace Gamelist_Manager.Services
                 OnPropertyChanged(nameof(IsEsDeMode));
             }
 
-            EsDeRoot = settings.GetValue(SettingKeys.EsDeSection, SettingKeys.EsDeRoot, string.Empty);
+            EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
 
             // Always re-detect from es_settings.xml — the user may have changed paths outside this app.
             var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
