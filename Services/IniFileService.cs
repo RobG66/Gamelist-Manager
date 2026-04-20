@@ -79,25 +79,5 @@ namespace Gamelist_Manager.Services
 
             File.WriteAllText(filePath, sb.ToString());
         }
-
-        public static void WriteSection(string filePath, string sectionName, Dictionary<string, string> values)
-        {
-            var sections = new Dictionary<string, Dictionary<string, string>>();
-
-            if (File.Exists(filePath))
-            {
-                try
-                {
-                    sections = ReadIniFile(filePath);
-                }
-                catch (System.Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Failed to read INI file '{filePath}', starting fresh: {ex.Message}");
-                }
-            }
-
-            sections[sectionName] = values;
-            WriteIniFile(filePath, sections);
-        }
     }
 }

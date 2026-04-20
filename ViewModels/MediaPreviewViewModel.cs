@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
@@ -257,6 +258,12 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     private void InitializeVideosForCurrentGame()
     {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(InitializeVideosForCurrentGame);
+            return;
+        }
+
         if (!IsLibVLCInitialized || LibVLC == null) return;
 
         var autoPlay = _sharedData.VideoAutoplay;

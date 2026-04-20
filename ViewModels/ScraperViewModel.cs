@@ -18,7 +18,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     #endregion
 
     #region Private Fields
-    private string _currentScraper = ScraperRegistry.ArcadeDB.Name;
     private bool _isLoading;
     private bool _isDisposed;
     private CancellationTokenSource? _cts;
@@ -33,6 +32,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     #region Observable Properties - Basic Settings
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLimitVisible))]
+    private string _currentScraper = ScraperRegistry.All[0].Name;
     private int _selectedScraperIndex;
     [ObservableProperty] private bool _scrapeAllMode = true;
     [ObservableProperty] private bool _scrapeSelectedMode;
@@ -153,7 +153,8 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     #endregion
 
     #region Public Properties
-    public bool IsLimitVisible => ScraperRegistry.All.ElementAtOrDefault(SelectedScraperIndex) == ScraperRegistry.ScreenScraper;
+    public List<string> ScraperNames { get; } = ScraperRegistry.All.Select(s => s.Name).ToList();
+    public bool IsLimitVisible => CurrentScraper == ScraperRegistry.ScreenScraper.Name;
     public bool IsBusy => _sharedData.IsBusy;
     private bool CanStop => IsScraping && !_isStopping;
     private bool CanStart => !IsScraping;
@@ -187,22 +188,12 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (value) IsClearCacheEnabled = false;
     }
 
-    partial void OnSelectedScraperIndexChanged(int value)
+    partial void OnCurrentScraperChanged(string value)
     {
-        if (_isLoading || _settingsService is null) return;
-
+        if (_isLoading) return;
         SaveScraperSettings();
-
-        _currentScraper = value switch
-        {
-            0 => ScraperRegistry.ArcadeDB.Name,
-            1 => ScraperRegistry.EmuMovies.Name,
-            2 => ScraperRegistry.ScreenScraper.Name,
-            _ => ScraperRegistry.ArcadeDB.Name
-        };
-
         LoadScraperSettings();
-        Log($"Scraper changed to: {_currentScraper}", LogLevel.Status);
+        Log($"Scraper changed to: {value}", LogLevel.Status);
     }
 
     partial void OnScrapeFromCacheChanged(bool value)
@@ -228,13 +219,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
             string savedScraper = _settingsService.GetValue("Scraper", "SelectedScraper", ScraperRegistry.ArcadeDB.Name);
             _currentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
-            SelectedScraperIndex = _currentScraper switch
-            {
-                var s when s == ScraperRegistry.ArcadeDB.Name => 0,
-                var s when s == ScraperRegistry.EmuMovies.Name => 1,
-                var s when s == ScraperRegistry.ScreenScraper.Name => 2,
-                _ => 0
-            };
+            
 
             LoadScraperSettings();
         }
@@ -438,7 +423,10 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             }
         }
 
-        _settingsService.SetSection("Scraper", values);
+        _settingsService.SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
+        {
+            ["Scraper"] = values
+        });
     }
     #endregion
 

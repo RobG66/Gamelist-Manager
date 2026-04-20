@@ -26,153 +26,158 @@ namespace Gamelist_Manager.Views
             Width = Math.Round(BASE_WIDTH * scale);
             Height = Math.Round(BASE_HEIGHT * scale);
 
-            // Handle ESC key to close window
             KeyDown += SettingsWindow_KeyDown;
-
-            // Handle window closing to check for unsaved changes
             Closing += SettingsWindow_Closing;
 
-            // Propagate profile list changes to MainWindowViewModel
-            ViewModel.ProfilesChanged += (_, _) =>
-            {
-                if (Owner is MainWindow { DataContext: MainWindowViewModel mainVm })
-                    mainVm.RefreshProfiles();
-            };
-
-            // Confirm before switching profiles — accounts for unsaved settings and/or a loaded gamelist
-            ViewModel.ConfirmSwitchProfileRequested += async (_, profileName) =>
-            {
-                var mainVm = Owner is MainWindow { DataContext: MainWindowViewModel vm } ? vm : null;
-                var isDirty = ViewModel.IsDirty;
-                var gamelistLoaded = mainVm?.IsGamelistLoaded ?? false;
-
-                // If the gamelist has unsaved changes, ask about those first via the standard dialog.
-                // If the user cancels there, abort the profile switch entirely.
-                if (gamelistLoaded && mainVm != null)
-                {
-                    if (!await mainVm.CheckUnsavedChangesAsync())
-                        return;
-                }
-
-                // Nothing else to warn about — switch immediately.
-                if (!isDirty && !gamelistLoaded)
-                {
-                    mainVm?.UnloadGamelist();
-                    ViewModel.DoSwitchProfile(saveFirst: false);
-                    return;
-                }
-
-                ThreeButtonDialogConfig config;
-
-                if (isDirty && gamelistLoaded)
-                {
-                    config = new ThreeButtonDialogConfig
-                    {
-                        Title = "Switch Profile",
-                        Message = $"Switch to profile '{profileName}'?",
-                        DetailMessage = "You have unsaved settings changes. Do you want to save them first?\n\nThe current gamelist will also be unloaded.",
-                        IconTheme = DialogIconTheme.Warning,
-                        Button1Text = "Cancel",
-                        Button2Text = "Don't Save",
-                        Button3Text = "Save"
-                    };
-                }
-                else if (isDirty)
-                {
-                    config = new ThreeButtonDialogConfig
-                    {
-                        Title = "Switch Profile",
-                        Message = $"Switch to profile '{profileName}'?",
-                        DetailMessage = "You have unsaved settings changes. Do you want to save them first?",
-                        IconTheme = DialogIconTheme.Warning,
-                        Button1Text = "Cancel",
-                        Button2Text = "Don't Save",
-                        Button3Text = "Save"
-                    };
-                }
-                else
-                {
-                    // gamelistLoaded only — gamelist has no unsaved changes (already handled above)
-                    config = new ThreeButtonDialogConfig
-                    {
-                        Title = "Switch Profile",
-                        Message = $"Switch to profile '{profileName}'?",
-                        DetailMessage = "The current gamelist will be unloaded.",
-                        IconTheme = DialogIconTheme.Warning,
-                        Button1Text = "Cancel",
-                        Button2Text = "",
-                        Button3Text = "Switch"
-                    };
-                }
-
-                var result = await new ThreeButtonDialogView(config).ShowDialog<ThreeButtonResult>(this);
-                if (result == ThreeButtonResult.Button1) return;
-
-                mainVm?.UnloadGamelist();
-                mainVm?.ApplyProfileSwitch(profileName);
-                ViewModel.DoSwitchProfile(saveFirst: isDirty && result == ThreeButtonResult.Button3);
-            };
-
-            // Confirm before deleting a profile
-            ViewModel.ConfirmDeleteProfileRequested += async (_, profileName) =>
-            {
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                {
-                    Title = "Delete Profile",
-                    Message = $"Delete profile '{profileName}'?",
-                    DetailMessage = "This cannot be undone.",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "Cancel",
-                    Button2Text = "",
-                    Button3Text = "Delete"
-                });
-                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-                if (result == ThreeButtonResult.Button3)
-                    ViewModel.DoDeleteProfile();
-            };
-
-            // Confirm overwrite when creating from template over existing profile
-            ViewModel.DuplicateTemplateProfileRequested += async (_, profileName) =>
-            {
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                {
-                    Title = "Profile Already Exists",
-                    Message = $"A profile named '{profileName}' already exists.",
-                    DetailMessage = "Do you want to overwrite it?",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "Cancel",
-                    Button2Text = "",
-                    Button3Text = "Overwrite"
-                });
-                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-                if (result == ThreeButtonResult.Button3)
-                    ViewModel.DoCreateFromTemplate(overwrite: true);
-            };
-
-            // After creating an ES-DE profile, offer to make it active and prompt for root
-            ViewModel.ConfirmActivateEsDeProfileRequested += async (_, profileName) =>
-            {
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                {
-                    Title = "Activate Profile",
-                    Message = $"ES-DE profile '{profileName}' has been created.",
-                    DetailMessage = "Would you like to make it the active profile now?\n\n" +
-                                   "This is required to configure the ES-DE root folder.",
-                    IconTheme = DialogIconTheme.Info,
-                    Button1Text = "No",
-                    Button2Text = "",
-                    Button3Text = "Yes"
-                });
-                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-                if (result != ThreeButtonResult.Button3) return;
-
-                ViewModel.SelectedProfileName = profileName;
-                ViewModel.DoSwitchProfile(saveFirst: ViewModel.IsDirty);
-
-                if (Owner is MainWindow { DataContext: MainWindowViewModel mainVm })
-                    await mainVm.PromptEsDeRootAsync($"Profile '{profileName}' is now active.");
-            };
+            ViewModel.ProfilesChanged += OnProfilesChanged;
+            ViewModel.ConfirmSwitchProfileRequested += OnConfirmSwitchProfileRequested;
+            ViewModel.ConfirmDeleteProfileRequested += OnConfirmDeleteProfileRequested;
+            ViewModel.DuplicateTemplateProfileRequested += OnDuplicateTemplateProfileRequested;
+            ViewModel.ConfirmActivateEsDeProfileRequested += OnConfirmActivateEsDeProfileRequested;
         }
+
+        #region Event Handlers - Profile
+
+        private void OnProfilesChanged(object? sender, EventArgs e)
+        {
+            if (Owner is MainWindow { DataContext: MainWindowViewModel mainVm })
+                mainVm.RefreshProfiles();
+        }
+
+        // Confirm before switching profiles — accounts for unsaved settings and/or a loaded gamelist
+        private async void OnConfirmSwitchProfileRequested(object? sender, string profileName)
+        {
+            var mainVm = Owner is MainWindow { DataContext: MainWindowViewModel vm } ? vm : null;
+            var isDirty = ViewModel.IsDirty;
+            var gamelistLoaded = mainVm?.IsGamelistLoaded ?? false;
+
+            // If the gamelist has unsaved changes, ask about those first via the standard dialog.
+            // If the user cancels there, abort the profile switch entirely.
+            if (gamelistLoaded && mainVm != null)
+            {
+                if (!await mainVm.CheckUnsavedChangesAsync())
+                    return;
+            }
+
+            // Nothing else to warn about — switch immediately.
+            if (!isDirty && !gamelistLoaded)
+            {
+                mainVm?.UnloadGamelist();
+                ViewModel.DoSwitchProfile(saveFirst: false);
+                return;
+            }
+
+            ThreeButtonDialogConfig config;
+
+            if (isDirty && gamelistLoaded)
+            {
+                config = new ThreeButtonDialogConfig
+                {
+                    Title = "Switch Profile",
+                    Message = $"Switch to profile '{profileName}'?",
+                    DetailMessage = "You have unsaved settings changes. Do you want to save them first?\n\nThe current gamelist will also be unloaded.",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "Cancel",
+                    Button2Text = "Don't Save",
+                    Button3Text = "Save"
+                };
+            }
+            else if (isDirty)
+            {
+                config = new ThreeButtonDialogConfig
+                {
+                    Title = "Switch Profile",
+                    Message = $"Switch to profile '{profileName}'?",
+                    DetailMessage = "You have unsaved settings changes. Do you want to save them first?",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "Cancel",
+                    Button2Text = "Don't Save",
+                    Button3Text = "Save"
+                };
+            }
+            else
+            {
+                // gamelistLoaded only — gamelist has no unsaved changes (already handled above)
+                config = new ThreeButtonDialogConfig
+                {
+                    Title = "Switch Profile",
+                    Message = $"Switch to profile '{profileName}'?",
+                    DetailMessage = "The current gamelist will be unloaded.",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "Cancel",
+                    Button2Text = "",
+                    Button3Text = "Switch"
+                };
+            }
+
+            var result = await new ThreeButtonDialogView(config).ShowDialog<ThreeButtonResult>(this);
+            if (result == ThreeButtonResult.Button1) return;
+
+            mainVm?.UnloadGamelist();
+            mainVm?.ApplyProfileSwitch(profileName);
+            ViewModel.DoSwitchProfile(saveFirst: isDirty && result == ThreeButtonResult.Button3);
+        }
+
+        private async void OnConfirmDeleteProfileRequested(object? sender, string profileName)
+        {
+            var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+            {
+                Title = "Delete Profile",
+                Message = $"Delete profile '{profileName}'?",
+                DetailMessage = "This cannot be undone.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "",
+                Button3Text = "Delete"
+            });
+            var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+            if (result == ThreeButtonResult.Button3)
+                ViewModel.DoDeleteProfile();
+        }
+
+        private async void OnDuplicateTemplateProfileRequested(object? sender, string profileName)
+        {
+            var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+            {
+                Title = "Profile Already Exists",
+                Message = $"A profile named '{profileName}' already exists.",
+                DetailMessage = "Do you want to overwrite it?",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "",
+                Button3Text = "Overwrite"
+            });
+            var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+            if (result == ThreeButtonResult.Button3)
+                ViewModel.DoCreateFromTemplate(overwrite: true);
+        }
+
+        private async void OnConfirmActivateEsDeProfileRequested(object? sender, string profileName)
+        {
+            var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+            {
+                Title = "Activate Profile",
+                Message = $"ES-DE profile '{profileName}' has been created.",
+                DetailMessage = "Would you like to make it the active profile now?\n\n" +
+                               "This is required to configure the ES-DE root folder.",
+                IconTheme = DialogIconTheme.Info,
+                Button1Text = "No",
+                Button2Text = "",
+                Button3Text = "Yes"
+            });
+            var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+            if (result != ThreeButtonResult.Button3) return;
+
+            ViewModel.SelectedProfileName = profileName;
+            ViewModel.DoSwitchProfile(saveFirst: ViewModel.IsDirty);
+
+            if (Owner is MainWindow { DataContext: MainWindowViewModel mainVm })
+                await mainVm.PromptEsDeRootAsync($"Profile '{profileName}' is now active.");
+        }
+
+        #endregion
+
+        #region Event Handlers - Window
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)
         {
@@ -185,7 +190,6 @@ namespace Gamelist_Manager.Views
 
             e.Cancel = true;
 
-            // Show save confirmation dialog for settings
             var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
             {
                 Title = "Save Settings",
@@ -198,15 +202,24 @@ namespace Gamelist_Manager.Views
             });
             var result = await dialog.ShowDialog<ThreeButtonResult>(this);
 
-            if (result == ThreeButtonResult.Button1) return; // Cancel
+            if (result == ThreeButtonResult.Button1) return;
 
-            if (result == ThreeButtonResult.Button3) // Save
+            if (result == ThreeButtonResult.Button3)
             {
                 var errors = ViewModel.ValidateAndTrimPaths();
                 if (errors.Count > 0)
                 {
-                    // show error dialog
-                    return; // stay open
+                    await new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                    {
+                        Title = "Validation Error",
+                        Message = "Settings could not be saved due to the following issues:",
+                        DetailMessage = string.Join("\n", errors),
+                        IconTheme = DialogIconTheme.Error,
+                        Button1Text = "",
+                        Button2Text = "",
+                        Button3Text = "OK"
+                    }).ShowDialog<ThreeButtonResult>(this);
+                    return;
                 }
                 ViewModel.SaveSettings();
             }
@@ -224,6 +237,10 @@ namespace Gamelist_Manager.Views
                 e.Handled = true;
             }
         }
+
+        #endregion
+
+        #region Event Handlers - Buttons
 
         private async void ButtonSave_Click(object? sender, RoutedEventArgs e)
         {
@@ -252,21 +269,12 @@ namespace Gamelist_Manager.Views
             Height = Math.Round(BASE_HEIGHT * scale);
         }
 
-        private void ButtonClose_Click(object? sender, RoutedEventArgs e)
-        {
-            // Close will trigger the Closing event which checks for unsaved changes
-            Close();
-        }
+        private void ButtonClose_Click(object? sender, RoutedEventArgs e) => Close();
 
-        private void Button_Reset_Click(object? sender, RoutedEventArgs e)
-        {
-            // Reset media paths to defaults
-            ViewModel.ResetFolderPaths();
-        }
+        private void Button_Reset_Click(object? sender, RoutedEventArgs e) => ViewModel.ResetFolderPaths();
 
         private async void ButtonResetAll_Click(object? sender, RoutedEventArgs e)
         {
-            // Show confirmation dialog using standard ThreeButtonDialog
             var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
             {
                 Title = "Reset All Settings",
@@ -279,10 +287,8 @@ namespace Gamelist_Manager.Views
             });
 
             var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-
-            if (result == ThreeButtonResult.Button3) // Reset
+            if (result == ThreeButtonResult.Button3)
             {
-                // Reset all settings to defaults
                 ViewModel.ResetAllSettings();
                 ViewModel.IsDirty = true;
             }
@@ -345,5 +351,6 @@ namespace Gamelist_Manager.Views
                 item.Path = folders[0].Path.LocalPath;
         }
 
+        #endregion
     }
 }

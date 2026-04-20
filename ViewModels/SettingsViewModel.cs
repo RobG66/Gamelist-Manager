@@ -265,6 +265,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     #region Private Methods
 
+
     private static int NameToIndex(string[] names, string name)
     {
         var index = Array.IndexOf(names, name);

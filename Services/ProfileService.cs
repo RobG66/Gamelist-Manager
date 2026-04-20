@@ -29,7 +29,7 @@ namespace Gamelist_Manager.Services
 
         private ProfileService()
         {           
-            _instance = this; // Break the circular dependency early
+            //_instance = this; an old band aid, I can't remember?  for informational reference
 
             _iniFolder = Path.Combine(AppContext.BaseDirectory, "ini");
             _profilesFolder = Path.Combine(_iniFolder, "Profiles");

@@ -116,10 +116,16 @@ public partial class MediaPreviewViewModel
                         : "No media found.",
                     null);
             }
+            
             else
             {
-                SetScraperStatus("Could not scrape media for this game.", "error");
+                SetScraperStatus(
+                    baseParameters.OverwriteMedia
+                        ? "Could not scrape media for this game."
+                        : "No new media scraped.",
+                    null);
             }
+            
         }
         catch (Exception ex)
         {

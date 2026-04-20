@@ -122,15 +122,7 @@ namespace Gamelist_Manager.Services
         {
             SetValue(section, key, value.ToString());
         }
-
-
-        public void SetSection(string section, Dictionary<string, string> values)
-        {
-            SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
-            {
-                [section] = values
-            });
-        }
+                        
 
         public List<string> GetRecentFiles()
         {

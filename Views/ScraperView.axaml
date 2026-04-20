@@ -60,11 +60,11 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Spacing="2">
                             <TextBlock Text="Source" FontWeight="SemiBold"/>
-                            <ComboBox MinWidth="130" Margin="0,0,10,0" SelectedIndex="{Binding SelectedScraperIndex}"
+
+                            <ComboBox MinWidth="130" Margin="0,0,10,0" 
+                                      ItemsSource="{Binding ScraperNames}"
+                                      SelectedItem="{Binding CurrentScraper}"
                                       ToolTip.Tip="Select the online database to scrape metadata and media from">
-                                <ComboBoxItem Content="ArcadeDB"/>
-                                <ComboBoxItem Content="EmuMovies"/>
-                                <ComboBoxItem Content="ScreenScraper"/>
                             </ComboBox>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="2" Margin="10,0,0,0" VerticalAlignment="Bottom">

@@ -430,7 +430,6 @@ namespace Gamelist_Manager.Classes.Helpers
                         edgePts.Add((x, y, edgeGx[idx], edgeGy[idx]));
                 }
 
-            System.Diagnostics.Debug.WriteLine($"[Hough] work={w}x{h}, scale={scale:F2}, edgePts={edgePts.Count}, maxMag={maxMag:F1}");
 
             if (edgePts.Count < 20) return CreateTransparentCopy(source);
 
@@ -479,7 +478,6 @@ namespace Gamelist_Manager.Classes.Helpers
 
             int peakCx = bestIdx % w;
             int peakCy = bestIdx / w;
-            System.Diagnostics.Debug.WriteLine($"[Hough] peak at ({peakCx},{peakCy}) score={bestScore:F1}");
 
             const int rayCount = 360;
             var radii = new List<double>(rayCount);
@@ -531,7 +529,6 @@ namespace Gamelist_Manager.Classes.Helpers
 
             if (radii.Count < 10)
             {
-                System.Diagnostics.Debug.WriteLine($"[Hough] too few radius hits ({radii.Count}), using bbox fallback");
                 radii.Clear();
                 foreach (var (ex, ey, _, _) in edgePts)
                 {
@@ -550,7 +547,6 @@ namespace Gamelist_Manager.Classes.Helpers
             double fullCy = peakCy / scale;
             double fullRadius = workRadius / scale;
 
-            System.Diagnostics.Debug.WriteLine($"[Hough] center=({fullCx:F1},{fullCy:F1}), r={fullRadius:F1}");
 
             int feather = Math.Max(2, (int)Math.Round(fullRadius) / 60);
             int icx = (int)Math.Round(fullCx);
@@ -652,17 +648,14 @@ namespace Gamelist_Manager.Classes.Helpers
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"[ConvexHull] Boundary scan: {points.Count} candidate points");
 
             if (points.Count < 3)
             {
-                System.Diagnostics.Debug.WriteLine("[ConvexHull] Not enough points — returning null");
                 return null;
             }
 
             var hull = ComputeConvexHull(points);
             hullVertices = hull.Count;
-            System.Diagnostics.Debug.WriteLine($"[ConvexHull] Hull has {hull.Count} vertices");
 
             if (hull.Count < 3) return null;
 
@@ -756,7 +749,6 @@ namespace Gamelist_Manager.Classes.Helpers
 
         private static SKBitmap RemoveBackgroundFloodFill(SKBitmap source, SKColor backgroundColor, int tolerance, bool removeEnclosed = false)
         {
-            System.Diagnostics.Debug.WriteLine($"[Fill] Starting flood fill: {source.Width}x{source.Height}, bg=#{backgroundColor.Red:X2}{backgroundColor.Green:X2}{backgroundColor.Blue:X2}, tolerance={tolerance}");
 
             const int pad = 8;
             int paddedW = source.Width + pad * 2;
@@ -824,7 +816,6 @@ namespace Gamelist_Manager.Classes.Helpers
                     }
             }
 
-            System.Diagnostics.Debug.WriteLine($"[Fill] Flood fill complete");
 
             if (removeEnclosed)
             {
@@ -838,7 +829,6 @@ namespace Gamelist_Manager.Classes.Helpers
                         enclosedCount++;
                     }
                 }
-                System.Diagnostics.Debug.WriteLine($"[Fill] Enclosed pixels removed: {enclosedCount}");
             }
 
             visited = null!;
