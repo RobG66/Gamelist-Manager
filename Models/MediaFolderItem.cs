@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.Models
@@ -36,26 +37,26 @@ namespace Gamelist_Manager.Models
 
         // Suffix controls are only editable when the row is enabled and suffixes are not
         // globally disabled (e.g. in ES-DE mode, where suffixes have no meaning).
-        public bool IsSuffixEnabled => Enabled && !SharedDataService.Instance.IsEsDeMode;
+        public bool IsSuffixEnabled => Enabled && SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe;
 
         // Path textbox is read-only in ES-DE mode — paths are fixed by the ES-DE layout.
-        public bool IsPathReadOnly => SharedDataService.Instance.IsEsDeMode;
+        public bool IsPathReadOnly => SharedDataService.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
 
         // Used to hide suffix columns and browse button in ES-DE mode.
-        public bool IsNotEsDeMode => !SharedDataService.Instance.IsEsDeMode;
+        public bool IsNotEsDeMode => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe;
 
         // Checkbox is disabled for types not supported by ES-DE — they cannot be enabled.
-        public bool IsCheckboxEnabled => !SharedDataService.Instance.IsEsDeMode || IsEsDeSupported;
+        public bool IsCheckboxEnabled => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || IsEsDeSupported;
 
         // In ES-DE mode, unsupported types are always treated as disabled.
-        public bool EffectiveEnabled => Enabled && (!SharedDataService.Instance.IsEsDeMode || IsEsDeSupported);
+        public bool EffectiveEnabled => Enabled && (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || IsEsDeSupported);
 
         // In ES-DE mode shows the resolved media directory path; otherwise the relative path.
         public string DisplayPath
         {
             get
             {
-                if (!SharedDataService.Instance.IsEsDeMode)
+                if (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe)
                     return Path;
 
                 if (string.IsNullOrEmpty(EsDeFolderName))

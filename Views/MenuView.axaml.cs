@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
@@ -43,6 +44,7 @@ public partial class MenuView : UserControl
         {
             vm.ColumnVisibilityChanged -= RefreshColumnCheckBoxes;
             vm.PropertyChanged -= OnViewModelPropertyChanged;
+            vm.Systems.CollectionChanged -= OnSystemsChanged;
         }
 
         ClearSystemButtonHandlers();
@@ -56,6 +58,8 @@ public partial class MenuView : UserControl
             vm.ColumnVisibilityChanged += RefreshColumnCheckBoxes;
             vm.PropertyChanged -= OnViewModelPropertyChanged;
             vm.PropertyChanged += OnViewModelPropertyChanged;
+            vm.Systems.CollectionChanged -= OnSystemsChanged;
+            vm.Systems.CollectionChanged += OnSystemsChanged;
             RefreshColumnCheckBoxes();
             BuildRecentMenuItems();
             BuildSystemMenuItems();
@@ -109,10 +113,14 @@ public partial class MenuView : UserControl
 
     private void RefreshColumnMenuVisibility()
     {
-        var isEsDe = SharedDataService.Instance.IsEsDeMode;
+        var profileType = SharedDataService.Instance.ProfileType;
         foreach (var (item, decl) in _columnMenuItems)
         {
-            item.IsVisible = isEsDe ? !decl.StandardOnly : !decl.EsDeOnly;
+            item.IsVisible = profileType switch
+            {
+                SettingKeys.ProfileTypeEsDe => !decl.EsOnly,
+                _ => !decl.EsDeOnly
+            };
         }
     }
 
@@ -183,6 +191,11 @@ public partial class MenuView : UserControl
             vm.OpenSystemGamelistCommand.Execute(path);
             SystemsButton.Flyout?.Hide();
         }
+    }
+
+    private void OnSystemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        BuildSystemMenuItems();
     }
 
     private void BuildSystemMenuItems()

@@ -15,6 +15,14 @@ public partial class MediaPreviewViewModel
 {
     public IReadOnlyList<ScraperConfig> Scrapers => ScraperRegistry.All;
 
+    // Returns false for arcade-only scrapers when the current system is not an arcade system.
+    public bool IsScraperAvailable(ScraperConfig scraper)
+    {
+        if (!scraper.ArcadeOnly) return true;
+        var system = _sharedData.CurrentSystem ?? string.Empty;
+        return ArcadeSystemIDHelper.IsInitialized && ArcadeSystemIDHelper.HasArcadeSystemName(system);
+    }
+
     private bool CanScrapeGame() => !IsScraping && SelectedGame != null;
 
     [RelayCommand(CanExecute = nameof(CanScrapeGame))]
@@ -77,13 +85,15 @@ public partial class MediaPreviewViewModel
             baseParameters.OverwriteMetadata = OverwriteMetadata;
 
             var scraperService = Startup.Services.GetRequiredService<ScraperService>();
+            scraperService.LogAction = (message, level, _, _) =>
+            {
+                if (level == LogLevel.Error)
+                    SetScraperStatus(message, "error");
+            };
 
             if (!await scraperService.InitializeScraperAsync(
                 baseParameters, scraperProperties, currentSystem))
-            {
-                SetScraperStatus("Could not initialize scraper.", "error");
                 return;
-            }
 
             var (success, data) = await scraperService.ScrapeGameAsync(
                 SelectedGame, baseParameters, scraperProperties, scraperName);

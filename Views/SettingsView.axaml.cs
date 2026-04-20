@@ -39,22 +39,78 @@ namespace Gamelist_Manager.Views
                     mainVm.RefreshProfiles();
             };
 
-            // Confirm save before switching profiles if dirty
+            // Confirm before switching profiles — accounts for unsaved settings and/or a loaded gamelist
             ViewModel.ConfirmSwitchProfileRequested += async (_, profileName) =>
             {
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                var mainVm = Owner is MainWindow { DataContext: MainWindowViewModel vm } ? vm : null;
+                var isDirty = ViewModel.IsDirty;
+                var gamelistLoaded = mainVm?.IsGamelistLoaded ?? false;
+
+                // If the gamelist has unsaved changes, ask about those first via the standard dialog.
+                // If the user cancels there, abort the profile switch entirely.
+                if (gamelistLoaded && mainVm != null)
                 {
-                    Title = "Switch Profile",
-                    Message = $"Switch to profile '{profileName}'?",
-                    DetailMessage = "You have unsaved changes. Do you want to save them first?",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "Cancel",
-                    Button2Text = "Don't Save",
-                    Button3Text = "Save"
-                });
-                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+                    if (!await mainVm.CheckUnsavedChangesAsync())
+                        return;
+                }
+
+                // Nothing else to warn about — switch immediately.
+                if (!isDirty && !gamelistLoaded)
+                {
+                    mainVm?.UnloadGamelist();
+                    ViewModel.DoSwitchProfile(saveFirst: false);
+                    return;
+                }
+
+                ThreeButtonDialogConfig config;
+
+                if (isDirty && gamelistLoaded)
+                {
+                    config = new ThreeButtonDialogConfig
+                    {
+                        Title = "Switch Profile",
+                        Message = $"Switch to profile '{profileName}'?",
+                        DetailMessage = "You have unsaved settings changes. Do you want to save them first?\n\nThe current gamelist will also be unloaded.",
+                        IconTheme = DialogIconTheme.Warning,
+                        Button1Text = "Cancel",
+                        Button2Text = "Don't Save",
+                        Button3Text = "Save"
+                    };
+                }
+                else if (isDirty)
+                {
+                    config = new ThreeButtonDialogConfig
+                    {
+                        Title = "Switch Profile",
+                        Message = $"Switch to profile '{profileName}'?",
+                        DetailMessage = "You have unsaved settings changes. Do you want to save them first?",
+                        IconTheme = DialogIconTheme.Warning,
+                        Button1Text = "Cancel",
+                        Button2Text = "Don't Save",
+                        Button3Text = "Save"
+                    };
+                }
+                else
+                {
+                    // gamelistLoaded only — gamelist has no unsaved changes (already handled above)
+                    config = new ThreeButtonDialogConfig
+                    {
+                        Title = "Switch Profile",
+                        Message = $"Switch to profile '{profileName}'?",
+                        DetailMessage = "The current gamelist will be unloaded.",
+                        IconTheme = DialogIconTheme.Warning,
+                        Button1Text = "Cancel",
+                        Button2Text = "",
+                        Button3Text = "Switch"
+                    };
+                }
+
+                var result = await new ThreeButtonDialogView(config).ShowDialog<ThreeButtonResult>(this);
                 if (result == ThreeButtonResult.Button1) return;
-                ViewModel.DoSwitchProfile(saveFirst: result == ThreeButtonResult.Button3);
+
+                mainVm?.UnloadGamelist();
+                mainVm?.ApplyProfileSwitch(profileName);
+                ViewModel.DoSwitchProfile(saveFirst: isDirty && result == ThreeButtonResult.Button3);
             };
 
             // Confirm before deleting a profile
@@ -120,40 +176,44 @@ namespace Gamelist_Manager.Views
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)
         {
-            if (ViewModel.IsDirty)
+            if (!ViewModel.IsDirty)
             {
-                e.Cancel = true;
-
-                // Show save confirmation dialog for settings
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                {
-                    Title = "Save Settings",
-                    Message = "Do you want to save changes to settings?",
-                    DetailMessage = "You have unsaved changes that will be lost if you don't save.",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "Cancel",
-                    Button2Text = "Don't Save",
-                    Button3Text = "Save"
-                });
-                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-
-                if (result == ThreeButtonResult.Button1) return; // Cancel
-
-                if (result == ThreeButtonResult.Button3) // Save
-                {
-                    var errors = ViewModel.ValidateAndTrimPaths();
-                    if (errors.Count > 0)
-                    {
-                        // show error dialog
-                        return; // stay open
-                    }
-                    ViewModel.SaveSettings();
-                }
-
-                // Reaches here only for DontSave or successful Save
+                KeyDown -= SettingsWindow_KeyDown;
                 Closing -= SettingsWindow_Closing;
-                Close();
+                return;
             }
+
+            e.Cancel = true;
+
+            // Show save confirmation dialog for settings
+            var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+            {
+                Title = "Save Settings",
+                Message = "Do you want to save changes to settings?",
+                DetailMessage = "You have unsaved changes that will be lost if you don't save.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "Don't Save",
+                Button3Text = "Save"
+            });
+            var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+
+            if (result == ThreeButtonResult.Button1) return; // Cancel
+
+            if (result == ThreeButtonResult.Button3) // Save
+            {
+                var errors = ViewModel.ValidateAndTrimPaths();
+                if (errors.Count > 0)
+                {
+                    // show error dialog
+                    return; // stay open
+                }
+                ViewModel.SaveSettings();
+            }
+
+            KeyDown -= SettingsWindow_KeyDown;
+            Closing -= SettingsWindow_Closing;
+            Close();
         }
 
         private void SettingsWindow_KeyDown(object? sender, KeyEventArgs e)

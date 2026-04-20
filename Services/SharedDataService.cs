@@ -14,9 +14,9 @@ namespace Gamelist_Manager.Services
     {
         #region Private Fields
 
-        private static SharedDataService? _instance;
-        private readonly SettingsService _settings;
-        private bool _isEsDeMode;
+            private static SharedDataService? _instance;
+            private readonly SettingsService _settings;
+            private string _profileType = SettingKeys.ProfileTypeEs;
 
         #endregion
 
@@ -62,11 +62,10 @@ namespace Gamelist_Manager.Services
 
         #endregion
 
-        #region ES-DE Properties
+        #region Profile Properties
 
-        // Whether the active profile is configured for ES-DE. Cached on LoadFromSettings()
-        // so it doesn't re-read the INI on every access.
-        public bool IsEsDeMode => _isEsDeMode;
+        // The active profile type string (e.g. "es" or "esde"). Cached on LoadFromSettings().
+        public string ProfileType => _profileType;
 
         // Resolved media path for the currently loaded system.
         // Uses the configured EsDeMediaBase (from es_settings.xml) with the system name appended.
@@ -97,19 +96,10 @@ namespace Gamelist_Manager.Services
                 ? Path.GetDirectoryName((string?)XmlFilename)
                 : null;
 
-        public string? RomScanDirectory
-        {
-            get
-            {
-                if (IsEsDeMode)
-                {
-                    if (string.IsNullOrEmpty(RomsFolder) || string.IsNullOrEmpty(CurrentSystem))
-                        return null;
-                    return Path.Combine(RomsFolder, CurrentSystem);
-                }
-                return GamelistDirectory;
-            }
-        }
+        public string? RomScanDirectory =>
+            !string.IsNullOrEmpty(RomsFolder) && !string.IsNullOrEmpty(CurrentSystem)
+                ? Path.Combine(RomsFolder, CurrentSystem)
+                : null;
 
         // Keyed by media type string (e.g. "image", "video").
         public IReadOnlyDictionary<string, MediaTypeSettings> MediaSettings { get; private set; }
@@ -214,7 +204,7 @@ namespace Gamelist_Manager.Services
             }
             MediaSettings = mediaSettingsDict;
 
-            RefreshEsDeMode();
+            RefreshProfileState();
 
             SettingsApplied?.Invoke(this, EventArgs.Empty);
         }
@@ -275,26 +265,33 @@ namespace Gamelist_Manager.Services
 
         #region Private Methods
 
-        private void RefreshEsDeMode()
+        private void RefreshProfileState()
         {
             var settings = _settings;
 
-            var newValue = string.Equals(
-                settings.GetValue(SettingKeys.ProfileType),
-                SettingKeys.ProfileTypeEsDe,
-                System.StringComparison.OrdinalIgnoreCase);
+            var rawType = settings.GetValue(SettingKeys.ProfileType);
+            var resolvedType = string.Equals(rawType, SettingKeys.ProfileTypeEsDe, System.StringComparison.OrdinalIgnoreCase)
+                ? SettingKeys.ProfileTypeEsDe
+                : SettingKeys.ProfileTypeEs;
 
-            if (_isEsDeMode != newValue)
+            if (_profileType != resolvedType)
             {
-                _isEsDeMode = newValue;
-                OnPropertyChanged(nameof(IsEsDeMode));
+                _profileType = resolvedType;
+                OnPropertyChanged(nameof(ProfileType));
             }
 
             EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
 
-            // Always re-detect from es_settings.xml — the user may have changed paths outside this app.
-            var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
-            EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+            if (resolvedType == SettingKeys.ProfileTypeEsDe)
+            {
+                var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
+                EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+                RomsFolder = detected.RomDirectory ?? string.Empty;
+            }
+            else
+            {
+                EsDeMediaBase = string.Empty;
+            }
         }
 
         #endregion

@@ -124,13 +124,20 @@ public partial class MediaButtonView : UserControl
         var items = new List<object>();
         foreach (var scraper in ScraperRegistry.All)
         {
-            var scraperItem = new MenuItem { Header = scraper.Name };
+            var preview = FindMediaPreviewViewModel();
+            bool available = preview?.IsScraperAvailable(scraper) ?? true;
             var scraperName = scraper.Name;
+            var scraperItem = new MenuItem
+            {
+                Header = scraper.Name,
+                IsEnabled = available,
+                Opacity = available ? 1.0 : 0.4
+            };
             scraperItem.Click += (s, e) =>
             {
-                var preview = FindMediaPreviewViewModel();
-                if (preview != null)
-                    _ = preview.ReScrapeGameAsync(scraperName, [mediaItem.MediaTypeKey]);
+                var vm = FindMediaPreviewViewModel();
+                if (vm != null)
+                    _ = vm.ReScrapeGameAsync(scraperName, [mediaItem.MediaTypeKey]);
             };
             items.Add(scraperItem);
         }

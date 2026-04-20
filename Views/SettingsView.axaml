@@ -723,15 +723,13 @@
 								</Grid>
 								<StackPanel Orientation="Horizontal" Spacing="12">
 									<RadioButton Content="ES"
-												 GroupName="ProfileType"
-												 IsChecked="{Binding IsNewProfileTypeEsDe, Converter={x:Static BoolConverters.Not}}"
-												 FontSize="{DynamicResource GlobalFontSize}"
-												 ToolTip.Tip="Create a standard EmulationStation profile."/>
+														 GroupName="ProfileType"
+														 FontSize="{DynamicResource GlobalFontSize}"
+														 ToolTip.Tip="Create a standard EmulationStation profile."/>
 									<RadioButton Content="ES-DE"
-												 GroupName="ProfileType"
-												 IsChecked="{Binding IsNewProfileTypeEsDe}"
-												 FontSize="{DynamicResource GlobalFontSize}"
-												 ToolTip.Tip="Create an ES-DE profile type. This affects how gamelists and media paths are handled."/>
+														 GroupName="ProfileType"
+														 FontSize="{DynamicResource GlobalFontSize}"
+														 ToolTip.Tip="Create an ES-DE profile type. This affects how gamelists and media paths are handled."/>
 								</StackPanel>
 
 								<!-- From Template sub-section -->

@@ -28,7 +28,7 @@ namespace Gamelist_Manager.Services
         public bool NoProfilesExist { get; private set; }
 
         private ProfileService()
-        {
+        {           
             _instance = this; // Break the circular dependency early
 
             _iniFolder = Path.Combine(AppContext.BaseDirectory, "ini");

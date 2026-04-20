@@ -54,16 +54,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsScraping => _sharedData.IsScraping;
     public bool IsBusy => _sharedData.IsBusy;
     public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_sharedData.Hostname);
-    public bool IsNewGamelistEnabled
-    {
-        get
-        {
-            bool romsOk = !string.IsNullOrWhiteSpace(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder);
-            return _sharedData.IsEsDeMode
-                ? romsOk && !string.IsNullOrWhiteSpace(_sharedData.EsDeRoot) && Directory.Exists(_sharedData.EsDeRoot)
-                : romsOk;
-        }
-    }
+    public bool IsNewGamelistEnabled =>
+        !string.IsNullOrWhiteSpace(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder);
     public bool IsEditModeEnabled
     {
         get => _sharedData.EnableEdit;
@@ -295,8 +287,8 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Private Methods
-   
-    private void UnloadGamelist()
+
+    internal void UnloadGamelist()
     {
         _isLoadingData = true;
         _sourceCache.Clear();

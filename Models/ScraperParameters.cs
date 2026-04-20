@@ -1,4 +1,5 @@
-﻿using Gamelist_Manager.Services;
+﻿using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -85,9 +86,11 @@ namespace Gamelist_Manager.Models
 
         public static ScraperParameters Create(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
         {
-            return sharedData.IsEsDeMode
-                ? CreateForEsDeProfile(sharedData, scraperName, currentSystem, elementsToScrape)
-                : CreateForStandardProfile(sharedData, scraperName, currentSystem, elementsToScrape);
+            return sharedData.ProfileType switch
+            {
+                SettingKeys.ProfileTypeEsDe => CreateForEsDeProfile(sharedData, scraperName, currentSystem, elementsToScrape),
+                _ => CreateForStandardProfile(sharedData, scraperName, currentSystem, elementsToScrape)
+            };
         }
 
         private static ScraperParameters CreateForStandardProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)

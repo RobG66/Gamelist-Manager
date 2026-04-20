@@ -179,7 +179,7 @@ namespace Gamelist_Manager.Services
             // Update elements — id is saved as an attribute above, not a child element.
             // In ES-DE mode, skip media fields — they are populated at load time from the
             // filesystem and must not be written back into the XML.
-            var isEsDe = SharedDataService.Instance.IsEsDeMode;
+            var isEsDe = SharedDataService.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
             foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
@@ -223,7 +223,7 @@ namespace Gamelist_Manager.Services
 
             // Add all metadata elements — id is saved as an attribute above, not a child element.
             // In ES-DE mode, skip media fields (runtime-only, resolved from filesystem at load time).
-            var isEsDe = SharedDataService.Instance.IsEsDeMode;
+            var isEsDe = SharedDataService.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
             foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;

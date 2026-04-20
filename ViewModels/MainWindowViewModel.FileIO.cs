@@ -116,21 +116,17 @@ public partial class MainWindowViewModel
         IStorageFolder? suggestedStart = null;
         try
         {
-            string? startPath = null;
-            if (_sharedData.IsEsDeMode)
+            var profileType = _sharedData.ProfileType;
+            var startPath = profileType switch
             {
-                var gamelistsFolder = !string.IsNullOrEmpty(_sharedData.EsDeRoot)
-                    ? Path.Combine(_sharedData.EsDeRoot, "gamelists")
-                    : null;
-                if (gamelistsFolder != null && Directory.Exists(gamelistsFolder))
-                    startPath = gamelistsFolder;
-            }
-            else if (!string.IsNullOrEmpty(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder))
-            {
-                startPath = _sharedData.RomsFolder;
-            }
+                SettingKeys.ProfileTypeEsDe when !string.IsNullOrEmpty(_sharedData.EsDeRoot)
+                    => Path.Combine(_sharedData.EsDeRoot, "gamelists"),
+                _ when !string.IsNullOrEmpty(_sharedData.RomsFolder)
+                    => _sharedData.RomsFolder,
+                _ => null
+            };
 
-            if (startPath != null)
+            if (startPath != null && Directory.Exists(startPath))
                 suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
         }
         catch { }
@@ -183,9 +179,11 @@ public partial class MainWindowViewModel
     {
         if (!await CheckUnsavedChangesAsync()) return;
 
-        var rootFolder = _sharedData.IsEsDeMode
-            ? Path.Combine(Path.TrimEndingDirectorySeparator(_sharedData.EsDeRoot), "gamelists")
-            : Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder);
+        var rootFolder = _sharedData.ProfileType switch
+        {
+            SettingKeys.ProfileTypeEsDe => Path.Combine(Path.TrimEndingDirectorySeparator(_sharedData.EsDeRoot), "gamelists"),
+            _ => Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder)
+        };
 
         var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             ? desktop.MainWindow
@@ -212,7 +210,7 @@ public partial class MainWindowViewModel
         var parent = Path.GetDirectoryName(selectedFolder);
         if (!string.Equals(parent, rootFolder, FilePathHelper.PathComparison))
         {
-            var rootLabel = _sharedData.IsEsDeMode ? "ES-DE gamelists folder" : "ROMs folder";
+            var rootLabel = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe ? "ES-DE gamelists folder" : "ROMs folder";
             await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
                 Title = "New Gamelist",
@@ -282,13 +280,16 @@ public partial class MainWindowViewModel
     {
         Systems.Clear();
 
-        var scanFolder = _sharedData.IsEsDeMode
-            ? Path.Combine(_sharedData.EsDeRoot, "gamelists")
-            : _sharedData.RomsFolder;
+        var profileType = _sharedData.ProfileType;
+        var scanFolder = profileType switch
+        {
+            SettingKeys.ProfileTypeEsDe => Path.Combine(_sharedData.EsDeRoot, "gamelists"),
+            _ => _sharedData.RomsFolder
+        };
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
         {
-            StatusText = _sharedData.IsEsDeMode ? "Set ES-DE root folder in Settings" : "Set ROMs folder in Settings";
+            StatusText = profileType == SettingKeys.ProfileTypeEsDe ? "Set ES-DE root folder in Settings" : "Set ROMs folder in Settings";
             IsSystemsComboBoxEnabled = false;
             return;
         }
@@ -306,7 +307,7 @@ public partial class MainWindowViewModel
 
         IsSystemsComboBoxEnabled = Systems.Count > 0;
         StatusText = Systems.Count == 0
-            ? (_sharedData.IsEsDeMode ? "No systems found in ES-DE gamelists folder" : "No systems found in ROMs folder")
+            ? (profileType == SettingKeys.ProfileTypeEsDe ? "No systems found in ES-DE gamelists folder" : "No systems found in ROMs folder")
             : string.Empty;
     }
 
@@ -334,7 +335,7 @@ public partial class MainWindowViewModel
         _settingsService.SaveRecentFiles(_sharedData.RecentFiles.Select(r => r.FilePath).ToList());
     }
 
-    private async Task<bool> CheckUnsavedChangesAsync()
+    internal async Task<bool> CheckUnsavedChangesAsync()
     {
         if (!_sharedData.IsDataChanged || !_sharedData.EnableSaveReminder)
             return true;
@@ -415,7 +416,7 @@ public partial class MainWindowViewModel
 
             // In ES-DE mode, resolve media paths from the filesystem and write them into
             // the row values so all downstream consumers work without mode branching.
-            if (_sharedData.IsEsDeMode)
+            if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
             {
                 var mediaDir = _sharedData.EsDeMediaDirectory;
                 await Task.Run(() => PopulateMediaPaths(loadedGames, mediaDir));

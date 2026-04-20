@@ -140,30 +140,6 @@ public partial class SettingsViewModel
         }
     }
 
-    private void SaveScraperSetup()
-    {
-        var scraperName = SetupScraperName;
-
-        if (IsSetupRequiresCredentials &&
-            !string.IsNullOrWhiteSpace(ScraperUsername) &&
-            !string.IsNullOrWhiteSpace(ScraperPassword))
-        {
-            CredentialHelper.SaveCredentials(scraperName, ScraperUsername, ScraperPassword);
-        }
-
-        if (IsSetupScreenScraper)
-        {
-            var settings = SettingsService.Instance;
-            settings.SetValue(SettingKeys.ScraperSection, "ScreenScraper_Language", SelectedScraperLanguage ?? string.Empty);
-            settings.SetValue(SettingKeys.ScraperSection, "ScreenScraper_PrimaryRegion", SelectedScraperPrimaryRegion ?? string.Empty);
-            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_GenreEnglish", ScraperGenreAlwaysEnglish);
-            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_AnyMedia", ScraperScrapeAnyMedia);
-            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_NamesLanguageFirst", ScraperNamesLanguageFirst);
-            settings.SetBool(SettingKeys.ScraperSection, "ScreenScraper_MediaRegionFirst", ScraperMediaRegionFirst);
-            settings.SetValue(SettingKeys.ScraperSection, "ScreenScraper_RegionFallback", JsonSerializer.Serialize(ScraperFallbackRegions.ToList()));
-        }
-    }
-
     #endregion
 
     #region Commands

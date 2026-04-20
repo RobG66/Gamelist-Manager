@@ -96,17 +96,9 @@ public partial class SettingsViewModel
     public void DoSwitchProfile(bool saveFirst)
     {
         if (saveFirst) SaveSettings();
-        ProfileService.Instance.SetActiveProfile(SelectedProfileName);
-        SettingsService.Instance.SwitchProfile(ProfileService.Instance.ActiveProfilePath);
 
-        // Refresh shared data first so IsEsDeMode is correct before LoadSettings reads it.
-        SharedDataService.Instance.LoadFromSettings();
+        // Refresh settings panel to reflect the newly active profile.
         LoadSettings();
-
-        // Save immediately so any missing keys are written with their defaults
-        // and the INI file stays normalized after a profile switch.
-        SaveSettings();
-        SharedDataService.Instance.LoadFromSettings();
         RefreshProfileList();
         ProfilesChanged?.Invoke(this, EventArgs.Empty);
         IsDirty = false;
@@ -214,12 +206,7 @@ public partial class SettingsViewModel
     [RelayCommand(CanExecute = nameof(CanSetActiveProfile))]
     private void SetActiveProfile()
     {
-        if (IsDirty)
-        {
-            ConfirmSwitchProfileRequested?.Invoke(this, SelectedProfileName);
-            return;
-        }
-        DoSwitchProfile(saveFirst: false);
+        ConfirmSwitchProfileRequested?.Invoke(this, SelectedProfileName);
     }
 
     [RelayCommand]

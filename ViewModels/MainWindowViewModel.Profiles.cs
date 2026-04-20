@@ -80,19 +80,18 @@ public partial class MainWindowViewModel
     // Returns true if the load should proceed, false if it should be aborted.
     internal async Task<bool> EnsureMatchingProfileAsync(string gamelistPath)
     {
-        var gamelistIsEsDe = IsEsDeGamelistPath(gamelistPath);
-        var profileIsEsDe = _sharedData.IsEsDeMode;
+        var gamelistType = IsEsDeGamelistPath(gamelistPath) ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
+        var profileType = _sharedData.ProfileType;
 
-        if (gamelistIsEsDe == profileIsEsDe)
+        if (string.Equals(gamelistType, profileType, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        var requiredType = gamelistIsEsDe ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
-        var requiredLabel = gamelistIsEsDe ? EsDeLabel : EsLabel;
+        var requiredLabel = gamelistType == SettingKeys.ProfileTypeEsDe ? EsDeLabel : EsLabel;
 
         // Find existing profiles whose type matches what is required.
         var matchingProfiles = _profileService.GetProfiles()
             .Where(p => string.Equals(
-                _profileService.GetProfileType(p), requiredType, StringComparison.OrdinalIgnoreCase))
+                _profileService.GetProfileType(p), gamelistType, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         string switchTo;
@@ -121,7 +120,7 @@ public partial class MainWindowViewModel
         else
         {
             // No matching profile exists — offer to create one automatically.
-            var suggestedName = gamelistIsEsDe ? EsDeLabel : EsLabel;
+            var suggestedName = gamelistType == SettingKeys.ProfileTypeEsDe ? EsDeLabel : EsLabel;
             var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
                 Title = "Profile Mismatch",
@@ -136,7 +135,7 @@ public partial class MainWindowViewModel
 
             if (result != ThreeButtonResult.Button3) return false;
 
-            var created = _profileService.CreateTypedProfile(suggestedName, requiredType);
+            var created = _profileService.CreateTypedProfile(suggestedName, gamelistType);
             if (created == null) return false;
 
             switchTo = created;
@@ -145,7 +144,7 @@ public partial class MainWindowViewModel
         ApplyProfileSwitch(switchTo);
         RefreshProfiles();
 
-        if (gamelistIsEsDe)
+        if (gamelistType == SettingKeys.ProfileTypeEsDe)
             await PromptEsDeRootAsync($"The active profile has been switched to '{switchTo}'.");
 
         return true;
@@ -227,13 +226,30 @@ public partial class MainWindowViewModel
         if (!await CheckUnsavedChangesAsync())
             return;
 
+        if (IsGamelistLoaded)
+        {
+            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Switch Profile",
+                Message = $"Switch to profile '{profileName}'?",
+                DetailMessage = "The current gamelist will be unloaded.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "",
+                Button3Text = "Switch"
+            });
+
+            if (result != ThreeButtonResult.Button3)
+                return;
+        }
+
         UnloadGamelist();
         ApplyProfileSwitch(profileName);
     }
     #endregion
 
     #region Private Methods
-    private void ApplyProfileSwitch(string profileName)
+    internal void ApplyProfileSwitch(string profileName)
     {
         _profileService.SetActiveProfile(profileName);
         _settingsService.SwitchProfile(_profileService.ActiveProfilePath);

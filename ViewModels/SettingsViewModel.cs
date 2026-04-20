@@ -4,6 +4,7 @@ using Gamelist_Manager.Services;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Text.Json;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -33,14 +34,20 @@ public partial class SettingsViewModel : ViewModelBase
 
     public SettingsViewModel()
     {
+        _isLoading = true;
         InitializeMediaFolderItems();
+        _isLoading = false;
         LoadSettings();
-        LoadTemplates();
 
         PropertyChanged += (_, e) =>
         {
-            if (!_isLoading && e.PropertyName != nameof(IsDirty))
-                IsDirty = true;
+            if (_isLoading) return;
+            if (e.PropertyName is nameof(IsDirty)
+                               or nameof(SelectedProfileName)
+                               or nameof(SelectedProfileIsEsDe)
+                               or nameof(SelectedProfileEsDeMediaRoot))
+                return;
+            IsDirty = true;
         };
     }
 
@@ -49,7 +56,7 @@ public partial class SettingsViewModel : ViewModelBase
     #region Load / Save / Reset
 
     public void LoadSettings()
-    {
+    {        
         _isLoading = true;
 
         var settings = SettingsService.Instance;
@@ -91,7 +98,8 @@ public partial class SettingsViewModel : ViewModelBase
         RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key,
                    settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder.Key));
 
-        var isEsDe = _sharedData.IsEsDeMode;
+        var profileType = settings.GetValue(SettingKeys.ProfileType);
+        var isEsDe = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase);
         foreach (var item in MediaFolderItems)
         {
             item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
@@ -105,7 +113,18 @@ public partial class SettingsViewModel : ViewModelBase
 
         LoadScraperCredentials();
         RefreshProfileList();
-        LoadEsDeSettings();
+
+        if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+        {
+            EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
+            EsDeMediaBase = _sharedData.EsDeMediaBase;
+        }
+
+        RomsPath = _sharedData.RomsFolder;
+
+        OnPropertyChanged(nameof(IsEsDeProfile));
+        OnPropertyChanged(nameof(EsDePathsVisible));
+        OnPropertyChanged(nameof(SuffixesEnabled));
 
         IsDirty = false;
         _isLoading = false;
@@ -166,7 +185,7 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.MamePath.Key] = MamePath,
                 [SettingKeys.RomsFolder.Key] = RomsPath
             },
-            [SettingKeys.MediaPathsSection] = _sharedData.IsEsDeMode
+            [SettingKeys.MediaPathsSection] = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe
                 ? MediaFolderItems
                     .Select(item => new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString()))
                     .ToDictionary(kv => kv.Key, kv => kv.Value)
@@ -181,10 +200,44 @@ public partial class SettingsViewModel : ViewModelBase
                     .ToDictionary(kv => kv.Key, kv => kv.Value)
         };
 
+        // Scraper credentials are stored in a separate file, save them first.
+        if (IsSetupRequiresCredentials &&
+            !string.IsNullOrWhiteSpace(ScraperUsername) &&
+            !string.IsNullOrWhiteSpace(ScraperPassword))
+        {
+            CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
+        }
+
+        // ScreenScraper-specific settings
+        if (IsSetupScreenScraper)
+        {
+            settings[SettingKeys.ScraperSection] = new()
+            {
+                ["ScreenScraper_Language"] = SelectedScraperLanguage ?? string.Empty,
+                ["ScreenScraper_PrimaryRegion"] = SelectedScraperPrimaryRegion ?? string.Empty,
+                ["ScreenScraper_GenreEnglish"] = ScraperGenreAlwaysEnglish.ToString(),
+                ["ScreenScraper_AnyMedia"] = ScraperScrapeAnyMedia.ToString(),
+                ["ScreenScraper_NamesLanguageFirst"] = ScraperNamesLanguageFirst.ToString(),
+                ["ScreenScraper_MediaRegionFirst"] = ScraperMediaRegionFirst.ToString(),
+                ["ScreenScraper_RegionFallback"] = JsonSerializer.Serialize(ScraperFallbackRegions.ToList()),
+            };
+        }
+
+        // ES-DE / profile type settings
+        settings[SettingKeys.ProfileSection] = new()
+        {
+            [SettingKeys.ProfileType.Key] = _sharedData.ProfileType,
+        };
+        if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+        {
+            settings[SettingKeys.EsDeSection] = new()
+            {
+                [SettingKeys.EsDeRoot.Key] = EsDeRoot,
+            };
+        }
+
         SettingsService.Instance.SaveAllSettings(settings);
 
-        SaveScraperSetup();
-        SaveEsDeSettings();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex);
         _sharedData.LoadFromSettings();
 

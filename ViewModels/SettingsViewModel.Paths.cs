@@ -21,10 +21,6 @@ public partial class SettingsViewModel
     private string _romsPath = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(EsDePathsVisible))]
-    private bool _isEsDeProfile;
-
-    [ObservableProperty]
     private string _esDeRoot = string.Empty;
 
     [ObservableProperty]
@@ -36,11 +32,13 @@ public partial class SettingsViewModel
 
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
 
+    public bool IsEsDeProfile => _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
+   
     // False when in ES-DE mode — suffixes have no meaning for ES-DE gamelists.
-    public bool SuffixesEnabled => !_sharedData.IsEsDeMode;
+    public bool SuffixesEnabled => _sharedData.ProfileType != SettingKeys.ProfileTypeEsDe;
 
     // Controls visibility of the ES-DE Root row in the Paths tab.
-    public bool EsDePathsVisible => IsEsDeProfile;
+    public bool EsDePathsVisible => _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
 
     #endregion
 
@@ -48,6 +46,7 @@ public partial class SettingsViewModel
 
     private void InitializeMediaFolderItems()
     {
+        MediaFolderItems.Clear();
         foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
         {
             var item = new MediaFolderItem
@@ -99,29 +98,6 @@ public partial class SettingsViewModel
         var detected = SettingsService.ReadPathsFromEsDeSettings(chosen);
         RomsPath = detected.RomDirectory ?? string.Empty;
         EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
-    }
-
-    #endregion
-
-    #region Internal Methods
-
-    internal void LoadEsDeSettings()
-    {
-        var profileType = SettingsService.Instance.GetValue(SettingKeys.ProfileType);
-        IsEsDeProfile = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, System.StringComparison.OrdinalIgnoreCase);
-        EsDeRoot = SettingsService.Instance.GetValue(SettingKeys.EsDeRoot);
-
-        // Always re-detect — the user may have changed es_settings.xml outside this app.
-        var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
-        RomsPath = detected.RomDirectory ?? string.Empty;
-        EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
-    }
-
-    internal void SaveEsDeSettings()
-    {
-        SettingsService.Instance.SetValue(SettingKeys.ProfileType.Section, SettingKeys.ProfileType.Key,
-            IsEsDeProfile ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs);
-        SettingsService.Instance.SetValue(SettingKeys.EsDeRoot.Section, SettingKeys.EsDeRoot.Key, EsDeRoot);
     }
 
     #endregion
@@ -186,7 +162,7 @@ public partial class SettingsViewModel
                 // as the collision key rather than the generic relative path.
                 string effectivePath;
                 string effectiveSuffix;
-                if (_sharedData.IsEsDeMode)
+                if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
                 {
                     effectivePath = item.EsDeFolderName.ToLowerInvariant();
                     effectiveSuffix = "";

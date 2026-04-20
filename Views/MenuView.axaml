@@ -506,7 +506,7 @@
             </Button>
                         
             <!-- REMOTE Menu -->
-            <Button Classes="NavButton" x:Name="RemoteButton" ToolTip.Tip="Remote operations" IsEnabled="False"
+            <Button Classes="NavButton" x:Name="RemoteButton" ToolTip.Tip="Not Implemented Yet!" IsEnabled="False"
                     IsVisible="{Binding IsRemoteVisible}">
                 <Button.Flyout>
                     <MenuFlyout Placement="Right">

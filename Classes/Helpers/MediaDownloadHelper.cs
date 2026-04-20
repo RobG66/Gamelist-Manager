@@ -1,4 +1,5 @@
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System;
 using System.IO;
 using System.Threading;
@@ -18,6 +19,8 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             if (scrapedData.Media == null || scrapedData.Media.Count == 0)
                 return;
+
+            var profileType = SharedDataService.Instance.ProfileType;
 
             foreach (var mediaResult in scrapedData.Media)
             {
@@ -61,9 +64,14 @@ namespace Gamelist_Manager.Classes.Helpers
 
                     if (downloadSuccess)
                     {
-                        // Derive the gamelist entry from the actual saved path — avoids any double-prefix
-                        // issues with mediaFolder values that already carry a "./" prefix.
-                        scrapedData.Data[mediaType] = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, parameters.ParentFolderPath!);
+                        // ES-DE does not store media paths in the gamelist — they are resolved from the
+                        // filesystem at load time using absolute paths. All other profiles store a
+                        // gamelist-relative path with a "./" prefix.
+                        scrapedData.Data[mediaType] = profileType switch
+                        {
+                            SettingKeys.ProfileTypeEsDe => fullPath,
+                            _ => FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, parameters.ParentFolderPath!)
+                        };
                         recordDownload(mediaType);
                         log?.Invoke($"{mediaType}{regionDisplay}: {Path.GetFileName(fullPath)}", LogLevel.Default, LogPrefix.Download, LogLevel.Success);
                     }

@@ -54,7 +54,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> IgnoreDuplicates = new(BehaviorSection, "IgnoreDuplicates", false);
     public static readonly SettingDef<bool> BatchProcessing = new(BehaviorSection, "BatchProcessing", true);
     public static readonly SettingDef<bool> ShowLogTimestamp = new(BehaviorSection, "ShowLogTimestamp", false);
-    public static readonly SettingDef<int> ScraperConfigSave = new(BehaviorSection, "ScraperConfigSave", 0);
+    public static readonly SettingDef<int> ScraperConfigSave = new(BehaviorSection, "ScraperConfigSave", 1);
 
     #endregion
 

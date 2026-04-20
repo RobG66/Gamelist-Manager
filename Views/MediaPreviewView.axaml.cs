@@ -40,6 +40,7 @@ public partial class MediaPreviewView : UserControl
         foreach (var scraper in _viewModel.Scrapers)
         {
             var scraperName = scraper.Name;
+            bool available = _viewModel.IsScraperAvailable(scraper);
             var item = new Button
             {
                 Content = scraperName,
@@ -50,7 +51,9 @@ public partial class MediaPreviewView : UserControl
                 HorizontalContentAlignment = HorizontalAlignment.Left,
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
-                Padding = new Thickness(8, 6)
+                Padding = new Thickness(8, 6),
+                IsEnabled = available,
+                Opacity = available ? 1.0 : 0.4
             };
             item.Click += (_, _) => flyout?.Hide();
             panel.Children.Add(item);

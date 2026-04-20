@@ -150,11 +150,17 @@
 					</StackPanel>
 
 					<!-- Centre-right: Scraper status messages -->
-					<StackPanel Grid.Column="1"
-								Orientation="Horizontal"
-								Spacing="8"
-								IsVisible="{Binding ScraperStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-						<Rectangle Width="1" Margin="4,2" Fill="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+						<StackPanel Grid.Column="1"
+									Orientation="Horizontal"
+									Spacing="8"
+									IsVisible="{Binding ScraperStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+							<Rectangle Width="1" Margin="4,2" Fill="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+							<ProgressBar Width="50"
+										 MinWidth="50"
+										 Height="4"
+										 IsIndeterminate="True"
+										 VerticalAlignment="Center"
+										 IsVisible="{Binding IsScraping}"/>
 						<Image Source="/Assets/Icons/checkmark.png"
 							   Width="{DynamicResource GlobalFontSize}"
 							   Height="{DynamicResource GlobalFontSize}"
