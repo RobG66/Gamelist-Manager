@@ -208,7 +208,7 @@
 										<TextBox Text="{Binding SearchDepth}" MaxLength="1" Width="5"
 												 ToolTip.Tip="How many directory levels deep to search for gamelist.xml files when browsing for a new file. (Default: 2)"/>
 									</StackPanel>
-									<StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal">
+									<StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal">
 										<TextBlock Text="Max Recent Files:" VerticalAlignment="Center" Margin="10,0,5,0"
 												   ToolTip.Tip="Maximum number of recently opened files shown in the File menu. (Default: 15)"/>
 										<TextBox Text="{Binding RecentFilesCount}" MaxLength="2"
@@ -224,7 +224,7 @@
 											<ComboBoxItem Content="Verbose"/>
 										</ComboBox>
 									</StackPanel>
-									<StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
+									<StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
 										<TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,5,0"
 												   ToolTip.Tip="Default playback volume for video previews in the media viewer (0 = mute, 100 = full)."/>
 										<Slider Minimum="0" Maximum="100" Width="100" VerticalAlignment="Center" Value="{Binding DefaultVolume}"
@@ -397,18 +397,18 @@
 							</StackPanel>
 						</Border>
 
-										</StackPanel>
-									</ScrollViewer>
-								</TabItem>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
 
-								<!-- Remote Tab -->
-									<TabItem IsVisible="{Binding !IsEsDeProfile}">
-									<TabItem.Header>
-										<StackPanel Orientation="Horizontal" Spacing="4">
-											<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
-											<TextBlock Text="Remote" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
-										</StackPanel>
-									</TabItem.Header>
+			<!-- Remote Tab -->
+			<TabItem IsVisible="{Binding !IsEsDeProfile}">
+				<TabItem.Header>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<TextBlock Text="Remote" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
+					</StackPanel>
+				</TabItem.Header>
 				<ScrollViewer Padding="0,8,0,0" VerticalScrollBarVisibility="Auto">
 					<StackPanel Spacing="8">
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
@@ -709,10 +709,10 @@
 											 ToolTip.Tip="Enter a name for the new profile or the new name when renaming"/>
 									<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
 										<Button Content="Create New"
-												Command="{Binding CreateProfileCommand}"
-												Classes="rounded green"
-												FontSize="{DynamicResource GlobalFontSize}"
-												ToolTip.Tip="Create a new empty profile with this name"/>
+													Command="{Binding CreateNewProfileCommand}"
+													Classes="rounded green"
+													FontSize="{DynamicResource GlobalFontSize}"
+													ToolTip.Tip="Create a new empty profile with this name"/>
 										<Button Content="Copy Active"
 												Command="{Binding CopyProfileCommand}"
 												Classes="rounded green"
@@ -721,15 +721,12 @@
 
 									</StackPanel>
 								</Grid>
-								<StackPanel Orientation="Horizontal" Spacing="12">
-									<RadioButton Content="ES"
-														 GroupName="ProfileType"
-														 FontSize="{DynamicResource GlobalFontSize}"
-														 ToolTip.Tip="Create a standard EmulationStation profile."/>
-									<RadioButton Content="ES-DE"
-														 GroupName="ProfileType"
-														 FontSize="{DynamicResource GlobalFontSize}"
-														 ToolTip.Tip="Create an ES-DE profile type. This affects how gamelists and media paths are handled."/>
+								<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+									<TextBlock Text="Profile Type:" VerticalAlignment="Center"/>
+									<ComboBox ItemsSource="{Binding ProfileTypes}"
+											  SelectedItem="{Binding SelectedProfileType}"
+											  FontSize="{DynamicResource GlobalFontSize}"
+											  ToolTip.Tip="Choose the type for the new profile. ES is standard EmulationStation; ES-DE is for ES-DE installations."/>
 								</StackPanel>
 
 								<!-- From Template sub-section -->

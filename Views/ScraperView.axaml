@@ -348,14 +348,14 @@
                                         </i:Interaction.Behaviors>
                                         <ItemsControl ItemsSource="{Binding LogEntries}" HorizontalAlignment="Stretch">
                                             <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="models:LogEntry">
+                                                <DataTemplate x:DataType="models:LogEntry" x:CompileBindings="False">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" x:CompileBindings="False" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                        <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
                                                                    IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
@@ -385,14 +385,14 @@
                                         </i:Interaction.Behaviors>
                                         <ItemsControl ItemsSource="{Binding DownloadLogEntries}" HorizontalAlignment="Stretch">
                                             <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="models:LogEntry">
+                                                <DataTemplate x:DataType="models:LogEntry" x:CompileBindings="False">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" x:CompileBindings="False" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
+                                                        <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
                                                                    IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>

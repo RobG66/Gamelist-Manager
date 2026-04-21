@@ -277,7 +277,8 @@ namespace Gamelist_Manager.Services
 
                     if (!string.IsNullOrWhiteSpace(romDir))
                     {
-                        var trimmed = Path.TrimEndingDirectorySeparator(romDir);
+                        var expanded = ExpandTilde(romDir);
+                        var trimmed = Path.TrimEndingDirectorySeparator(expanded);
                         if (Directory.Exists(trimmed))
                             romDirectory = trimmed;
                     }
@@ -288,7 +289,8 @@ namespace Gamelist_Manager.Services
 
                     if (!string.IsNullOrWhiteSpace(mediaDir))
                     {
-                        var trimmed = Path.TrimEndingDirectorySeparator(mediaDir);
+                        var expanded = ExpandTilde(mediaDir);
+                        var trimmed = Path.TrimEndingDirectorySeparator(expanded);
                         if (Directory.Exists(trimmed))
                             mediaDirectory = trimmed;
                     }
@@ -296,15 +298,18 @@ namespace Gamelist_Manager.Services
                 catch { }
             }
 
-            // ROMDirectory fallback: sibling ROMS folder one level up from ES-DE root
+            // ROMDirectory fallback: ES-DE default is ~/ROMs on Linux, ~/ROMS on Windows
             if (romDirectory == null)
             {
-                var parentDir = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(esDeRoot));
-                if (parentDir != null)
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                foreach (var candidate in new[] { "ROMs", "roms", "ROMS" })
                 {
-                    var fallback = Path.Combine(parentDir, "ROMS");
+                    var fallback = Path.Combine(home, candidate);
                     if (Directory.Exists(fallback))
+                    {
                         romDirectory = fallback;
+                        break;
+                    }
                 }
             }
 
@@ -317,6 +322,17 @@ namespace Gamelist_Manager.Services
             }
 
             return new EsDeDetectedPaths(romDirectory, mediaDirectory);
+        }
+
+        // Expands a leading ~ to the current user's home directory, matching shell behaviour on Linux/macOS.
+        private static string ExpandTilde(string path)
+        {
+            if (path.StartsWith("~/", StringComparison.Ordinal) || path == "~")
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                return home + path[1..];
+            }
+            return path;
         }
 
         public record EsDeDetectedPaths(string? RomDirectory, string? MediaDirectory);

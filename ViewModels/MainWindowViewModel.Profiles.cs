@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
@@ -44,7 +45,12 @@ public partial class MainWindowViewModel
     public async Task ResolveMissingProfileAsync()
     {
         if (!_profileService.NoProfilesExist)
+        {
+            // Profiles exist — active profile was loaded at startup. Check ES-DE root now
+            // so a misconfigured profile is caught on first launch, not only on switching.
+            await ApplyProfileSwitchAsync(_profileService.ActiveProfile);
             return;
+        }
 
         var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
         {
@@ -63,10 +69,7 @@ public partial class MainWindowViewModel
 
         _profileService.CreateDefaultProfile(profileType);
 
-        if (profileType == SettingKeys.ProfileTypeEsDe)
-            await PromptEsDeRootAsync("An ES-DE profile has been created.");
-
-        ApplyProfileSwitch(ProfileService.DefaultProfileName);
+        await ApplyProfileSwitchAsync(ProfileService.DefaultProfileName);
 
         _profileService.ClearNoProfilesFlag();
         RefreshProfiles();
@@ -141,16 +144,13 @@ public partial class MainWindowViewModel
             switchTo = created;
         }
 
-        ApplyProfileSwitch(switchTo);
+        await ApplyProfileSwitchAsync(switchTo);
         RefreshProfiles();
-
-        if (gamelistType == SettingKeys.ProfileTypeEsDe)
-            await PromptEsDeRootAsync($"The active profile has been switched to '{switchTo}'.");
 
         return true;
     }
 
-    internal async Task PromptEsDeRootAsync(string contextMessage = "An ES-DE gamelist has been detected.")
+    internal async Task PromptEsDeRootAsync(string contextMessage = "An ES-DE gamelist has been detected.", Window? owner = null)
     {
         var currentRoot = _sharedData.EsDeRoot;
         var hasRoot = !string.IsNullOrWhiteSpace(currentRoot) && Directory.Exists(currentRoot);
@@ -172,7 +172,7 @@ public partial class MainWindowViewModel
                     Button1Text = "",
                     Button2Text = "",
                     Button3Text = "OK"
-                });
+                }, owner);
 
                 _sharedData.SaveEsDeRoot(homeEsDe);
 
@@ -196,13 +196,14 @@ public partial class MainWindowViewModel
             Button1Text = "Cancel",
             Button2Text = "",
             Button3Text = "Browse"
-        });
+        }, owner);
 
         if (result != ThreeButtonResult.Button3) return;
 
         var chosen = await FolderPickerHelper.BrowseForFolderAsync(
             "Select ES-DE Root Folder",
-            _sharedData.EsDeRoot);
+            _sharedData.EsDeRoot,
+            owner);
 
         if (string.IsNullOrEmpty(chosen)) return;
 
@@ -244,12 +245,15 @@ public partial class MainWindowViewModel
         }
 
         UnloadGamelist();
-        ApplyProfileSwitch(profileName);
+        await ApplyProfileSwitchAsync(profileName);
     }
     #endregion
 
     #region Private Methods
-    internal void ApplyProfileSwitch(string profileName)
+
+    // Activates a profile and updates all dependent state. For ES-DE profiles whose root
+    // folder is not yet configured, opens the root folder prompt immediately.
+    internal async Task ApplyProfileSwitchAsync(string profileName)
     {
         _profileService.SetActiveProfile(profileName);
         _settingsService.SwitchProfile(_profileService.ActiveProfilePath);
@@ -264,6 +268,9 @@ public partial class MainWindowViewModel
 
         LoadSystems();
         ActiveProfileName = profileName;
+
+        if (!_profileService.IsEsDeRootConfigured(profileName))
+            await PromptEsDeRootAsync($"Profile '{profileName}' is an ES-DE profile but its root folder has not been set.");
     }
 
     // Returns true when the gamelist file path contains the ES-DE gamelists folder pattern.

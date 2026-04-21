@@ -5,6 +5,12 @@ namespace Gamelist_Manager.Classes.Helpers;
 // Bundles a setting's section, INI key, and default value into a single definition.
 public record SettingDef<T>(string Section, string Key, T Default);
 
+// Represents a selectable profile type in the UI.
+public record ProfileTypeOption(string Key, string DisplayName)
+{
+    public override string ToString() => DisplayName;
+}
+
 public static class SettingKeys
 {
     #region Sections
@@ -27,6 +33,14 @@ public static class SettingKeys
 
     public const string ProfileTypeEs = "es";
     public const string ProfileTypeEsDe = "esde";
+
+    // All known profile types, in display order. ES is first and therefore the default.
+    // To add a new type: append one entry here — no other code needs changing.
+    public static readonly IReadOnlyList<ProfileTypeOption> AllProfileTypes =
+    [
+        new ProfileTypeOption(ProfileTypeEs,   "ES"),
+        new ProfileTypeOption(ProfileTypeEsDe, "ES-DE"),
+    ];
 
     #endregion
 

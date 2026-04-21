@@ -2,19 +2,34 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
+using Gamelist_Manager.Views;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
 public partial class SettingsViewModel
 {
-    #region Fields
+    #region Private Fields
 
     private static readonly string _templatesPath =
         Path.Combine(AppContext.BaseDirectory, "ini", "templates.ini");
+
+    #endregion
+
+    #region Injected Delegates
+
+    // Set by SettingsView.OnOpened once Owner is available.
+    // Keeps the ViewModel free of any View or MainWindowViewModel reference.
+    public Func<Task<bool>>? CheckMainUnsavedChangesAsync { get; set; }
+    public Func<bool>? GetIsGamelistLoaded { get; set; }
+    public Func<string, Task>? ApplyMainProfileSwitch { get; set; }
+    public Action? UnloadMainGamelist { get; set; }
+    public Action? NotifyProfilesChanged { get; set; }
 
     #endregion
 
@@ -31,13 +46,14 @@ public partial class SettingsViewModel
     private string? _selectedTemplateName;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CreateProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(CopyProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(RenameProfileCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CreateNewProfileCommand))]
+    [NotifyPropertyChangedFor(nameof(CanCreate))]
     private string _newProfileName = string.Empty;
 
     [ObservableProperty]
-    private string _newProfileType = SettingKeys.ProfileTypeEs;
+    private ProfileTypeOption _selectedProfileType = SettingKeys.AllProfileTypes[0];
 
     #endregion
 
@@ -45,29 +61,15 @@ public partial class SettingsViewModel
 
     public ObservableCollection<string> ProfileList { get; } = new();
     public ObservableCollection<string> TemplateList { get; } = new();
+    public IReadOnlyList<ProfileTypeOption> ProfileTypes => SettingKeys.AllProfileTypes;
 
     public string ActiveProfileName => ProfileService.Instance.ActiveProfile;
     public bool CanCreateFromTemplate => SelectedTemplateName != null;
-
-    public bool IsNewProfileTypeEsDe
-    {
-        get => NewProfileType == SettingKeys.ProfileTypeEsDe;
-        set => NewProfileType = value ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
-    }
+    public bool CanCreate => CanCreateProfile();
 
     // Read-only info about the profile selected in the profile list.
     public bool SelectedProfileIsEsDe => GetSelectedProfileType() == SettingKeys.ProfileTypeEsDe;
     public string SelectedProfileEsDeMediaRoot => GetSelectedProfileMediaRoot();
-
-    #endregion
-
-    #region Events
-
-    public event EventHandler? ProfilesChanged;
-    public event EventHandler<string>? ConfirmDeleteProfileRequested;
-    public event EventHandler<string>? ConfirmSwitchProfileRequested;
-    public event EventHandler<string>? DuplicateTemplateProfileRequested;
-    public event EventHandler<string>? ConfirmActivateEsDeProfileRequested;
 
     #endregion
 
@@ -80,49 +82,15 @@ public partial class SettingsViewModel
             ProfileList.Add(p);
         SelectedProfileName = ProfileService.Instance.ActiveProfile;
         OnPropertyChanged(nameof(ActiveProfileName));
-        CreateProfileCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanCreate));
         CopyProfileCommand.NotifyCanExecuteChanged();
         RenameProfileCommand.NotifyCanExecuteChanged();
         DeleteProfileCommand.NotifyCanExecuteChanged();
     }
 
-    public void DoDeleteProfile()
-    {
-        if (!ProfileService.Instance.DeleteProfile(SelectedProfileName)) return;
-        RefreshProfileList();
-        ProfilesChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    public void DoSwitchProfile(bool saveFirst)
-    {
-        if (saveFirst) SaveSettings();
-
-        // Refresh settings panel to reflect the newly active profile.
-        LoadSettings();
-        RefreshProfileList();
-        ProfilesChanged?.Invoke(this, EventArgs.Empty);
-        IsDirty = false;
-    }
-
-    public void DoCreateFromTemplate(bool overwrite = false)
-    {
-        var connection = IniFileService.GetSection(_templatesPath, SelectedTemplateName!);
-        if (connection == null) return;
-        if (!ProfileService.Instance.CreateProfileFromTemplate(NewProfileName.Trim(), connection, overwrite)) return;
-        NewProfileName = string.Empty;
-        SelectedTemplateName = null;
-        RefreshProfileList();
-        ProfilesChanged?.Invoke(this, EventArgs.Empty);
-    }
-
     #endregion
 
     #region Partial Handlers
-
-    partial void OnNewProfileTypeChanged(string value)
-    {
-        OnPropertyChanged(nameof(IsNewProfileTypeEsDe));
-    }
 
     partial void OnSelectedProfileNameChanged(string value)
     {
@@ -164,18 +132,30 @@ public partial class SettingsViewModel
     #region Commands
 
     [RelayCommand(CanExecute = nameof(CanCreateProfile))]
-    private void CreateProfile()
+    private async Task CreateNewProfile()
     {
-        var isEsDe = NewProfileType == SettingKeys.ProfileTypeEsDe;
-        var created = ProfileService.Instance.CreateTypedProfile(NewProfileName.Trim(), NewProfileType);
-        if (created == null) return;
-        NewProfileType = SettingKeys.ProfileTypeEs;
+        var profileType = SelectedProfileType.Key;
+        var profileName = ProfileService.Instance.CreateTypedProfile(NewProfileName.Trim(), profileType);
+        if (profileName == null) return;
+
         NewProfileName = string.Empty;
         RefreshProfileList();
-        ProfilesChanged?.Invoke(this, EventArgs.Empty);
 
-        if (isEsDe)
-            ConfirmActivateEsDeProfileRequested?.Invoke(this, created);
+        var activate = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        {
+            Title = "Activate Profile",
+            Message = $"Would you like to make '{profileName}' the active profile?",
+            IconTheme = DialogIconTheme.Info,
+            Button1Text = "No",
+            Button2Text = "",
+            Button3Text = "Yes"
+        });
+
+        if (activate != ThreeButtonResult.Button3) return;
+
+        if (ApplyMainProfileSwitch != null)
+            await ApplyMainProfileSwitch(profileName);
+        DoSwitchProfile(saveFirst: false);
     }
 
     [RelayCommand(CanExecute = nameof(CanCreateProfile))]
@@ -184,7 +164,7 @@ public partial class SettingsViewModel
         if (!ProfileService.Instance.CreateProfile(NewProfileName.Trim(), copyFromActive: true)) return;
         NewProfileName = string.Empty;
         RefreshProfileList();
-        ProfilesChanged?.Invoke(this, EventArgs.Empty);
+        NotifyProfilesChanged?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(CanRenameProfile))]
@@ -193,37 +173,155 @@ public partial class SettingsViewModel
         if (!ProfileService.Instance.RenameProfile(SelectedProfileName, NewProfileName.Trim())) return;
         NewProfileName = string.Empty;
         RefreshProfileList();
-        ProfilesChanged?.Invoke(this, EventArgs.Empty);
+        NotifyProfilesChanged?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteProfile))]
-    private void DeleteProfile()
+    private async Task DeleteProfile()
     {
-        if (!CanDeleteProfile()) return;
-        ConfirmDeleteProfileRequested?.Invoke(this, SelectedProfileName);
+        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        {
+            Title = "Delete Profile",
+            Message = $"Delete profile '{SelectedProfileName}'?",
+            DetailMessage = "This cannot be undone.",
+            IconTheme = DialogIconTheme.Warning,
+            Button1Text = "Cancel",
+            Button2Text = "",
+            Button3Text = "Delete"
+        });
+
+        if (result != ThreeButtonResult.Button3) return;
+
+        if (!ProfileService.Instance.DeleteProfile(SelectedProfileName)) return;
+        RefreshProfileList();
+        NotifyProfilesChanged?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(CanSetActiveProfile))]
-    private void SetActiveProfile()
+    private async Task SetActiveProfile()
     {
-        ConfirmSwitchProfileRequested?.Invoke(this, SelectedProfileName);
+        var profileName = SelectedProfileName;
+        var isDirty = IsDirty;
+        var gamelistLoaded = GetIsGamelistLoaded?.Invoke() ?? false;
+
+        // If the gamelist has unsaved changes, ask about those first.
+        // If the user cancels, abort the profile switch entirely.
+        if (gamelistLoaded && CheckMainUnsavedChangesAsync != null)
+        {
+            if (!await CheckMainUnsavedChangesAsync())
+                return;
+        }
+
+        // Nothing to warn about — switch immediately.
+        if (!isDirty && !gamelistLoaded)
+        {
+            if (ApplyMainProfileSwitch != null)
+                await ApplyMainProfileSwitch(profileName);
+            DoSwitchProfile(saveFirst: false);
+            return;
+        }
+
+        ThreeButtonDialogConfig config;
+
+        if (isDirty && gamelistLoaded)
+        {
+            config = new ThreeButtonDialogConfig
+            {
+                Title = "Switch Profile",
+                Message = $"Switch to profile '{profileName}'?",
+                DetailMessage = "You have unsaved settings changes. Do you want to save them first?\n\nThe current gamelist will also be unloaded.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "Don't Save",
+                Button3Text = "Save"
+            };
+        }
+        else if (isDirty)
+        {
+            config = new ThreeButtonDialogConfig
+            {
+                Title = "Switch Profile",
+                Message = $"Switch to profile '{profileName}'?",
+                DetailMessage = "You have unsaved settings changes. Do you want to save them first?",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "Don't Save",
+                Button3Text = "Save"
+            };
+        }
+        else
+        {
+            // Gamelist loaded only — already confirmed no unsaved gamelist changes above.
+            config = new ThreeButtonDialogConfig
+            {
+                Title = "Switch Profile",
+                Message = $"Switch to profile '{profileName}'?",
+                DetailMessage = "The current gamelist will be unloaded.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "",
+                Button3Text = "Switch"
+            };
+        }
+
+        var switchResult = await ThreeButtonDialogView.ShowAsync(config);
+        if (switchResult == ThreeButtonResult.Button1) return;
+
+        UnloadMainGamelist?.Invoke();
+        if (ApplyMainProfileSwitch != null)
+            await ApplyMainProfileSwitch(profileName);
+        DoSwitchProfile(saveFirst: isDirty && switchResult == ThreeButtonResult.Button3);
     }
 
     [RelayCommand]
-    private void CreateFromTemplate()
+    private async Task CreateFromTemplate()
     {
         if (!CanCreateFromTemplate) return;
+
         if (ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase))
         {
-            DuplicateTemplateProfileRequested?.Invoke(this, NewProfileName.Trim());
+            var overwriteResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Profile Already Exists",
+                Message = $"A profile named '{NewProfileName.Trim()}' already exists.",
+                DetailMessage = "Do you want to overwrite it?",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "Cancel",
+                Button2Text = "",
+                Button3Text = "Overwrite"
+            });
+
+            if (overwriteResult != ThreeButtonResult.Button3) return;
+            DoCreateFromTemplate(overwrite: true);
             return;
         }
+
         DoCreateFromTemplate();
     }
 
     #endregion
 
-    #region Helpers
+    #region Private Methods
+
+    private void DoSwitchProfile(bool saveFirst)
+    {
+        if (saveFirst) SaveSettings();
+        LoadSettings();
+        RefreshProfileList();
+        NotifyProfilesChanged?.Invoke();
+        IsDirty = false;
+    }
+
+    private void DoCreateFromTemplate(bool overwrite = false)
+    {
+        var connection = IniFileService.GetSection(_templatesPath, SelectedTemplateName!);
+        if (connection == null) return;
+        if (!ProfileService.Instance.CreateProfileFromTemplate(NewProfileName.Trim(), connection, overwrite)) return;
+        NewProfileName = string.Empty;
+        SelectedTemplateName = null;
+        RefreshProfileList();
+        NotifyProfilesChanged?.Invoke();
+    }
 
     private void LoadTemplates()
     {

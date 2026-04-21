@@ -162,6 +162,19 @@ namespace Gamelist_Manager.Services
             return SettingKeys.ProfileTypeEs;
         }
 
+        // Returns true when the profile is ES-DE type AND has a valid, existing root folder configured.
+        public bool IsEsDeRootConfigured(string profileName)
+        {
+            if (GetProfileType(profileName) != SettingKeys.ProfileTypeEsDe)
+                return true;
+
+            var section = IniFileService.GetSection(GetProfilePath(profileName), SettingKeys.EsDeSection);
+            return section != null
+                && section.TryGetValue(SettingKeys.EsDeRoot.Key, out var root)
+                && !string.IsNullOrWhiteSpace(root)
+                && Directory.Exists(root);
+        }
+
         public bool DeleteProfile(string name)
         {
             if (string.Equals(name, ActiveProfile, StringComparison.OrdinalIgnoreCase))

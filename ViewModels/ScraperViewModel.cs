@@ -164,8 +164,8 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     // Key prefix used when persisting or restoring per-scraper/per-system settings.
     private string ScraperSettingsKey => ScraperConfigSaveMode == 2 && !string.IsNullOrEmpty(_sharedData.CurrentSystem)
-        ? $"{_currentScraper}_{_sharedData.CurrentSystem}"
-        : _currentScraper;
+        ? $"{CurrentScraper}_{_sharedData.CurrentSystem}"
+        : CurrentScraper;
 
     #endregion
 
@@ -218,7 +218,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             ShowLogTimestamp = _sharedData.ShowLogTimestamp;
 
             string savedScraper = _settingsService.GetValue("Scraper", "SelectedScraper", ScraperRegistry.ArcadeDB.Name);
-            _currentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
+            CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
             
 
             LoadScraperSettings();
@@ -242,7 +242,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             OverwriteMetadataEnabled = true;
             OverwriteMetadata = false;
 
-            if (_currentScraper == ScraperRegistry.EmuMovies.Name)
+            if (CurrentScraper == ScraperRegistry.EmuMovies.Name)
             {
                 ScrapeFromCacheEnabled = false;
                 ScrapeFromCache = false;
@@ -252,7 +252,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
                 OverwriteMetadata = false;
             }
 
-            var scraperElements = GamelistMetaData.GetScraperElements(_currentScraper);
+            var scraperElements = GamelistMetaData.GetScraperElements(CurrentScraper);
 
             MetaNameEnabled = scraperElements.Contains("name");
             MetaDescriptionEnabled = scraperElements.Contains("desc");
@@ -403,7 +403,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             ["OverwriteName"] = OverwriteName.ToString(),
             ["OverwriteMedia"] = OverwriteMedia.ToString(),
             ["ScrapeHiddenItems"] = ScrapeHiddenItems.ToString(),
-            ["SelectedScraper"] = _currentScraper,
+            ["SelectedScraper"] = CurrentScraper,
         };
 
         if (ScraperConfigSaveMode != 0)

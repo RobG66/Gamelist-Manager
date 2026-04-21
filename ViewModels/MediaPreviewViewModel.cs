@@ -111,7 +111,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         if (SelectedGame == null) return;
         var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
         if (mediaItem == null) return;
-        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, _sharedData.GamelistDirectory);
+        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, _sharedData.GamelistDirectory!);
         SelectedGame.SetValue(mediaItem.PathKey, null);
         SelectedGame.SetValue(mediaItem.PathKey, relativePath);
         _sharedData.IsDataChanged = true;

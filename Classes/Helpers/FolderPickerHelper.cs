@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using System;
@@ -9,11 +10,12 @@ namespace Gamelist_Manager.Classes.Helpers;
 // Shared folder-picker logic so callers don't duplicate the Avalonia storage API boilerplate.
 public static class FolderPickerHelper
 {
-    public static async Task<string?> BrowseForFolderAsync(string title, string? suggestedPath = null)
+    public static async Task<string?> BrowseForFolderAsync(string title, string? suggestedPath = null, Window? owner = null)
     {
-        var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
+        var topLevel = owner
+            ?? (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow
+                : null);
 
         if (topLevel == null) return null;
 

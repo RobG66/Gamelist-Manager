@@ -13,7 +13,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
     private readonly SharedDataService _sharedData = SharedDataService.Instance;
-    private bool _previewSeekPending;
+    private volatile bool _previewSeekPending;
     private GameMetadataRow? _game;
     private readonly MetaDataKeys _pathKey;
     private readonly string _mediaTypeKey;
@@ -149,7 +149,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
             MediaPlayer.Playing += OnMediaPlayerPlaying;
             MediaPlayer.Stopped += OnMediaPlayerStopped;
-            MediaPlayer.EndReached += OnMediaPlayerEndReached;
 
             if (!autoPlay)
             {
@@ -222,7 +221,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             {
                 player.Playing -= OnMediaPlayerPlaying;
                 player.Stopped -= OnMediaPlayerStopped;
-                player.EndReached -= OnMediaPlayerEndReached;
             }
 
             IsPlaying = false;
@@ -292,6 +290,11 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     #endregion
 
     #region Private Methods
+
+    // VLC raises these events on its own internal native threads, never on the UI thread.
+    // Any Avalonia observable property change must be dispatched to the UI thread to avoid
+    // cross-thread binding updates, which can deadlock on Linux.
+
     private void OnMediaPlayerPlaying(object? sender, EventArgs e)
     {
         if (_previewSeekPending)
@@ -309,31 +312,12 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         }
         else
         {
-            IsPlaying = true;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
         }
     }
 
-    private void OnMediaPlayerStopped(object? sender, EventArgs e) => IsPlaying = false;
+    private void OnMediaPlayerStopped(object? sender, EventArgs e)
+        => Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
 
-    private void OnMediaPlayerEndReached(object? sender, EventArgs e)
-    {
-        IsPlaying = false;
-        System.Threading.ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try
-            {
-                System.Threading.Thread.Sleep(100);
-                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    if (MediaPlayer != null && Media != null)
-                    {
-                        MediaPlayer.Stop();
-                        MediaPlayer.Play();
-                    }
-                });
-            }
-            catch { }
-        });
-    }
     #endregion
 }
