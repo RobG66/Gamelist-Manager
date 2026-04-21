@@ -201,7 +201,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _selectionDebounceTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(200)
+                Interval = TimeSpan.FromMilliseconds(300)
             };
             _selectionDebounceTimer.Tick += (_, _) =>
             {

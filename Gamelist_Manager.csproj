@@ -7,7 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Assets\Icons\icon.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <Version>9.4.4-beta</Version>
+        <Version>9.4.5-beta</Version>
         <AssemblyVersion>9.0.0.0</AssemblyVersion>
         <FileVersion>9.0.0.0</FileVersion>
     </PropertyGroup>
@@ -92,6 +92,10 @@
       <Compile Update="Views\DatToolView.axaml.cs">
         <DependentUpon>DatToolView.axaml</DependentUpon>
       </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\linux\" />
     </ItemGroup>
 </Project>
 

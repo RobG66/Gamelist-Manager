@@ -67,7 +67,7 @@ public partial class ScraperViewModel
             return;
         }
 
-        string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", _currentScraper, system);
+        string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
         if (!Directory.Exists(cacheFolder) || Directory.GetFiles(cacheFolder).Length == 0)
         {
             CacheCountText = "Cache is empty";

@@ -33,7 +33,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLimitVisible))]
     private string _currentScraper = ScraperRegistry.All[0].Name;
-    private int _selectedScraperIndex;
     [ObservableProperty] private bool _scrapeAllMode = true;
     [ObservableProperty] private bool _scrapeSelectedMode;
     [ObservableProperty] private bool _overwriteName = true;

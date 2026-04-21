@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         () => Task.Run(CreateLibVLC), LazyThreadSafetyMode.ExecutionAndPublication);
 
     private readonly SharedDataService _sharedData = SharedDataService.Instance;
+    private CancellationTokenSource _videoInitCts = new();
     private bool _disposed;
     #endregion
 
@@ -117,7 +119,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         _sharedData.IsDataChanged = true;
     }
 
-    public void InitializeLibVLC()
+    public async void InitializeLibVLC()
     {
         if (IsLibVLCInitialized && LibVLC != null)
         {
@@ -125,17 +127,21 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        _ = _libVlcInit.Value.ContinueWith(t =>
-        {
-            if (_disposed) return;
+        var token = _videoInitCts.Token;
 
-            LibVLC = t.Result;
+        var libVlc = await _libVlcInit.Value.ConfigureAwait(false);
+
+        if (_disposed || token.IsCancellationRequested) return;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            LibVLC = libVlc;
             IsLibVLCInitialized = LibVLC != null;
             IsLibVLCMissing = LibVLC == null;
 
             if (IsLibVLCInitialized)
-                InitializeVideosForCurrentGame();
-        }, TaskScheduler.FromCurrentSynchronizationContext());
+                InitializeVideosForCurrentGame(token);
+        });
     }
 
     public void SuspendVideo()
@@ -203,7 +209,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             SelectedGame.SetValue(mediaItem.PathKey, relativePath);
             _sharedData.IsDataChanged = true;
 
-
             // Refresh video player if needed
             if (mediaItem.IsVideo)
             {
@@ -223,6 +228,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     public void Dispose()
     {
         _disposed = true;
+        _videoInitCts.Cancel();
+        _videoInitCts.Dispose();
         _sharedData.PropertyChanged -= OnSharedDataPropertyChanged;
 
         foreach (var item in MediaItems)
@@ -232,6 +239,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
                 item.DisposeVideoPlayer();
         }
 
+        LibVLC?.Dispose();
         LibVLC = null;
     }
     #endregion
@@ -241,12 +249,18 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            return new LibVLC(
+            var options = new List<string>
+            {
                 "--no-video-title-show",
                 "--no-stats",
                 "--no-snapshot-preview",
                 "--no-sub-autodetect-file"
-            );
+            };
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                options.Add("--aout=pulse");
+
+            return new LibVLC(options.ToArray());
         }
         catch (Exception ex)
         {
@@ -256,19 +270,23 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void InitializeVideosForCurrentGame()
+    private void InitializeVideosForCurrentGame(CancellationToken token = default)
     {
         if (!Dispatcher.UIThread.CheckAccess())
         {
-            Dispatcher.UIThread.Post(InitializeVideosForCurrentGame);
+            Dispatcher.UIThread.Post(() => InitializeVideosForCurrentGame(token));
             return;
         }
 
+        if (token.IsCancellationRequested) return;
         if (!IsLibVLCInitialized || LibVLC == null) return;
 
         var autoPlay = _sharedData.VideoAutoplay;
         foreach (var item in MediaItems.Where(m => m.IsVideo && m.FileExists && m.MediaPlayer == null))
+        {
+            if (token.IsCancellationRequested) return;
             item.InitializeVideoPlayer(LibVLC, autoPlay);
+        }
     }
 
     private void InitializeMediaItems()
@@ -289,7 +307,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     {
         if (e.PropertyName == nameof(MediaItemViewModel.HasMedia))
         {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 UpdateVisibility();
                 UpdateSelectionStatus(SelectedGame);
@@ -299,16 +317,47 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     private void UpdateMediaItems(GameMetadataRow? game)
     {
+        // Cancel any in-flight video initialisation for the previous selection
+        // before touching players, so a background task cannot race with what
+        // we are about to do here.
+        _videoInitCts.Cancel();
+        _videoInitCts.Dispose();
+        _videoInitCts = new CancellationTokenSource();
+        var token = _videoInitCts.Token;
+
+        var autoPlay = _sharedData.VideoAutoplay;
+
         foreach (var item in MediaItems.Where(m => m.IsVideo))
-            item.DisposeVideoPlayer();
+        {
+            // Peek at the new game's path before AttachGame updates the item,
+            // so we can decide whether to swap or dispose.
+            var newPath = game?.GetValue(item.PathKey)?.ToString();
+            var hasNewPath = !string.IsNullOrEmpty(newPath);
+
+            if (!hasNewPath)
+            {
+                // No video for this game — tear down, slot shows empty/drop icon.
+                item.DisposeVideoPlayer();
+            }
+            else if (item.MediaPlayer != null && LibVLC != null)
+            {
+                // Player exists and new game has a video — swap media without
+                // tearing down the native player object.
+                item.ChangeMedia(LibVLC, newPath!, autoPlay);
+            }
+            // else: no player yet — AttachGame + InitializeVideosForCurrentGame
+            // will handle fresh init below.
+        }
 
         foreach (var item in MediaItems)
             item.AttachGame(game);
 
         UpdateVisibility();
 
+        // InitializeVideosForCurrentGame only touches items where MediaPlayer == null,
+        // so it is a no-op for slots that just had ChangeMedia called on them.
         if (game != null && IsLibVLCInitialized && LibVLC != null)
-            InitializeVideosForCurrentGame();
+            InitializeVideosForCurrentGame(token);
     }
 
     private void UpdateVisibility()

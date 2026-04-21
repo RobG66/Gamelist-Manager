@@ -6,6 +6,7 @@ using LibVLCSharp.Shared;
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -18,6 +19,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     private readonly MetaDataKeys _pathKey;
     private readonly string _mediaTypeKey;
     private bool _disposed;
+    private CancellationTokenSource _changeMediaCts = new();
     #endregion
 
     #region Observable Properties
@@ -90,9 +92,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
     private void RefreshFromGameCore()
     {
-        string? newPath;
-
-        newPath = _game?.GetValue(_pathKey)?.ToString();
+        var newPath = _game?.GetValue(_pathKey)?.ToString();
         if (string.IsNullOrEmpty(newPath))
             newPath = null;
 
@@ -137,7 +137,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
             Media = new Media(libVlc, fullPath);
             Media.AddOption(":input-repeat=65535");
-            Media.AddOption(":avcodec-hw=any");
             Media.AddOption(":file-caching=300");
 
             MediaPlayer = new MediaPlayer(libVlc)
@@ -163,6 +162,66 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Swaps the media source on the existing player without tearing down the native
+    // VLC player object. Used on datagrid row changes where the slot stays in place
+    // but points at a different game's file.
+    public void ChangeMedia(LibVLC libVlc, string newPath, bool autoPlay)
+    {
+        if (MediaPlayer == null) return;
+
+        var fullPath = ResolveFullPath(newPath);
+        if (!File.Exists(fullPath))
+        {
+            DisposeVideoPlayer();
+            return;
+        }
+
+        // Cancel any in-flight ChangeMedia for this slot
+        _changeMediaCts.Cancel();
+        _changeMediaCts.Dispose();
+        _changeMediaCts = new CancellationTokenSource();
+        var token = _changeMediaCts.Token;
+
+        var oldMedia = Media;
+
+        var newMedia = new Media(libVlc, fullPath);
+        newMedia.AddOption(":input-repeat=65535");
+        newMedia.AddOption(":file-caching=300");
+
+        if (!autoPlay)
+        {
+            newMedia.AddOption(":start-time=5");
+            _previewSeekPending = true;
+            MediaPlayer.Volume = 0;
+        }
+        else
+        {
+            MediaPlayer.Volume = _sharedData.DefaultVolume;
+        }
+
+        // Swap the media reference on the UI thread before handing off,
+        // so bindings update immediately even while the background op is pending.
+        MediaPlayer.Media = newMedia;
+        Media = newMedia;
+
+        _ = System.Threading.Tasks.Task.Run(() =>
+        {
+            // Stop blocks until the native player is fully quiesced.
+            try { MediaPlayer?.Stop(); } catch { }
+
+            if (token.IsCancellationRequested)
+            {
+                // A newer ChangeMedia took over — dispose both and exit.
+                try { oldMedia?.Dispose(); } catch { }
+                try { newMedia?.Dispose(); } catch { }
+                return;
+            }
+
+            try { oldMedia?.Dispose(); } catch { }
+            try { MediaPlayer?.Play(); } catch { }
+        });
+    }
+
     public void Play()
     {
         if (MediaPlayer == null || !FileExists) return;
@@ -173,15 +232,11 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     public void Stop()
     {
         if (MediaPlayer == null) return;
-        try
+        System.Threading.ThreadPool.QueueUserWorkItem(_ =>
         {
-            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try { MediaPlayer?.Stop(); }
-                catch { }
-            });
-        }
-        catch { }
+            try { MediaPlayer?.Stop(); }
+            catch { }
+        });
     }
 
     public void TogglePlayback()
@@ -192,7 +247,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             if (MediaPlayer.IsPlaying)
             {
                 MediaPlayer.Pause();
-                IsPlaying = false;
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
             }
             else
             {
@@ -206,12 +261,15 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     public void SetVolume(int volume)
     {
         if (MediaPlayer == null) return;
-        try { MediaPlayer.Volume = System.Math.Clamp(volume, 0, 100); }
+        try { MediaPlayer.Volume = Math.Clamp(volume, 0, 100); }
         catch { }
     }
 
     public void DisposeVideoPlayer()
     {
+        // Cancel any in-flight ChangeMedia before tearing down.
+        _changeMediaCts.Cancel();
+
         try
         {
             var player = MediaPlayer;
@@ -246,6 +304,8 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _changeMediaCts.Cancel();
+        _changeMediaCts.Dispose();
         AttachGame(null);
         DisposeVideoPlayer();
     }
@@ -304,7 +364,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             {
                 try
                 {
-                    System.Threading.Thread.Sleep(350);
+                    Thread.Sleep(350);
                     MediaPlayer?.SetPause(true);
                 }
                 catch { }

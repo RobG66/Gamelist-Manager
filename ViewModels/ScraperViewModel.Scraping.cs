@@ -39,11 +39,11 @@ public partial class ScraperViewModel
         var scraperService = Startup.Services.GetRequiredService<ScraperService>();
         scraperService.LogAction = Log;
         scraperService.ClearDownloadStats();
-        Log($"Starting {_currentScraper} scraper...", LogLevel.Success);
+        Log($"Starting {CurrentScraper} scraper...", LogLevel.Success);
 
         try
         {
-            var baseParameters = ScraperParameters.Create(_sharedData, _currentScraper, _sharedData.CurrentSystem ?? string.Empty, elementsToScrape);
+            var baseParameters = ScraperParameters.Create(_sharedData, CurrentScraper, _sharedData.CurrentSystem ?? string.Empty, elementsToScrape);
             baseParameters.OverwriteName = OverwriteName;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
             baseParameters.OverwriteMedia = OverwriteMedia;
@@ -52,7 +52,7 @@ public partial class ScraperViewModel
 
             var scraperProperties = new ScraperProperties
             {
-                ScraperName = _currentScraper,
+                ScraperName = CurrentScraper,
                 LogVerbosity = _sharedData.LogVerbosity,
                 BatchProcessing = _sharedData.BatchProcessing,
             };
@@ -205,7 +205,7 @@ public partial class ScraperViewModel
     private void ApplySource(ObservableCollection<string> collection, string sectionName, Action<int> setIndex, out bool enabled)
     {
         collection.Clear();
-        var sources = ScraperConfigService.Instance.GetScraperSources(_currentScraper, sectionName);
+        var sources = ScraperConfigService.Instance.GetScraperSources(CurrentScraper, sectionName);
         if (sources.Count > 0)
         {
             foreach (var key in sources.Keys)
