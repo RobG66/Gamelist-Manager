@@ -188,10 +188,15 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (value) IsClearCacheEnabled = false;
     }
 
-    partial void OnCurrentScraperChanged(string value)
+    partial void OnCurrentScraperChanging(string value)
     {
         if (_isLoading) return;
         SaveScraperSettings();
+    }
+
+    partial void OnCurrentScraperChanged(string value)
+    {
+        if (_isLoading) return;
         LoadScraperSettings();
         Log($"Scraper changed to: {value}", LogLevel.Status);
     }

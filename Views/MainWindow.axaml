@@ -15,7 +15,8 @@
         x:Name="MainWindowRoot"
         FontSize="{DynamicResource GlobalFontSize}"
         Padding="2.5"
-        Title="Gamelist Manager">
+        Title="Gamelist Manager"
+        Icon="avares://Gamelist_Manager/Assets/Icons/icon.png">
     <Window.Styles>
         <Style Selector="Border.panel-border">
             <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
