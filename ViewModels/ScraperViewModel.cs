@@ -158,11 +158,10 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private bool CanStop => IsScraping && !_isStopping;
     private bool CanStart => !IsScraping;
 
-    // 0 = Don't Save, 1 = Save Per Scraper, 2 = Save Per System
+    // 0 = Save Per Scraper, 1 = Save Per System
     private int ScraperConfigSaveMode => _settingsService.GetInt(SettingKeys.ScraperConfigSave);
 
-    // Key prefix used when persisting or restoring per-scraper/per-system settings.
-    private string ScraperSettingsKey => ScraperConfigSaveMode == 2 && !string.IsNullOrEmpty(_sharedData.CurrentSystem)
+    private string ScraperSettingsKey => ScraperConfigSaveMode == 1 && !string.IsNullOrEmpty(_sharedData.CurrentSystem)
         ? $"{CurrentScraper}_{_sharedData.CurrentSystem}"
         : CurrentScraper;
 
@@ -214,16 +213,15 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _isLoading = true;
         try
         {
-            ScrapeAllMode = _settingsService.GetBool("Scraper", "ScrapeAllMode", true);
+            ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScrapeAllMode);
             ScrapeSelectedMode = !ScrapeAllMode;
-            OverwriteName = _settingsService.GetBool("Scraper", "OverwriteName", true);
-            OverwriteMedia = _settingsService.GetBool("Scraper", "OverwriteMedia", false);
-            ScrapeHiddenItems = _settingsService.GetBool("Scraper", "ScrapeHiddenItems", false);
+            OverwriteName = _settingsService.GetBool(SettingKeys.OverwriteName);
+            OverwriteMedia = _settingsService.GetBool(SettingKeys.OverwriteMedia);
+            ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScrapeHiddenItems);
             ShowLogTimestamp = _sharedData.ShowLogTimestamp;
 
-            string savedScraper = _settingsService.GetValue("Scraper", "SelectedScraper", ScraperRegistry.ArcadeDB.Name);
+            string savedScraper = _settingsService.GetValue(SettingKeys.SelectedScraper);
             CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
-
 
             LoadScraperSettings();
         }
@@ -373,29 +371,28 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     private void ApplySavedPreferences()
     {
-        if (ScraperConfigSaveMode == 0) return;
-
         var key = ScraperSettingsKey;
 
         if (ScrapeFromCacheEnabled)
-            ScrapeFromCache = _settingsService.GetBool("Scraper", $"{key}_ScrapeFromCache", ScrapeFromCache);
+            ScrapeFromCache = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeFromCache", ScrapeFromCache);
         if (SkipNonCachedItemsEnabled)
-            SkipNonCachedItems = _settingsService.GetBool("Scraper", $"{key}_SkipNonCachedItems", false);
+            SkipNonCachedItems = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_SkipNonCachedItems", false);
         if (OverwriteMetadataEnabled)
-            OverwriteMetadata = _settingsService.GetBool("Scraper", $"{key}_OverwriteMetadata", false);
+            OverwriteMetadata = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteMetadata", false);
 
         foreach (var (name, getEnabled, _, setValue) in GetBoolToggles())
         {
             if (!getEnabled()) continue;
-            setValue(_settingsService.GetBool("Scraper", $"{key}_{name}", false));
+            setValue(_settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_{name}", false));
         }
 
         foreach (var (name, sources, _, setSelected) in GetSourceToggles())
         {
-            string savedValue = _settingsService.GetValue("Scraper", $"{key}_{name}", "");
+            string savedValue = _settingsService.GetValue(SettingKeys.ScraperSection, $"{key}_{name}", "");
             RestoreSource(sources, savedValue, setSelected);
         }
     }
+
 
     private void SaveScraperSettings()
     {
@@ -403,35 +400,33 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
         var values = new Dictionary<string, string>
         {
-            ["ScrapeAllMode"] = ScrapeAllMode.ToString(),
-            ["OverwriteName"] = OverwriteName.ToString(),
-            ["OverwriteMedia"] = OverwriteMedia.ToString(),
-            ["ScrapeHiddenItems"] = ScrapeHiddenItems.ToString(),
-            ["SelectedScraper"] = CurrentScraper,
+            [SettingKeys.ScrapeAllMode.Key] = ScrapeAllMode.ToString(),
+            [SettingKeys.OverwriteName.Key] = OverwriteName.ToString(),
+            [SettingKeys.OverwriteMedia.Key] = OverwriteMedia.ToString(),
+            [SettingKeys.ScrapeHiddenItems.Key] = ScrapeHiddenItems.ToString(),
+            [SettingKeys.SelectedScraper.Key] = CurrentScraper,
         };
 
-        if (ScraperConfigSaveMode != 0)
+        var key = ScraperSettingsKey;
+        values[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
+        values[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
+        values[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
+
+        foreach (var (name, _, getValue, _) in GetBoolToggles())
+            values[$"{key}_{name}"] = getValue().ToString();
+
+        foreach (var (name, sources, getSelected, _) in GetSourceToggles())
         {
-            var key = ScraperSettingsKey;
-            values[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
-            values[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
-            values[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
-
-            foreach (var (name, _, getValue, _) in GetBoolToggles())
-                values[$"{key}_{name}"] = getValue().ToString();
-
-            foreach (var (name, sources, getSelected, _) in GetSourceToggles())
-            {
-                int idx = getSelected();
-                values[$"{key}_{name}"] = idx >= 0 && idx < sources.Count ? sources[idx] : "";
-            }
+            int idx = getSelected();
+            values[$"{key}_{name}"] = idx >= 0 && idx < sources.Count ? sources[idx] : "";
         }
 
         _settingsService.SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
         {
-            ["Scraper"] = values
+            [SettingKeys.ScraperSection] = values
         });
     }
+
     #endregion
 
     #region Private Methods

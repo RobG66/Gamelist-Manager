@@ -81,7 +81,8 @@ public partial class MediaPreviewViewModel
             if (scrapingVideo) SuspendVideo();
 
             var baseParameters = ScraperParameters.Create(_sharedData, scraperName, currentSystem, elementsToScrape);
-            baseParameters.OverwriteMedia = OverwriteMedia;
+            // Always overwrite single media item scrapes
+            baseParameters.OverwriteMedia = specificElements?.Count == 1 || OverwriteMedia;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
 
             var scraperService = Startup.Services.GetRequiredService<ScraperService>();

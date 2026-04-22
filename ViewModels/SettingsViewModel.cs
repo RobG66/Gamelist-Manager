@@ -106,7 +106,6 @@ public partial class SettingsViewModel : ViewModelBase
             item.Suffix = settings.GetValue(SettingKeys.MediaPathsSection, $"{item.Key}_suffix", item.DefaultSuffix);
             item.SfxEnabled = settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
 
-            // Unsupported ES-DE types are always disabled regardless of what the INI says.
             item.Enabled = (!isEsDe || item.IsEsDeSupported) &&
                            settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_enabled", item.DefaultEnabled);
         }

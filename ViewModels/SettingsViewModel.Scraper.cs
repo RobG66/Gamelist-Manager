@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -14,9 +15,7 @@ public partial class SettingsViewModel
 {
     #region Fields
 
-    private static readonly string DefaultFallbackJson =
-        "[\"USA (us)\",\"Europe (eu)\",\"United Kingdom (uk)\",\"World (wor)\",\"Japan (jp)\",\"ScreenScraper (ss)\"]";
-
+    private static readonly string DefaultFallbackJson = SettingKeys.ScreenScraperRegionFallback.Default;
     private string SetupScraperName => SelectedSetupScraperIndex switch
     {
         0 => ScraperRegistry.ArcadeDB.Name,
@@ -163,7 +162,14 @@ public partial class SettingsViewModel
         if (SelectedScraperFallbackRegion == null) return;
         var item = SelectedScraperFallbackRegion;
         ScraperFallbackRegions.Remove(item);
-        ScraperAvailableRegions.Add(item);
+
+        // Re-insert into available regions in sorted order
+        var insertIndex = ScraperAvailableRegions
+        .ToList()
+        .BinarySearch(item, StringComparer.OrdinalIgnoreCase);
+        if (insertIndex < 0) insertIndex = ~insertIndex;
+        ScraperAvailableRegions.Insert(insertIndex, item);
+
         SelectedScraperFallbackRegion = null;
         SelectedScraperAvailableRegion = item;
     }

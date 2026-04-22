@@ -23,11 +23,8 @@ namespace Gamelist_Manager.Services
             var programDirectory = AppContext.BaseDirectory;
             _iniFolder = Path.Combine(programDirectory, "ini");
 
-            // ProfileService handles migration and ensures the profiles folder exists
             _settingsFilePath = ProfileService.Instance.ActiveProfilePath;
 
-            // Don't auto-create the profile file when no profiles exist.
-            // The UI will prompt the user to pick a profile type first.
             if (!ProfileService.Instance.NoProfilesExist && !File.Exists(_settingsFilePath))
             {
                 CreateDefaultSettings();
@@ -216,42 +213,8 @@ namespace Gamelist_Manager.Services
                 dict[key] = defaultStr;
             }
 
-            // MediaPaths have their own structure — not driven by SettingDef.
-            result[SettingKeys.MediaPathsSection] = new Dictionary<string, string>
-            {
-                ["image"] = "./images",
-                ["image_enabled"] = "true",
-                ["titleshot"] = "./images",
-                ["titleshot_enabled"] = "true",
-                ["marquee"] = "./images",
-                ["marquee_enabled"] = "true",
-                ["wheel"] = "./images",
-                ["wheel_enabled"] = "false",
-                ["thumbnail"] = "./images",
-                ["thumbnail_enabled"] = "true",
-                ["cartridge"] = "./images",
-                ["cartridge_enabled"] = "true",
-                ["video"] = "./videos",
-                ["video_enabled"] = "true",
-                ["music"] = "./music",
-                ["music_enabled"] = "true",
-                ["map"] = "./images",
-                ["map_enabled"] = "false",
-                ["bezel"] = "./images",
-                ["bezel_enabled"] = "true",
-                ["manual"] = "./manuals",
-                ["manual_enabled"] = "true",
-                ["fanart"] = "./images",
-                ["fanart_enabled"] = "true",
-                ["boxart"] = "./images",
-                ["boxart_enabled"] = "true",
-                ["boxback"] = "./images",
-                ["boxback_enabled"] = "true",
-                ["magazine"] = "./images",
-                ["magazine_enabled"] = "false",
-                ["mix"] = "./images",
-                ["mix_enabled"] = "true"
-            };
+
+            result[SettingKeys.MediaPathsSection] = new Dictionary<string, string>(SettingKeys.DefaultMediaPaths);
 
             return result;
         }

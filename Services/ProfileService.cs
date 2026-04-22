@@ -301,7 +301,10 @@ namespace Gamelist_Manager.Services
                     }
                 }
 
-                // Remove any key that is no longer in the definition set.
+                // Remove obsolete keys — but NOT in ScraperSection which has dynamic runtime keys.
+                if (section.Equals(SettingKeys.ScraperSection, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 var obsolete = existing.Keys
                     .Where(k => !expectedKeys.ContainsKey(k))
                     .ToList();
@@ -312,42 +315,8 @@ namespace Gamelist_Manager.Services
                 }
             }
 
-            // Scraper section: add missing known keys only, never remove.
-            var knownScraperKeys = BuildKnownScraperKeys();
-            if (!sections.TryGetValue(SettingKeys.ScraperSection, out var scraperSection))
-            {
-                scraperSection = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                sections[SettingKeys.ScraperSection] = scraperSection;
-            }
-            foreach (var (key, defaultValue) in knownScraperKeys)
-            {
-                if (!scraperSection.ContainsKey(key))
-                {
-                    scraperSection[key] = defaultValue;
-                    changed = true;
-                }
-            }
-
             if (changed)
                 IniFileService.WriteIniFile(profilePath, sections);
-        }
-
-        // Builds the expected key/default pairs for the Scraper section, derived from
-        // ScraperRegistry so the list stays in sync if scrapers are added or removed.
-        private static Dictionary<string, string> BuildKnownScraperKeys()
-        {
-            var keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var scraper in ScraperRegistry.All)
-            {
-                keys[$"{scraper.Name}_Language"] = "";
-                keys[$"{scraper.Name}_PrimaryRegion"] = "";
-                keys[$"{scraper.Name}_GenreEnglish"] = "False";
-                keys[$"{scraper.Name}_AnyMedia"] = "False";
-                keys[$"{scraper.Name}_NamesLanguageFirst"] = "False";
-                keys[$"{scraper.Name}_MediaRegionFirst"] = "False";
-                keys[$"{scraper.Name}_RegionFallback"] = "";
-            }
-            return keys;
         }
 
         #endregion

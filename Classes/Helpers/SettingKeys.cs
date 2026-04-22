@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Gamelist_Manager.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Gamelist_Manager.Classes.Helpers;
 
-// Bundles a setting's section, INI key, and default value into a single definition.
 public record SettingDef<T>(string Section, string Key, T Default);
 
-// Represents a selectable profile type in the UI.
 public record ProfileTypeOption(string Key, string DisplayName)
 {
     public override string ToString() => DisplayName;
@@ -34,14 +34,11 @@ public static class SettingKeys
     public const string ProfileTypeEs = "es";
     public const string ProfileTypeEsDe = "esde";
 
-    // All known profile types, in display order. ES is first and therefore the default.
-    // To add a new type: append one entry here — no other code needs changing.
     public static readonly IReadOnlyList<ProfileTypeOption> AllProfileTypes =
     [
-        new ProfileTypeOption(ProfileTypeEs,   "ES"),
-        new ProfileTypeOption(ProfileTypeEsDe, "ES-DE"),
+    new ProfileTypeOption(ProfileTypeEs,   "ES"),
+    new ProfileTypeOption(ProfileTypeEsDe, "ES-DE"),
     ];
-
     #endregion
 
     #region Appearance Settings
@@ -68,7 +65,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> IgnoreDuplicates = new(BehaviorSection, "IgnoreDuplicates", false);
     public static readonly SettingDef<bool> BatchProcessing = new(BehaviorSection, "BatchProcessing", true);
     public static readonly SettingDef<bool> ShowLogTimestamp = new(BehaviorSection, "ShowLogTimestamp", false);
-    public static readonly SettingDef<int> ScraperConfigSave = new(BehaviorSection, "ScraperConfigSave", 1);
+    public static readonly SettingDef<int> ScraperConfigSave = new(BehaviorSection, "ScraperConfigSave", 0);
 
     #endregion
 
@@ -111,6 +108,25 @@ public static class SettingKeys
 
     #endregion
 
+    #region Scraper Settings
+
+    public static readonly SettingDef<string> ScreenScraperLanguage = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_Language", "English (en)");
+    public static readonly SettingDef<string> ScreenScraperPrimaryRegion = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_PrimaryRegion", "USA (us)");
+    public static readonly SettingDef<bool> ScreenScraperGenreEnglish = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_GenreEnglish", false);
+    public static readonly SettingDef<bool> ScreenScraperAnyMedia = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_AnyMedia", false);
+    public static readonly SettingDef<bool> ScreenScraperNamesLanguageFirst = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_NamesLanguageFirst", false);
+    public static readonly SettingDef<bool> ScreenScraperMediaRegionFirst = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_MediaRegionFirst", false);
+    public static readonly SettingDef<string> ScreenScraperRegionFallback = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_RegionFallback", """["USA (us)", "Europe (eu)", "United Kingdom (uk)", "World (wor)", "Japan (jp)", "ScreenScraper (ss)", "Custom (cus)"]""");
+    public static readonly SettingDef<bool> ScrapeAllMode = new(ScraperSection, "ScrapeAllMode", true);
+    public static readonly SettingDef<bool> OverwriteName = new(ScraperSection, "OverwriteName", true);
+    public static readonly SettingDef<bool> OverwriteMedia = new(ScraperSection, "OverwriteMedia", false);
+    public static readonly SettingDef<bool> ScrapeHiddenItems = new(ScraperSection, "ScrapeHiddenItems", false);
+    public static readonly SettingDef<string> SelectedScraper = new(ScraperSection, "SelectedScraper", "");
+
+
+    #endregion
+
+
     #region All Definitions
 
     // Master list used by BuildDefaultSections to auto-generate INI defaults.
@@ -140,9 +156,35 @@ public static class SettingKeys
         ScaledDisplay,
 
         // ES-DE
-        EsDeRoot, ProfileType
+        EsDeRoot, ProfileType,
+
+         // Scraper
+        ScreenScraperLanguage, ScreenScraperPrimaryRegion, ScreenScraperGenreEnglish,
+        ScreenScraperAnyMedia, ScreenScraperNamesLanguageFirst, ScreenScraperMediaRegionFirst, ScreenScraperRegionFallback,
+        ScrapeAllMode, OverwriteName, OverwriteMedia, ScrapeHiddenItems, SelectedScraper
+
     ];
 
     #endregion
+
+    #region Media Path Defaults
+
+    // MediaPaths have their own structure — not driven by SettingDef
+    // Derived from the model definitions
+    public static readonly IReadOnlyDictionary<string, string> DefaultMediaPaths =
+     GamelistMetaData.GetAllMediaFolderTypes()
+         .SelectMany(d => new[]
+         {
+            KeyValuePair.Create(d.Type, d.DefaultPath),
+            KeyValuePair.Create($"{d.Type}_enabled", d.DefaultEnabled.ToString().ToLower())
+         })
+         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+    #endregion
+
 }
+
+
+
+
 
