@@ -33,7 +33,7 @@ public partial class SettingsViewModel
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
 
     public bool IsEsDeProfile => _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
-   
+
     // False when in ES-DE mode — suffixes have no meaning for ES-DE gamelists.
     public bool SuffixesEnabled => _sharedData.ProfileType != SettingKeys.ProfileTypeEsDe;
 

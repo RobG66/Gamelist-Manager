@@ -28,7 +28,7 @@ namespace Gamelist_Manager.Services
         public bool NoProfilesExist { get; private set; }
 
         private ProfileService()
-        {           
+        {
             //_instance = this; an old band aid, I can't remember?  for informational reference
 
             _iniFolder = Path.Combine(AppContext.BaseDirectory, "ini");
@@ -269,8 +269,8 @@ namespace Gamelist_Manager.Services
                 var (section, key, defaultStr) = def switch
                 {
                     SettingDef<string> s => (s.Section, s.Key, s.Default),
-                    SettingDef<bool>   b => (b.Section, b.Key, b.Default.ToString()),
-                    SettingDef<int>    i => (i.Section, i.Key, i.Default.ToString()),
+                    SettingDef<bool> b => (b.Section, b.Key, b.Default.ToString()),
+                    SettingDef<int> i => (i.Section, i.Key, i.Default.ToString()),
                     _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
                 };
 
@@ -339,13 +339,13 @@ namespace Gamelist_Manager.Services
             var keys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var scraper in ScraperRegistry.All)
             {
-                keys[$"{scraper.Name}_Language"]         = "";
-                keys[$"{scraper.Name}_PrimaryRegion"]    = "";
-                keys[$"{scraper.Name}_GenreEnglish"]     = "False";
-                keys[$"{scraper.Name}_AnyMedia"]         = "False";
+                keys[$"{scraper.Name}_Language"] = "";
+                keys[$"{scraper.Name}_PrimaryRegion"] = "";
+                keys[$"{scraper.Name}_GenreEnglish"] = "False";
+                keys[$"{scraper.Name}_AnyMedia"] = "False";
                 keys[$"{scraper.Name}_NamesLanguageFirst"] = "False";
                 keys[$"{scraper.Name}_MediaRegionFirst"] = "False";
-                keys[$"{scraper.Name}_RegionFallback"]   = "";
+                keys[$"{scraper.Name}_RegionFallback"] = "";
             }
             return keys;
         }

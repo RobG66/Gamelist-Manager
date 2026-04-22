@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 
 namespace Gamelist_Manager.Services
 {
@@ -14,9 +13,9 @@ namespace Gamelist_Manager.Services
     {
         #region Private Fields
 
-            private static SharedDataService? _instance;
-            private readonly SettingsService _settings;
-            private string _profileType = SettingKeys.ProfileTypeEs;
+        private static SharedDataService? _instance;
+        private readonly SettingsService _settings;
+        private string _profileType = SettingKeys.ProfileTypeEs;
 
         #endregion
 
@@ -64,11 +63,8 @@ namespace Gamelist_Manager.Services
 
         #region Profile Properties
 
-        // The active profile type string (e.g. "es" or "esde"). Cached on LoadFromSettings().
         public string ProfileType => _profileType;
 
-        // Resolved media path for the currently loaded system.
-        // Uses the configured EsDeMediaBase (from es_settings.xml) with the system name appended.
         public string EsDeMediaDirectory =>
             !string.IsNullOrEmpty(EsDeMediaBase) && !string.IsNullOrEmpty(CurrentSystem)
                 ? Path.Combine(EsDeMediaBase, CurrentSystem)
@@ -270,7 +266,7 @@ namespace Gamelist_Manager.Services
             var settings = _settings;
 
             var rawType = settings.GetValue(SettingKeys.ProfileType);
-            var resolvedType = string.Equals(rawType, SettingKeys.ProfileTypeEsDe, System.StringComparison.OrdinalIgnoreCase)
+            var resolvedType = string.Equals(rawType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase)
                 ? SettingKeys.ProfileTypeEsDe
                 : SettingKeys.ProfileTypeEs;
 
@@ -280,20 +276,28 @@ namespace Gamelist_Manager.Services
                 OnPropertyChanged(nameof(ProfileType));
             }
 
-            EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
-
             if (resolvedType == SettingKeys.ProfileTypeEsDe)
             {
-                var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
-                EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
-                RomsFolder = detected.RomDirectory ?? string.Empty;
+                EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
+
+                if (!string.IsNullOrWhiteSpace(EsDeRoot) && Directory.Exists(EsDeRoot))
+                {
+                    var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
+                    EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+                    RomsFolder = detected.RomDirectory ?? string.Empty;
+                }
+                else
+                {
+                    EsDeMediaBase = string.Empty;
+                    RomsFolder = string.Empty;
+                }
             }
             else
             {
+                EsDeRoot = string.Empty;
                 EsDeMediaBase = string.Empty;
             }
         }
-
         #endregion
     }
 }

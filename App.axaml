@@ -23,8 +23,8 @@
             <converters:BoolToTextConverter x:Key="BoolToTextConverter"/>
             <converters:PathToBitmapConverter x:Key="PathToBitmapConverter"/>
             <converters:BooleanToPlaceholderTextConverter x:Key="BooleanToPlaceholderTextConverter"/>
-            <converters:NullBrushConverter x:Key="NullBrushConverter"/>
-
+            <converters:LogLevelToBrushConverter x:Key="LogLevelToBrushConverter"/>
+            
         </ResourceDictionary>
     </Application.Resources>
 

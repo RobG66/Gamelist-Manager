@@ -1,758 +1,758 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
-             xmlns:models="clr-namespace:Gamelist_Manager.Models"
-             mc:Ignorable="d" d:DesignWidth="152" d:DesignHeight="800"
-             x:Class="Gamelist_Manager.Views.MenuView"
-             x:DataType="viewModels:MainWindowViewModel"
-             FontSize="{DynamicResource GlobalMenuFontSize}"
-             Padding="2.5">
-    
-    <Border Background="{DynamicResource DrawerBackground}"
-            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-            BorderThickness="1"
-            CornerRadius="4">
-        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="0">
-            <!-- Hamburger Button to toggle pane -->
-            <Button Classes="NavButton" Command="{Binding TriggerPane}" ToolTip.Tip="Toggle menu">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <PathIcon Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" 
-                              Width="16" 
-                              Height="16"
-                              Foreground="{DynamicResource AccentIconBrush}"/>
-                    <TextBlock Text="Menu" 
-                               VerticalAlignment="Center" 
-                               IsVisible="{Binding IsPaneOpen}"
-                               FontSize="{DynamicResource GlobalHeaderFontSize}"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentIconBrush}"/>
-                </StackPanel>
-            </Button>
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
+			 xmlns:models="clr-namespace:Gamelist_Manager.Models"
+			 mc:Ignorable="d" d:DesignWidth="152" d:DesignHeight="800"
+			 x:Class="Gamelist_Manager.Views.MenuView"
+			 x:DataType="viewModels:MainWindowViewModel"
+			 FontSize="{DynamicResource GlobalMenuFontSize}"
+			 Padding="2.5">
 
-            <Separator Height="1" 
-                       Background="{DynamicResource SeparatorBrush}" 
-                       Margin="0,8,0,8"/>
+	<Border Background="{DynamicResource DrawerBackground}"
+			BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+			BorderThickness="1"
+			CornerRadius="4">
+		<ScrollViewer VerticalScrollBarVisibility="Auto"
+					  HorizontalScrollBarVisibility="Disabled">
+			<StackPanel Margin="0">
+				<!-- Hamburger Button to toggle pane -->
+				<Button Classes="NavButton" Command="{Binding TriggerPane}" ToolTip.Tip="Toggle menu">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<PathIcon Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"
+								  Width="16"
+								  Height="16"
+								  Foreground="{DynamicResource AccentIconBrush}"/>
+						<TextBlock Text="Menu"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   FontSize="{DynamicResource GlobalHeaderFontSize}"
+								   FontWeight="SemiBold"
+								   Foreground="{DynamicResource AccentIconBrush}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- FILE Menu -->
-            <Button Classes="NavButton" x:Name="FileButton" ToolTip.Tip="File operations">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="New Gamelist"
-                                  Command="{Binding NewGamelistCommand}"
-                                  IsEnabled="{Binding IsNewGamelistEnabled}"
-                                  ToolTip.Tip="Create a new gamelist for a system folder">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/new.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Load Gamelist" Command="{Binding BrowseForGamelistCommand}" ToolTip.Tip="Open an existing gamelist file">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/load.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Reload Gamelist"
-                                  Command="{Binding ReloadCurrentGamelistCommand}"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  ToolTip.Tip="Reload the current gamelist from disk">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/reload.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Save Gamelist"
-                                  Command="{Binding SaveGamelistCommand}"
-                                  IsEnabled="{Binding IsSaveEnabled}"
-                                  ToolTip.Tip="Save changes to the gamelist">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/save.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Restore Gamelist" IsEnabled="False" ToolTip.Tip="Restore gamelist from backup">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/restore.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Export to CSV" IsEnabled="False" ToolTip.Tip="Export gamelist data to CSV file">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/export.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/folder.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="File" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
+				<Separator Height="1"
+						   Background="{DynamicResource SeparatorBrush}"
+						   Margin="0,8,0,8"/>
 
-            <!-- RECENT FILES Menu -->
-            <Button Classes="NavButton" x:Name="RecentButton" ToolTip.Tip="Recent Gamelists" IsEnabled="{Binding HasRecentFiles}">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right"/>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/reload.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Recent Files" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
+				<!-- FILE Menu -->
+				<Button Classes="NavButton" x:Name="FileButton" ToolTip.Tip="File operations">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="New Gamelist"
+									  Command="{Binding NewGamelistCommand}"
+									  IsEnabled="{Binding IsNewGamelistEnabled}"
+									  ToolTip.Tip="Create a new gamelist for a system folder">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/new.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Load Gamelist" Command="{Binding BrowseForGamelistCommand}" ToolTip.Tip="Open an existing gamelist file">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/load.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Reload Gamelist"
+									  Command="{Binding ReloadCurrentGamelistCommand}"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  ToolTip.Tip="Reload the current gamelist from disk">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/reload.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Save Gamelist"
+									  Command="{Binding SaveGamelistCommand}"
+									  IsEnabled="{Binding IsSaveEnabled}"
+									  ToolTip.Tip="Save changes to the gamelist">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/save.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Restore Gamelist" IsEnabled="False" ToolTip.Tip="Restore gamelist from backup">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/restore.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Export to CSV" IsEnabled="False" ToolTip.Tip="Export gamelist data to CSV file">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/export.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/folder.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="File" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- SYSTEMS Menu -->
-            <StackPanel>
-                <Button Classes="NavButton"
-                        x:Name="SystemsButton"
-                        ToolTip.Tip="Select system"
-                        IsEnabled="{Binding IsSystemsComboBoxEnabled}">
-                    <Button.Flyout>
-                        <Flyout Placement="Right" ShowMode="Standard">
-                            <Border Background="{DynamicResource FlyoutBackground}"
-                                    BorderBrush="{DynamicResource FlyoutBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="8"
-                                    Padding="8"
-                                    MinWidth="220"
-                                    MaxWidth="280"
-                                    BoxShadow="0 4 12 0 #40000000">
-                                <ScrollViewer MaxHeight="450" VerticalScrollBarVisibility="Auto">
-                                    <StackPanel x:Name="SystemsPanel"/>
-                                </ScrollViewer>
-                            </Border>
-                        </Flyout>
-                    </Button.Flyout>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Image Source="/Assets/Icons/gamepad.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                        <TextBlock Text="Systems" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Text="{Binding StatusText}"
-                           FontSize="{DynamicResource GlobalSmallFontSize}"
-                           TextWrapping="Wrap"
-                           Opacity="0.7"
-                           Margin="18,4,12,0"
-                           IsVisible="{Binding !IsSystemsComboBoxEnabled}"/>
-            </StackPanel>
+				<!-- RECENT FILES Menu -->
+				<Button Classes="NavButton" x:Name="RecentButton" ToolTip.Tip="Recent Gamelists" IsEnabled="{Binding HasRecentFiles}">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right"/>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/reload.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Recent Files" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- VIEW Menu -->
-            <Button Classes="NavButton" x:Name="ViewButton" ToolTip.Tip="View settings" IsEnabled="{Binding IsGamelistLoaded}">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="All Items"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding SetShowAllItemsCommand}"
-                                  ToolTip.Tip="Show all items in the gamelist">
-                            <MenuItem.Icon>
-                                <RadioButton IsChecked="{Binding ShowAllItems, Mode=OneWay}"
-                                             GroupName="ViewFilter"
-                                             Padding="0"
-                                             BorderThickness="0"
-                                             IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Show Visible Items Only"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding SetShowVisibleOnlyCommand}"
-                                  ToolTip.Tip="Show only visible items">
-                            <MenuItem.Icon>
-                                <RadioButton IsChecked="{Binding ShowVisibleOnly, Mode=OneWay}"
-                                             GroupName="ViewFilter"
-                                             Padding="0"
-                                             BorderThickness="0"
-                                             IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Show Hidden Items Only"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding SetShowHiddenOnlyCommand}"
-                                  ToolTip.Tip="Show only hidden items">
-                            <MenuItem.Icon>
-                                <RadioButton IsChecked="{Binding ShowHiddenOnly, Mode=OneWay}"
-                                             GroupName="ViewFilter"
-                                             Padding="0"
-                                             BorderThickness="0"
-                                             IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Show All Genres"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding SetShowAllGenresCommand}"
-                                  ToolTip.Tip="Show all genres">
-                            <MenuItem.Icon>
-                                <RadioButton IsChecked="{Binding IsGenreFilterActive, Converter={x:Static BoolConverters.Not}, Mode=OneWay}"
-                                             GroupName="GenreFilter"
-                                             Padding="0"
-                                             BorderThickness="0"
-                                             IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="{Binding GenreFilterMenuText, FallbackValue='Show Selected Genre Only'}"
-                                  IsEnabled="{Binding IsGenreFilterEnabled}"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding SetShowSelectedGenreOnlyCommand}"
-                                  ToolTip.Tip="Filter by selected genre">
-                            <MenuItem.Icon>
-                                <RadioButton IsChecked="{Binding IsGenreFilterActive, Mode=OneWay}"
-                                             GroupName="GenreFilter"
-                                             Padding="0"
-                                             BorderThickness="0"
-                                             IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Always On Top"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ToggleAlwaysOnTopCommand}"
-                                  ToolTip.Tip="Keep window on top of other windows">
-                            <MenuItem.Icon>
-                                <CheckBox IsChecked="{Binding IsAlwaysOnTop, Mode=OneWay}"
-                                          Padding="0"
-                                          BorderThickness="0"
-                                          IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Reset View" StaysOpenOnClick="True"
-                                  Command="{Binding ResetViewCommand}"
-                                  ToolTip.Tip="Reset view settings to defaults">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Video Jukebox"
-                                  IsVisible="False"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  ToolTip.Tip="Play videos from the gamelist">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Music Jukebox"
-                                  IsVisible="False"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  ToolTip.Tip="Play music from the gamelist">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/music.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="View" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
+				<!-- SYSTEMS Menu -->
+				<StackPanel>
+					<Button Classes="NavButton"
+							x:Name="SystemsButton"
+							ToolTip.Tip="Select system"
+							IsEnabled="{Binding IsSystemsComboBoxEnabled}">
+						<Button.Flyout>
+							<Flyout Placement="Right" ShowMode="Standard">
+								<Border Background="{DynamicResource FlyoutBackground}"
+										BorderBrush="{DynamicResource FlyoutBorder}"
+										BorderThickness="1"
+										CornerRadius="8"
+										Padding="8"
+										MinWidth="220"
+										MaxWidth="280"
+										BoxShadow="0 4 12 0 #40000000">
+									<ScrollViewer MaxHeight="450" VerticalScrollBarVisibility="Auto">
+										<StackPanel x:Name="SystemsPanel"/>
+									</ScrollViewer>
+								</Border>
+							</Flyout>
+						</Button.Flyout>
+						<StackPanel Orientation="Horizontal" Spacing="10">
+							<Image Source="/Assets/Icons/gamepad.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+							<TextBlock Text="Systems" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						</StackPanel>
+					</Button>
+					<TextBlock Text="{Binding StatusText}"
+							   FontSize="{DynamicResource GlobalSmallFontSize}"
+							   TextWrapping="Wrap"
+							   Opacity="0.7"
+							   Margin="18,4,12,0"
+							   IsVisible="{Binding !IsSystemsComboBoxEnabled}"/>
+				</StackPanel>
 
-            <!-- EDIT Menu -->
-            <Button Classes="NavButton" x:Name="EditButton" ToolTip.Tip="Edit operations" IsEnabled="{Binding IsGamelistLoaded}">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="Set All Items Visible"
-                                  Command="{Binding SetItemsVisibleCommand}"
-                                  CommandParameter="all"
-                                  ToolTip.Tip="Make all items visible">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Set All Items Hidden"
-                                  Command="{Binding SetItemsHiddenCommand}"
-                                  CommandParameter="all"
-                                  ToolTip.Tip="Hide all items">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Set Selected Items Visible"
-                                  Command="{Binding SetItemsVisibleCommand}"
-                                  CommandParameter="selected"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Make selected item visible">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Set Selected Items Hidden"
-                                  Command="{Binding SetItemsHiddenCommand}"
-                                  CommandParameter="selected"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Hide selected item">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="{Binding SetSelectedGenreVisibleMenuText, FallbackValue='Set Selected Genre Visible'}"
-                                  Command="{Binding SetItemsVisibleCommand}"
-                                  CommandParameter="genre"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Make all items in selected genre visible">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="{Binding SetSelectedGenreHiddenMenuText, FallbackValue='Set Selected Genre Hidden'}"
-                                  Command="{Binding SetItemsHiddenCommand}"
-                                  CommandParameter="genre"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Hide all items in selected genre">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Remove Selected Item" ToolTip.Tip="Remove selected item from gamelist, no files are deleted"
-                                    Command="{Binding RemoveSelectedItemsCommand}">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/remove1.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Delete Selected Item" IsEnabled="{Binding IsDeleteEnabled}" ToolTip.Tip="Permanently deletes the selected items and their media files"
-                                  Command="{Binding DeleteSelectedItemsCommand}">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/delete.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        
-                        <Separator/>
-                        <MenuItem Header="Reset Selected Names"
-                                  Command="{Binding ResetNamesCommand}"
-                                  CommandParameter="selected"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Reset selected game names to filename">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Reset All Names"
-                                  Command="{Binding ResetNamesCommand}"
-                                  CommandParameter="all"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  ToolTip.Tip="Reset all game names to filename">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Clear Selected Data" 
-                                  Command="{Binding ClearDataCommand}"
-                                  CommandParameter="selected"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Clear data for selected items">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Clear All Data"
-                                  Command="{Binding ClearDataCommand}"
-                                  CommandParameter="all"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  ToolTip.Tip="Clear all metadata">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Clear Selected Media Paths"
-                                  Command="{Binding ClearMediaPathsCommand}"
-                                  CommandParameter="selected"
-                                  IsEnabled="{Binding HasGameSelected}"
-                                  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Clear All Media Paths"
-                                  Command="{Binding ClearMediaPathsCommand}"
-                                  CommandParameter="all"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  ToolTip.Tip="Clear all media paths, media is not deleted">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/edit.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Edit" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
+				<!-- VIEW Menu -->
+				<Button Classes="NavButton" x:Name="ViewButton" ToolTip.Tip="View settings" IsEnabled="{Binding IsGamelistLoaded}">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="All Items"
+									  StaysOpenOnClick="True"
+									  Command="{Binding SetShowAllItemsCommand}"
+									  ToolTip.Tip="Show all items in the gamelist">
+								<MenuItem.Icon>
+									<RadioButton IsChecked="{Binding ShowAllItems, Mode=OneWay}"
+												 GroupName="ViewFilter"
+												 Padding="0"
+												 BorderThickness="0"
+												 IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Show Visible Items Only"
+									  StaysOpenOnClick="True"
+									  Command="{Binding SetShowVisibleOnlyCommand}"
+									  ToolTip.Tip="Show only visible items">
+								<MenuItem.Icon>
+									<RadioButton IsChecked="{Binding ShowVisibleOnly, Mode=OneWay}"
+												 GroupName="ViewFilter"
+												 Padding="0"
+												 BorderThickness="0"
+												 IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Show Hidden Items Only"
+									  StaysOpenOnClick="True"
+									  Command="{Binding SetShowHiddenOnlyCommand}"
+									  ToolTip.Tip="Show only hidden items">
+								<MenuItem.Icon>
+									<RadioButton IsChecked="{Binding ShowHiddenOnly, Mode=OneWay}"
+												 GroupName="ViewFilter"
+												 Padding="0"
+												 BorderThickness="0"
+												 IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Show All Genres"
+									  StaysOpenOnClick="True"
+									  Command="{Binding SetShowAllGenresCommand}"
+									  ToolTip.Tip="Show all genres">
+								<MenuItem.Icon>
+									<RadioButton IsChecked="{Binding IsGenreFilterActive, Converter={x:Static BoolConverters.Not}, Mode=OneWay}"
+												 GroupName="GenreFilter"
+												 Padding="0"
+												 BorderThickness="0"
+												 IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="{Binding GenreFilterMenuText, FallbackValue='Show Selected Genre Only'}"
+									  IsEnabled="{Binding IsGenreFilterEnabled}"
+									  StaysOpenOnClick="True"
+									  Command="{Binding SetShowSelectedGenreOnlyCommand}"
+									  ToolTip.Tip="Filter by selected genre">
+								<MenuItem.Icon>
+									<RadioButton IsChecked="{Binding IsGenreFilterActive, Mode=OneWay}"
+												 GroupName="GenreFilter"
+												 Padding="0"
+												 BorderThickness="0"
+												 IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Always On Top"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ToggleAlwaysOnTopCommand}"
+									  ToolTip.Tip="Keep window on top of other windows">
+								<MenuItem.Icon>
+									<CheckBox IsChecked="{Binding IsAlwaysOnTop, Mode=OneWay}"
+											  Padding="0"
+											  BorderThickness="0"
+											  IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Reset View" StaysOpenOnClick="True"
+									  Command="{Binding ResetViewCommand}"
+									  ToolTip.Tip="Reset view settings to defaults">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Video Jukebox"
+									  IsVisible="False"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  ToolTip.Tip="Play videos from the gamelist">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Music Jukebox"
+									  IsVisible="False"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  ToolTip.Tip="Play music from the gamelist">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/music.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="View" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- FIND Menu -->
-            <Button Classes="NavButton" x:Name="FindMenuButton" ToolTip.Tip="Find items" IsEnabled="{Binding IsGamelistLoaded}">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="New Items"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  Command="{Binding FindNewItemsCommand}"
-                                  ToolTip.Tip="Find new games not in the gamelist">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/findnew.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Missing Items"
-                                  IsEnabled="{Binding IsGamelistLoaded}"
-                                  Command="{Binding FindMissingItemsCommand}"
-                                  ToolTip.Tip="Find items whose files are missing">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/findmissing.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Duplicate Items"
-                                  IsEnabled="False"
-                                  ToolTip.Tip="Find duplicate entries">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/findduplicates.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                       <Separator/>
-                      <MenuItem Header="Search and Replace"
-                                  Command="{Binding ToggleSearchPanelCommand}"
-                                  ToolTip.Tip="Find text and replace if needed">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/searchandreplace.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/magnifying-glass.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Find" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
+				<!-- EDIT Menu -->
+				<Button Classes="NavButton" x:Name="EditButton" ToolTip.Tip="Edit operations" IsEnabled="{Binding IsGamelistLoaded}">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="Set All Items Visible"
+									  Command="{Binding SetItemsVisibleCommand}"
+									  CommandParameter="all"
+									  ToolTip.Tip="Make all items visible">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Set All Items Hidden"
+									  Command="{Binding SetItemsHiddenCommand}"
+									  CommandParameter="all"
+									  ToolTip.Tip="Hide all items">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Set Selected Items Visible"
+									  Command="{Binding SetItemsVisibleCommand}"
+									  CommandParameter="selected"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Make selected item visible">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Set Selected Items Hidden"
+									  Command="{Binding SetItemsHiddenCommand}"
+									  CommandParameter="selected"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Hide selected item">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="{Binding SetSelectedGenreVisibleMenuText, FallbackValue='Set Selected Genre Visible'}"
+									  Command="{Binding SetItemsVisibleCommand}"
+									  CommandParameter="genre"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Make all items in selected genre visible">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="{Binding SetSelectedGenreHiddenMenuText, FallbackValue='Set Selected Genre Hidden'}"
+									  Command="{Binding SetItemsHiddenCommand}"
+									  CommandParameter="genre"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Hide all items in selected genre">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Remove Selected Item" ToolTip.Tip="Remove selected item from gamelist, no files are deleted"
+									  Command="{Binding RemoveSelectedItemsCommand}">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/remove1.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Delete Selected Item" IsEnabled="{Binding IsDeleteEnabled}" ToolTip.Tip="Permanently deletes the selected items and their media files"
+									  Command="{Binding DeleteSelectedItemsCommand}">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/delete.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
 
-            <!-- COLUMNS Menu -->
-            <Button Classes="NavButton" x:Name="ColumnsButton" ToolTip.Tip="Column visibility" IsEnabled="{Binding IsGamelistLoaded}">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="Description Panel" 
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ToggleDescriptionPanelCommand}"
-                                  ToolTip.Tip="Toggle description panel visibility">
-                            <MenuItem.Icon>
-                                <CheckBox IsChecked="{Binding DescriptionPanelVisible, Mode=OneWay}" 
-                                          Padding="0" 
-                                          BorderThickness="0" 
-                                          IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Media Paths"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ToggleMediaPathsCommand}"
-                                  ToolTip.Tip="Toggle Media Paths columns">
-                            <MenuItem.Icon>
-                                <CheckBox IsChecked="{Binding MediaPathsVisible, Mode=OneWay}" 
-                                          Padding="0" 
-                                          BorderThickness="0" 
-                                          IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="AutoSize To Fit" 
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ToggleSizeToFitCommand}"
-                                  ToolTip.Tip="Auto-fit columns to window width">
-                            <MenuItem.Icon>
-                                <CheckBox IsChecked="{Binding SizeToFit, Mode=OneWay}" 
-                                          Padding="0" 
-                                          BorderThickness="0" 
-                                          IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Remember Columns"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ToggleRememberColumnsCommand}"
-                                  ToolTip.Tip="Remember column visibility between sessions">
-                            <MenuItem.Icon>
-                                <CheckBox IsChecked="{Binding RememberColumns, Mode=OneWay}"
-                                          Padding="0"
-                                          BorderThickness="0"
-                                          IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Remember Autosize"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ToggleRememberAutosizeCommand}"
-                                  ToolTip.Tip="Remember column autosize between sessions">
-                            <MenuItem.Icon>
-                                <CheckBox IsChecked="{Binding RememberAutosize, Mode=OneWay}"
-                                          Padding="0"
-                                          BorderThickness="0"
-                                          IsHitTestVisible="False"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Reset to Default"
-                                  StaysOpenOnClick="True"
-                                  Command="{Binding ResetColumnVisibilityCommand}"
-                                  ToolTip.Tip="Reset column visibility to defaults">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Buttons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/menu.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Columns" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
-                        
-            <!-- REMOTE Menu -->
-            <Button Classes="NavButton" x:Name="RemoteButton" ToolTip.Tip="Not Implemented Yet!" IsEnabled="False"
-                    IsVisible="{Binding IsRemoteVisible}">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="Map Network Drive" ToolTip.Tip="Map a network drive">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/mapdrive.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Open Terminal" ToolTip.Tip="Open SSH terminal connection">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/ssh.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Get Version" ToolTip.Tip="Get remote system version">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/batocera.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Show Updates" ToolTip.Tip="Check for system updates">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/batocera.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Stop Emulators" ToolTip.Tip="Stop all running emulators">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/stop.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Stop Emulationstation" ToolTip.Tip="Stop Emulationstation">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/stop.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Reboot Host" ToolTip.Tip="Reboot remote system">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/reboot.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Shutdown Host" ToolTip.Tip="Shutdown remote system">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/shutdown.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <Separator />
-                        <MenuItem Header="Remove Batocera SSH Key" ToolTip.Tip="Remove stored SSH key">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/remove.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/remote.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Remote" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
-                </StackPanel>
-            </Button>
+							<Separator/>
+							<MenuItem Header="Reset Selected Names"
+									  Command="{Binding ResetNamesCommand}"
+									  CommandParameter="selected"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Reset selected game names to filename">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Reset All Names"
+									  Command="{Binding ResetNamesCommand}"
+									  CommandParameter="all"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  ToolTip.Tip="Reset all game names to filename">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Clear Selected Data"
+									  Command="{Binding ClearDataCommand}"
+									  CommandParameter="selected"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Clear data for selected items">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Clear All Data"
+									  Command="{Binding ClearDataCommand}"
+									  CommandParameter="all"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  ToolTip.Tip="Clear all metadata">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Clear Selected Media Paths"
+									  Command="{Binding ClearMediaPathsCommand}"
+									  CommandParameter="selected"
+									  IsEnabled="{Binding HasGameSelected}"
+									  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Clear All Media Paths"
+									  Command="{Binding ClearMediaPathsCommand}"
+									  CommandParameter="all"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  ToolTip.Tip="Clear all media paths, media is not deleted">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/edit.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Edit" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- Separator before bottom items -->
-            <Border Height="1"
-                    Background="{DynamicResource SeparatorBrush}"
-                    Margin="0,8"/>
+				<!-- FIND Menu -->
+				<Button Classes="NavButton" x:Name="FindMenuButton" ToolTip.Tip="Find items" IsEnabled="{Binding IsGamelistLoaded}">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="New Items"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  Command="{Binding FindNewItemsCommand}"
+									  ToolTip.Tip="Find new games not in the gamelist">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/findnew.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Missing Items"
+									  IsEnabled="{Binding IsGamelistLoaded}"
+									  Command="{Binding FindMissingItemsCommand}"
+									  ToolTip.Tip="Find items whose files are missing">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/findmissing.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Duplicate Items"
+									  IsEnabled="False"
+									  ToolTip.Tip="Find duplicate entries">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/findduplicates.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Search and Replace"
+									  Command="{Binding ToggleSearchPanelCommand}"
+									  ToolTip.Tip="Find text and replace if needed">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/searchandreplace.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
 
-            <!-- Edit Mode Toggle -->
-            <Button Classes="NavButton"
-                    x:Name="EditModeToggleButton"
-                    Command="{Binding ToggleEditModeCommand}"
-                    IsEnabled="{Binding IsEditToggleEnabled}"
-                    ToolTip.Tip="Toggle editing of gamelist data and media files">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
-                        <Image Source="/Assets/Icons/edit.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                        <Border HorizontalAlignment="Right"
-                                VerticalAlignment="Bottom"
-                                Width="8" Height="8"
-                                CornerRadius="4"
-                                Background="{DynamicResource SystemAccentBrush}"
-                                IsVisible="{Binding IsEditModeEnabled}"/>
-                    </Grid>
-                    <TextBlock Text="{Binding IsEditModeEnabled, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Editing: On|Editing: Off', FallbackValue='Editing: Off'}"
-                               VerticalAlignment="Center"
-                               IsVisible="{Binding IsPaneOpen}"
-                               Foreground="{DynamicResource NavButtonForeground}"/>
-                </StackPanel>
-            </Button>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/magnifying-glass.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Find" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
-   <Border Height="1"
-                    Background="{DynamicResource SeparatorBrush}"
-                    Margin="0,8"/>
+				<!-- COLUMNS Menu -->
+				<Button Classes="NavButton" x:Name="ColumnsButton" ToolTip.Tip="Column visibility" IsEnabled="{Binding IsGamelistLoaded}">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="Description Panel"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ToggleDescriptionPanelCommand}"
+									  ToolTip.Tip="Toggle description panel visibility">
+								<MenuItem.Icon>
+									<CheckBox IsChecked="{Binding DescriptionPanelVisible, Mode=OneWay}"
+											  Padding="0"
+											  BorderThickness="0"
+											  IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Media Paths"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ToggleMediaPathsCommand}"
+									  ToolTip.Tip="Toggle Media Paths columns">
+								<MenuItem.Icon>
+									<CheckBox IsChecked="{Binding MediaPathsVisible, Mode=OneWay}"
+											  Padding="0"
+											  BorderThickness="0"
+											  IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="AutoSize To Fit"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ToggleSizeToFitCommand}"
+									  ToolTip.Tip="Auto-fit columns to window width">
+								<MenuItem.Icon>
+									<CheckBox IsChecked="{Binding SizeToFit, Mode=OneWay}"
+											  Padding="0"
+											  BorderThickness="0"
+											  IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Remember Columns"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ToggleRememberColumnsCommand}"
+									  ToolTip.Tip="Remember column visibility between sessions">
+								<MenuItem.Icon>
+									<CheckBox IsChecked="{Binding RememberColumns, Mode=OneWay}"
+											  Padding="0"
+											  BorderThickness="0"
+											  IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Remember Autosize"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ToggleRememberAutosizeCommand}"
+									  ToolTip.Tip="Remember column autosize between sessions">
+								<MenuItem.Icon>
+									<CheckBox IsChecked="{Binding RememberAutosize, Mode=OneWay}"
+											  Padding="0"
+											  BorderThickness="0"
+											  IsHitTestVisible="False"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Reset to Default"
+									  StaysOpenOnClick="True"
+									  Command="{Binding ResetColumnVisibilityCommand}"
+									  ToolTip.Tip="Reset column visibility to defaults">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Buttons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/menu.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Columns" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
+				<!-- REMOTE Menu -->
+				<Button Classes="NavButton" x:Name="RemoteButton" ToolTip.Tip="Remote Controls"
+						IsVisible="{Binding IsRemoteVisible}">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="Map Network Drive" Command="{Binding MapNetworkDriveCommand}" ToolTip.Tip="Map a network drive">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/mapdrive.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Open Terminal" Command="{Binding OpenTerminalCommand}" ToolTip.Tip="Open SSH terminal connection">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/ssh.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Get Version" Command="{Binding GetVersionCommand}" ToolTip.Tip="Get remote system version">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/batocera.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Show Updates" Command="{Binding ShowUpdatesCommand}" ToolTip.Tip="Check for system updates">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/batocera.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Stop Emulators" Command="{Binding StopEmulatorsCommand}" ToolTip.Tip="Stop all running emulators">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/stop.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Stop Emulationstation" Command="{Binding StopEmulationstationCommand}" ToolTip.Tip="Stop Emulationstation">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/stop.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator/>
+							<MenuItem Header="Reboot Host" Command="{Binding RebootHostCommand}" ToolTip.Tip="Reboot remote system">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/reboot.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Shutdown Host" Command="{Binding ShutdownHostCommand}" ToolTip.Tip="Shutdown remote system">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/shutdown.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<Separator />
+							<MenuItem Header="Remove Batocera SSH Key" Command="{Binding RemoveBatoceraSSHKeyCommand}" ToolTip.Tip="Remove stored SSH key">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/remove.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/remote.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Remote" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- Media Preview Toggle -->
-            <Button Classes="NavButton" 
-                    x:Name="MediaPreviewToggleButton" 
-                    Command="{Binding ToggleMediaPreviewCommand}"
-                    IsEnabled="{Binding IsGamelistLoaded}"
-                    ToolTip.Tip="Toggle Media Preview Panel">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
-                        <Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                        <Border HorizontalAlignment="Right" 
-                                VerticalAlignment="Bottom"
-                                Width="8" Height="8"
-                                CornerRadius="4"
-                                Background="{DynamicResource SystemAccentBrush}"
-                                IsVisible="{Binding IsMediaPreviewVisible}"/>
-                    </Grid>
-                    <TextBlock Text="Media Preview" 
-                               VerticalAlignment="Center" 
-                               IsVisible="{Binding IsPaneOpen}"
-                               Foreground="{DynamicResource NavButtonForeground}"/>
-                </StackPanel>
-            </Button>
+				<!-- Separator before bottom items -->
+				<Border Height="1"
+						Background="{DynamicResource SeparatorBrush}"
+						Margin="0,8"/>
 
-            <!-- Scraper Toggle -->
-            <Button Classes="NavButton" 
-                    x:Name="ScraperToggleButton" 
-                    Command="{Binding ToggleScraperCommand}"
-                    IsEnabled="{Binding IsGamelistLoaded}"
-                    ToolTip.Tip="Toggle Scraper Panel">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
-                        <Image Source="/Assets/Icons/scraper.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                        <Border HorizontalAlignment="Right" 
-                                VerticalAlignment="Bottom"
-                                Width="8" Height="8"
-                                CornerRadius="4"
-                                Background="{DynamicResource SystemAccentBrush}"
-                                IsVisible="{Binding IsScraperVisible}"/>
-                    </Grid>
-                    <TextBlock Text="Scraper" 
-                               VerticalAlignment="Center" 
-                               IsVisible="{Binding IsPaneOpen}"
-                               Foreground="{DynamicResource NavButtonForeground}"/>
-                </StackPanel>
-            </Button>
+				<!-- Edit Mode Toggle -->
+				<Button Classes="NavButton"
+						x:Name="EditModeToggleButton"
+						Command="{Binding ToggleEditModeCommand}"
+						IsEnabled="{Binding IsEditToggleEnabled}"
+						ToolTip.Tip="Toggle editing of gamelist data and media files">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
+							<Image Source="/Assets/Icons/edit.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+							<Border HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									Width="8" Height="8"
+									CornerRadius="4"
+									Background="{DynamicResource SystemAccentBrush}"
+									IsVisible="{Binding IsEditModeEnabled}"/>
+						</Grid>
+						<TextBlock Text="{Binding IsEditModeEnabled, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Editing: On|Editing: Off', FallbackValue='Editing: Off'}"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
 
-                  <!-- DAT Tools Toggle -->
-                  <Button Classes="NavButton"
-                          x:Name="DatToolToggleButton"
-                          Command="{Binding ToggleDatToolCommand}"
-                          IsEnabled="{Binding IsGamelistLoaded}"
-                          ToolTip.Tip="Toggle DAT Tool Panel">
-                      <StackPanel Orientation="Horizontal" Spacing="10">
-                          <Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
-                              <Image Source="/Assets/Icons/dat.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                              <Border HorizontalAlignment="Right"
-                                      VerticalAlignment="Bottom"
-                                      Width="8" Height="8"
-                                      CornerRadius="4"
-                                      Background="{DynamicResource SystemAccentBrush}"
-                                      IsVisible="{Binding IsDatToolVisible}"/>
-                          </Grid>
-                          <TextBlock Text="DAT Tool"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsPaneOpen}"
-                                     Foreground="{DynamicResource NavButtonForeground}"/>
-                      </StackPanel>
-                  </Button>
+				<Border Height="1"
+						Background="{DynamicResource SeparatorBrush}"
+						Margin="0,8"/>
 
 
+				<!-- Media Preview Toggle -->
+				<Button Classes="NavButton"
+						x:Name="MediaPreviewToggleButton"
+						Command="{Binding ToggleMediaPreviewCommand}"
+						IsEnabled="{Binding IsGamelistLoaded}"
+						ToolTip.Tip="Toggle Media Preview Panel">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
+							<Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+							<Border HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									Width="8" Height="8"
+									CornerRadius="4"
+									Background="{DynamicResource SystemAccentBrush}"
+									IsVisible="{Binding IsMediaPreviewVisible}"/>
+						</Grid>
+						<TextBlock Text="Media Preview"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- Separator before bottom items -->
-            <Border Height="1"
-                    Background="{DynamicResource SeparatorBrush}"
-                    Margin="0,8"/>
+				<!-- Scraper Toggle -->
+				<Button Classes="NavButton"
+						x:Name="ScraperToggleButton"
+						Command="{Binding ToggleScraperCommand}"
+						IsEnabled="{Binding IsGamelistLoaded}"
+						ToolTip.Tip="Toggle Scraper Panel">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
+							<Image Source="/Assets/Icons/scraper.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+							<Border HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									Width="8" Height="8"
+									CornerRadius="4"
+									Background="{DynamicResource SystemAccentBrush}"
+									IsVisible="{Binding IsScraperVisible}"/>
+						</Grid>
+						<TextBlock Text="Scraper"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- PROFILE Selector (only visible when more than one profile exists) -->
-            <Button Classes="NavButton"
-                    x:Name="ProfileButton"
-                    ToolTip.Tip="Switch profile"
-                    IsVisible="{Binding HasMultipleProfiles}">
-                <Button.Flyout>
-                    <Flyout Placement="Right" ShowMode="Standard">
-                        <StackPanel>
-                            <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
-                                <ItemsControl ItemsSource="{Binding Profiles}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Tag="{Binding}"
-                                                    Classes="NavButton"
-                                                    Click="ProfileButton_Click">
-                                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding}"
-                                                              VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </StackPanel>
-                    </Flyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="{Binding ActiveProfileName}"
-                               VerticalAlignment="Center"
-                               IsVisible="{Binding IsPaneOpen}"
-                               Foreground="{DynamicResource NavButtonForeground}"/>
-                </StackPanel>
-            </Button>
+				<!-- DAT Tools Toggle -->
+				<Button Classes="NavButton"
+						x:Name="DatToolToggleButton"
+						Command="{Binding ToggleDatToolCommand}"
+						IsEnabled="{Binding IsGamelistLoaded}"
+						ToolTip.Tip="Toggle DAT Tool Panel">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
+							<Image Source="/Assets/Icons/dat.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+							<Border HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									Width="8" Height="8"
+									CornerRadius="4"
+									Background="{DynamicResource SystemAccentBrush}"
+									IsVisible="{Binding IsDatToolVisible}"/>
+						</Grid>
+						<TextBlock Text="DAT Tool"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
 
-            <!-- SETTINGS -->
-            <Button Classes="NavButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="Settings">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/settings.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Settings" 
-                               VerticalAlignment="Center" 
-                               IsVisible="{Binding IsPaneOpen}"
-                               Foreground="{DynamicResource NavButtonForeground}"/>
-                </StackPanel>
-            </Button>
 
-            <!-- HELP Menu -->
-            <Button Classes="NavButton" x:Name="HelpButton" ToolTip.Tip="Help">
-                <Button.Flyout>
-                    <MenuFlyout Placement="Right">
-                        <MenuItem Header="About" Command="{Binding OpenAboutCommand}" ToolTip.Tip="About Gamelist Manager">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/icon.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Report Issue" Command="{Binding ReportIssueCommand}" ToolTip.Tip="Report an issue on GitHub">
-                            <MenuItem.Icon>
-                                <Image Source="/Assets/Icons/stop.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuFlyout>
-                </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-                    <TextBlock Text="Help" 
-                               VerticalAlignment="Center" 
-                               IsVisible="{Binding IsPaneOpen}"
-                               Foreground="{DynamicResource NavButtonForeground}"/>
-                </StackPanel>
-            </Button>
 
-           
-            
-        </StackPanel>
-        </ScrollViewer>
-    </Border>
+				<!-- Separator before bottom items -->
+				<Border Height="1"
+						Background="{DynamicResource SeparatorBrush}"
+						Margin="0,8"/>
+
+				<!-- PROFILE Selector (only visible when more than one profile exists) -->
+				<Button Classes="NavButton"
+						x:Name="ProfileButton"
+						ToolTip.Tip="Switch profile"
+						IsVisible="{Binding HasMultipleProfiles}">
+					<Button.Flyout>
+						<Flyout Placement="Right" ShowMode="Standard">
+							<StackPanel>
+								<ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+									<ItemsControl ItemsSource="{Binding Profiles}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate>
+												<Button Tag="{Binding}"
+														Classes="NavButton"
+														Click="ProfileButton_Click">
+													<StackPanel Orientation="Horizontal" Spacing="8">
+														<Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+														<TextBlock Text="{Binding}"
+																   VerticalAlignment="Center"/>
+													</StackPanel>
+												</Button>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</ScrollViewer>
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="{Binding ActiveProfileName}"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
+
+				<!-- SETTINGS -->
+				<Button Classes="NavButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="Settings">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/settings.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Settings"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
+
+				<!-- HELP Menu -->
+				<Button Classes="NavButton" x:Name="HelpButton" ToolTip.Tip="Help">
+					<Button.Flyout>
+						<MenuFlyout Placement="Right">
+							<MenuItem Header="About" Command="{Binding OpenAboutCommand}" ToolTip.Tip="About Gamelist Manager">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/icon.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="Report Issue" Command="{Binding ReportIssueCommand}" ToolTip.Tip="Report an issue on GitHub">
+								<MenuItem.Icon>
+									<Image Source="/Assets/Icons/stop.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+								</MenuItem.Icon>
+							</MenuItem>
+						</MenuFlyout>
+					</Button.Flyout>
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Help"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsPaneOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
+
+
+
+			</StackPanel>
+		</ScrollViewer>
+	</Border>
 </UserControl>
 

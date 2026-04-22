@@ -163,23 +163,24 @@ public partial class MainWindowViewModel
 
             if (Directory.Exists(homeEsDe))
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+                var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
                 {
                     Title = "ES-DE Location",
                     Message = contextMessage,
-                    DetailMessage = $"An ES-DE folder was found in your home directory and will be used by default:\n{homeEsDe}",
+                    DetailMessage = $"An ES-DE folder was found at:\n{homeEsDe}\n\nUse this as your ES-DE root folder?",
                     IconTheme = DialogIconTheme.Info,
-                    Button1Text = "",
+                    Button1Text = "Browse",
                     Button2Text = "",
-                    Button3Text = "OK"
+                    Button3Text = "Use This"
                 }, owner);
 
-                _sharedData.SaveEsDeRoot(homeEsDe);
+                if (result == ThreeButtonResult.Button3)
+                {
+                    await ApplyEsDeRootAsync(homeEsDe);
+                    return;
+                }
 
-                var autoDetected = SettingsService.ReadPathsFromEsDeSettings(homeEsDe);
-                _sharedData.RomsFolder = autoDetected.RomDirectory ?? string.Empty;
-                _sharedData.EsDeMediaBase = autoDetected.MediaDirectory ?? string.Empty;
-                return;
+                // Fall through to Browse if they declined the suggestion.
             }
         }
 
@@ -187,7 +188,7 @@ public partial class MainWindowViewModel
             ? $"The ES-DE root folder is currently set to:\n{currentRoot}\n\nPress Browse to keep or change this location."
             : "The ES-DE root folder has not been set.\n\nPress Browse to choose the ES-DE root folder.";
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        var browseResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
         {
             Title = "ES-DE Location",
             Message = contextMessage,
@@ -198,7 +199,7 @@ public partial class MainWindowViewModel
             Button3Text = "Browse"
         }, owner);
 
-        if (result != ThreeButtonResult.Button3) return;
+        if (browseResult != ThreeButtonResult.Button3) return;
 
         var chosen = await FolderPickerHelper.BrowseForFolderAsync(
             "Select ES-DE Root Folder",
@@ -207,10 +208,13 @@ public partial class MainWindowViewModel
 
         if (string.IsNullOrEmpty(chosen)) return;
 
-        _sharedData.SaveEsDeRoot(chosen);
+        await ApplyEsDeRootAsync(chosen);
+    }
 
-        // Always re-detect — the user may have changed es_settings.xml outside this app.
-        var detected = SettingsService.ReadPathsFromEsDeSettings(chosen);
+    private async Task ApplyEsDeRootAsync(string root)
+    {
+        _sharedData.SaveEsDeRoot(root);
+        var detected = SettingsService.ReadPathsFromEsDeSettings(root);
         _sharedData.RomsFolder = detected.RomDirectory ?? string.Empty;
         _sharedData.EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
     }
@@ -273,7 +277,7 @@ public partial class MainWindowViewModel
             await PromptEsDeRootAsync($"Profile '{profileName}' is an ES-DE profile but its root folder has not been set.");
     }
 
-    // Returns true when the gamelist file path contains the ES-DE gamelists folder pattern.
+
     private static bool IsEsDeGamelistPath(string path)
     {
         var normalized = path.Replace('\\', '/');

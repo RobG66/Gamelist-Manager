@@ -102,14 +102,14 @@ public partial class MainWindowViewModel
 
         if (result != ThreeButtonResult.Button3) return;
 
-        bool newGamelist = _sharedData.GamelistData == null;
+        bool newGamelist = _sharedData.GamelistData == null || !_sharedData.GamelistData.Any();
 
         var newRows = newFiles.Select(f => BuildNewItemRow(f, scanDir)).ToList();
         AddNewFoundItems(newRows);
 
         // Don't report new items for a new gamelist
         if (!newGamelist)
-        { 
+        {
             var newPaths = new HashSet<string>(newRows.Select(r => r.Path), FilePathHelper.PathComparer);
             RaiseFindReportColumn("Find: New", newPaths);
         }

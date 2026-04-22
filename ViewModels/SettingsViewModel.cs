@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
@@ -56,7 +56,7 @@ public partial class SettingsViewModel : ViewModelBase
     #region Load / Save / Reset
 
     public void LoadSettings()
-    {        
+    {
         _isLoading = true;
 
         var settings = SettingsService.Instance;

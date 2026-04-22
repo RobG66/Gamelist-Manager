@@ -116,7 +116,7 @@ public partial class MediaPreviewViewModel
                         : "No media found.",
                     null);
             }
-            
+
             else
             {
                 SetScraperStatus(
@@ -125,7 +125,7 @@ public partial class MediaPreviewViewModel
                         : "No new media scraped.",
                     null);
             }
-            
+
         }
         catch (Exception ex)
         {

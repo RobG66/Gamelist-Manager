@@ -90,10 +90,6 @@ namespace Gamelist_Manager.Classes.Helpers
             return shellItemArray;
         }
 
-        /// <summary>
-        /// Launches a UWP application by AppUserModelId, or falls back to Process.Start if it's Windows Photos.
-        /// Windows-only. Returns false on non-Windows platforms.
-        /// </summary>
         public static async Task<bool> LaunchAppWithFileAsync(string appUserModelId, string filePath, string? verb = null)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -167,9 +163,6 @@ namespace Gamelist_Manager.Classes.Helpers
             return false;
         }
 
-        /// <summary>
-        /// Launch a file with the default system handler (e.g., Windows Photos) using Process.Start().
-        /// </summary>
         private static bool LaunchWithFallback(string filePath)
         {
             try

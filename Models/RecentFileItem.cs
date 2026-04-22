@@ -3,7 +3,6 @@ using System.IO;
 
 namespace Gamelist_Manager.Models
 {
-    // Represents a recent file entry with path and metadata
     public class RecentFileItem
     {
         public string FilePath { get; }
@@ -38,8 +37,6 @@ namespace Gamelist_Manager.Models
             }
         }
 
-        // axaml binding helper to display a tooltip with file status and last modified time
-        // Will show 0 references
         public string ToolTip
         {
             get
@@ -54,8 +51,6 @@ namespace Gamelist_Manager.Models
             }
         }
 
-        // axaml binding helper to display the file path in the UI
-        // Will show 0 references
         public string DisplayPath => FilePath;
     }
 }

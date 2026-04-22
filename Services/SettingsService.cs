@@ -122,7 +122,7 @@ namespace Gamelist_Manager.Services
         {
             SetValue(section, key, value.ToString());
         }
-                        
+
 
         public List<string> GetRecentFiles()
         {
@@ -203,8 +203,8 @@ namespace Gamelist_Manager.Services
                 var (section, key, defaultStr) = def switch
                 {
                     SettingDef<string> s => (s.Section, s.Key, s.Default),
-                    SettingDef<bool> b   => (b.Section, b.Key, b.Default.ToString()),
-                    SettingDef<int> i    => (i.Section, i.Key, i.Default.ToString()),
+                    SettingDef<bool> b => (b.Section, b.Key, b.Default.ToString()),
+                    SettingDef<int> i => (i.Section, i.Key, i.Default.ToString()),
                     _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
                 };
 
@@ -298,19 +298,12 @@ namespace Gamelist_Manager.Services
                 catch { }
             }
 
-            // ROMDirectory fallback: ES-DE default is ~/ROMs on Linux, ~/ROMS on Windows
             if (romDirectory == null)
             {
-                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                foreach (var candidate in new[] { "ROMs", "roms", "ROMS" })
-                {
-                    var fallback = Path.Combine(home, candidate);
-                    if (Directory.Exists(fallback))
-                    {
-                        romDirectory = fallback;
-                        break;
-                    }
-                }
+                var fallback = Path.Combine(esDeRoot, "..", "ROMs");
+                fallback = Path.GetFullPath(fallback); // resolve the ..
+                if (Directory.Exists(fallback))
+                    romDirectory = fallback;
             }
 
             // MediaDirectory fallback: downloaded_media inside ES-DE root

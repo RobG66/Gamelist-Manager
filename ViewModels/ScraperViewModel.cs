@@ -223,7 +223,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
             string savedScraper = _settingsService.GetValue("Scraper", "SelectedScraper", ScraperRegistry.ArcadeDB.Name);
             CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
-            
+
 
             LoadScraperSettings();
         }

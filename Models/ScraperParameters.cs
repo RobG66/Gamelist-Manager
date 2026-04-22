@@ -89,11 +89,11 @@ namespace Gamelist_Manager.Models
             return sharedData.ProfileType switch
             {
                 SettingKeys.ProfileTypeEsDe => CreateForEsDeProfile(sharedData, scraperName, currentSystem, elementsToScrape),
-                _ => CreateForStandardProfile(sharedData, scraperName, currentSystem, elementsToScrape)
+                _ => CreateForESProfile(sharedData, scraperName, currentSystem, elementsToScrape)
             };
         }
 
-        private static ScraperParameters CreateForStandardProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        private static ScraperParameters CreateForESProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
         {
             var media = sharedData.MediaSettings;
             var parameters = BuildCommonParameters(sharedData, scraperName, currentSystem, elementsToScrape);

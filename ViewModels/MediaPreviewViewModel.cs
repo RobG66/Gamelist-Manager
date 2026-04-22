@@ -265,7 +265,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             IsLibVLCInstalled = false;
-            System.Diagnostics.Debug.WriteLine($"[MediaPreview] LibVLC init failed: {ex.Message}");
             return null;
         }
     }
@@ -329,8 +328,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
         foreach (var item in MediaItems.Where(m => m.IsVideo))
         {
-            // Peek at the new game's path before AttachGame updates the item,
-            // so we can decide whether to swap or dispose.
             var newPath = game?.GetValue(item.PathKey)?.ToString();
             var hasNewPath = !string.IsNullOrEmpty(newPath);
 
@@ -341,12 +338,9 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             }
             else if (item.MediaPlayer != null && LibVLC != null)
             {
-                // Player exists and new game has a video — swap media without
-                // tearing down the native player object.
+                // Change media
                 item.ChangeMedia(LibVLC, newPath!, autoPlay);
             }
-            // else: no player yet — AttachGame + InitializeVideosForCurrentGame
-            // will handle fresh init below.
         }
 
         foreach (var item in MediaItems)
@@ -395,7 +389,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     {
         if (game == null)
         {
-            SetStatus("No game selected", null);
+            SetStatus("No item selected", null);
             return;
         }
 

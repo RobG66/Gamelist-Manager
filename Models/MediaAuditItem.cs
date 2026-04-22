@@ -19,7 +19,6 @@ public class MediaAuditItem
     public IBrush BarBrush { get; init; } = Brushes.DodgerBlue;
     public MetaDataType DataType { get; init; } = MetaDataType.String;
 
-    // Will show 0 references, but still used
     public Bitmap? Icon => DataType switch
     {
         MetaDataType.Image => s_imageIcon.Value,

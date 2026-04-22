@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 
 namespace Gamelist_Manager.Classes.Helpers
@@ -22,9 +21,9 @@ namespace Gamelist_Manager.Classes.Helpers
             {
                 LoadArcadeSystems(DefaultIniPath);
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Failed to load arcade systems: {ex.Message}");
+                // Silent fail
             }
         }
 
@@ -35,10 +34,7 @@ namespace Gamelist_Manager.Classes.Helpers
             try
             {
                 if (!File.Exists(filePath))
-                {
-                    Debug.WriteLine($"Arcade systems file not found: {filePath}");
                     return;
-                }
 
                 int lineNumber = 0;
                 foreach (var line in File.ReadAllLines(filePath))
@@ -50,62 +46,39 @@ namespace Gamelist_Manager.Classes.Helpers
 
                     var parts = line.Split(new[] { '=' }, 2);
                     if (parts.Length != 2)
-                    {
-                        Debug.WriteLine($"Skipping invalid line {lineNumber}: {line}");
                         continue;
-                    }
 
                     if (!ushort.TryParse(parts[0].Trim(), out ushort id))
-                    {
-                        Debug.WriteLine($"Invalid ID on line {lineNumber}: {parts[0]}");
                         continue;
-                    }
 
                     string systemName = parts[1].Trim();
 
                     if (string.IsNullOrEmpty(systemName))
-                    {
-                        Debug.WriteLine($"Empty system name on line {lineNumber}");
                         continue;
-                    }
-
-                    // Warn about duplicates but keep the last one
-                    if (systems.ContainsKey(id))
-                    {
-                        Debug.WriteLine($"Warning: Duplicate ID {id} on line {lineNumber}. " +
-                                      $"Replacing '{systems[id]}' with '{systemName}'");
-                    }
 
                     systems[id] = systemName;
                 }
-
-                Debug.WriteLine($"Loaded {systems.Count} arcade systems from {filePath}");
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error loading arcade systems from {filePath}: {ex.Message}");
+                // Silent fail for now
             }
 
             lock (_lock)
             {
                 _arcadeSystems = systems.ToImmutableDictionary();
-                _systemNamesCache = null; // Invalidate cache
+                _systemNamesCache = null;
             }
         }
 
-        // Gets the arcade system name for a given API-returned ID.
-        // Used when scraping: ArcadeDB returns a system ID, we lookup the name.
         public static string GetArcadeSystemNameByID(ushort id) =>
             _arcadeSystems.TryGetValue(id, out var shortName) ? shortName : string.Empty;
 
-        // Checks if a system name is an arcade system.
-        // Used for validation: prevents non-arcade systems from using ArcadeDB scraper.
         public static bool HasArcadeSystemName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return false;
 
-            // Build cache on first use (thread-safe double-check locking)
             if (_systemNamesCache == null)
             {
                 lock (_lock)

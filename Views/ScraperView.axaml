@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Gamelist_Manager.ViewModels"
              xmlns:models="using:Gamelist_Manager.Models"
-             xmlns:converters="using:Gamelist_Manager.Classes.Converters"
              xmlns:behaviors="clr-namespace:Gamelist_Manager.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
              x:Class="Gamelist_Manager.Views.ScraperView"
@@ -14,10 +13,6 @@
     <Design.DataContext>
         <vm:ScraperViewModel/>
     </Design.DataContext>
-
-    <UserControl.Resources>
-        <converters:LogLevelToBrushConverter x:Key="LogLevelToBrushConverter"/>
-    </UserControl.Resources>
 
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <Grid ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="5">

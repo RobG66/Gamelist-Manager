@@ -1,11 +1,9 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
 using LibVLCSharp.Shared;
-using System.Linq;
 
 namespace Gamelist_Manager;
 
@@ -46,7 +44,7 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {            
+        {
             // Load and apply saved theme settings before showing the main window
             SettingsViewModel.ApplyThemeOnStartup();
 
