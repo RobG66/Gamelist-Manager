@@ -680,6 +680,7 @@
 				<Button Classes="NavButton"
 						x:Name="ProfileButton"
 						ToolTip.Tip="Switch profile"
+
 						IsVisible="{Binding HasMultipleProfiles}">
 					<Button.Flyout>
 						<Flyout Placement="Right" ShowMode="Standard">
@@ -706,12 +707,27 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="{Binding ActiveProfileName}"
+						<TextBlock Text="Select Profile"
 								   VerticalAlignment="Center"
 								   IsVisible="{Binding IsPaneOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
+
+				<TextBlock Text="{Binding ActiveProfileName, StringFormat='[{0}]'}"
+						   FontSize="{DynamicResource GlobalMenuFontSize}"
+						   TextWrapping="Wrap"
+						   Opacity="0.7"
+						   Margin="40,4,12,0"
+						   IsVisible="{Binding HasMultipleProfiles}"/>
+
+
+				<!-- Separator -->
+				<Border Height="1"
+						IsVisible="{Binding HasMultipleProfiles}"
+						Background="{DynamicResource SeparatorBrush}"
+						Margin="0,8"/>
+
 
 				<!-- SETTINGS -->
 				<Button Classes="NavButton" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="Settings">

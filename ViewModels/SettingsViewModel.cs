@@ -80,11 +80,12 @@ public partial class SettingsViewModel : ViewModelBase
         BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
         ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
         ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
+        CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
 
-        MaxUndo = settings.GetInt(SettingKeys.MaxUndo).ToString();
-        SearchDepth = settings.GetInt(SettingKeys.SearchDepth).ToString();
-        RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount).ToString();
-        MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum).ToString();
+        MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
+        SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
+        RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
+        MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
         DefaultVolume = settings.GetInt(SettingKeys.Volume);
         LogVerbosityIndex = settings.GetInt(SettingKeys.LogVerbosity);
 
@@ -162,14 +163,15 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.IgnoreDuplicates.Key] = IgnoreDuplicates.ToString(),
                 [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
                 [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
-                [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString()
+                [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
+                [SettingKeys.CheckForNewAndMissingGamesOnLoad.Key] = CheckForNewAndMissingGamesOnLoad.ToString()
             },
             [SettingKeys.AdvancedSection] = new()
             {
-                [SettingKeys.MaxUndo.Key] = MaxUndo,
-                [SettingKeys.SearchDepth.Key] = SearchDepth,
-                [SettingKeys.RecentFilesCount.Key] = RecentFilesCount,
-                [SettingKeys.BatchProcessingMaximum.Key] = MaxBatch,
+                [SettingKeys.MaxUndo.Key] = MaxUndo.ToString(),
+                [SettingKeys.SearchDepth.Key] = SearchDepth.ToString(),
+                [SettingKeys.RecentFilesCount.Key] = RecentFilesCount.ToString(),
+                [SettingKeys.BatchProcessingMaximum.Key] = MaxBatch.ToString(),
                 [SettingKeys.LogVerbosity.Key] = LogVerbosityIndex.ToString(),
                 [SettingKeys.Volume.Key] = DefaultVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
             },

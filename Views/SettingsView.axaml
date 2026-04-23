@@ -185,7 +185,9 @@
 											  ToolTip.Tip="Show Delete options in menus and allow permanent removal of game entries from the gamelist. Disabled by default to prevent accidental deletion."/>
 									<CheckBox IsChecked="{Binding IgnoreDuplicates}" Content="Ignore Item Duplicates" Margin="0,4,4,2"
 											  ToolTip.Tip="Skip entries with duplicate ROM paths when importing or merging gamelists."/>
-								</UniformGrid>
+									<CheckBox IsChecked="{Binding CheckForNewAndMissingGamesOnLoad}" Content="Check for New and Missing Games on Load" Margin="0,4,4,2"
+											  ToolTip.Tip="Automatically check for new and missing games when loading a gamelist."/>
+								</UniformGrid>	
 							</StackPanel>
 						</Border>
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"

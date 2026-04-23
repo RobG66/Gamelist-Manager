@@ -262,7 +262,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
             return new LibVLC(options.ToArray());
         }
-        catch (Exception ex)
+        catch
         {
             IsLibVLCInstalled = false;
             return null;

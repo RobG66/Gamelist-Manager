@@ -66,6 +66,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> BatchProcessing = new(BehaviorSection, "BatchProcessing", true);
     public static readonly SettingDef<bool> ShowLogTimestamp = new(BehaviorSection, "ShowLogTimestamp", false);
     public static readonly SettingDef<int> ScraperConfigSave = new(BehaviorSection, "ScraperConfigSave", 0);
+    public static readonly SettingDef<bool> CheckForNewAndMissingGamesOnLoad = new(BehaviorSection, "CheckForNewAndMissingGamesOnLoad", true);
 
     #endregion
 
@@ -140,7 +141,7 @@ public static class SettingKeys
         // Behavior
         ConfirmBulkChange, SaveReminder, VerifyDownloadedImages, VideoAutoplay,
         RememberColumns, RememberAutoSize, EnableDelete, IgnoreDuplicates,
-        BatchProcessing, ShowLogTimestamp, ScraperConfigSave,
+        BatchProcessing, ShowLogTimestamp, ScraperConfigSave, CheckForNewAndMissingGamesOnLoad,
 
         // Advanced
         MaxUndo, SearchDepth, RecentFilesCount, BatchProcessingMaximum,

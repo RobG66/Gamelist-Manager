@@ -1,6 +1,5 @@
 ﻿using Avalonia.Threading;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using System;
 using System.IO;
 
@@ -68,38 +67,17 @@ public partial class ScraperViewModel
         }
 
         string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
-        if (!Directory.Exists(cacheFolder) || Directory.GetFiles(cacheFolder).Length == 0)
+        var files = Directory.Exists(cacheFolder) ? Directory.GetFiles(cacheFolder) : [];
+
+        if (files.Length == 0)
         {
             CacheCountText = "Cache is empty";
             IsClearCacheEnabled = false;
         }
         else
         {
-            int count = Directory.GetFiles(cacheFolder).Length;
-            CacheCountText = $"{count} items cached";
+            CacheCountText = $"{files.Length} items cached";
             IsClearCacheEnabled = true;
-        }
-    }
-
-    private void OnSettingsApplied(object? sender, EventArgs e)
-    {
-        LoadScraperSettings();
-    }
-
-    private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case nameof(SharedDataService.CurrentSystem):
-                RefreshCacheCount();
-                break;
-            case nameof(SharedDataService.IsScraping):
-                if (IsScraping != _sharedData.IsScraping)
-                    IsScraping = _sharedData.IsScraping;
-                break;
-            case nameof(SharedDataService.IsBusy):
-                OnPropertyChanged(nameof(IsBusy));
-                break;
         }
     }
 }

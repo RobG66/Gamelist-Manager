@@ -164,7 +164,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private string ScraperSettingsKey => ScraperConfigSaveMode == 1 && !string.IsNullOrEmpty(_sharedData.CurrentSystem)
         ? $"{CurrentScraper}_{_sharedData.CurrentSystem}"
         : CurrentScraper;
-
     #endregion
 
     #region Constructor
@@ -173,9 +172,35 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
         _sharedData.SettingsApplied += OnSettingsApplied;
 
-        LoadSettings();
+        _isLoading = true;
+        LoadScraperSettings();
+        _isLoading = false;
         RefreshCacheCount();
         Log("Ready to scrape...", LogLevel.Info);
+    }
+    #endregion
+
+    #region Event Handlers
+    private void OnSettingsApplied(object? sender, EventArgs e)
+    {
+        ShowLogTimestamp = _sharedData.ShowLogTimestamp;
+    }
+
+    private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SharedDataService.CurrentSystem):
+                RefreshCacheCount();
+                break;
+            case nameof(SharedDataService.IsScraping):
+                if (IsScraping != _sharedData.IsScraping)
+                    IsScraping = _sharedData.IsScraping;
+                break;
+            case nameof(SharedDataService.IsBusy):
+                OnPropertyChanged(nameof(IsBusy));
+                break;
+        }
     }
     #endregion
 
@@ -196,6 +221,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     {
         if (_isLoading) return;
         LoadScraperSettings();
+        RefreshCacheCount();
         Log($"Scraper changed to: {value}", LogLevel.Status);
     }
 
@@ -207,171 +233,116 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     }
     #endregion
 
-    #region Settings
-    private void LoadSettings()
-    {
-        _isLoading = true;
-        try
-        {
-            ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScrapeAllMode);
-            ScrapeSelectedMode = !ScrapeAllMode;
-            OverwriteName = _settingsService.GetBool(SettingKeys.OverwriteName);
-            OverwriteMedia = _settingsService.GetBool(SettingKeys.OverwriteMedia);
-            ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScrapeHiddenItems);
-            ShowLogTimestamp = _sharedData.ShowLogTimestamp;
 
-            string savedScraper = _settingsService.GetValue(SettingKeys.SelectedScraper);
-            CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
-
-            LoadScraperSettings();
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
+    #region Private Methods
 
     private void LoadScraperSettings()
     {
-        bool wasLoading = _isLoading;
-        _isLoading = true;
-        try
-        {
-            ScrapeFromCacheEnabled = true;
-            ScrapeFromCache = true;
-            SkipNonCachedItemsEnabled = true;
-            SkipNonCachedItems = false;
-            OverwriteMetadataEnabled = true;
-            OverwriteMetadata = false;
-
-            if (CurrentScraper == ScraperRegistry.EmuMovies.Name)
-            {
-                ScrapeFromCacheEnabled = false;
-                ScrapeFromCache = false;
-                SkipNonCachedItemsEnabled = false;
-                SkipNonCachedItems = false;
-                OverwriteMetadataEnabled = false;
-                OverwriteMetadata = false;
-            }
-
-            var scraperElements = GamelistMetaData.GetScraperElements(CurrentScraper);
-
-            MetaNameEnabled = scraperElements.Contains("name");
-            MetaDescriptionEnabled = scraperElements.Contains("desc");
-            MetaGenreEnabled = scraperElements.Contains("genre");
-            MetaPlayersEnabled = scraperElements.Contains("players");
-            MetaRatingEnabled = scraperElements.Contains("rating");
-            MetaRegionEnabled = scraperElements.Contains("region");
-            MetaLanguageEnabled = scraperElements.Contains("lang");
-            MetaReleaseDateEnabled = scraperElements.Contains("releasedate");
-            MetaDeveloperEnabled = scraperElements.Contains("developer");
-            MetaPublisherEnabled = scraperElements.Contains("publisher");
-            MetaArcadeNameEnabled = scraperElements.Contains("arcadesystemname");
-            MetaFamilyEnabled = scraperElements.Contains("family");
-            MetaGameIdEnabled = scraperElements.Contains("id");
-
-            if (!MetaNameEnabled) MetaName = false;
-            if (!MetaDescriptionEnabled) MetaDescription = false;
-            if (!MetaGenreEnabled) MetaGenre = false;
-            if (!MetaPlayersEnabled) MetaPlayers = false;
-            if (!MetaRatingEnabled) MetaRating = false;
-            if (!MetaRegionEnabled) MetaRegion = false;
-            if (!MetaLanguageEnabled) MetaLanguage = false;
-            if (!MetaReleaseDateEnabled) MetaReleaseDate = false;
-            if (!MetaDeveloperEnabled) MetaDeveloper = false;
-            if (!MetaPublisherEnabled) MetaPublisher = false;
-            if (!MetaArcadeNameEnabled) MetaArcadeName = false;
-            if (!MetaFamilyEnabled) MetaFamily = false;
-            if (!MetaGameIdEnabled) MetaGameId = false;
-
-            MediaTitleshotEnabled = scraperElements.Contains("titleshot");
-            MediaMapEnabled = scraperElements.Contains("map");
-            MediaManualEnabled = scraperElements.Contains("manual");
-            MediaBezelEnabled = scraperElements.Contains("bezel");
-            MediaFanArtEnabled = scraperElements.Contains("fanart");
-            MediaBoxBackEnabled = scraperElements.Contains("boxback");
-            MediaMusicEnabled = scraperElements.Contains("music");
-
-            if (!MediaTitleshotEnabled) MediaTitleshot = false;
-            if (!MediaMapEnabled) MediaMap = false;
-            if (!MediaManualEnabled) MediaManual = false;
-            if (!MediaBezelEnabled) MediaBezel = false;
-            if (!MediaFanArtEnabled) MediaFanArt = false;
-            if (!MediaBoxBackEnabled) MediaBoxBack = false;
-            if (!MediaMusicEnabled) MediaMusic = false;
-
-            ApplySource(ImageSources, "ImageSource", v => SelectedImageSource = v, out bool imgEnabled);
-            MediaImageEnabled = imgEnabled;
-            if (!imgEnabled) MediaImage = false;
-
-            ApplySource(MarqueeSources, "MarqueeSource", v => SelectedMarqueeSource = v, out bool mrqEnabled);
-            MediaMarqueeEnabled = mrqEnabled;
-            if (!mrqEnabled) MediaMarquee = false;
-
-            ApplySource(ThumbnailSources, "ThumbnailSource", v => SelectedThumbnailSource = v, out bool thmEnabled);
-            MediaThumbnailEnabled = thmEnabled;
-            if (!thmEnabled) MediaThumbnail = false;
-
-            ApplySource(CartridgeSources, "CartridgeSource", v => SelectedCartridgeSource = v, out bool crtEnabled);
-            MediaCartridgeEnabled = crtEnabled;
-            if (!crtEnabled) MediaCartridge = false;
-
-            ApplySource(VideoSources, "VideoSource", v => SelectedVideoSource = v, out bool vidEnabled);
-            MediaVideoEnabled = vidEnabled;
-            if (!vidEnabled) MediaVideo = false;
-
-            ApplySource(BoxArtSources, "BoxArtSource", v => SelectedBoxArtSource = v, out bool boxEnabled);
-            MediaBoxArtEnabled = boxEnabled;
-            if (!boxEnabled) MediaBoxArt = false;
-
-            ApplySource(MixSources, "MixSource", v => SelectedMixSource = v, out bool mixEnabled);
-            MediaMixEnabled = mixEnabled;
-            if (!mixEnabled) MediaMix = false;
-
-            ApplySource(WheelSources, "WheelSource", v => SelectedWheelSource = v, out bool whlEnabled);
-            MediaWheelEnabled = whlEnabled;
-            if (!whlEnabled) MediaWheel = false;
-
-            ApplyPathsEnabledConstraints();
-            ApplySavedPreferences();
-
-            if (ScrapeFromCacheEnabled)
-            {
-                SkipNonCachedItemsEnabled = ScrapeFromCache;
-                if (!ScrapeFromCache) SkipNonCachedItems = false;
-            }
-        }
-        finally
-        {
-            _isLoading = wasLoading;
-        }
-
-        RefreshCacheCount();
-    }
-
-    private void ApplyPathsEnabledConstraints()
-    {
-        var media = _sharedData.MediaSettings;
-        if (media.GetValueOrDefault("image")?.Enabled != true) { MediaImageEnabled = false; MediaImage = false; }
-        if (media.GetValueOrDefault("titleshot")?.Enabled != true) { MediaTitleshotEnabled = false; MediaTitleshot = false; }
-        if (media.GetValueOrDefault("marquee")?.Enabled != true) { MediaMarqueeEnabled = false; MediaMarquee = false; }
-        if (media.GetValueOrDefault("wheel")?.Enabled != true) { MediaWheelEnabled = false; MediaWheel = false; }
-        if (media.GetValueOrDefault("thumbnail")?.Enabled != true) { MediaThumbnailEnabled = false; MediaThumbnail = false; }
-        if (media.GetValueOrDefault("cartridge")?.Enabled != true) { MediaCartridgeEnabled = false; MediaCartridge = false; }
-        if (media.GetValueOrDefault("video")?.Enabled != true) { MediaVideoEnabled = false; MediaVideo = false; }
-        if (media.GetValueOrDefault("music")?.Enabled != true) { MediaMusicEnabled = false; MediaMusic = false; }
-        if (media.GetValueOrDefault("map")?.Enabled != true) { MediaMapEnabled = false; MediaMap = false; }
-        if (media.GetValueOrDefault("bezel")?.Enabled != true) { MediaBezelEnabled = false; MediaBezel = false; }
-        if (media.GetValueOrDefault("manual")?.Enabled != true) { MediaManualEnabled = false; MediaManual = false; }
-        if (media.GetValueOrDefault("fanart")?.Enabled != true) { MediaFanArtEnabled = false; MediaFanArt = false; }
-        if (media.GetValueOrDefault("boxart")?.Enabled != true) { MediaBoxArtEnabled = false; MediaBoxArt = false; }
-        if (media.GetValueOrDefault("mix")?.Enabled != true) { MediaMixEnabled = false; MediaMix = false; }
-        if (media.GetValueOrDefault("boxback")?.Enabled != true) { MediaBoxBackEnabled = false; MediaBoxBack = false; }
-    }
-
-    private void ApplySavedPreferences()
-    {
         var key = ScraperSettingsKey;
+
+        if (_isLoading)
+        {
+            string savedScraper = _settingsService.GetValue(SettingKeys.SelectedScraper);
+            CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
+            key = ScraperSettingsKey; // recompute after CurrentScraper is set
+        }
+
+        ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeAllMode", SettingKeys.ScrapeAllMode.Default);
+        ScrapeSelectedMode = !ScrapeAllMode;
+        OverwriteName = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteName", SettingKeys.OverwriteName.Default);
+        OverwriteMedia = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteMedia", SettingKeys.OverwriteMedia.Default);
+        ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeHiddenItems", SettingKeys.ScrapeHiddenItems.Default);
+        ShowLogTimestamp = _sharedData.ShowLogTimestamp;
+
+        if (CurrentScraper == ScraperRegistry.EmuMovies.Name)
+        {
+            ScrapeFromCacheEnabled = false;
+            ScrapeFromCache = false;
+            SkipNonCachedItemsEnabled = false;
+            SkipNonCachedItems = false;
+            OverwriteMetadataEnabled = false;
+            OverwriteMetadata = false;
+        }
+
+        var scraperElements = GamelistMetaData.GetScraperElements(CurrentScraper);
+
+        MetaNameEnabled = scraperElements.Contains("name");
+        MetaDescriptionEnabled = scraperElements.Contains("desc");
+        MetaGenreEnabled = scraperElements.Contains("genre");
+        MetaPlayersEnabled = scraperElements.Contains("players");
+        MetaRatingEnabled = scraperElements.Contains("rating");
+        MetaRegionEnabled = scraperElements.Contains("region");
+        MetaLanguageEnabled = scraperElements.Contains("lang");
+        MetaReleaseDateEnabled = scraperElements.Contains("releasedate");
+        MetaDeveloperEnabled = scraperElements.Contains("developer");
+        MetaPublisherEnabled = scraperElements.Contains("publisher");
+        MetaArcadeNameEnabled = scraperElements.Contains("arcadesystemname");
+        MetaFamilyEnabled = scraperElements.Contains("family");
+        MetaGameIdEnabled = scraperElements.Contains("id");
+
+        if (!MetaNameEnabled) MetaName = false;
+        if (!MetaDescriptionEnabled) MetaDescription = false;
+        if (!MetaGenreEnabled) MetaGenre = false;
+        if (!MetaPlayersEnabled) MetaPlayers = false;
+        if (!MetaRatingEnabled) MetaRating = false;
+        if (!MetaRegionEnabled) MetaRegion = false;
+        if (!MetaLanguageEnabled) MetaLanguage = false;
+        if (!MetaReleaseDateEnabled) MetaReleaseDate = false;
+        if (!MetaDeveloperEnabled) MetaDeveloper = false;
+        if (!MetaPublisherEnabled) MetaPublisher = false;
+        if (!MetaArcadeNameEnabled) MetaArcadeName = false;
+        if (!MetaFamilyEnabled) MetaFamily = false;
+        if (!MetaGameIdEnabled) MetaGameId = false;
+
+        MediaTitleshotEnabled = scraperElements.Contains("titleshot");
+        MediaMapEnabled = scraperElements.Contains("map");
+        MediaManualEnabled = scraperElements.Contains("manual");
+        MediaBezelEnabled = scraperElements.Contains("bezel");
+        MediaFanArtEnabled = scraperElements.Contains("fanart");
+        MediaBoxBackEnabled = scraperElements.Contains("boxback");
+        MediaMusicEnabled = scraperElements.Contains("music");
+
+        if (!MediaTitleshotEnabled) MediaTitleshot = false;
+        if (!MediaMapEnabled) MediaMap = false;
+        if (!MediaManualEnabled) MediaManual = false;
+        if (!MediaBezelEnabled) MediaBezel = false;
+        if (!MediaFanArtEnabled) MediaFanArt = false;
+        if (!MediaBoxBackEnabled) MediaBoxBack = false;
+        if (!MediaMusicEnabled) MediaMusic = false;
+
+        ApplySource(ImageSources, "ImageSource", v => SelectedImageSource = v, out bool imgEnabled);
+        MediaImageEnabled = imgEnabled;
+        if (!imgEnabled) MediaImage = false;
+
+        ApplySource(MarqueeSources, "MarqueeSource", v => SelectedMarqueeSource = v, out bool mrqEnabled);
+        MediaMarqueeEnabled = mrqEnabled;
+        if (!mrqEnabled) MediaMarquee = false;
+
+        ApplySource(ThumbnailSources, "ThumbnailSource", v => SelectedThumbnailSource = v, out bool thmEnabled);
+        MediaThumbnailEnabled = thmEnabled;
+        if (!thmEnabled) MediaThumbnail = false;
+
+        ApplySource(CartridgeSources, "CartridgeSource", v => SelectedCartridgeSource = v, out bool crtEnabled);
+        MediaCartridgeEnabled = crtEnabled;
+        if (!crtEnabled) MediaCartridge = false;
+
+        ApplySource(VideoSources, "VideoSource", v => SelectedVideoSource = v, out bool vidEnabled);
+        MediaVideoEnabled = vidEnabled;
+        if (!vidEnabled) MediaVideo = false;
+
+        ApplySource(BoxArtSources, "BoxArtSource", v => SelectedBoxArtSource = v, out bool boxEnabled);
+        MediaBoxArtEnabled = boxEnabled;
+        if (!boxEnabled) MediaBoxArt = false;
+
+        ApplySource(MixSources, "MixSource", v => SelectedMixSource = v, out bool mixEnabled);
+        MediaMixEnabled = mixEnabled;
+        if (!mixEnabled) MediaMix = false;
+
+        ApplySource(WheelSources, "WheelSource", v => SelectedWheelSource = v, out bool whlEnabled);
+        MediaWheelEnabled = whlEnabled;
+        if (!whlEnabled) MediaWheel = false;
+
+        ApplyMediaAvailability();
 
         if (ScrapeFromCacheEnabled)
             ScrapeFromCache = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeFromCache", ScrapeFromCache);
@@ -391,23 +362,49 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             string savedValue = _settingsService.GetValue(SettingKeys.ScraperSection, $"{key}_{name}", "");
             RestoreSource(sources, savedValue, setSelected);
         }
+
+        if (ScrapeFromCacheEnabled)
+        {
+            SkipNonCachedItemsEnabled = ScrapeFromCache;
+            if (!ScrapeFromCache) SkipNonCachedItems = false;
+        }
     }
 
+    private void ApplyMediaAvailability()
+    {
+        var media = _sharedData.MediaSettings;
+        if (media.GetValueOrDefault("image")?.Enabled != true) { MediaImageEnabled = false; MediaImage = false; }
+        if (media.GetValueOrDefault("titleshot")?.Enabled != true) { MediaTitleshotEnabled = false; MediaTitleshot = false; }
+        if (media.GetValueOrDefault("marquee")?.Enabled != true) { MediaMarqueeEnabled = false; MediaMarquee = false; }
+        if (media.GetValueOrDefault("wheel")?.Enabled != true) { MediaWheelEnabled = false; MediaWheel = false; }
+        if (media.GetValueOrDefault("thumbnail")?.Enabled != true) { MediaThumbnailEnabled = false; MediaThumbnail = false; }
+        if (media.GetValueOrDefault("cartridge")?.Enabled != true) { MediaCartridgeEnabled = false; MediaCartridge = false; }
+        if (media.GetValueOrDefault("video")?.Enabled != true) { MediaVideoEnabled = false; MediaVideo = false; }
+        if (media.GetValueOrDefault("music")?.Enabled != true) { MediaMusicEnabled = false; MediaMusic = false; }
+        if (media.GetValueOrDefault("map")?.Enabled != true) { MediaMapEnabled = false; MediaMap = false; }
+        if (media.GetValueOrDefault("bezel")?.Enabled != true) { MediaBezelEnabled = false; MediaBezel = false; }
+        if (media.GetValueOrDefault("manual")?.Enabled != true) { MediaManualEnabled = false; MediaManual = false; }
+        if (media.GetValueOrDefault("fanart")?.Enabled != true) { MediaFanArtEnabled = false; MediaFanArt = false; }
+        if (media.GetValueOrDefault("boxart")?.Enabled != true) { MediaBoxArtEnabled = false; MediaBoxArt = false; }
+        if (media.GetValueOrDefault("mix")?.Enabled != true) { MediaMixEnabled = false; MediaMix = false; }
+        if (media.GetValueOrDefault("boxback")?.Enabled != true) { MediaBoxBackEnabled = false; MediaBoxBack = false; }
+    }
 
     private void SaveScraperSettings()
     {
         if (_settingsService is null) return;
 
+        var key = ScraperSettingsKey;
+
         var values = new Dictionary<string, string>
         {
-            [SettingKeys.ScrapeAllMode.Key] = ScrapeAllMode.ToString(),
-            [SettingKeys.OverwriteName.Key] = OverwriteName.ToString(),
-            [SettingKeys.OverwriteMedia.Key] = OverwriteMedia.ToString(),
-            [SettingKeys.ScrapeHiddenItems.Key] = ScrapeHiddenItems.ToString(),
             [SettingKeys.SelectedScraper.Key] = CurrentScraper,
         };
 
-        var key = ScraperSettingsKey;
+        values[$"{key}_ScrapeAllMode"] = ScrapeAllMode.ToString();
+        values[$"{key}_OverwriteName"] = OverwriteName.ToString();
+        values[$"{key}_OverwriteMedia"] = OverwriteMedia.ToString();
+        values[$"{key}_ScrapeHiddenItems"] = ScrapeHiddenItems.ToString();
         values[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
         values[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
         values[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
@@ -427,9 +424,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         });
     }
 
-    #endregion
 
-    #region Private Methods
     private (string Name, Func<bool> GetEnabled, Func<bool> GetValue, Action<bool> SetValue)[] GetBoolToggles() =>
     [
         ("MetaName", () => MetaNameEnabled, () => MetaName, v => MetaName = v),

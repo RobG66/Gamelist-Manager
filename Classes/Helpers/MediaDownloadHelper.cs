@@ -35,7 +35,7 @@ namespace Gamelist_Manager.Classes.Helpers
                     if (parameters.MediaPaths == null || !parameters.MediaPaths.TryGetValue(mediaType, out string? mediaFolder))
                         continue;
 
-                    if (!string.IsNullOrEmpty(extension) && !extension.StartsWith("."))
+                    if (!string.IsNullOrEmpty(extension) && !extension.StartsWith('.'))
                         extension = "." + extension;
 
                     string fileNamePrefix = Path.GetFileNameWithoutExtension(parameters.RomFileName) ?? string.Empty;

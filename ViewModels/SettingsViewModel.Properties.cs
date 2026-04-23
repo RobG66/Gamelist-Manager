@@ -18,22 +18,23 @@ public partial class SettingsViewModel
 
     #region Observable Properties — Options
 
-    [ObservableProperty] private bool _confirmBulkChanges = true;
-    [ObservableProperty] private bool _enableSaveReminder = true;
-    [ObservableProperty] private bool _verifyImageDownloads = true;
+    [ObservableProperty] private bool _confirmBulkChanges;
+    [ObservableProperty] private bool _enableSaveReminder;
+    [ObservableProperty] private bool _verifyImageDownloads;
     [ObservableProperty] private bool _videoAutoplay;
     [ObservableProperty] private bool _rememberColumns;
     [ObservableProperty] private bool _rememberAutosize;
     [ObservableProperty] private bool _enableDelete;
     [ObservableProperty] private bool _ignoreDuplicates;
-    [ObservableProperty] private bool _batchProcessing = true;
+    [ObservableProperty] private bool _batchProcessing;
     [ObservableProperty] private bool _showLogTimestamp;
+    [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
     [ObservableProperty] private int _scraperConfigSaveIndex;
-    [ObservableProperty] private string _maxUndo = "15";
-    [ObservableProperty] private string _maxBatch = "300";
-    [ObservableProperty] private string _searchDepth = "2";
-    [ObservableProperty] private string _recentFilesCount = "15";
-    [ObservableProperty] private double _defaultVolume = 50;
+    [ObservableProperty] private int _maxUndo;
+    [ObservableProperty] private int _maxBatch;
+    [ObservableProperty] private int _searchDepth;
+    [ObservableProperty] private int _recentFilesCount;
+    [ObservableProperty] private double _defaultVolume;
     [ObservableProperty] private int _logVerbosityIndex;
 
     #endregion
