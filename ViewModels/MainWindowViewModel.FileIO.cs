@@ -451,6 +451,11 @@ public partial class MainWindowViewModel
             if (Games.Count > 0)
                 RequestSelectFirstItem?.Invoke(this, EventArgs.Empty);
 
+            if (_sharedData.CheckForNewAndMissingGamesOnLoad)
+            {
+                await FindNewItems();
+                await FindMissingItems();
+            }
         }
         finally
         {

@@ -58,6 +58,7 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private string _password = "linux";
         [ObservableProperty] private string _esDeRoot = string.Empty;
         [ObservableProperty] private string _esDeMediaBase = string.Empty;
+        [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
 
         #endregion
 
@@ -141,6 +142,7 @@ namespace Gamelist_Manager.Services
             IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
             BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
             ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
+            CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
 
             MediaViewerScaledDisplay = settings.GetBool(SettingKeys.ScaledDisplay);
 
@@ -203,6 +205,7 @@ namespace Gamelist_Manager.Services
             RefreshProfileState();
 
             SettingsApplied?.Invoke(this, EventArgs.Empty);
+
         }
 
         public void SetGamelist(string xmlPath, string systemName, ObservableCollection<GameMetadataRow> data)
