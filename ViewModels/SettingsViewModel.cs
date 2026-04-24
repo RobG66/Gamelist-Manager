@@ -93,12 +93,8 @@ public partial class SettingsViewModel : ViewModelBase
         UserId = settings.GetValue(SettingKeys.UserID);
         Password = settings.GetValue(SettingKeys.Password);
 
-        // Folder paths live in their own section; fall back to Connection for old profiles.
-        MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key,
-                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath.Key));
-        RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key,
-                   settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder.Key));
-
+        MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key) ?? string.Empty;
+        
         var profileType = settings.GetValue(SettingKeys.ProfileType);
         var isEsDe = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase);
         foreach (var item in MediaFolderItems)
@@ -118,9 +114,16 @@ public partial class SettingsViewModel : ViewModelBase
         {
             EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
             EsDeMediaBase = _sharedData.EsDeMediaBase;
+            RomsPath = _sharedData.RomsFolder;
+        }
+        
+        if (_sharedData.ProfileType == SettingKeys.ProfileTypeEs)
+        {
+            RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key) ?? string.Empty;
         }
 
-        RomsPath = _sharedData.RomsFolder;
+        foreach (var item in MediaFolderItems)
+            item.NotifyProfileTypeChanged();
 
         OnPropertyChanged(nameof(IsEsDeProfile));
         OnPropertyChanged(nameof(EsDePathsVisible));

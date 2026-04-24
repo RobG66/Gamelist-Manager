@@ -69,6 +69,16 @@ namespace Gamelist_Manager.Models
             }
         }
 
+        public void NotifyProfileTypeChanged()
+        {
+            OnPropertyChanged(nameof(DisplayPath));
+            OnPropertyChanged(nameof(IsPathReadOnly));
+            OnPropertyChanged(nameof(IsNotEsDeMode));
+            OnPropertyChanged(nameof(IsCheckboxEnabled));
+            OnPropertyChanged(nameof(IsSuffixEnabled));
+            OnPropertyChanged(nameof(EffectiveEnabled));
+        }
+
         public void ResetToDefaults()
         {
             Path = DefaultPath;

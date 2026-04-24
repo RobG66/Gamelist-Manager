@@ -183,10 +183,10 @@
 											  ToolTip.Tip="Save and restore the column auto-fit (Size to Fit) state between sessions, independently of Remember Columns."/>
 									<CheckBox IsChecked="{Binding EnableDelete}" Content="Enable Deletion" Margin="0,4,4,2"
 											  ToolTip.Tip="Show Delete options in menus and allow permanent removal of game entries from the gamelist. Disabled by default to prevent accidental deletion."/>
-									<CheckBox IsChecked="{Binding IgnoreDuplicates}" Content="Ignore Item Duplicates" Margin="0,4,4,2"
+									<CheckBox IsChecked="{Binding IgnoreDuplicates}" Content="Ignore Duplicates" Margin="0,4,4,2"
 											  ToolTip.Tip="Skip entries with duplicate ROM paths when importing or merging gamelists."/>
-									<CheckBox IsChecked="{Binding CheckForNewAndMissingGamesOnLoad}" Content="Check for New and Missing Games on Load" Margin="0,4,4,2"
-											  ToolTip.Tip="Automatically check for new and missing games when loading a gamelist."/>
+									<CheckBox IsChecked="{Binding CheckForNewAndMissingGamesOnLoad}" Content="Check files on load" Margin="0,4,4,2"
+											  ToolTip.Tip="Automatically check for new and missing items when loading a gamelist."/>
 								</UniformGrid>	
 							</StackPanel>
 						</Border>

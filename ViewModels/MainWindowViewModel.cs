@@ -102,11 +102,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 break;
             case nameof(SharedDataService.RomsFolder):
-                LoadSystems();
+                _ = LoadSystemsAsync();
                 OnPropertyChanged(nameof(IsNewGamelistEnabled));
                 break;
             case nameof(SharedDataService.EsDeRoot):
-                LoadSystems();
+                _ = LoadSystemsAsync();
                 OnPropertyChanged(nameof(IsNewGamelistEnabled));
                 break;
             case nameof(SharedDataService.EnableDelete):
@@ -131,7 +131,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnSettingsApplied(object? sender, EventArgs e)
     {
         UpdateScaledLayoutWidths();
-        LoadSystems();
+        _ = LoadSystemsAsync();
     }
     #endregion
 
@@ -157,7 +157,7 @@ public partial class MainWindowViewModel : ViewModelBase
         LoadRecentFilesFromSettings();
         OnPropertyChanged(nameof(HasRecentFiles));
         RefreshProfiles();
-        LoadSystems();
+        _ = LoadSystemsAsync();
 
         _selectedFindColumn = SearchableColumns.FirstOrDefault();
         _selectedReplaceColumn = SearchableColumns.FirstOrDefault();
@@ -201,7 +201,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _selectionDebounceTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(300)
+                Interval = TimeSpan.FromMilliseconds(500)
             };
             _selectionDebounceTimer.Tick += (_, _) =>
             {
@@ -240,13 +240,6 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Commands
-    [RelayCommand]
-    private void DataGridSelectionChanged(Avalonia.Controls.SelectionChangedEventArgs e)
-    {
-        if (e.Source is not Avalonia.Controls.DataGrid dataGrid) return;
-        SelectedGames = dataGrid.SelectedItems;
-    }
-
     [RelayCommand]
     public void TriggerPane() => IsPaneOpen = !IsPaneOpen;
 

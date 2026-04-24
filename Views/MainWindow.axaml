@@ -6,7 +6,6 @@
         xmlns:views="clr-namespace:Gamelist_Manager.Views"
         xmlns:behaviors="clr-namespace:Gamelist_Manager.Behaviors"
         xmlns:i="using:Avalonia.Xaml.Interactivity"
-        xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
         mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="500"
         MinHeight="500" MinWidth="850"
         Width="850" Height="500"
@@ -98,12 +97,6 @@
                 <i:Interaction.Behaviors>
                     <!-- Drag selection behavior for left-click-hold multi-select -->
                     <behaviors:DataGridDragSelectionBehavior/>
-
-                    <!-- Selection changed event handler -->
-                    <ia:EventTriggerBehavior EventName="SelectionChanged">
-                        <ia:InvokeCommandAction Command="{Binding DataGridSelectionChangedCommand}" 
-                                                PassEventArgsToCommand="True"/>
-                    </ia:EventTriggerBehavior>
                 </i:Interaction.Behaviors>
                 <DataGrid.Columns>
                 </DataGrid.Columns>

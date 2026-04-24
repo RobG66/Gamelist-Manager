@@ -270,7 +270,7 @@ public partial class MainWindowViewModel
         var colorIndex = ThemeService.GetColorIndex(_sharedData.Color);
         ThemeService.ApplyTheme(themeIndex, colorIndex);
 
-        LoadSystems();
+        _ = LoadSystemsAsync();
         ActiveProfileName = profileName;
 
         if (!_profileService.IsEsDeRootConfigured(profileName))

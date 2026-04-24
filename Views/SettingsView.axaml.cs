@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;

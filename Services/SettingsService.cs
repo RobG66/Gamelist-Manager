@@ -120,7 +120,6 @@ namespace Gamelist_Manager.Services
             SetValue(section, key, value.ToString());
         }
 
-
         public List<string> GetRecentFiles()
         {
             var recentFiles = new List<string>();
@@ -129,12 +128,11 @@ namespace Gamelist_Manager.Services
             if (!sections.TryGetValue(SettingKeys.RecentFilesSection, out var section))
                 return recentFiles;
 
-            // Get all keys that start with "file" and sort them numerically
             var fileKeys = section.Keys
                 .Where(k => k.StartsWith("file"))
                 .OrderBy(k =>
                 {
-                    var numStr = k.Substring(4); // Remove "file" prefix
+                    var numStr = k.Substring(4);
                     return int.TryParse(numStr, out var num) ? num : int.MaxValue;
                 })
                 .ToList();
@@ -143,9 +141,7 @@ namespace Gamelist_Manager.Services
             {
                 var filePath = section[key];
                 if (!string.IsNullOrWhiteSpace(filePath))
-                {
                     recentFiles.Add(filePath);
-                }
             }
 
             return recentFiles;
@@ -155,11 +151,12 @@ namespace Gamelist_Manager.Services
         {
             var recentFilesDict = new Dictionary<string, string>();
 
-            // Save files with numbered keys (file1, file2, file3, etc.)
-            for (int i = 0; i < recentFiles.Count; i++)
-            {
-                recentFilesDict[$"file{i + 1}"] = recentFiles[i];
-            }
+            var resolvedFiles = recentFiles
+                .Where(f => !string.IsNullOrEmpty(f))
+                .ToList();
+
+            for (int i = 0; i < resolvedFiles.Count; i++)
+                recentFilesDict[$"file{i + 1}"] = resolvedFiles[i]!;
 
             var allSettings = GetCachedSections();
             allSettings[SettingKeys.RecentFilesSection] = recentFilesDict;
@@ -192,7 +189,6 @@ namespace Gamelist_Manager.Services
 
         public IniData BuildDefaultSections()
         {
-            // Build sections from the master definitions list.
             var result = new IniData();
 
             foreach (var def in SettingKeys.AllDefinitions)
@@ -212,7 +208,6 @@ namespace Gamelist_Manager.Services
                 }
                 dict[key] = defaultStr;
             }
-
 
             result[SettingKeys.MediaPathsSection] = new Dictionary<string, string>(SettingKeys.DefaultMediaPaths);
 
@@ -264,12 +259,11 @@ namespace Gamelist_Manager.Services
             if (romDirectory == null)
             {
                 var fallback = Path.Combine(esDeRoot, "..", "ROMs");
-                fallback = Path.GetFullPath(fallback); // resolve the ..
+                fallback = Path.GetFullPath(fallback);
                 if (Directory.Exists(fallback))
                     romDirectory = fallback;
             }
 
-            // MediaDirectory fallback: downloaded_media inside ES-DE root
             if (mediaDirectory == null)
             {
                 var fallback = Path.Combine(esDeRoot, "downloaded_media");

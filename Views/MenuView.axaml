@@ -387,7 +387,6 @@
 					<Button.Flyout>
 						<MenuFlyout Placement="Right">
 							<MenuItem Header="New Items"
-									  IsEnabled="{Binding IsGamelistLoaded}"
 									  Command="{Binding FindNewItemsCommand}"
 									  ToolTip.Tip="Find new games not in the gamelist">
 								<MenuItem.Icon>
@@ -395,16 +394,15 @@
 								</MenuItem.Icon>
 							</MenuItem>
 							<MenuItem Header="Missing Items"
-									  IsEnabled="{Binding IsGamelistLoaded}"
 									  Command="{Binding FindMissingItemsCommand}"
 									  ToolTip.Tip="Find items whose files are missing">
 								<MenuItem.Icon>
 									<Image Source="/Assets/Icons/findmissing.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>
 							</MenuItem>
-							<Separator/>
+							<Separator IsVisible="{Binding !IsGamelistLoaded}"/>
 							<MenuItem Header="Duplicate Items"
-									  IsEnabled="False"
+									  IsVisible="False"
 									  ToolTip.Tip="Find duplicate entries">
 								<MenuItem.Icon>
 									<Image Source="/Assets/Icons/findduplicates.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
@@ -510,11 +508,6 @@
 						IsVisible="{Binding IsRemoteVisible}">
 					<Button.Flyout>
 						<MenuFlyout Placement="Right">
-							<MenuItem Header="Map Network Drive" Command="{Binding MapNetworkDriveCommand}" ToolTip.Tip="Map a network drive">
-								<MenuItem.Icon>
-									<Image Source="/Assets/Icons/mapdrive.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-								</MenuItem.Icon>
-							</MenuItem>
 							<MenuItem Header="Open Terminal" Command="{Binding OpenTerminalCommand}" ToolTip.Tip="Open SSH terminal connection">
 								<MenuItem.Icon>
 									<Image Source="/Assets/Icons/ssh.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
@@ -554,7 +547,7 @@
 								</MenuItem.Icon>
 							</MenuItem>
 							<Separator />
-							<MenuItem Header="Remove Batocera SSH Key" Command="{Binding RemoveBatoceraSSHKeyCommand}" ToolTip.Tip="Remove stored SSH key">
+							<MenuItem Header="Remove Host SSH Key" Command="{Binding RemoveBatoceraSSHKeyCommand}" ToolTip.Tip="Remove stored SSH key">
 								<MenuItem.Icon>
 									<Image Source="/Assets/Icons/remove.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>

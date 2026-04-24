@@ -276,10 +276,8 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Private Methods
-    private void LoadSystems()
+    private async Task LoadSystemsAsync()
     {
-        Systems.Clear();
-
         var profileType = _sharedData.ProfileType;
         var scanFolder = profileType switch
         {
@@ -289,20 +287,34 @@ public partial class MainWindowViewModel
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
         {
+            Systems.Clear();
             StatusText = profileType == SettingKeys.ProfileTypeEsDe ? "Set ES-DE root folder in Settings" : "Set ROMs folder in Settings";
             IsSystemsComboBoxEnabled = false;
             return;
         }
 
-        foreach (var dir in Directory.EnumerateDirectories(scanFolder).OrderBy(Path.GetFileName))
+        // Clear and disable the menu before scanning so it's never in an inconsistent state.
+        Systems.Clear();
+        IsSystemsComboBoxEnabled = false;
+
+        // Scan the directory on a background thread to avoid blocking the UI.
+        var found = await Task.Run(() =>
         {
-            var gamelistPath = Path.Combine(dir, "gamelist.xml");
-            if (!File.Exists(gamelistPath)) continue;
+            var items = new List<(string name, string path)>();
+            foreach (var dir in Directory.EnumerateDirectories(scanFolder).OrderBy(Path.GetFileName))
+            {
+                var gamelistPath = Path.Combine(dir, "gamelist.xml");
+                if (!File.Exists(gamelistPath)) continue;
 
-            var systemName = Path.GetFileName(dir) ?? dir;
-            var logo = TryLoadSystemLogo(systemName);
-
-            Systems.Add(new SystemItem { Name = systemName, GamelistPath = gamelistPath, Logo = logo });
+                var systemName = Path.GetFileName(dir) ?? dir;
+                items.Add((systemName, gamelistPath));
+            }
+            return items;
+        });
+        foreach (var (name, path) in found)
+        {
+            var logo = TryLoadSystemLogo(name);
+            Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = logo });
         }
 
         IsSystemsComboBoxEnabled = Systems.Count > 0;
@@ -453,8 +465,8 @@ public partial class MainWindowViewModel
 
             if (_sharedData.CheckForNewAndMissingGamesOnLoad)
             {
-                await FindNewItems();
-                await FindMissingItems();
+                await FindNewItemsCore(silent: true);
+                await FindMissingItemsCore(silent: true);
             }
         }
         finally
