@@ -76,6 +76,7 @@ public partial class SettingsViewModel : ViewModelBase
         RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
         RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
         EnableDelete = settings.GetBool(SettingKeys.EnableDelete);
+        RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
         IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
         BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
         ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
@@ -166,6 +167,7 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.IgnoreDuplicates.Key] = IgnoreDuplicates.ToString(),
                 [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
                 [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
+                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),   
                 [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
                 [SettingKeys.CheckForNewAndMissingGamesOnLoad.Key] = CheckForNewAndMissingGamesOnLoad.ToString()
             },

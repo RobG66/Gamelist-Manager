@@ -410,7 +410,13 @@ namespace Gamelist_Manager.Classes.Api
                             {
                                 string name = ParseNames(namesNode, parameters.RomFileName!, parameters);
                                 if (!string.IsNullOrEmpty(name))
-                                    gameData.Data["name"] = EncodingHelper.FixMojibake(name);
+                                    if (parameters.RemoveZzzNotGamePrefix)
+                                    {
+                                        int colonIndex = name.IndexOf(':');
+                                        if (colonIndex >= 0)
+                                            name = name[(colonIndex + 1)..].Trim();
+                                    }
+                                gameData.Data["name"] = EncodingHelper.FixMojibake(name);
                             }
                         }
                         break;

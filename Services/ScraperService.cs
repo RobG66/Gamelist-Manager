@@ -18,7 +18,6 @@ namespace Gamelist_Manager.Services
         private readonly API_EmuMovies _emuMovies;
         private readonly API_ScreenScraper _screenScraper;
         private readonly FileTransferHelper _fileTransfer;
-        private readonly SharedDataService _sharedData;
         private readonly Dictionary<string, int> _downloadStats = new();
         private readonly object _downloadStatsLock = new();
         private readonly EmuMoviesMediaCacheHelper _mediaCache = new();
@@ -29,14 +28,12 @@ namespace Gamelist_Manager.Services
             API_ArcadeDB arcadeDb,
             API_EmuMovies emuMovies,
             API_ScreenScraper screenScraper,
-            FileTransferHelper fileTransfer,
-            SharedDataService sharedData)
+            FileTransferHelper fileTransfer)
         {
             _arcadeDb = arcadeDb;
             _emuMovies = emuMovies;
             _screenScraper = screenScraper;
             _fileTransfer = fileTransfer;
-            _sharedData = sharedData;
         }
 
         private void Log(string message, LogLevel level = LogLevel.Default, string? prefix = null, LogLevel prefixLevel = LogLevel.Default)
@@ -66,8 +63,7 @@ namespace Gamelist_Manager.Services
 
             string romPath = row.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             string romFileName = Path.GetFileName(romPath);
-            string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);
-            string romName = row.GetValue(MetaDataKeys.name)?.ToString() ?? romFileNameNoExtension;
+            string romFileNameNoExtension = Path.GetFileNameWithoutExtension(romPath);            string romName = row.GetValue(MetaDataKeys.name)?.ToString() ?? romFileNameNoExtension;
             string gameID = row.GetValue(MetaDataKeys.id)?.ToString() ?? string.Empty;
 
             var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, baseParameters);

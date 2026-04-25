@@ -41,13 +41,14 @@ namespace Gamelist_Manager.Models
         public string? CacheFolder { get; set; }
         public bool ScrapeByCache { get; set; }
         public bool SkipNonCached { get; set; }
+        public bool RemoveZzzNotGamePrefix { get; set; }
         public List<string>? ElementsToScrape
         {
             get => _elementsToScrape;
             set
             {
                 _elementsToScrape = value;
-                _metaLookup = null; // reset cache when new list assigned
+                _metaLookup = null;
             }
         }
         private List<string>? _elementsToScrape;
@@ -84,26 +85,39 @@ namespace Gamelist_Manager.Models
             }
         }
 
-        public static ScraperParameters Create(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        public static ScraperParameters Create(
+            string parentFolderPath,
+            bool verifyImageDownloads,
+            string profileType,
+            IReadOnlyDictionary<string, MediaTypeSettings> mediaSettings,
+            string esDeMediaDirectory,
+            string scraperName,
+            string currentSystem,
+            List<string> elementsToScrape)
         {
-            return sharedData.ProfileType switch
+            return profileType switch
             {
-                SettingKeys.ProfileTypeEsDe => CreateForEsDeProfile(sharedData, scraperName, currentSystem, elementsToScrape),
-                _ => CreateForESProfile(sharedData, scraperName, currentSystem, elementsToScrape)
+                SettingKeys.ProfileTypeEsDe => CreateForEsDeProfile(parentFolderPath, verifyImageDownloads, esDeMediaDirectory, scraperName, currentSystem, elementsToScrape),
+                _ => CreateForESProfile(parentFolderPath, verifyImageDownloads, mediaSettings, scraperName, currentSystem, elementsToScrape)
             };
         }
 
-        private static ScraperParameters CreateForESProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        private static ScraperParameters CreateForESProfile(
+            string parentFolderPath,
+            bool verifyImageDownloads,
+            IReadOnlyDictionary<string, MediaTypeSettings> mediaSettings,
+            string scraperName,
+            string currentSystem,
+            List<string> elementsToScrape)
         {
-            var media = sharedData.MediaSettings;
-            var parameters = BuildCommonParameters(sharedData, scraperName, currentSystem, elementsToScrape);
+            var parameters = BuildCommonParameters(parentFolderPath, verifyImageDownloads, scraperName, currentSystem, elementsToScrape);
 
-            parameters.MediaPaths = media.ToDictionary(
+            parameters.MediaPaths = mediaSettings.ToDictionary(
                 kvp => kvp.Key,
                 kvp => kvp.Value.Path,
                 StringComparer.OrdinalIgnoreCase);
 
-            parameters.MediaSuffixes = media.ToDictionary(
+            parameters.MediaSuffixes = mediaSettings.ToDictionary(
                 kvp => kvp.Key,
                 kvp => (kvp.Value.Suffix, kvp.Value.SfxEnabled),
                 StringComparer.OrdinalIgnoreCase);
@@ -111,16 +125,21 @@ namespace Gamelist_Manager.Models
             return parameters;
         }
 
-        private static ScraperParameters CreateForEsDeProfile(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        private static ScraperParameters CreateForEsDeProfile(
+            string parentFolderPath,
+            bool verifyImageDownloads,
+            string esDeMediaDirectory,
+            string scraperName,
+            string currentSystem,
+            List<string> elementsToScrape)
         {
-            var parameters = BuildCommonParameters(sharedData, scraperName, currentSystem, elementsToScrape);
-            var mediaDirectory = sharedData.EsDeMediaDirectory;
+            var parameters = BuildCommonParameters(parentFolderPath, verifyImageDownloads, scraperName, currentSystem, elementsToScrape);
 
             parameters.MediaPaths = GamelistMetaData.GetAllMediaFolderTypes()
                 .Where(decl => decl.IsEsDeSupported)
                 .ToDictionary(
                     decl => decl.Type,
-                    decl => Path.Combine(mediaDirectory, decl.EsDeFolderName),
+                    decl => Path.Combine(esDeMediaDirectory, decl.EsDeFolderName),
                     StringComparer.OrdinalIgnoreCase);
 
             // Suffixes are not applicable in ES-DE mode — filenames follow the ROM name exactly.
@@ -129,7 +148,12 @@ namespace Gamelist_Manager.Models
             return parameters;
         }
 
-        private static ScraperParameters BuildCommonParameters(SharedDataService sharedData, string scraperName, string currentSystem, List<string> elementsToScrape)
+        private static ScraperParameters BuildCommonParameters(
+            string parentFolderPath,
+            bool verifyImageDownloads,
+            string scraperName,
+            string currentSystem,
+            List<string> elementsToScrape)
         {
             var scraperConfig = ScraperConfigService.Instance;
 
@@ -143,8 +167,8 @@ namespace Gamelist_Manager.Models
 
             return new ScraperParameters
             {
-                ParentFolderPath = sharedData.GamelistDirectory,
-                VerifyImageDownloads = sharedData.VerifyImageDownloads,
+                ParentFolderPath = parentFolderPath,
+                VerifyImageDownloads = verifyImageDownloads,
                 ElementsToScrape = elementsToScrape,
                 SystemID = scraperConfig.GetScraperSystemId(scraperName, currentSystem),
                 SSLanguage = scraperConfig.GetScraperLanguageCode(scraperName),
@@ -162,6 +186,7 @@ namespace Gamelist_Manager.Models
                 ScrapeMediaRegionFirst = scraperConfig.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
                 ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
                 ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
+                RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix")
             };
         }
 
@@ -220,6 +245,7 @@ namespace Gamelist_Manager.Models
                 CacheFolder = this.CacheFolder,
                 ScrapeByCache = this.ScrapeByCache,
                 SkipNonCached = this.SkipNonCached,
+                RemoveZzzNotGamePrefix = this.RemoveZzzNotGamePrefix,
                 ExistingMediaFiles = this.ExistingMediaFiles?.ToDictionary(
                     kvp => kvp.Key,
                     kvp => new HashSet<string>(kvp.Value, kvp.Value.Comparer))

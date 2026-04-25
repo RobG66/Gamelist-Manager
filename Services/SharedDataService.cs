@@ -44,6 +44,7 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private bool _mediaViewerScaledDisplay = true;
         [ObservableProperty] private int _defaultVolume = 75;
         [ObservableProperty] private int _maxUndo = 5;
+        [ObservableProperty] private bool _removeZZZNotGamePrefix = true;
         [ObservableProperty] private int _searchDepth = 2;
         [ObservableProperty] private int _maxBatch = 300;
         [ObservableProperty] private int _recentFilesCount = 15;
@@ -150,6 +151,7 @@ namespace Gamelist_Manager.Services
             MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
             SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
             MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
+            RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
             RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
             LogVerbosity = settings.GetInt(SettingKeys.LogVerbosity);
 

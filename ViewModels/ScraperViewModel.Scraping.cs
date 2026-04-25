@@ -24,6 +24,20 @@ public partial class ScraperViewModel
             return;
         }
 
+        if (string.IsNullOrEmpty(_sharedData.CurrentSystem))
+        {
+            Log("No system selected.", LogLevel.Error);
+            IsScraping = false;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_sharedData.GamelistDirectory))
+        {
+            Log("No gamelist directory found.", LogLevel.Error);
+            IsScraping = false;
+            return;
+        }
+
         var elementsToScrape = BuildElementsToScrape();
         if (elementsToScrape.Count == 0)
         {
@@ -32,6 +46,18 @@ public partial class ScraperViewModel
             return;
         }
 
+        var currentSystem = _sharedData.CurrentSystem;
+        var gamelistDirectory = _sharedData.GamelistDirectory;
+        var currentScraper = CurrentScraper;
+        var maxBatch = _sharedData.MaxBatch;
+        var removeZzzNotGamePrefix = _sharedData.RemoveZZZNotGamePrefix;
+        var logVerbosity = _sharedData.LogVerbosity;
+        var batchProcessing = _sharedData.BatchProcessing;
+        var verifyImageDownloads = _sharedData.VerifyImageDownloads;
+        var profileType = _sharedData.ProfileType;
+        var mediaSettings = _sharedData.MediaSettings;
+        var esDeMediaDirectory = _sharedData.EsDeMediaDirectory;
+
         SaveScraperSettings();
         ResetScrapeUI();
 
@@ -39,27 +65,37 @@ public partial class ScraperViewModel
         var scraperService = Startup.Services.GetRequiredService<ScraperService>();
         scraperService.LogAction = Log;
         scraperService.ClearDownloadStats();
-        Log($"Starting {CurrentScraper} scraper...", LogLevel.Success);
+        Log($"Starting {currentScraper} scraper...", LogLevel.Success);
 
         try
         {
-            var baseParameters = ScraperParameters.Create(_sharedData, CurrentScraper, _sharedData.CurrentSystem ?? string.Empty, elementsToScrape);
+            var baseParameters = ScraperParameters.Create(
+                gamelistDirectory,
+                verifyImageDownloads,
+                profileType,
+                mediaSettings,
+                esDeMediaDirectory,
+                currentScraper,
+                currentSystem,
+                elementsToScrape);
+
             baseParameters.OverwriteName = OverwriteName;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
             baseParameters.OverwriteMedia = OverwriteMedia;
             baseParameters.ScrapeByCache = ScrapeFromCache;
             baseParameters.SkipNonCached = SkipNonCachedItems;
+            baseParameters.RemoveZzzNotGamePrefix = removeZzzNotGamePrefix;
 
             var scraperProperties = new ScraperProperties
             {
-                ScraperName = CurrentScraper,
-                LogVerbosity = _sharedData.LogVerbosity,
-                BatchProcessing = _sharedData.BatchProcessing,
+                ScraperName = currentScraper,
+                LogVerbosity = logVerbosity,
+                BatchProcessing = batchProcessing,
             };
 
             if (!await scraperService.InitializeScraperAsync(
                 baseParameters, scraperProperties,
-                _sharedData.CurrentSystem ?? string.Empty, _cts.Token))
+                currentSystem, _cts.Token))
             {
                 return;
             }
@@ -80,7 +116,7 @@ public partial class ScraperViewModel
 
             bool completed = await scraperService.RunScrapeAsync(
                 baseParameters, scraperProperties, rowsToScrape,
-                _sharedData.MaxBatch,
+                maxBatch,
                 (current, total, item) => Dispatcher.UIThread.Post(() => UpdateScrapeProgress(current, total, item)),
                 (progress, max) => Dispatcher.UIThread.Post(() => LimitText = $"{progress}/{max}"),
                 () => _sharedData.IsDataChanged = true,

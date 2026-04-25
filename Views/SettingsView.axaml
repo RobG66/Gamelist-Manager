@@ -547,15 +547,18 @@
 												  ToolTip.Tip="The preferred region for media assets (e.g. box covers, screenshots). Media from this region will be downloaded first when available."/>
 									</StackPanel>
 								</StackPanel>
-								<UniformGrid Rows="2" Columns="2" RowSpacing="5" ColumnSpacing="5" Margin="0,5">
+								<UniformGrid Rows="3" Columns="2" RowSpacing="5" ColumnSpacing="5" Margin="0,5">
 									<CheckBox Content="Always scrape genre in English" IsChecked="{Binding ScraperGenreAlwaysEnglish}"
 											  ToolTip.Tip="EmulationStation built-in collections are based on English genres. Enable this to ensure genres are always saved in English regardless of the selected language."/>
 									<CheckBox Content="Scrape any available media" IsChecked="{Binding ScraperScrapeAnyMedia}"
 											  ToolTip.Tip="When no media is found for primary or fallback regions, download whatever is available from any region rather than leaving the field empty."/>
 									<CheckBox Content="Scrape names by language first" IsChecked="{Binding ScraperNamesLanguageFirst}"
 											  ToolTip.Tip="When enabled, the selected language is always checked first when retrieving game names, overriding the ROM filename's detected region. When disabled, the ROM region takes priority."/>
-									<CheckBox Content="Scrape media by region first" IsChecked="{Binding ScraperMediaRegionFirst}"
-											    ToolTip.Tip="When enabled, the user region is always checked first when retrieving media, overriding any other region priorities. When disabled, the default region priority order is used."/>
+									<CheckBox Content="Scrape media by user region first" IsChecked="{Binding ScraperMediaRegionFirst}"
+											    ToolTip.Tip="When enabled, searches for media using your configured regions first, then the ROM filename region. When disabled, the ROM filename region takes priority first."/>
+									<CheckBox Content="Remove ZZZ(notgame): from names" IsChecked="{Binding RemoveZZZNotGamePrefix}"
+											    ToolTip.Tip="When enabled, the ZZZ(notgame): prefix is always removed from names"/>
+
 								</UniformGrid>
 								<Grid ColumnDefinitions="*,Auto,*">
 

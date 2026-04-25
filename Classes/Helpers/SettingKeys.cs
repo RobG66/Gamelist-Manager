@@ -114,7 +114,7 @@ public static class SettingKeys
     public static readonly SettingDef<string> ScreenScraperLanguage = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_Language", "English (en)");
     public static readonly SettingDef<string> ScreenScraperPrimaryRegion = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_PrimaryRegion", "USA (us)");
     public static readonly SettingDef<bool> ScreenScraperGenreEnglish = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_GenreEnglish", false);
-    public static readonly SettingDef<bool> ScreenScraperAnyMedia = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_AnyMedia", false);
+    public static readonly SettingDef<bool> ScreenScraperAnyMedia = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_AnyMedia", true);
     public static readonly SettingDef<bool> ScreenScraperNamesLanguageFirst = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_NamesLanguageFirst", false);
     public static readonly SettingDef<bool> ScreenScraperMediaRegionFirst = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_MediaRegionFirst", false);
     public static readonly SettingDef<string> ScreenScraperRegionFallback = new(ScraperSection, $"{ScraperRegistry.ScreenScraper}_RegionFallback", """["USA (us)", "Europe (eu)", "United Kingdom (uk)", "World (wor)", "Japan (jp)", "ScreenScraper (ss)", "Custom (cus)"]""");
@@ -123,6 +123,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> OverwriteMedia = new(ScraperSection, "OverwriteMedia", false);
     public static readonly SettingDef<bool> ScrapeHiddenItems = new(ScraperSection, "ScrapeHiddenItems", false);
     public static readonly SettingDef<string> SelectedScraper = new(ScraperSection, "SelectedScraper", "");
+    public static readonly SettingDef<bool> RemoveZZZNotGamePrefix = new(ScraperSection, "RemoveZZZNotGamePrefix", true);
 
 
     #endregion
@@ -162,7 +163,7 @@ public static class SettingKeys
          // Scraper
         ScreenScraperLanguage, ScreenScraperPrimaryRegion, ScreenScraperGenreEnglish,
         ScreenScraperAnyMedia, ScreenScraperNamesLanguageFirst, ScreenScraperMediaRegionFirst, ScreenScraperRegionFallback,
-        ScrapeAllMode, OverwriteName, OverwriteMedia, ScrapeHiddenItems, SelectedScraper
+        ScrapeAllMode, OverwriteName, OverwriteMedia, ScrapeHiddenItems, SelectedScraper, RemoveZZZNotGamePrefix
 
     ];
 

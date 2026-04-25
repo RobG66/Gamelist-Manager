@@ -38,6 +38,16 @@ public partial class MediaPreviewViewModel
             return;
         }
 
+        if (string.IsNullOrEmpty(_sharedData.CurrentSystem))
+        {
+            SetScraperStatus("No system selected.", "error");
+            return;
+        }
+
+        var currentSystem = _sharedData.CurrentSystem;
+        var gamelistDirectory = _sharedData.GamelistDirectory;
+        var mediaSettings = _sharedData.MediaSettings;
+
         _sharedData.IsScraping = true;
         bool scrapingVideo = false;
         try
@@ -51,8 +61,6 @@ public partial class MediaPreviewViewModel
                     ? $"Scraping {itemLabel} with {scraperName}..."
                     : $"Scraping with {scraperName}...",
                 null);
-
-            var mediaSettings = _sharedData.MediaSettings;
 
             var elementsToScrape = specificElements != null
                 ? specificElements.Where(e => mediaSettings.TryGetValue(e, out var d) && d.Enabled).ToList()
@@ -70,7 +78,6 @@ public partial class MediaPreviewViewModel
                 return;
             }
 
-            string currentSystem = _sharedData.CurrentSystem ?? string.Empty;
             var scraperProperties = new ScraperProperties
             {
                 ScraperName = scraperName,
@@ -80,7 +87,16 @@ public partial class MediaPreviewViewModel
             if (elementsToScrape.Contains("video")) scrapingVideo = true;
             if (scrapingVideo) SuspendVideo();
 
-            var baseParameters = ScraperParameters.Create(_sharedData, scraperName, currentSystem, elementsToScrape);
+            var baseParameters = ScraperParameters.Create(
+                gamelistDirectory,
+                _sharedData.VerifyImageDownloads,
+                _sharedData.ProfileType,
+                mediaSettings,
+                _sharedData.EsDeMediaDirectory,
+                scraperName,
+                currentSystem,
+                elementsToScrape);
+
             // Always overwrite single media item scrapes
             baseParameters.OverwriteMedia = specificElements?.Count == 1 || OverwriteMedia;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
@@ -117,7 +133,6 @@ public partial class MediaPreviewViewModel
                         : "No media found.",
                     null);
             }
-
             else
             {
                 SetScraperStatus(
@@ -126,7 +141,6 @@ public partial class MediaPreviewViewModel
                         : "No new media scraped.",
                     null);
             }
-
         }
         catch (Exception ex)
         {

@@ -27,6 +27,7 @@ public partial class SettingsViewModel
     [ObservableProperty] private bool _enableDelete;
     [ObservableProperty] private bool _ignoreDuplicates;
     [ObservableProperty] private bool _batchProcessing;
+    [ObservableProperty] private bool _removeZZZNotGamePrefix;
     [ObservableProperty] private bool _showLogTimestamp;
     [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
     [ObservableProperty] private int _scraperConfigSaveIndex;
