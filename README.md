@@ -6,8 +6,11 @@
 A robust, cross platform (Windows/Linux) desktop application for viewing and editing EmulationStation gamelist XML files, with fullly configurable scraper services for metadata and artwork.  Built on Avalonia UI and targeting Windows and Linux.  
 
 
-If you find this program useful, please consider supporting its continued development (links on right).
-Your support is greatly appreciated!
+If you find this program useful, please consider supporting its continued development.
+
+https://github.com/RobG66
+https://ko-fi.com/robg66
+
 
 
 <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/4b486149-e82d-4638-9329-a9e7fafd6aab" />
