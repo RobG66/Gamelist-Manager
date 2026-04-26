@@ -8,9 +8,8 @@ A robust, cross platform (Windows/Linux) desktop application for viewing and edi
 
 If you find this program useful, please consider supporting its continued development.
 
-https://github.com/RobG66
-https://ko-fi.com/robg66
-
+[![GitHub](https://img.shields.io/badge/GitHub-RobG66-181717?style=for-the-badge&logo=github)](https://github.com/RobG66)
+[![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/robg66)
 
 
 <img width="3840" height="2040" alt="image" src="https://github.com/user-attachments/assets/4b486149-e82d-4638-9329-a9e7fafd6aab" />
