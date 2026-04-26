@@ -54,15 +54,16 @@ public partial class SettingsViewModel
     {
         if (!_isLoading)
         {
-            ThemeService.ApplyThemeVariant(value);
-            SelectedAlternatingRowColorIndex = 0;
+            // ThemeService.ApplyThemeVariant(value);  Only apply at saving
+            SelectedAlternatingRowColorIndex = 0; // Reset to default when switching themes
         }
     }
 
     partial void OnSelectedColorIndexChanged(int value)
     {
-        if (!_isLoading)
-            ThemeService.ApplyAccentColor(value);
+        // Apply only when saving, but keep this in casse we want to preview accent color changes immediately
+        //if (!_isLoading)
+        //   ThemeService.ApplyAccentColor(value);
     }
 
     #endregion
