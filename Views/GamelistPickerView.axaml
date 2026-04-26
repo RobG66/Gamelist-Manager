@@ -1,0 +1,145 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
+        x:Class="Gamelist_Manager.Views.GamelistPickerView"
+        x:DataType="viewModels:GamelistPickerViewModel"
+        x:CompileBindings="True"
+        Title="System Picker"
+        CanMaximize="False"
+        CanMinimize="False"
+        MinHeight="500" MinWidth="420"
+        Height="600" Width="620"
+        FontSize="{DynamicResource GlobalFontSize}"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Header / Search -->
+        <Border Grid.Row="0"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                Padding="12,10">
+            <Grid ColumnDefinitions="*,12,200">
+                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="Select System"
+                               FontSize="{DynamicResource GlobalHeaderFontSize}"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource AccentTextBrush}"/>
+                    <TextBlock Text="{Binding SubtitleText}"
+                               FontSize="{DynamicResource GlobalSmallFontSize}"
+                               Opacity="0.6"/>
+                </StackPanel>
+                <TextBox Grid.Column="2"
+                         Text="{Binding SearchText}"
+                         PlaceholderText="Search systems..."
+                         VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- System Tile Grid -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding FilteredSystems}"
+                          Margin="6,6,6,12">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:SystemPickerItem">
+                        <Button Width="110" Height="100"
+                                Margin="4"
+                                Padding="6"
+                                Classes="TileButton"
+                                Classes.selected="{Binding IsSelected}"
+                                Command="{Binding $parent[ItemsControl].((viewModels:GamelistPickerViewModel)DataContext).SelectSystemCommand}"
+                                CommandParameter="{Binding}"
+                                ToolTip.Tip="{Binding Name}"
+                                DoubleTapped="OnTileDoubleTapped">
+                            <Grid RowDefinitions="*,Auto,Auto">
+                                <!-- Logo or fallback -->
+                                <Panel Grid.Row="0"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       ClipToBounds="True">
+                                    <Image Source="{Binding Logo}"
+                                           MaxWidth="90" MaxHeight="44"
+                                           Stretch="Uniform"
+                                           IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <TextBlock Text="?"
+                                               FontSize="28"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <!-- Gamelist exists badge — new gamelist mode only -->
+                                    <Border CornerRadius="3"
+                                            Padding="3,1"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Top"
+                                            IsHitTestVisible="False"
+                                            Background="{DynamicResource SystemAccentBrush}"
+                                            ZIndex="1">
+                                        <Border.IsVisible>
+                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                <Binding Path="HasGamelist"/>
+                                                <Binding Path="$parent[ItemsControl].((viewModels:GamelistPickerViewModel)DataContext).ShowGamelistBadge"/>
+                                            </MultiBinding>
+                                        </Border.IsVisible>
+                                        <TextBlock Text="gamelist exists"
+                                                   FontSize="8"
+                                                   Foreground="White"
+                                                   FontWeight="Bold"/>
+                                    </Border>
+                                </Panel>
+                                <!-- System name -->
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding Name}"
+                                           FontSize="{DynamicResource GlobalSmallFontSize}"
+                                           TextAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,3,0,0"/>
+                                <!-- Game count -->
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding GameCountText}"
+                                           FontSize="9"
+                                           TextAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource AccentTextBrush}"
+                                           Opacity="0.7"
+                                           Margin="0,1,0,0"/>
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="2"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                Padding="12,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding SelectedSystem.Name, StringFormat='Selected: {0}', FallbackValue='No system selected'}"
+                           VerticalAlignment="Center"
+                           FontStyle="Italic"
+                           Opacity="0.7"
+                           FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                    <Button Content="Cancel"
+                            Classes="rounded yellow"
+                            Command="{Binding CancelCommand}"/>
+                    <Button Content="{Binding ConfirmButtonText}"
+                            Classes="rounded green"
+                            Command="{Binding ConfirmCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

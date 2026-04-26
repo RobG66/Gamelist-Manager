@@ -56,6 +56,7 @@
             <SolidColorBrush x:Key="CardBorderSecondary"  Color="#DDD9D0"/>
             <SolidColorBrush x:Key="PanelBackground"      Color="#F5F3F0"/>
             <SolidColorBrush x:Key="PanelBorder"          Color="#E0DDD6"/>
+            <SolidColorBrush x:Key="TileBackground"       Color="#ECEAE6"/>
 
             <!-- Separators -->
             <SolidColorBrush x:Key="SeparatorBrush" Color="#E8E6E1"/>
@@ -97,6 +98,8 @@
             <SolidColorBrush x:Key="ListItemHoverBrush"    Color="#F5F3F0"/>
             <SolidColorBrush x:Key="ListItemSelectedBrush" Color="{DynamicResource SystemAccentColorLight2}"/>
 
+            <SolidColorBrush x:Key="TileSelectedBackground"      Color="{DynamicResource SystemAccentColorLight2}" Opacity="0.35"/>
+            <SolidColorBrush x:Key="TileSelectedHoverBackground" Color="{DynamicResource SystemAccentColorLight2}" Opacity="0.55"/>
             <!-- Slider -->
             <SolidColorBrush x:Key="SliderTrackBrush"      Color="{DynamicResource SystemAccentColorLight2}"/>
             <SolidColorBrush x:Key="SliderThumbBrush"      Color="{DynamicResource SystemAccentColor}"/>
@@ -142,6 +145,7 @@
             <SolidColorBrush x:Key="CardBorderSecondary"  Color="#DDD9D0"/>
             <SolidColorBrush x:Key="PanelBackground"      Color="#F5F3F0"/>
             <SolidColorBrush x:Key="PanelBorder"          Color="#E0DDD6"/>
+            <SolidColorBrush x:Key="TileBackground"       Color="#ECEAE6"/>
 
             <!-- Separators -->
             <SolidColorBrush x:Key="SeparatorBrush" Color="#E8E6E1"/>
@@ -268,6 +272,9 @@
             <!-- List Items -->
             <SolidColorBrush x:Key="ListItemHoverBrush"    Color="#3A3A3A"/>
             <SolidColorBrush x:Key="ListItemSelectedBrush" Color="#0D47A1"/>
+            <SolidColorBrush x:Key="TileBackground"       Color="#383838"/>
+            <SolidColorBrush x:Key="TileSelectedBackground"      Color="{DynamicResource SystemAccentColor}" Opacity="0.30"/>
+            <SolidColorBrush x:Key="TileSelectedHoverBackground" Color="{DynamicResource SystemAccentColor}" Opacity="0.50"/>
 
             <!-- Slider -->
             <SolidColorBrush x:Key="SliderTrackBrush"      Color="#455A64"/>

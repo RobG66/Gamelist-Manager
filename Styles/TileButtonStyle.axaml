@@ -1,0 +1,44 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="Button.TileButton">
+        <Setter Property="Background" Value="{DynamicResource TileBackground}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+    </Style>
+
+    <!-- Hover -->
+    <Style Selector="Button.TileButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+    </Style>
+
+    <!-- Pressed -->
+    <Style Selector="Button.TileButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+    </Style>
+
+    <!-- Selected -->
+    <Style Selector="Button.TileButton.selected">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+
+    <Style Selector="Button.TileButton.selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TileSelectedBackground}"/>
+    </Style>
+
+    <!-- Selected + hover -->
+    <Style Selector="Button.TileButton.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TileSelectedHoverBackground}"/>
+    </Style>
+
+    <!-- Selected + pressed -->
+    <Style Selector="Button.TileButton.selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource TileSelectedBackground}"/>
+    </Style>
+
+</Styles>

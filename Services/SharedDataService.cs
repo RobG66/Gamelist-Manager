@@ -60,6 +60,7 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private string _esDeRoot = string.Empty;
         [ObservableProperty] private string _esDeMediaBase = string.Empty;
         [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
+        [ObservableProperty] private bool _useSimpleSystemPicker;
 
         #endregion
 
@@ -144,7 +145,7 @@ namespace Gamelist_Manager.Services
             BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
             ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
             CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
-
+            UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
             MediaViewerScaledDisplay = settings.GetBool(SettingKeys.ScaledDisplay);
 
             DefaultVolume = settings.GetInt(SettingKeys.Volume);

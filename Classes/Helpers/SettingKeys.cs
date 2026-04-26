@@ -67,6 +67,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> ShowLogTimestamp = new(BehaviorSection, "ShowLogTimestamp", false);
     public static readonly SettingDef<int> ScraperConfigSave = new(BehaviorSection, "ScraperConfigSave", 0);
     public static readonly SettingDef<bool> CheckForNewAndMissingGamesOnLoad = new(BehaviorSection, "CheckForNewAndMissingGamesOnLoad", false);
+    public static readonly SettingDef<bool> UseSimpleSystemPicker = new(BehaviorSection, "UseSimpleSystemPicker", false);
 
     #endregion
 
@@ -124,8 +125,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> ScrapeHiddenItems = new(ScraperSection, "ScrapeHiddenItems", false);
     public static readonly SettingDef<string> SelectedScraper = new(ScraperSection, "SelectedScraper", "");
     public static readonly SettingDef<bool> RemoveZZZNotGamePrefix = new(ScraperSection, "RemoveZZZNotGamePrefix", true);
-
-
+    
     #endregion
 
 
@@ -142,7 +142,7 @@ public static class SettingKeys
         // Behavior
         ConfirmBulkChange, SaveReminder, VerifyDownloadedImages, VideoAutoplay,
         RememberColumns, RememberAutoSize, EnableDelete, IgnoreDuplicates,
-        BatchProcessing, ShowLogTimestamp, ScraperConfigSave, CheckForNewAndMissingGamesOnLoad,
+        BatchProcessing, ShowLogTimestamp, ScraperConfigSave, CheckForNewAndMissingGamesOnLoad, UseSimpleSystemPicker,
 
         // Advanced
         MaxUndo, SearchDepth, RecentFilesCount, BatchProcessingMaximum,

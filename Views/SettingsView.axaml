@@ -187,6 +187,9 @@
 											  ToolTip.Tip="Skip entries with duplicate ROM paths when loading a gamelist."/>
 									<CheckBox IsChecked="{Binding CheckForNewAndMissingGamesOnLoad}" Content="Check items on load" Margin="0,4,4,2"
 											  ToolTip.Tip="Automatically check for new and missing items when loading a gamelist."/>
+									<CheckBox IsChecked="{Binding UseSimpleSystemPicker}" Content="Use simple system picker" Margin="0,4,4,2"
+											  ToolTip.Tip="When checked, a simple menu is used for selecting systems."/>
+						
 								</UniformGrid>	
 							</StackPanel>
 						</Border>

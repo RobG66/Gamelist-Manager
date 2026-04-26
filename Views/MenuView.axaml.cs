@@ -29,6 +29,19 @@ public partial class MenuView : UserControl
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += OnDetachedFromVisualTree;
         DataContextChanged += OnDataContextChanged;
+
+        SystemsButton.Click += OnSystemsButtonClick;
+    }
+
+    private void OnSystemsButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        if (SharedDataService.Instance.UseSimpleSystemPicker) return;
+
+        // Suppress the flyout and open the picker dialog instead
+        SystemsButton.Flyout?.Hide();
+        vm.OpenSystemPickerCommand.Execute(null);
+        e.Handled = true;
     }
 
     private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)

@@ -69,6 +69,9 @@
       <Compile Update="Views\MenuView.axaml.cs">
         <DependentUpon>MenuView.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\GamelistPickerView.axaml.cs">
+        <DependentUpon>GamelistPickerView.axaml</DependentUpon>
+      </Compile>
       <Compile Update="Views\ScraperPanel.axaml.cs">
         <DependentUpon>ScraperPanel.axaml</DependentUpon>
       </Compile>

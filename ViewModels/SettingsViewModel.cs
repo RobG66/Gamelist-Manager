@@ -10,7 +10,7 @@ namespace Gamelist_Manager.ViewModels;
 
 public partial class SettingsViewModel : ViewModelBase
 {
-    #region Fields
+    #region Fields / Constants
 
     private readonly SharedDataService _sharedData = SharedDataService.Instance;
     private bool _isLoading;
@@ -26,7 +26,59 @@ public partial class SettingsViewModel : ViewModelBase
 
     #region Observable Properties
 
+    // ===== Appearance =====
+    [ObservableProperty] private int _selectedThemeIndex;
+    [ObservableProperty] private int _selectedColorIndex;
+    [ObservableProperty] private int _selectedAlternatingRowColorIndex;
+    [ObservableProperty] private int _selectedGridLinesVisibilityIndex;
+    [ObservableProperty] private double _appFontSize = 12;
+    [ObservableProperty] private double _gridFontSize = 12;
+
+    // ===== Behavior / Options =====
+    [ObservableProperty] private bool _confirmBulkChanges;
+    [ObservableProperty] private bool _enableSaveReminder;
+    [ObservableProperty] private bool _verifyImageDownloads;
+    [ObservableProperty] private bool _videoAutoplay;
+    [ObservableProperty] private bool _rememberColumns;
+    [ObservableProperty] private bool _rememberAutosize;
+    [ObservableProperty] private bool _enableDelete;
+    [ObservableProperty] private bool _ignoreDuplicates;
+    [ObservableProperty] private bool _batchProcessing;
+    [ObservableProperty] private bool _removeZZZNotGamePrefix;
+    [ObservableProperty] private bool _useSimpleSystemPicker;
+    [ObservableProperty] private bool _showLogTimestamp;
+    [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
+
+    [ObservableProperty] private int _scraperConfigSaveIndex;
+    [ObservableProperty] private int _maxUndo;
+    [ObservableProperty] private int _maxBatch;
+    [ObservableProperty] private int _searchDepth;
+    [ObservableProperty] private int _recentFilesCount;
+    [ObservableProperty] private double _defaultVolume;
+    [ObservableProperty] private int _logVerbosityIndex;
+
+    // ===== Remote =====
+    [ObservableProperty] private string _hostname = string.Empty;
+    [ObservableProperty] private string _userId = string.Empty;
+    [ObservableProperty] private string _password = string.Empty;
+
     [ObservableProperty] private bool _isDirty;
+
+    #endregion
+
+    #region Property Change Callbacks
+
+    partial void OnSelectedThemeIndexChanged(int value)
+    {
+        if (_isLoading) return;
+
+        SelectedAlternatingRowColorIndex = 0;
+    }
+
+    partial void OnSelectedColorIndexChanged(int value)
+    {
+        // reserved for future preview
+    }
 
     #endregion
 
@@ -35,18 +87,22 @@ public partial class SettingsViewModel : ViewModelBase
     public SettingsViewModel()
     {
         _isLoading = true;
+
         InitializeMediaFolderItems();
-        _isLoading = false;
         LoadSettings();
+
+        _isLoading = false;
 
         PropertyChanged += (_, e) =>
         {
             if (_isLoading) return;
+
             if (e.PropertyName is nameof(IsDirty)
                                or nameof(SelectedProfileName)
                                or nameof(SelectedProfileIsEsDe)
                                or nameof(SelectedProfileEsDeMediaRoot))
                 return;
+
             IsDirty = true;
         };
     }
@@ -61,14 +117,15 @@ public partial class SettingsViewModel : ViewModelBase
 
         var settings = SettingsService.Instance;
 
+        // ===== Appearance =====
         SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.Theme));
         SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.Color));
-
         SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
         SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
         AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
         GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
 
+        // ===== Behavior =====
         ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
         EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
         VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
@@ -80,9 +137,10 @@ public partial class SettingsViewModel : ViewModelBase
         IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
         BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
         ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
-        ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
         CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
+        UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
 
+        ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
         MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
         SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
         RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
@@ -90,14 +148,17 @@ public partial class SettingsViewModel : ViewModelBase
         DefaultVolume = settings.GetInt(SettingKeys.Volume);
         LogVerbosityIndex = settings.GetInt(SettingKeys.LogVerbosity);
 
-        Hostname = settings.GetValue(SettingKeys.HostName);
-        UserId = settings.GetValue(SettingKeys.UserID);
-        Password = settings.GetValue(SettingKeys.Password);
+        // ===== Remote =====
+        Hostname = settings.GetValue(SettingKeys.HostName) ?? string.Empty;
+        UserId = settings.GetValue(SettingKeys.UserID) ?? string.Empty;
+        Password = settings.GetValue(SettingKeys.Password) ?? string.Empty;
 
+        // ===== Paths / Profiles =====
         MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key) ?? string.Empty;
-        
+
         var profileType = settings.GetValue(SettingKeys.ProfileType);
         var isEsDe = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase);
+
         foreach (var item in MediaFolderItems)
         {
             item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
@@ -117,8 +178,7 @@ public partial class SettingsViewModel : ViewModelBase
             EsDeMediaBase = _sharedData.EsDeMediaBase;
             RomsPath = _sharedData.RomsFolder;
         }
-        
-        if (_sharedData.ProfileType == SettingKeys.ProfileTypeEs)
+        else if (_sharedData.ProfileType == SettingKeys.ProfileTypeEs)
         {
             RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key) ?? string.Empty;
         }
@@ -167,9 +227,10 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.IgnoreDuplicates.Key] = IgnoreDuplicates.ToString(),
                 [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
                 [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
-                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),   
+                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),
                 [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
-                [SettingKeys.CheckForNewAndMissingGamesOnLoad.Key] = CheckForNewAndMissingGamesOnLoad.ToString()
+                [SettingKeys.CheckForNewAndMissingGamesOnLoad.Key] = CheckForNewAndMissingGamesOnLoad.ToString(),
+                [SettingKeys.UseSimpleSystemPicker.Key] = UseSimpleSystemPicker.ToString()
             },
             [SettingKeys.AdvancedSection] = new()
             {
@@ -206,7 +267,6 @@ public partial class SettingsViewModel : ViewModelBase
                     .ToDictionary(kv => kv.Key, kv => kv.Value)
         };
 
-        // Scraper credentials are stored in a separate file, save them first.
         if (IsSetupRequiresCredentials &&
             !string.IsNullOrWhiteSpace(ScraperUsername) &&
             !string.IsNullOrWhiteSpace(ScraperPassword))
@@ -214,7 +274,6 @@ public partial class SettingsViewModel : ViewModelBase
             CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
         }
 
-        // ScreenScraper-specific settings
         if (IsSetupScreenScraper)
         {
             settings[SettingKeys.ScraperSection] = new()
@@ -229,11 +288,11 @@ public partial class SettingsViewModel : ViewModelBase
             };
         }
 
-        // ES-DE / profile type settings
         settings[SettingKeys.ProfileSection] = new()
         {
             [SettingKeys.ProfileType.Key] = _sharedData.ProfileType,
         };
+
         if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
         {
             settings[SettingKeys.EsDeSection] = new()
@@ -269,8 +328,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     #endregion
 
-    #region Private Methods
-
+    #region Private Helpers
 
     private static int NameToIndex(string[] names, string name)
     {

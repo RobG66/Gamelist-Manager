@@ -256,7 +256,6 @@ public partial class MainWindowViewModel
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
-  
     private static List<string> ScanForRoms(
         string rootDir,
         HashSet<string> extensions,
@@ -264,11 +263,6 @@ public partial class MainWindowViewModel
         int maxDepth)
     {
         var results = new ConcurrentBag<string>();
-
-        var options = new ParallelOptions
-        {
-            MaxDegreeOfParallelism = Environment.ProcessorCount * 4
-        };
 
         ScanDirectory(rootDir, maxDepth);
 
@@ -288,18 +282,28 @@ public partial class MainWindowViewModel
                     results.Add(file);
             }
 
-            if (depth <= 0)
-                return;
-
             try { subDirs = Directory.GetDirectories(dir); }
             catch { subDirs = []; }
 
-            var toScan = subDirs
-                .Where(d => !mediaFolders.Contains(Path.GetFileName(d)))
-                .ToArray();
+            foreach (var subDir in subDirs)
+            {
+                var dirName = Path.GetFileName(subDir);
 
-            Parallel.ForEach(toScan, options, subDir =>
-                ScanDirectory(subDir, depth - 1));
+                // Check if the directory itself is a ROM (e.g. .ps3, .ps3dir, .chd folders)
+                // Only matches if the folder extension is in this system's filetypes
+                var dirExt = Path.GetExtension(dirName);
+                if (!string.IsNullOrEmpty(dirExt) && extensions.Contains(dirExt))
+                {
+                    results.Add(subDir);
+                    continue; // Don't recurse into ROM directories
+                }
+
+                // Skip media folders, respect depth limit, recurse into everything else
+                if (depth <= 0) continue;
+                if (mediaFolders.Contains(dirName)) continue;
+
+                ScanDirectory(subDir, depth - 1);
+            }
         }
     }
 
@@ -326,7 +330,7 @@ public partial class MainWindowViewModel
 
             var fullPath = FilePathHelper.GamelistPathToFullPath(row.Path, gamelistDir);
 
-            if (!File.Exists(fullPath))
+            if (!File.Exists(fullPath) && !Directory.Exists(fullPath))
                 missing.Add(row.Path);
         });
 

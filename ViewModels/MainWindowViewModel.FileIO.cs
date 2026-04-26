@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -32,6 +33,7 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Commands
+
     [RelayCommand]
     private void ClearRecentFiles()
     {
@@ -179,43 +181,15 @@ public partial class MainWindowViewModel
     {
         if (!await CheckUnsavedChangesAsync()) return;
 
-        var rootFolder = _sharedData.ProfileType switch
+        var candidates = await BuildSystemCandidatesAsync();
+
+        if (candidates.Count == 0)
         {
-            SettingKeys.ProfileTypeEsDe => Path.Combine(Path.TrimEndingDirectorySeparator(_sharedData.EsDeRoot), "gamelists"),
-            _ => Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder)
-        };
-
-        var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
-
-        if (topLevel == null) return;
-
-        IStorageFolder? suggestedStart = null;
-        if (Directory.Exists(rootFolder))
-            try { suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + rootFolder)); } catch { }
-
-        var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-        {
-            Title = "Select System Folder for New Gamelist",
-            AllowMultiple = false,
-            SuggestedStartLocation = suggestedStart
-        });
-
-        if (folders.Count == 0) return;
-
-        var selectedFolder = Path.TrimEndingDirectorySeparator(folders[0].Path.LocalPath);
-
-        // Must be exactly one level inside the root folder
-        var parent = Path.GetDirectoryName(selectedFolder);
-        if (!string.Equals(parent, rootFolder, FilePathHelper.PathComparison))
-        {
-            var rootLabel = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe ? "ES-DE gamelists folder" : "ROMs folder";
             await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
                 Title = "New Gamelist",
-                Message = $"The selected folder must be directly inside the {rootLabel}.",
-                DetailMessage = $"Expected a folder one level inside: {rootFolder}",
+                Message = "No recognised system folders found.",
+                DetailMessage = "Make sure your ROMs folder contains system subfolders that match known systems.",
                 IconTheme = DialogIconTheme.Warning,
                 Button1Text = "",
                 Button2Text = "",
@@ -224,26 +198,37 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var systemName = Path.GetFileName(selectedFolder)!;
+        var mainWindow = GetMainWindow();
+        if (mainWindow == null) return;
 
-        // System must have file types defined in filetypes.ini
-        if (!_sharedData.GetFileTypes().ContainsKey(systemName))
+        var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: true);
+        var picker = new GamelistPickerView(pickerVm);
+        var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
+
+        if (selected == null) return;
+
+        if (selected.HasGamelist)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            var confirm = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
-                Title = "New Gamelist",
-                Message = $"'{systemName}' is not a recognised system.",
-                DetailMessage = "No file types are configured for this system in filetypes.ini.",
+                Title = "Gamelist Already Exists",
+                Message = $"A gamelist already exists for '{selected.Name}'.",
+                DetailMessage = "Creating a new one will replace it. Do you want to continue?",
                 IconTheme = DialogIconTheme.Warning,
-                Button1Text = "",
+                Button1Text = "Cancel",
                 Button2Text = "",
-                Button3Text = "OK"
+                Button3Text = "Continue"
             });
-            return;
+            if (confirm != ThreeButtonResult.Button3) return;
         }
 
-        // Set up an empty gamelist in memory — nothing is written to disk until the user saves
-        var gamelistPath = Path.Combine(selectedFolder, "gamelist.xml");
+        var systemName = selected.Name;
+        var gamelistFolder = selected.FolderPath;
+        var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
+
+        // Create the gamelist directory if it doesn't exist (ES-DE gamelists subfolders are not pre-created)
+        Directory.CreateDirectory(gamelistFolder);
+
         _sharedData.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
 
         ClearFilters();
@@ -273,9 +258,81 @@ public partial class MainWindowViewModel
         await FindNewItems();
     }
 
+    [RelayCommand]
+    private async Task OpenSystemPickerAsync()
+    {
+        if (!await CheckUnsavedChangesAsync()) return;
+
+        var candidates = await BuildSystemCandidatesAsync();
+
+        if (candidates.Count == 0 || !candidates.Any(c => c.HasGamelist))
+        {
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Open Gamelist",
+                Message = "No gamelists found.",
+                DetailMessage = "No recognised system folders with a gamelist were found.",
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            });
+            return;
+        }
+
+        var mainWindow = GetMainWindow();
+        if (mainWindow == null) return;
+
+        var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: false);
+        var picker = new GamelistPickerView(pickerVm);
+        var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
+
+        if (selected == null) return;
+
+        await LoadGamelistFromFileAsync(Path.Combine(selected.FolderPath, "gamelist.xml"));
+    }
+
     #endregion
 
     #region Private Methods
+
+    private async Task<List<SystemPickerItem>> BuildSystemCandidatesAsync()
+    {
+        bool isEsDe = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
+
+        // Always scan ROMs folder for system names.
+        // For ES-DE, gamelists live in a separate folder under EsDeRoot.
+        var scanFolder = Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder);
+
+        var gamelistsFolder = isEsDe
+            ? Path.Combine(Path.TrimEndingDirectorySeparator(_sharedData.EsDeRoot), "gamelists")
+            : scanFolder;
+
+        if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
+            return [];
+
+        var fileTypes = _sharedData.GetFileTypes();
+
+        return await Task.Run(() =>
+            Directory.EnumerateDirectories(scanFolder)
+                .Select(dir => Path.GetFileName(dir)!)
+                .Where(name => fileTypes.ContainsKey(name))
+                .OrderBy(name => name)
+                .Select(name => new SystemPickerItem
+                {
+                    Name = name,
+                    FolderPath = Path.Combine(gamelistsFolder, name),
+                    Logo = TryLoadSystemLogo(name),
+                    HasGamelist = File.Exists(Path.Combine(gamelistsFolder, name, "gamelist.xml"))
+                })
+                .ToList());
+    }
+
+    private Window? GetMainWindow() =>
+        Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+
     private async Task LoadSystemsAsync()
     {
         var profileType = _sharedData.ProfileType;
@@ -293,11 +350,9 @@ public partial class MainWindowViewModel
             return;
         }
 
-        // Clear and disable the menu before scanning so it's never in an inconsistent state.
         Systems.Clear();
         IsSystemsComboBoxEnabled = false;
 
-        // Scan the directory on a background thread to avoid blocking the UI.
         var found = await Task.Run(() =>
         {
             var items = new List<(string name, string path)>();
@@ -311,6 +366,7 @@ public partial class MainWindowViewModel
             }
             return items;
         });
+
         foreach (var (name, path) in found)
         {
             var logo = TryLoadSystemLogo(name);
@@ -384,8 +440,6 @@ public partial class MainWindowViewModel
         ClearFilters();
         ClearReportColumns();
 
-        // Ensure the active profile type matches the gamelist type before loading.
-        // This may prompt the user to switch or create a profile; abort if they cancel.
         if (!await EnsureMatchingProfileAsync(filePath)) return;
 
         _sharedData.IsBusy = true;
@@ -426,8 +480,6 @@ public partial class MainWindowViewModel
 
             _sharedData.SetGamelist(filePath, systemName, loadedGames);
 
-            // In ES-DE mode, resolve media paths from the filesystem and write them into
-            // the row values so all downstream consumers work without mode branching.
             if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
             {
                 var mediaDir = _sharedData.EsDeMediaDirectory;
@@ -532,8 +584,6 @@ public partial class MainWindowViewModel
     private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
     private static readonly string[] ManualExtensions = [".pdf"];
 
-    // Resolves ES-DE media paths from the filesystem and writes them into the row values so
-    // all downstream consumers (grid, preview, statistics) can read them without branching.
     private static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
     {
         if (string.IsNullOrEmpty(mediaDirectory)) return;

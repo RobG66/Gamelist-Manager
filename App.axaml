@@ -106,5 +106,7 @@
         <StyleInclude Source="avares://Gamelist_Manager/Styles/DataGridStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/GridSplitterStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/NumericUpDownStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/TileButtonStyle.axaml"/>
+    
     </Application.Styles>
 </Application>
