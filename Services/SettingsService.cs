@@ -222,15 +222,14 @@ namespace Gamelist_Manager.Services
                 ? Path.Combine(esDeMediaBase, currentSystem)
                 : string.Empty;
 
-        // TODO: rename - will break callers intentionally for audit
-        public string GamelistFolderROOT(string profileType, string esDeRoot, string romsFolder)
+        public string GamelistsRootFolder(string profileType, string esDeRoot, string romsFolder)
             => profileType == SettingKeys.ProfileTypeEsDe && !string.IsNullOrEmpty(esDeRoot)
                 ? Path.Combine(esDeRoot, "gamelists")
                 : romsFolder;
 
-        public string? GamelistFolderCURRENT(string gamelistFolderRoot, string? currentSystem)
-            => !string.IsNullOrEmpty(gamelistFolderRoot) && !string.IsNullOrEmpty(currentSystem)
-                ? Path.Combine(gamelistFolderRoot, currentSystem)
+        public string? CurrentGamelistFolder(string gamelistsRootFolder, string? currentSystem)
+            => !string.IsNullOrEmpty(gamelistsRootFolder) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(gamelistsRootFolder, currentSystem)
                 : null;
 
         public string? CurrentRomFolder(string romsFolder, string? currentSystem)

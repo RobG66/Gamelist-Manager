@@ -125,18 +125,26 @@
                 BorderThickness="0,1,0,0"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                 Padding="12,8">
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0"
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                           Text="A rom folder for the system must exist before it will be available to be selected."
+                           FontSize="{DynamicResource GlobalSmallFontSize}"
+                           FontStyle="Italic"
+                           Opacity="0.6"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,4"
+                           IsVisible="{Binding ShowGamelistBadge}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0"
                            Text="{Binding SelectedSystem.Name, StringFormat='Selected: {0}', FallbackValue='No system selected'}"
                            VerticalAlignment="Center"
                            FontStyle="Italic"
                            Opacity="0.7"
                            FontSize="{DynamicResource GlobalSmallFontSize}"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="6">
                     <Button Content="Cancel"
                             Classes="rounded yellow"
                             Command="{Binding CancelCommand}"/>
-                    <Button Content="{Binding ConfirmButtonText}"
+                    <Button Content="{Binding ConfirmButtonText, FallbackValue='Confirm'}"
                             Classes="rounded green"
                             Command="{Binding ConfirmCommand}"/>
                 </StackPanel>

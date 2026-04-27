@@ -27,6 +27,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private int _dlSuccessCount;
     private int _dlFailedCount;
     private bool _isStopping;
+    private string _previousSystem = string.Empty;
     #endregion
 
     #region Observable Properties - Basic Settings
@@ -175,6 +176,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _isLoading = true;
         LoadScraperSettings();
         _isLoading = false;
+        _previousSystem = _sharedData.CurrentSystem ?? string.Empty;
         RefreshCacheCount();
         Log("Ready to scrape...", LogLevel.Info);
     }
@@ -191,6 +193,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         switch (e.PropertyName)
         {
             case nameof(SharedDataService.CurrentSystem):
+                // In Save Per System mode, persist the settings for the system we are leaving
+                // before the load triggered by AvailableMedia picks up the new system.
+                if (ScraperConfigSaveMode == 1 && !IsScraping)
+                    SaveScraperSettings(BuildScraperKey(CurrentScraper, _previousSystem));
+                _previousSystem = _sharedData.CurrentSystem ?? string.Empty;
                 RefreshCacheCount();
                 break;
             case nameof(SharedDataService.AvailableMedia):
@@ -400,11 +407,17 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (!Has("boxback"))   { MediaBoxBackEnabled = false;   MediaBoxBack = false; }
     }
 
-    private void SaveScraperSettings()
+    private string BuildScraperKey(string scraper, string system)
+        => ScraperConfigSaveMode == 1 && !string.IsNullOrEmpty(system)
+            ? $"{scraper}_{system}"
+            : scraper;
+
+    private void SaveScraperSettings() => SaveScraperSettings(ScraperSettingsKey);
+
+    private void SaveScraperSettings(string key)
     {
         if (_settingsService is null) return;
 
-        var key = ScraperSettingsKey;
 
         var values = new Dictionary<string, string>
         {

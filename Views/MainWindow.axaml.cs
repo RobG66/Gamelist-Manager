@@ -78,9 +78,9 @@ public partial class MainWindow : Window
                     Message = "Scraping is currently in progress.",
                     DetailMessage = "Please stop the scraper before closing the application.",
                     IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "OK",
+                    Button1Text = "",
                     Button2Text = "",
-                    Button3Text = ""
+                    Button3Text = "OK"
                 });
                 await scrapingDialog.ShowDialog<ThreeButtonResult>(this);
                 return;
