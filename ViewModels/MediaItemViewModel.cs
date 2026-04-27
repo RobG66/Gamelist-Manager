@@ -342,7 +342,8 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     {
         if (Path.IsPathRooted(path)) return path;
 
-        var gamelistDirectory = _sharedData.GamelistDirectory;
+        // TODO:  What are we trying to achieve here?  If the path is already rooted, we return it as-is, even if it doesn't exist.  If it's not rooted, we treat it as relative to the gamelist directory.  But what if the gamelist directory isn't actually the correct base path for this media item?  Should we be trying to resolve relative to the game's own location instead?  Or should we be trying to resolve against multiple base paths (gamelist directory, game directory, etc.) and returning the first one that results in an existing file?
+        var gamelistDirectory = _sharedData.CurrentRomFolder;
         return !string.IsNullOrEmpty(gamelistDirectory)
             ? FilePathHelper.GamelistPathToFullPath(path, gamelistDirectory)
             : path;

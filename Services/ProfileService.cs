@@ -253,7 +253,8 @@ namespace Gamelist_Manager.Services
         // Normalises a single profile INI file against the current set of known settings.
         // For sections driven by AllDefinitions: adds missing keys with defaults, removes obsolete keys.
         // For the Scraper section: adds missing known keys only — never removes (source keys are dynamic).
-        // MediaPaths and RecentFiles are left entirely untouched.
+        // For MediaPaths: adds missing keys with defaults only — never removes (user paths are preserved).
+        // RecentFiles is left entirely untouched.
         // Writes the file back only if at least one change was made.
         private static void MigrateProfile(string profilePath)
         {
@@ -311,6 +312,23 @@ namespace Gamelist_Manager.Services
                 foreach (var key in obsolete)
                 {
                     existing.Remove(key);
+                    changed = true;
+                }
+            }
+
+            // Backfill any missing MediaPaths keys with schema defaults.
+            // Existing entries are never modified — user paths and enabled flags are preserved.
+            if (!sections.TryGetValue(SettingKeys.MediaPathsSection, out var mediaPaths))
+            {
+                mediaPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                sections[SettingKeys.MediaPathsSection] = mediaPaths;
+            }
+
+            foreach (var (key, defaultValue) in SettingKeys.DefaultMediaPaths)
+            {
+                if (!mediaPaths.ContainsKey(key))
+                {
+                    mediaPaths[key] = defaultValue;
                     changed = true;
                 }
             }

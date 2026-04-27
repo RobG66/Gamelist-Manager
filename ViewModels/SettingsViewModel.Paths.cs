@@ -56,7 +56,6 @@ public partial class SettingsViewModel
                 DefaultPath = decl.DefaultPath,
                 DefaultSuffix = decl.DefaultSuffix,
                 DefaultEnabled = decl.DefaultEnabled,
-                EsDeFolderName = decl.EsDeFolderName,
             };
             item.Enabled = item.DefaultEnabled;
             item.Path = item.DefaultPath;
@@ -164,7 +163,7 @@ public partial class SettingsViewModel
                 string effectiveSuffix;
                 if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
                 {
-                    effectivePath = item.EsDeFolderName.ToLowerInvariant();
+                    effectivePath = (GamelistMetaData.GetDeclByType(item.Key)?.EsDeFolderName ?? item.Key).ToLowerInvariant();
                     effectiveSuffix = "";
                 }
                 else

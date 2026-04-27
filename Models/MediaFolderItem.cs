@@ -13,9 +13,7 @@ namespace Gamelist_Manager.Models
         public bool DefaultEnabled { get; init; } = true;
         public bool DefaultSfxEnabled => !string.IsNullOrEmpty(DefaultSuffix);
 
-        // ES-DE subfolder name for this type (empty = not supported by ES-DE).
-        public string EsDeFolderName { get; init; } = string.Empty;
-        public bool IsEsDeSupported => !string.IsNullOrEmpty(EsDeFolderName);
+        private MetaDataDecl? Decl => GamelistMetaData.GetDeclByType(Key);
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsSuffixEnabled))]
@@ -46,10 +44,10 @@ namespace Gamelist_Manager.Models
         public bool IsNotEsDeMode => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe;
 
         // Checkbox is disabled for types not supported by ES-DE — they cannot be enabled.
-        public bool IsCheckboxEnabled => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || IsEsDeSupported;
+        public bool IsCheckboxEnabled => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false);
 
         // In ES-DE mode, unsupported types are always treated as disabled.
-        public bool EffectiveEnabled => Enabled && (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || IsEsDeSupported);
+        public bool EffectiveEnabled => Enabled && (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false));
 
         // In ES-DE mode shows the resolved media directory path; otherwise the relative path.
         public string DisplayPath
@@ -59,13 +57,15 @@ namespace Gamelist_Manager.Models
                 if (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe)
                     return Path;
 
-                if (string.IsNullOrEmpty(EsDeFolderName))
+                var esDeFolderName = Decl?.EsDeFolderName;
+                if (string.IsNullOrEmpty(esDeFolderName))
                     return string.Empty;
 
-                var mediaDir = SharedDataService.Instance.EsDeMediaDirectory;
+                var shared = SharedDataService.Instance;
+                var mediaDir = SettingsService.Instance.EsDeMediaDirectory(shared.EsDeMediaBase, shared.CurrentSystem);
                 return !string.IsNullOrEmpty(mediaDir)
-                    ? System.IO.Path.Combine(mediaDir, EsDeFolderName)
-                    : EsDeFolderName;
+                    ? System.IO.Path.Combine(mediaDir, esDeFolderName)
+                    : esDeFolderName;
             }
         }
 

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
 using System.Collections.Concurrent;
@@ -23,7 +24,7 @@ public partial class MainWindowViewModel
 
     private async Task FindNewItemsCore(bool silent)
     {
-        var scanDir = _sharedData.RomScanDirectory;
+        var scanDir = _sharedData.CurrentRomFolder;
         var systemName = _sharedData.CurrentSystem;
 
         if (string.IsNullOrEmpty(scanDir) || string.IsNullOrEmpty(systemName))
@@ -152,9 +153,9 @@ public partial class MainWindowViewModel
 
     private async Task FindMissingItemsCore(bool silent)
     {
-        var gamelistDir = _sharedData.GamelistDirectory;
+        var directoryToScan = _sharedData.CurrentRomFolder;
 
-        if (string.IsNullOrEmpty(gamelistDir) || _sharedData.GamelistData == null)
+        if (string.IsNullOrEmpty(directoryToScan) || _sharedData.GamelistData == null)
             return;
 
         var allRows = _sharedData.GamelistData.ToList();
@@ -166,7 +167,7 @@ public partial class MainWindowViewModel
         try
         {
             missingGamelistPaths = await Task.Run(() =>
-                FindMissingPaths(allRows, gamelistDir, extensions));
+                FindMissingPaths(allRows, directoryToScan, extensions));
         }
         catch (Exception ex)
         {
@@ -232,10 +233,11 @@ public partial class MainWindowViewModel
     // Returns the set of media subfolder names (e.g. "images", "videos") to exclude from ROM scans.
     private HashSet<string> GetMediaFolderNames()
     {
-        return _sharedData.MediaSettings.Values
-            .Where(m => !string.IsNullOrEmpty(m.Path))
-            .Select(m => m.Path.Trim('/').Trim('\\').Split('/', '\\').Last())
-            .ToHashSet(FilePathHelper.PathComparer);
+        return _sharedData.AvailableMedia
+            .Where(m => !string.IsNullOrEmpty(m.FolderPath))
+            .Select(m => Path.GetFileName(m.FolderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)))
+            .Where(n => !string.IsNullOrEmpty(n))
+            .ToHashSet(FilePathHelper.PathComparer)!;
     }
 
     // Returns the valid ROM extensions for the current system, or an empty set if not defined.

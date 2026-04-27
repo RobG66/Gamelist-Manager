@@ -13,7 +13,9 @@ namespace Gamelist_Manager.Services
     {
         #region Private Fields
 
-        private static SharedDataService? _instance;
+        private static readonly Lazy<SharedDataService> _instance =
+            new(() => new SharedDataService(SettingsService.Instance));
+
         private readonly SettingsService _settings;
         private string _profileType = SettingKeys.ProfileTypeEs;
 
@@ -31,12 +33,12 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private string _hostname = "batocera";
         [ObservableProperty] private string _mamePath = string.Empty;
         [ObservableProperty] private bool _enableEdit;
-        [ObservableProperty] private bool _videoAutoplay = false;
+        [ObservableProperty] private bool _videoAutoplay;
         [ObservableProperty] private bool _confirmBulkChanges = true;
         [ObservableProperty] private bool _enableSaveReminder = true;
         [ObservableProperty] private bool _verifyImageDownloads = true;
-        [ObservableProperty] private bool _rememberColumns = false;
-        [ObservableProperty] private bool _rememberAutosize = false;
+        [ObservableProperty] private bool _rememberColumns;
+        [ObservableProperty] private bool _rememberAutosize;
         [ObservableProperty] private bool _enableDelete;
         [ObservableProperty] private bool _ignoreDuplicates;
         [ObservableProperty] private bool _batchProcessing = true;
@@ -53,8 +55,8 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private string _color = "Blue";
         [ObservableProperty] private int _alternatingRowColorIndex = 1;
         [ObservableProperty] private int _gridLinesVisibilityIndex;
-        [ObservableProperty] private double _appFontSize = 12;
-        [ObservableProperty] private double _gridFontSize = 12;
+        [ObservableProperty] private int _appFontSize = 12;
+        [ObservableProperty] private int _gridFontSize = 12;
         [ObservableProperty] private string _userId = "root";
         [ObservableProperty] private string _password = "linux";
         [ObservableProperty] private string _esDeRoot = string.Empty;
@@ -64,45 +66,36 @@ namespace Gamelist_Manager.Services
 
         #endregion
 
-        #region Profile Properties
+        #region Public Properties
+
+        public static SharedDataService Instance => _instance.Value;
 
         public string ProfileType => _profileType;
 
-        public string EsDeMediaDirectory =>
-            !string.IsNullOrEmpty(EsDeMediaBase) && !string.IsNullOrEmpty(CurrentSystem)
-                ? Path.Combine(EsDeMediaBase, CurrentSystem)
-                : string.Empty;
-
-        #endregion
-
-        #region Public Properties
-
-        public static SharedDataService Instance => _instance ??= new SharedDataService(SettingsService.Instance);
-
-        // The raw gamelist rows — single source of truth for all controls and ViewModels.
+        // Gamelist data and filtered view are stored here for access across view models.
+        // MainWindowViewModel is responsible for keeping these up to date based on user interactions.
         public ObservableCollection<GameMetadataRow>? GamelistData { get; set; }
-
-        public ObservableCollection<RecentFileItem> RecentFiles { get; } = new();
-
-        // Set by MainWindowViewModel after the DynamicData pipeline is bound.
         public ReadOnlyObservableCollection<GameMetadataRow>? FilteredGamelistData { get; set; }
 
         // Updated by MainWindowViewModel whenever selection changes.
         public IList? SelectedItems { get; set; }
 
-        public string? GamelistDirectory =>
-            !string.IsNullOrEmpty(XmlFilename)
-                ? Path.GetDirectoryName((string?)XmlFilename)
-                : null;
+        public ObservableCollection<RecentFileItem> RecentFiles { get; } = new();
 
-        public string? RomScanDirectory =>
-            !string.IsNullOrEmpty(RomsFolder) && !string.IsNullOrEmpty(CurrentSystem)
-                ? Path.Combine(RomsFolder, CurrentSystem)
-                : null;
+        // Resolved media folders for the current profile, built by SettingsService.
+        private IReadOnlyList<AvailableMediaFolder> _availableMedia = [];
+        public IReadOnlyList<AvailableMediaFolder> AvailableMedia
+        {
+            get => _availableMedia;
+            private set
+            {
+                _availableMedia = value;
+                OnPropertyChanged(nameof(AvailableMedia));
+            }
+        }
 
-        // Keyed by media type string (e.g. "image", "video").
-        public IReadOnlyDictionary<string, MediaTypeSettings> MediaSettings { get; private set; }
-            = new Dictionary<string, MediaTypeSettings>();
+        // The full path to the current system's ROM/gamelist folder, built by SettingsService.
+        public string? CurrentRomFolder { get; private set; }
 
         public event EventHandler? SettingsApplied;
 
@@ -124,11 +117,8 @@ namespace Gamelist_Manager.Services
         {
             var settings = _settings;
 
-            // Folder paths with fallback to old Connection section
-            RomsFolder = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key,
-                         settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.RomsFolder.Key, ""));
-            MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key,
-                       settings.GetValue(SettingKeys.ConnectionSection, SettingKeys.MamePath.Key, ""));
+            RomsFolder = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key);
+            MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key);
 
             Hostname = settings.GetValue(SettingKeys.HostName);
             UserId = settings.GetValue(SettingKeys.UserID);
@@ -147,12 +137,12 @@ namespace Gamelist_Manager.Services
             CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
             UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
             MediaViewerScaledDisplay = settings.GetBool(SettingKeys.ScaledDisplay);
+            RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
 
             DefaultVolume = settings.GetInt(SettingKeys.Volume);
             MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
             SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
             MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
-            RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
             RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
             LogVerbosity = settings.GetInt(SettingKeys.LogVerbosity);
 
@@ -163,52 +153,15 @@ namespace Gamelist_Manager.Services
             AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
             GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
 
-            // Build runtime media settings from user preferences, falling back to declaration defaults.
-            var mediaPaths = settings.GetSection(SettingKeys.MediaPathsSection)
-                             ?? new Dictionary<string, string>();
-
-            var mediaSettingsDict = new Dictionary<string, MediaTypeSettings>(StringComparer.OrdinalIgnoreCase);
-
-            // Determine ES-DE mode once before iterating media types.
-            bool isEsDe = string.Equals(
-                settings.GetValue(SettingKeys.ProfileType),
-                SettingKeys.ProfileTypeEsDe,
-                System.StringComparison.OrdinalIgnoreCase);
-
-            foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
-            {
-                bool isEnabled = mediaPaths.TryGetValue($"{decl.Type}_enabled", out var enabled)
-                    ? bool.TryParse(enabled, out var eb) && eb
-                    : decl.DefaultEnabled;
-
-                // In ES-DE mode, types without a dedicated folder are always disabled.
-                if (isEsDe && string.IsNullOrEmpty(decl.EsDeFolderName))
-                    isEnabled = false;
-
-                var ms = new MediaTypeSettings
-                {
-                    Type = decl.Type,
-                    Enabled = isEnabled,
-
-                    Path = mediaPaths.TryGetValue(decl.Type, out var path)
-                        ? path : decl.DefaultPath,
-
-                    Suffix = mediaPaths.TryGetValue($"{decl.Type}_suffix", out var suffix)
-                        ? suffix : decl.DefaultSuffix,
-
-                    SfxEnabled = mediaPaths.TryGetValue($"{decl.Type}_sfx_enabled", out var sfxEnabled)
-                        ? bool.TryParse(sfxEnabled, out var seb) && seb
-                        : !string.IsNullOrEmpty(decl.DefaultSuffix),
-                };
-
-                mediaSettingsDict[decl.Type] = ms;
-            }
-            MediaSettings = mediaSettingsDict;
-
             RefreshProfileState();
+            CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
+            AvailableMedia = _settings.BuildAvailableMedia(
+                _profileType,
+                _settings.GamelistFolderCURRENT(_settings.GamelistFolderROOT(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
+                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
 
             SettingsApplied?.Invoke(this, EventArgs.Empty);
-
         }
 
         public void SetGamelist(string xmlPath, string systemName, ObservableCollection<GameMetadataRow> data)
@@ -229,15 +182,12 @@ namespace Gamelist_Manager.Services
 
         public void SaveMediaViewerPreferences()
         {
-            _settings.SetValue(SettingKeys.ScaledDisplay.Section, SettingKeys.ScaledDisplay.Key, MediaViewerScaledDisplay.ToString());
+            _settings.SetValue(SettingKeys.ScaledDisplay.Section, SettingKeys.ScaledDisplay.Key,
+                MediaViewerScaledDisplay.ToString());
         }
 
-        public IReadOnlyDictionary<string, string> GetFileTypes()
-        {
-            return _settings.GetFileTypes();
-        }
+        public IReadOnlyDictionary<string, string> GetFileTypes() => _settings.GetFileTypes();
 
-        // Updates the ES-DE root path in memory and persists it to the active profile.
         public void SaveEsDeRoot(string path)
         {
             EsDeRoot = path;
@@ -250,17 +200,42 @@ namespace Gamelist_Manager.Services
 
         partial void OnEsDeRootChanged(string value)
         {
-            OnPropertyChanged(nameof(EsDeMediaDirectory));
+            RefreshProfileState();
+            CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
+            AvailableMedia = _settings.BuildAvailableMedia(
+                _profileType,
+                _settings.GamelistFolderCURRENT(_settings.GamelistFolderROOT(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
+                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
         partial void OnEsDeMediaBaseChanged(string value)
         {
-            OnPropertyChanged(nameof(EsDeMediaDirectory));
+            AvailableMedia = _settings.BuildAvailableMedia(
+                _profileType,
+                _settings.GamelistFolderCURRENT(_settings.GamelistFolderROOT(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
+                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
+        }
+
+        partial void OnRomsFolderChanged(string value)
+        {
+            CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
+            AvailableMedia = _settings.BuildAvailableMedia(
+                _profileType,
+                _settings.GamelistFolderCURRENT(_settings.GamelistFolderROOT(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
+                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
         partial void OnCurrentSystemChanged(string? value)
         {
-            OnPropertyChanged(nameof(EsDeMediaDirectory));
+            CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
+            AvailableMedia = _settings.BuildAvailableMedia(
+                _profileType,
+                _settings.GamelistFolderCURRENT(_settings.GamelistFolderROOT(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
+                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
         #endregion
@@ -304,6 +279,7 @@ namespace Gamelist_Manager.Services
                 EsDeMediaBase = string.Empty;
             }
         }
+
         #endregion
     }
 }

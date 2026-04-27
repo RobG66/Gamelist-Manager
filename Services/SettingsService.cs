@@ -1,4 +1,5 @@
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -213,6 +214,83 @@ namespace Gamelist_Manager.Services
 
             return result;
         }
+
+        #region Calculated Properties
+
+        public string EsDeMediaDirectory(string esDeMediaBase, string? currentSystem)
+            => !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(esDeMediaBase, currentSystem)
+                : string.Empty;
+
+        // TODO: rename - will break callers intentionally for audit
+        public string GamelistFolderROOT(string profileType, string esDeRoot, string romsFolder)
+            => profileType == SettingKeys.ProfileTypeEsDe && !string.IsNullOrEmpty(esDeRoot)
+                ? Path.Combine(esDeRoot, "gamelists")
+                : romsFolder;
+
+        public string? GamelistFolderCURRENT(string gamelistFolderRoot, string? currentSystem)
+            => !string.IsNullOrEmpty(gamelistFolderRoot) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(gamelistFolderRoot, currentSystem)
+                : null;
+
+        public string? CurrentRomFolder(string romsFolder, string? currentSystem)
+            => !string.IsNullOrEmpty(romsFolder) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(romsFolder, currentSystem)
+                : null;
+
+        // Resolves all enabled media folders for the current profile into a flat list.
+        // Callers receive ready-to-use FolderPath values — no profile knowledge required.
+        public IReadOnlyList<AvailableMediaFolder> BuildAvailableMedia(
+            string profileType,
+            string? gamelistFolderCurrent,
+            string? esDeMediaDirectory,
+            Dictionary<string, string> mediaPaths)
+        {
+            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
+            var result = new List<AvailableMediaFolder>();
+
+            foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
+            {
+                bool isEnabled = mediaPaths.TryGetValue($"{decl.Type}_enabled", out var enabled)
+                    ? bool.TryParse(enabled, out var eb) && eb
+                    : decl.DefaultEnabled;
+
+                // ES-DE types without a dedicated folder name are not supported
+                if (isEsDe && string.IsNullOrEmpty(decl.EsDeFolderName))
+                    continue;
+
+                if (!isEnabled)
+                    continue;
+
+                string folderPath;
+                if (isEsDe)
+                {
+                    if (string.IsNullOrEmpty(esDeMediaDirectory))
+                        continue;
+                    folderPath = Path.Combine(esDeMediaDirectory, decl.EsDeFolderName);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(gamelistFolderCurrent))
+                        continue;
+                    var relativePath = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;
+                    // Strip leading "./" or "." before combining
+                    var cleanRelative = relativePath.TrimStart('.').TrimStart('/').TrimStart('\\');
+                    folderPath = Path.Combine(gamelistFolderCurrent, cleanRelative);
+                }
+
+                var suffix = isEsDe ? string.Empty : (mediaPaths.TryGetValue($"{decl.Type}_suffix", out var sfx) ? sfx : decl.DefaultSuffix);
+                var sfxEnabled = !isEsDe && (mediaPaths.TryGetValue($"{decl.Type}_sfx_enabled", out var sfxEnabledStr)
+                    ? bool.TryParse(sfxEnabledStr, out var seb) && seb
+                    : !string.IsNullOrEmpty(decl.DefaultSuffix));
+
+                result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, sfxEnabled));
+            }
+
+            return result;
+        }
+
+        #endregion
 
         public static EsDeDetectedPaths ReadPathsFromEsDeSettings(string esDeRoot)
         {

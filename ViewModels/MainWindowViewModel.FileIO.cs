@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
+using Avalonia.Xaml.Interactions.Custom;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
@@ -225,8 +226,9 @@ public partial class MainWindowViewModel
         var systemName = selected.Name;
         var gamelistFolder = selected.FolderPath;
         var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
+        // TODO: This is probably wrong and needs to be fixed for ES-DE since gamelists are in a separate folder from ROMs. Need to rethink how we build the system list and picker.
 
-        // Create the gamelist directory if it doesn't exist (ES-DE gamelists subfolders are not pre-created)
+        // Create the gamelist directory if it doesn't exist
         Directory.CreateDirectory(gamelistFolder);
 
         _sharedData.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
@@ -482,7 +484,7 @@ public partial class MainWindowViewModel
 
             if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
             {
-                var mediaDir = _sharedData.EsDeMediaDirectory;
+                var mediaDir = SettingsService.Instance.EsDeMediaDirectory(_sharedData.EsDeMediaBase, _sharedData.CurrentSystem);
                 await Task.Run(() => PopulateMediaPaths(loadedGames, mediaDir));
             }
 

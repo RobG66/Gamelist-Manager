@@ -193,6 +193,10 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             case nameof(SharedDataService.CurrentSystem):
                 RefreshCacheCount();
                 break;
+            case nameof(SharedDataService.AvailableMedia):
+                if (!IsScraping)
+                    LoadScraperSettings();
+                break;
             case nameof(SharedDataService.IsScraping):
                 if (IsScraping != _sharedData.IsScraping)
                     IsScraping = _sharedData.IsScraping;
@@ -253,6 +257,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         OverwriteMedia = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteMedia", SettingKeys.OverwriteMedia.Default);
         ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeHiddenItems", SettingKeys.ScrapeHiddenItems.Default);
         ShowLogTimestamp = _sharedData.ShowLogTimestamp;
+
+        // Reset capability flags to defaults before applying scraper-specific overrides.
+        ScrapeFromCacheEnabled = true;
+        SkipNonCachedItemsEnabled = true;
+        OverwriteMetadataEnabled = true;
 
         if (CurrentScraper == ScraperRegistry.EmuMovies.Name)
         {
@@ -372,22 +381,23 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     private void ApplyMediaAvailability()
     {
-        var media = _sharedData.MediaSettings;
-        if (media.GetValueOrDefault("image")?.Enabled != true) { MediaImageEnabled = false; MediaImage = false; }
-        if (media.GetValueOrDefault("titleshot")?.Enabled != true) { MediaTitleshotEnabled = false; MediaTitleshot = false; }
-        if (media.GetValueOrDefault("marquee")?.Enabled != true) { MediaMarqueeEnabled = false; MediaMarquee = false; }
-        if (media.GetValueOrDefault("wheel")?.Enabled != true) { MediaWheelEnabled = false; MediaWheel = false; }
-        if (media.GetValueOrDefault("thumbnail")?.Enabled != true) { MediaThumbnailEnabled = false; MediaThumbnail = false; }
-        if (media.GetValueOrDefault("cartridge")?.Enabled != true) { MediaCartridgeEnabled = false; MediaCartridge = false; }
-        if (media.GetValueOrDefault("video")?.Enabled != true) { MediaVideoEnabled = false; MediaVideo = false; }
-        if (media.GetValueOrDefault("music")?.Enabled != true) { MediaMusicEnabled = false; MediaMusic = false; }
-        if (media.GetValueOrDefault("map")?.Enabled != true) { MediaMapEnabled = false; MediaMap = false; }
-        if (media.GetValueOrDefault("bezel")?.Enabled != true) { MediaBezelEnabled = false; MediaBezel = false; }
-        if (media.GetValueOrDefault("manual")?.Enabled != true) { MediaManualEnabled = false; MediaManual = false; }
-        if (media.GetValueOrDefault("fanart")?.Enabled != true) { MediaFanArtEnabled = false; MediaFanArt = false; }
-        if (media.GetValueOrDefault("boxart")?.Enabled != true) { MediaBoxArtEnabled = false; MediaBoxArt = false; }
-        if (media.GetValueOrDefault("mix")?.Enabled != true) { MediaMixEnabled = false; MediaMix = false; }
-        if (media.GetValueOrDefault("boxback")?.Enabled != true) { MediaBoxBackEnabled = false; MediaBoxBack = false; }
+        var media = _sharedData.AvailableMedia;
+        bool Has(string type) => media.Any(m => m.Type == type);
+        if (!Has("image"))     { MediaImageEnabled = false;     MediaImage = false; }
+        if (!Has("titleshot")) { MediaTitleshotEnabled = false; MediaTitleshot = false; }
+        if (!Has("marquee"))   { MediaMarqueeEnabled = false;   MediaMarquee = false; }
+        if (!Has("wheel"))     { MediaWheelEnabled = false;     MediaWheel = false; }
+        if (!Has("thumbnail")) { MediaThumbnailEnabled = false; MediaThumbnail = false; }
+        if (!Has("cartridge")) { MediaCartridgeEnabled = false; MediaCartridge = false; }
+        if (!Has("video"))     { MediaVideoEnabled = false;     MediaVideo = false; }
+        if (!Has("music"))     { MediaMusicEnabled = false;     MediaMusic = false; }
+        if (!Has("map"))       { MediaMapEnabled = false;       MediaMap = false; }
+        if (!Has("bezel"))     { MediaBezelEnabled = false;     MediaBezel = false; }
+        if (!Has("manual"))    { MediaManualEnabled = false;    MediaManual = false; }
+        if (!Has("fanart"))    { MediaFanArtEnabled = false;    MediaFanArt = false; }
+        if (!Has("boxart"))    { MediaBoxArtEnabled = false;    MediaBoxArt = false; }
+        if (!Has("mix"))       { MediaMixEnabled = false;       MediaMix = false; }
+        if (!Has("boxback"))   { MediaBoxBackEnabled = false;   MediaBoxBack = false; }
     }
 
     private void SaveScraperSettings()

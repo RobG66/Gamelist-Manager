@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
@@ -198,31 +199,48 @@ public partial class MainWindowViewModel
 
     private void DeleteGameFile(GameMetadataRow game)
     {
-        var gamelistDir = _sharedData.GamelistDirectory;
-        if (string.IsNullOrEmpty(gamelistDir)) return;
+        var romDirectory = _sharedData.CurrentRomFolder;
+        // Should never be empty, but safe to check before doing any file operations
+        if (string.IsNullOrEmpty(romDirectory)) return;
 
-        var romFullPath = FilePathHelper.GamelistPathToFullPath(game.Path, gamelistDir);
-        if (File.Exists(romFullPath))
+        var romFullPath = FilePathHelper.GamelistPathToFullPath(game.Path, romDirectory);
+
+        var normalizedRomDir = romDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                               + Path.DirectorySeparatorChar;
+
+        if (!romFullPath.StartsWith(normalizedRomDir, FilePathHelper.PathComparison))
         {
-            try { File.Delete(romFullPath); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to delete ROM file: {ex.Message}"); }
+            return;
+        }
+
+        try
+        {
+            if (File.Exists(romFullPath))
+                File.Delete(romFullPath);
+            else if (Directory.Exists(romFullPath))
+                Directory.Delete(romFullPath, recursive: true);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to delete ROM: {ex.Message}");
         }
     }
 
     private void DeleteMediaFiles(GameMetadataRow game)
     {
-        var gamelistDir = _sharedData.GamelistDirectory;
-        if (string.IsNullOrEmpty(gamelistDir)) return;
-
-        foreach (var mediaType in GamelistMetaData.GetAllMediaFolderTypes())
+        foreach (var media in _sharedData.AvailableMedia)
         {
-            if (!Enum.TryParse<MetaDataKeys>(mediaType.Type, out var key)) continue;
+            if (!Enum.TryParse<MetaDataKeys>(media.Type, out var key)) continue;
 
-            var relativePath = game.GetValue(key)?.ToString()?.Trim();
-            if (string.IsNullOrEmpty(relativePath) || !relativePath.StartsWith("./")) continue;
+            var storedPath = game.GetValue(key)?.ToString()?.Trim();
+            if (string.IsNullOrEmpty(storedPath)) continue;
 
-            var fullPath = FilePathHelper.GamelistPathToFullPath(relativePath, gamelistDir);
-            if (!File.Exists(fullPath) || Directory.Exists(fullPath)) continue;
+            // Stored paths are relative (e.g. "./images/boxart.png"); extract just the filename.
+            var fileName = Path.GetFileName(storedPath);
+            if (string.IsNullOrEmpty(fileName)) continue;
+
+            var fullPath = Path.Combine(media.FolderPath, fileName);
+            if (!File.Exists(fullPath)) continue;
 
             try { File.Delete(fullPath); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to delete media file: {ex.Message}"); }

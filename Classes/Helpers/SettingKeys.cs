@@ -177,8 +177,10 @@ public static class SettingKeys
      GamelistMetaData.GetAllMediaFolderTypes()
          .SelectMany(d => new[]
          {
-            KeyValuePair.Create(d.Type, d.DefaultPath),
-            KeyValuePair.Create($"{d.Type}_enabled", d.DefaultEnabled.ToString().ToLower())
+            KeyValuePair.Create(d.Type,                       d.DefaultPath),
+            KeyValuePair.Create($"{d.Type}_enabled",          d.DefaultEnabled.ToString().ToLower()),
+            KeyValuePair.Create($"{d.Type}_suffix",           d.DefaultSuffix),
+            KeyValuePair.Create($"{d.Type}_sfx_enabled",      (!string.IsNullOrEmpty(d.DefaultSuffix)).ToString().ToLower()),
          })
          .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 

@@ -1,5 +1,6 @@
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -49,12 +50,12 @@ public partial class DatToolViewModel
                 UpdateDatHeaderInfo();
 
                 var gamelistSnapshot = _sharedData.GamelistData?.ToList() ?? [];
-                string romDirectory = _sharedData.GamelistDirectory ?? string.Empty;
+                string romDirectory = _sharedData.CurrentRomFolder!;
 
                 _gamelistSummary.Clear();
                 _gamelistSummary.AddRange(
                     await CreateGamelistSummaryAsync(_datSummary, gamelistSnapshot, romDirectory));
-
+                // TODO: Review this code
                 UpdateGamelistSummaryCounts(IncludeHidden);
             }
             finally

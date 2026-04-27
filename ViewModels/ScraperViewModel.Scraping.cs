@@ -31,7 +31,7 @@ public partial class ScraperViewModel
             return;
         }
 
-        if (string.IsNullOrEmpty(_sharedData.GamelistDirectory))
+        if (string.IsNullOrEmpty(_sharedData.CurrentRomFolder))
         {
             Log("No gamelist directory found.", LogLevel.Error);
             IsScraping = false;
@@ -47,7 +47,7 @@ public partial class ScraperViewModel
         }
 
         var currentSystem = _sharedData.CurrentSystem;
-        var gamelistDirectory = _sharedData.GamelistDirectory;
+        var gamelistDirectory = _sharedData.CurrentRomFolder;
         var currentScraper = CurrentScraper;
         var maxBatch = _sharedData.MaxBatch;
         var removeZzzNotGamePrefix = _sharedData.RemoveZZZNotGamePrefix;
@@ -55,8 +55,7 @@ public partial class ScraperViewModel
         var batchProcessing = _sharedData.BatchProcessing;
         var verifyImageDownloads = _sharedData.VerifyImageDownloads;
         var profileType = _sharedData.ProfileType;
-        var mediaSettings = _sharedData.MediaSettings;
-        var esDeMediaDirectory = _sharedData.EsDeMediaDirectory;
+        var availableMedia = _sharedData.AvailableMedia;
 
         SaveScraperSettings();
         ResetScrapeUI();
@@ -73,8 +72,7 @@ public partial class ScraperViewModel
                 gamelistDirectory,
                 verifyImageDownloads,
                 profileType,
-                mediaSettings,
-                esDeMediaDirectory,
+                availableMedia,
                 currentScraper,
                 currentSystem,
                 elementsToScrape);

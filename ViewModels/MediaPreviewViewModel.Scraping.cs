@@ -32,7 +32,7 @@ public partial class MediaPreviewViewModel
     {
         if (SelectedGame == null || string.IsNullOrEmpty(scraperName)) return;
 
-        if (string.IsNullOrEmpty(_sharedData.GamelistDirectory))
+        if (string.IsNullOrEmpty(_sharedData.CurrentRomFolder))
         {
             SetScraperStatus("No gamelist loaded.", "error");
             return;
@@ -45,8 +45,8 @@ public partial class MediaPreviewViewModel
         }
 
         var currentSystem = _sharedData.CurrentSystem;
-        var gamelistDirectory = _sharedData.GamelistDirectory;
-        var mediaSettings = _sharedData.MediaSettings;
+        var gamelistDirectory = _sharedData.CurrentRomFolder;
+        var availableMedia = _sharedData.AvailableMedia;
 
         _sharedData.IsScraping = true;
         bool scrapingVideo = false;
@@ -63,9 +63,9 @@ public partial class MediaPreviewViewModel
                 null);
 
             var elementsToScrape = specificElements != null
-                ? specificElements.Where(e => mediaSettings.TryGetValue(e, out var d) && d.Enabled).ToList()
+                ? specificElements.Where(e => availableMedia.Any(m => m.Type == e)).ToList()
                 : GamelistMetaData.GetScraperElements(scraperName)
-                    .Where(e => !mediaSettings.ContainsKey(e) || (mediaSettings.TryGetValue(e, out var d) && d.Enabled))
+                    .Where(e => availableMedia.Any(m => m.Type == e))
                     .ToList();
 
             if (elementsToScrape.Count == 0)
@@ -91,8 +91,7 @@ public partial class MediaPreviewViewModel
                 gamelistDirectory,
                 _sharedData.VerifyImageDownloads,
                 _sharedData.ProfileType,
-                mediaSettings,
-                _sharedData.EsDeMediaDirectory,
+                availableMedia,
                 scraperName,
                 currentSystem,
                 elementsToScrape);

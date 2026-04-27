@@ -74,30 +74,32 @@
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
                                                IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                    <!-- Gamelist exists badge — new gamelist mode only -->
-                                    <Border CornerRadius="3"
-                                            Padding="3,1"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Top"
-                                            IsHitTestVisible="False"
-                                            Background="{DynamicResource SystemAccentBrush}"
-                                            ZIndex="1">
-                                        <Border.IsVisible>
-                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                <Binding Path="HasGamelist"/>
-                                                <Binding Path="$parent[ItemsControl].((viewModels:GamelistPickerViewModel)DataContext).ShowGamelistBadge"/>
-                                            </MultiBinding>
-                                        </Border.IsVisible>
-                                        <TextBlock Text="gamelist exists"
-                                                   FontSize="8"
-                                                   Foreground="White"
-                                                   FontWeight="Bold"/>
-                                    </Border>
                                 </Panel>
+                                <!-- Gamelist exists badge — new gamelist mode only -->
+                                <Border Grid.Row="0" Grid.RowSpan="3"
+                                        CornerRadius="3"
+                                        Padding="3,1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Top"
+                                        IsHitTestVisible="False"
+                                        Background="{DynamicResource SystemAccentBrush}"
+                                        ZIndex="1">
+                                    <Border.IsVisible>
+                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                            <Binding Path="HasGamelist"/>
+                                            <Binding Path="$parent[ItemsControl].((viewModels:GamelistPickerViewModel)DataContext).ShowGamelistBadge"/>
+                                        </MultiBinding>
+                                    </Border.IsVisible>
+                                    <TextBlock Text="gamelist exists"
+                                               FontSize="8"
+                                               Foreground="White"
+                                               FontWeight="Bold"/>
+                                </Border>
                                 <!-- System name -->
                                 <TextBlock Grid.Row="1"
                                            Text="{Binding Name}"
                                            FontSize="{DynamicResource GlobalSmallFontSize}"
+                                           FontWeight="SemiBold"
                                            TextAlignment="Center"
                                            TextTrimming="CharacterEllipsis"
                                            HorizontalAlignment="Center"
@@ -109,7 +111,7 @@
                                            TextAlignment="Center"
                                            HorizontalAlignment="Center"
                                            Foreground="{DynamicResource AccentTextBrush}"
-                                           Opacity="0.7"
+                                           FontWeight="SemiBold"
                                            Margin="0,1,0,0"/>
                             </Grid>
                         </Button>

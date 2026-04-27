@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
@@ -26,15 +27,15 @@ public partial class SettingsViewModel : ViewModelBase
 
     #region Observable Properties
 
-    // ===== Appearance =====
+    // Appearance
     [ObservableProperty] private int _selectedThemeIndex;
     [ObservableProperty] private int _selectedColorIndex;
     [ObservableProperty] private int _selectedAlternatingRowColorIndex;
     [ObservableProperty] private int _selectedGridLinesVisibilityIndex;
-    [ObservableProperty] private double _appFontSize = 12;
-    [ObservableProperty] private double _gridFontSize = 12;
+    [ObservableProperty] private int _appFontSize = 12;
+    [ObservableProperty] private int _gridFontSize = 12;
 
-    // ===== Behavior / Options =====
+    // Behavior / Options
     [ObservableProperty] private bool _confirmBulkChanges;
     [ObservableProperty] private bool _enableSaveReminder;
     [ObservableProperty] private bool _verifyImageDownloads;
@@ -57,7 +58,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private double _defaultVolume;
     [ObservableProperty] private int _logVerbosityIndex;
 
-    // ===== Remote =====
+    // Remote
     [ObservableProperty] private string _hostname = string.Empty;
     [ObservableProperty] private string _userId = string.Empty;
     [ObservableProperty] private string _password = string.Empty;
@@ -71,13 +72,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnSelectedThemeIndexChanged(int value)
     {
         if (_isLoading) return;
-
         SelectedAlternatingRowColorIndex = 0;
-    }
-
-    partial void OnSelectedColorIndexChanged(int value)
-    {
-        // reserved for future preview
     }
 
     #endregion
@@ -114,84 +109,89 @@ public partial class SettingsViewModel : ViewModelBase
     public void LoadSettings()
     {
         _isLoading = true;
-
-        var settings = SettingsService.Instance;
-
-        // ===== Appearance =====
-        SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.Theme));
-        SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.Color));
-        SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
-        SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
-        AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
-        GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
-
-        // ===== Behavior =====
-        ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
-        EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
-        VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
-        VideoAutoplay = settings.GetBool(SettingKeys.VideoAutoplay);
-        RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
-        RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
-        EnableDelete = settings.GetBool(SettingKeys.EnableDelete);
-        RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
-        IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
-        BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
-        ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
-        CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
-        UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
-
-        ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
-        MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
-        SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
-        RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
-        MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
-        DefaultVolume = settings.GetInt(SettingKeys.Volume);
-        LogVerbosityIndex = settings.GetInt(SettingKeys.LogVerbosity);
-
-        // ===== Remote =====
-        Hostname = settings.GetValue(SettingKeys.HostName) ?? string.Empty;
-        UserId = settings.GetValue(SettingKeys.UserID) ?? string.Empty;
-        Password = settings.GetValue(SettingKeys.Password) ?? string.Empty;
-
-        // ===== Paths / Profiles =====
-        MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key) ?? string.Empty;
-
-        var profileType = settings.GetValue(SettingKeys.ProfileType);
-        var isEsDe = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase);
-
-        foreach (var item in MediaFolderItems)
+        try
         {
-            item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
-            item.Suffix = settings.GetValue(SettingKeys.MediaPathsSection, $"{item.Key}_suffix", item.DefaultSuffix);
-            item.SfxEnabled = settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
+            var settings = SettingsService.Instance;
 
-            item.Enabled = (!isEsDe || item.IsEsDeSupported) &&
-                           settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_enabled", item.DefaultEnabled);
+            // Appearance
+            SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.Theme));
+            SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.Color));
+            SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
+            SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
+            AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
+            GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
+
+            // Behavior
+            ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
+            EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
+            VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
+            VideoAutoplay = settings.GetBool(SettingKeys.VideoAutoplay);
+            RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
+            RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
+            EnableDelete = settings.GetBool(SettingKeys.EnableDelete);
+            RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
+            IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
+            BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
+            ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
+            CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
+            UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
+
+            ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
+            MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
+            SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
+            RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
+            MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
+            DefaultVolume = settings.GetInt(SettingKeys.Volume);
+            LogVerbosityIndex = settings.GetInt(SettingKeys.LogVerbosity);
+
+            // Remote
+            Hostname = settings.GetValue(SettingKeys.HostName) ?? string.Empty;
+            UserId = settings.GetValue(SettingKeys.UserID) ?? string.Empty;
+            Password = settings.GetValue(SettingKeys.Password) ?? string.Empty;
+
+            // Paths / Profiles
+            MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key) ?? string.Empty;
+
+            var profileType = settings.GetValue(SettingKeys.ProfileType);
+            var isEsDe = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase);
+
+            foreach (var item in MediaFolderItems)
+            {
+                item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
+                item.Suffix = settings.GetValue(SettingKeys.MediaPathsSection, $"{item.Key}_suffix", item.DefaultSuffix);
+                item.SfxEnabled = settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
+
+                item.Enabled = (!isEsDe || (GamelistMetaData.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
+                               settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_enabled", item.DefaultEnabled);
+            }
+
+            LoadScraperCredentials();
+            RefreshProfileList();
+
+            if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+            {
+                EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
+                EsDeMediaBase = _sharedData.EsDeMediaBase;
+                RomsPath = _sharedData.RomsFolder;
+            }
+            else if (_sharedData.ProfileType == SettingKeys.ProfileTypeEs)
+            {
+                RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key) ?? string.Empty;
+            }
+
+            foreach (var item in MediaFolderItems)
+                item.NotifyProfileTypeChanged();
+
+            OnPropertyChanged(nameof(IsEsDeProfile));
+            OnPropertyChanged(nameof(EsDePathsVisible));
+            OnPropertyChanged(nameof(SuffixesEnabled));
+
+            IsDirty = false;
         }
-
-        LoadScraperCredentials();
-        RefreshProfileList();
-
-        if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+        finally
         {
-            EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
-            EsDeMediaBase = _sharedData.EsDeMediaBase;
-            RomsPath = _sharedData.RomsFolder;
+            _isLoading = false;
         }
-        else if (_sharedData.ProfileType == SettingKeys.ProfileTypeEs)
-        {
-            RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key) ?? string.Empty;
-        }
-
-        foreach (var item in MediaFolderItems)
-            item.NotifyProfileTypeChanged();
-
-        OnPropertyChanged(nameof(IsEsDeProfile));
-        OnPropertyChanged(nameof(EsDePathsVisible));
-        OnPropertyChanged(nameof(SuffixesEnabled));
-
-        IsDirty = false;
-        _isLoading = false;
     }
 
     public void SaveSettings()

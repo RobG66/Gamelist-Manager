@@ -113,7 +113,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         if (SelectedGame == null) return;
         var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
         if (mediaItem == null) return;
-        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, _sharedData.GamelistDirectory!);
+        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, _sharedData.CurrentRomFolder!);
         SelectedGame.SetValue(mediaItem.PathKey, null);
         SelectedGame.SetValue(mediaItem.PathKey, relativePath);
         _sharedData.IsDataChanged = true;
@@ -168,10 +168,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        var mediaSettings = _sharedData.MediaSettings.GetValueOrDefault(mediaItem.MediaTypeKey);
-        var gamelistDir = _sharedData.GamelistDirectory;
+        var mediaFolder = _sharedData.AvailableMedia.FirstOrDefault(m => m.Type == mediaItem.MediaTypeKey);
+        var gamelistDir = _sharedData.CurrentRomFolder;
 
-        if (mediaSettings == null || string.IsNullOrEmpty(gamelistDir))
+        if (mediaFolder == null || string.IsNullOrEmpty(gamelistDir))
         {
             SetStatus($"Media path not configured for {mediaType}", "error");
             return;
@@ -180,7 +180,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         try
         {
             // Resolve destination folder
-            var destFolder = FilePathHelper.GamelistPathToFullPath(mediaSettings.Path, gamelistDir);
+            var destFolder = mediaFolder.FolderPath;
             if (!Directory.Exists(destFolder))
                 Directory.CreateDirectory(destFolder);
 
@@ -188,8 +188,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             var romPath = SelectedGame.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             var romName = FilePathHelper.NormalizeRomName(romPath);
             var extension = Path.GetExtension(newPath);
-            var suffix = mediaSettings.SfxEnabled && !string.IsNullOrEmpty(mediaSettings.Suffix)
-                ? $"-{mediaSettings.Suffix}"
+            var suffix = mediaFolder.SfxEnabled && !string.IsNullOrEmpty(mediaFolder.Suffix)
+                ? $"-{mediaFolder.Suffix}"
                 : string.Empty;
             var destFileName = $"{romName}{suffix}{extension}";
             var destFullPath = Path.Combine(destFolder, destFileName);
@@ -363,7 +363,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
                 newVisible = true;
             else if (ShowAllMedia)
             {
-                newVisible = _sharedData.MediaSettings.TryGetValue(item.MediaTypeKey, out var ms) && ms.Enabled;
+                newVisible = _sharedData.AvailableMedia.Any(m => m.Type == item.MediaTypeKey);
             }
             else
                 newVisible = false;

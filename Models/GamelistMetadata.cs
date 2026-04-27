@@ -268,5 +268,10 @@ namespace Gamelist_Manager.Models
             return nameToDecl.TryGetValue(name, out var decl) ? decl.Type : string.Empty;
         }
 
+        public static MetaDataDecl? GetDeclByType(string type)
+        {
+            return typeToDecl.TryGetValue(type, out var decl) ? decl : null;
+        }
+
     }
 }

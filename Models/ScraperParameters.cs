@@ -89,61 +89,30 @@ namespace Gamelist_Manager.Models
             string parentFolderPath,
             bool verifyImageDownloads,
             string profileType,
-            IReadOnlyDictionary<string, MediaTypeSettings> mediaSettings,
-            string esDeMediaDirectory,
-            string scraperName,
-            string currentSystem,
-            List<string> elementsToScrape)
-        {
-            return profileType switch
-            {
-                SettingKeys.ProfileTypeEsDe => CreateForEsDeProfile(parentFolderPath, verifyImageDownloads, esDeMediaDirectory, scraperName, currentSystem, elementsToScrape),
-                _ => CreateForESProfile(parentFolderPath, verifyImageDownloads, mediaSettings, scraperName, currentSystem, elementsToScrape)
-            };
-        }
-
-        private static ScraperParameters CreateForESProfile(
-            string parentFolderPath,
-            bool verifyImageDownloads,
-            IReadOnlyDictionary<string, MediaTypeSettings> mediaSettings,
+            IReadOnlyList<AvailableMediaFolder> availableMedia,
             string scraperName,
             string currentSystem,
             List<string> elementsToScrape)
         {
             var parameters = BuildCommonParameters(parentFolderPath, verifyImageDownloads, scraperName, currentSystem, elementsToScrape);
 
-            parameters.MediaPaths = mediaSettings.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.Path,
+            parameters.MediaPaths = availableMedia.ToDictionary(
+                m => m.Type,
+                m => m.FolderPath,
                 StringComparer.OrdinalIgnoreCase);
-
-            parameters.MediaSuffixes = mediaSettings.ToDictionary(
-                kvp => kvp.Key,
-                kvp => (kvp.Value.Suffix, kvp.Value.SfxEnabled),
-                StringComparer.OrdinalIgnoreCase);
-
-            return parameters;
-        }
-
-        private static ScraperParameters CreateForEsDeProfile(
-            string parentFolderPath,
-            bool verifyImageDownloads,
-            string esDeMediaDirectory,
-            string scraperName,
-            string currentSystem,
-            List<string> elementsToScrape)
-        {
-            var parameters = BuildCommonParameters(parentFolderPath, verifyImageDownloads, scraperName, currentSystem, elementsToScrape);
-
-            parameters.MediaPaths = GamelistMetaData.GetAllMediaFolderTypes()
-                .Where(decl => decl.IsEsDeSupported)
-                .ToDictionary(
-                    decl => decl.Type,
-                    decl => Path.Combine(esDeMediaDirectory, decl.EsDeFolderName),
-                    StringComparer.OrdinalIgnoreCase);
 
             // Suffixes are not applicable in ES-DE mode — filenames follow the ROM name exactly.
-            parameters.MediaSuffixes = new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase);
+            if (profileType == SettingKeys.ProfileTypeEsDe)
+            {
+                parameters.MediaSuffixes = new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase);
+            }
+            else
+            {
+                parameters.MediaSuffixes = availableMedia.ToDictionary(
+                    m => m.Type,
+                    m => (m.Suffix, m.SfxEnabled),
+                    StringComparer.OrdinalIgnoreCase);
+            }
 
             return parameters;
         }

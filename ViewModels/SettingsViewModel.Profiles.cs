@@ -23,8 +23,6 @@ public partial class SettingsViewModel
 
     #region Injected Delegates
 
-    // Set by SettingsView.OnOpened once Owner is available.
-    // Keeps the ViewModel free of any View or MainWindowViewModel reference.
     public Func<Task<bool>>? CheckMainUnsavedChangesAsync { get; set; }
     public Func<bool>? GetIsGamelistLoaded { get; set; }
     public Func<string, Task>? ApplyMainProfileSwitch { get; set; }
@@ -49,7 +47,6 @@ public partial class SettingsViewModel
     [NotifyCanExecuteChangedFor(nameof(CopyProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(RenameProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(CreateNewProfileCommand))]
-    [NotifyPropertyChangedFor(nameof(CanCreate))]
     private string _newProfileName = string.Empty;
 
     [ObservableProperty]
@@ -65,9 +62,7 @@ public partial class SettingsViewModel
 
     public string ActiveProfileName => ProfileService.Instance.ActiveProfile;
     public bool CanCreateFromTemplate => SelectedTemplateName != null;
-    public bool CanCreate => CanCreateProfile();
 
-    // Read-only info about the profile selected in the profile list.
     public bool SelectedProfileIsEsDe => GetSelectedProfileType() == SettingKeys.ProfileTypeEsDe;
     public string SelectedProfileEsDeMediaRoot => GetSelectedProfileMediaRoot();
 
@@ -82,7 +77,7 @@ public partial class SettingsViewModel
             ProfileList.Add(p);
         SelectedProfileName = ProfileService.Instance.ActiveProfile;
         OnPropertyChanged(nameof(ActiveProfileName));
-        OnPropertyChanged(nameof(CanCreate));
+        CreateNewProfileCommand.NotifyCanExecuteChanged();
         CopyProfileCommand.NotifyCanExecuteChanged();
         RenameProfileCommand.NotifyCanExecuteChanged();
         DeleteProfileCommand.NotifyCanExecuteChanged();
@@ -155,7 +150,8 @@ public partial class SettingsViewModel
 
         if (ApplyMainProfileSwitch != null)
             await ApplyMainProfileSwitch(profileName);
-        DoSwitchProfile(saveFirst: false);
+
+        DoSwitchProfile(saveFirst: IsDirty);
     }
 
     [RelayCommand(CanExecute = nameof(CanCreateProfile))]
@@ -204,15 +200,12 @@ public partial class SettingsViewModel
         var isDirty = IsDirty;
         var gamelistLoaded = GetIsGamelistLoaded?.Invoke() ?? false;
 
-        // If the gamelist has unsaved changes, ask about those first.
-        // If the user cancels, abort the profile switch entirely.
         if (gamelistLoaded && CheckMainUnsavedChangesAsync != null)
         {
             if (!await CheckMainUnsavedChangesAsync())
                 return;
         }
 
-        // Nothing to warn about — switch immediately.
         if (!isDirty && !gamelistLoaded)
         {
             if (ApplyMainProfileSwitch != null)
@@ -221,50 +214,26 @@ public partial class SettingsViewModel
             return;
         }
 
-        ThreeButtonDialogConfig config;
+        var detailMessage = (isDirty, gamelistLoaded) switch
+        {
+            (true, true) => "You have unsaved settings changes. Do you want to save them first?\n\nThe current gamelist will also be unloaded.",
+            (true, false) => "You have unsaved settings changes. Do you want to save them first?",
+            _ => "The current gamelist will be unloaded."
+        };
 
-        if (isDirty && gamelistLoaded)
-        {
-            config = new ThreeButtonDialogConfig
-            {
-                Title = "Switch Profile",
-                Message = $"Switch to profile '{profileName}'?",
-                DetailMessage = "You have unsaved settings changes. Do you want to save them first?\n\nThe current gamelist will also be unloaded.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "Don't Save",
-                Button3Text = "Save"
-            };
-        }
-        else if (isDirty)
-        {
-            config = new ThreeButtonDialogConfig
-            {
-                Title = "Switch Profile",
-                Message = $"Switch to profile '{profileName}'?",
-                DetailMessage = "You have unsaved settings changes. Do you want to save them first?",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "Don't Save",
-                Button3Text = "Save"
-            };
-        }
-        else
-        {
-            // Gamelist loaded only — already confirmed no unsaved gamelist changes above.
-            config = new ThreeButtonDialogConfig
-            {
-                Title = "Switch Profile",
-                Message = $"Switch to profile '{profileName}'?",
-                DetailMessage = "The current gamelist will be unloaded.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Switch"
-            };
-        }
+        var button2Text = isDirty ? "Don't Save" : "";
 
-        var switchResult = await ThreeButtonDialogView.ShowAsync(config);
+        var switchResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        {
+            Title = "Switch Profile",
+            Message = $"Switch to profile '{profileName}'?",
+            DetailMessage = detailMessage,
+            IconTheme = DialogIconTheme.Warning,
+            Button1Text = "Cancel",
+            Button2Text = button2Text,
+            Button3Text = isDirty ? "Save" : "Switch"
+        });
+
         if (switchResult == ThreeButtonResult.Button1) return;
 
         UnloadMainGamelist?.Invoke();

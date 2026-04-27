@@ -19,7 +19,7 @@ public class PathToBitmapConverter : IValueConverter
             string fullPath = path;
             if (!Path.IsPathRooted(path))
             {
-                var gamelistDirectory = SharedDataService.Instance.GamelistDirectory;
+                var gamelistDirectory = SharedDataService.Instance.CurrentRomFolder;
                 if (!string.IsNullOrEmpty(gamelistDirectory))
                     fullPath = FilePathHelper.GamelistPathToFullPath(path, gamelistDirectory);
             }
