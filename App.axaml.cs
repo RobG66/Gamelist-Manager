@@ -4,11 +4,14 @@ using Avalonia.Markup.Xaml;
 using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
 using LibVLCSharp.Shared;
+using System.Net.Http;
 
 namespace Gamelist_Manager;
 
 public partial class App : Application
 {
+    public static HttpClient HttpClient { get; internal set; }
+
     public override void Initialize()
     {
         // Initialize LibVLC core library for video playback

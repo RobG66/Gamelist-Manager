@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
@@ -206,9 +207,19 @@ namespace Gamelist_Manager.Views
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel == null) return;
 
+            var locationPath = SharedDataService.Instance.CurrentRomFolder
+               ?? SharedDataService.Instance.RomsFolder;
+                       
+            IStorageFolder? startLocation = null;
+            if (locationPath != null)
+            {
+                startLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(locationPath);
+            }
+
             var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
                 new Avalonia.Platform.Storage.FolderPickerOpenOptions
                 {
+                    SuggestedStartLocation = startLocation,
                     Title = "Select Media Folder",
                     AllowMultiple = false
                 });

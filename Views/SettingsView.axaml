@@ -187,7 +187,7 @@
 											  ToolTip.Tip="Skip entries with duplicate ROM paths when loading a gamelist."/>
 									<CheckBox IsChecked="{Binding CheckForNewAndMissingGamesOnLoad}" Content="Check items on load" Margin="0,4,4,2"
 											  ToolTip.Tip="Automatically check for new and missing items when loading a gamelist."/>
-									<CheckBox IsChecked="{Binding UseSimpleSystemPicker}" Content="Use simple system picker" Margin="0,4,4,2"
+									<CheckBox IsChecked="{Binding UseSimpleSystemPicker}" Content="Use flyout system picker" Margin="0,4,4,2"
 											  ToolTip.Tip="When checked, a simple menu is used for selecting systems."/>
 						
 								</UniformGrid>	
@@ -347,16 +347,16 @@
 											<ColumnDefinition Width="{Binding SuffixesEnabled, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
 											<ColumnDefinition Width="{Binding SuffixesEnabled, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
 										</Grid.ColumnDefinitions>
-										<TextBlock Grid.Column="0" Text="On"     FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" HorizontalAlignment="Center" Margin="0,0,0,4"
+										<TextBlock Grid.Column="0" Text="Enabled"     FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" HorizontalAlignment="Center" Margin="0,0,0,4"
 												   ToolTip.Tip="Enable or disable this media type. Disabled types are ignored during scraping and media operations."/>
 										<TextBlock Grid.Column="1" Text="Type"   FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="4,0,6,4"/>
 										<TextBlock Grid.Column="2" Text="Folder" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,0,0,4"
-												   ToolTip.Tip="Subfolder path relative to the ROMs folder where this media type is stored (e.g. 'images' or 'media/screenshots')."/>
+												   ToolTip.Tip="Subfolder path relative to the ROM folder where this media type is stored (e.g. 'images' or 'media/screenshots')."/>
 										<TextBlock Grid.Column="4" Text="Suffix" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="2,0,0,4"
 												   IsVisible="{Binding SuffixesEnabled}"
 												   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
 										<Button    Grid.Column="5" Classes="icon" Command="{Binding ToggleAllSfxCommand}"
-												   Width="14" Height="14" HorizontalAlignment="Center" Margin="3,0,0,4"
+												   Width="14" Height="14" HorizontalAlignment="Center" Margin="0,0,0,0"
 												   IsVisible="{Binding SuffixesEnabled}"
 												   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
 											<Image Source="avares://Gamelist_Manager/Assets/Icons/reset2.png" Width="14" Height="14"/>
@@ -371,33 +371,32 @@
 														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol0"/>
 														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
 														<ColumnDefinition Width="3*"/>
-														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
 														<ColumnDefinition Width="{Binding IsNotEsDeMode, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
 														<ColumnDefinition Width="{Binding IsNotEsDeMode, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
 													</Grid.ColumnDefinitions>
 													<CheckBox  Grid.Column="0" IsChecked="{Binding Enabled}"
-															   IsEnabled="{Binding IsCheckboxEnabled}"
+															   IsEnabled="{Binding IsMediaEnabled}"
 															   VerticalAlignment="Center"
+															   HorizontalAlignment="Center"
 															   ToolTip.Tip="Enable or disable this media type for scraping and display."/>
 													<TextBlock Grid.Column="1" Text="{Binding Label}"           VerticalAlignment="Center" Margin="4,0,6,0" IsEnabled="{Binding Enabled}"/>
 													<TextBox   Grid.Column="2" Text="{Binding DisplayPath}"     Padding="3,2"              IsEnabled="{Binding Enabled}"
-															   IsReadOnly="{Binding IsPathReadOnly}"
-															   ToolTip.Tip="Subfolder path relative to the ROMs folder where this media type is stored."/>
-													<Button    Grid.Column="3" Classes="icon"                   VerticalAlignment="Center" Margin="2,0,0,0" IsEnabled="{Binding Enabled}"
-															   IsVisible="{Binding IsNotEsDeMode}"
-															   Click="BrowseMediaFolder_Click" ToolTip.Tip="Browse for the media folder.">
-														<Image Source="/Assets/Icons/foldericon.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
-													</Button>
-													<TextBox   Grid.Column="4" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
+															   IsReadOnly="{Binding IsPathReadOnly}"/>
+													<TextBox   Grid.Column="3" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
 															   IsVisible="{Binding IsNotEsDeMode}"
 															   ToolTip.Tip="Optional filename suffix appended when scraping this media type."/>
-													<CheckBox  Grid.Column="5" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
+													<CheckBox  Grid.Column="4" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
 															   IsVisible="{Binding IsNotEsDeMode}"
 															   ToolTip.Tip="When checked, the optional suffix will be appended to scraped files for this media type."/>
 												</Grid>
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
+										<TextBlock Text="Disabled media is removed from scraping and media preview"
+										 FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,4,0,0"/>
+				
+										<TextBlock Text="Media folder paths are relative to the selected system rom path and must begin with ./"
+										 FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,4,0,0" IsVisible="{Binding !IsEsDeProfile}"/>
 								</StackPanel>
 							</StackPanel>
 						</Border>
@@ -769,7 +768,7 @@
 						ToolTip.Tip="Reset every setting across all tabs to its factory default value. This cannot be undone."/>
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
 					<Button Content="Close" Classes="rounded yellow" Click="ButtonClose_Click"
-							ToolTip.Tip="Close the Settings window. Any unsaved changes will be lost."/>
+							ToolTip.Tip="Close the Settings window."/>
 					<Button Content="Save" Classes="rounded green" IsEnabled="{Binding IsDirty}" Click="ButtonSave_Click"
 							ToolTip.Tip="Save all changes made in this session and apply them to the application."/>
 				</StackPanel>

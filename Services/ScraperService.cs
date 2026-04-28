@@ -20,8 +20,10 @@ namespace Gamelist_Manager.Services
         private readonly FileTransferHelper _fileTransfer;
         private readonly Dictionary<string, int> _downloadStats = new();
         private readonly object _downloadStatsLock = new();
-        private readonly EmuMoviesMediaCacheHelper _mediaCache = new();
-
+        private readonly EmuMoviesMediaCacheHelper _mediaCache = new(
+              App.HttpClient,
+              Gamelist_Manager.Services.Secrets.EmuMoviesBearerToken
+          );
         public Action<string, LogLevel, string?, LogLevel>? LogAction { get; set; }
 
         public ScraperService(
@@ -43,7 +45,7 @@ namespace Gamelist_Manager.Services
         {
             try
             {
-                await _mediaCache.PopulateMediaListsAsync(_emuMovies, systemId, scraperProperties, msg => Log(msg), cancellationToken);
+                await _mediaCache.PopulateMediaListsAsync(systemId, scraperProperties, msg => Log(msg), cancellationToken);
             }
             catch (InvalidOperationException ex)
             {

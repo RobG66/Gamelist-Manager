@@ -48,11 +48,7 @@ namespace Gamelist_Manager.Classes.Helpers
                     else
                         fileName = $"{fileNamePrefix}{extension}";
 
-                    // Resolve the gamelist-relative mediaFolder (e.g. "./titleshots") to an absolute
-                    // directory before combining — Path.Combine does not strip the leading "./" and
-                    // would produce a malformed path 
-                    string absoluteFolder = FilePathHelper.GamelistPathToFullPath(mediaFolder, parameters.ParentFolderPath!);
-                    string fullPath = Path.Combine(absoluteFolder, fileName);
+                    string fullPath = Path.Combine(mediaFolder, fileName);
 
                     string regionDisplay = !string.IsNullOrEmpty(mediaResult.Region) ? $" ({mediaResult.Region})" : string.Empty;
 
@@ -64,9 +60,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
                     if (downloadSuccess)
                     {
-                        // ES-DE does not store media paths in the gamelist — they are resolved from the
-                        // filesystem at load time using absolute paths. All other profiles store a
-                        // gamelist-relative path with a "./" prefix.
+                        // Save media path (ESDE paths are just for reference and not saved)
                         scrapedData.Data[mediaType] = profileType switch
                         {
                             SettingKeys.ProfileTypeEsDe => fullPath,

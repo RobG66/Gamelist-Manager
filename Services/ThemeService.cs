@@ -256,19 +256,17 @@ namespace Gamelist_Manager.Services
                 .Where(s => s is Style style && style.Selector?.ToString()?.Contains("DataGridRow:nth-child") == true)
                 .ToList();
 
-            foreach (var style in stylesToRemove)
-            {
-                dataGrid.Styles.Remove(style);
-            }
+            dataGrid.Styles.Clear();
 
-            // Apply new style only if not "None"
-            if (alternatingBrush != null)
-            {
-                // Create a new style for alternating rows (even rows)
-                var alternatingRowStyle = new Style(x => x.OfType<DataGridRow>().NthChild(2, 0));
-                alternatingRowStyle.Setters.Add(new Setter(DataGridRow.BackgroundProperty, alternatingBrush));
-                dataGrid.Styles.Add(alternatingRowStyle);
-            }
+            IBrush targetBrush = alternatingBrush != null ? alternatingBrush : Brushes.Transparent;
+
+            var style = new Style(x => x.OfType<DataGridRow>().NthChild(2, 0));
+            style.Setters.Add(new Setter(DataGridRow.BackgroundProperty, targetBrush));
+            dataGrid.Styles.Add(style);
+
+
+
+
         }
 
         public static void ApplyDataGridColumnWidths(DataGrid? dataGrid, double dataGridFontSize)

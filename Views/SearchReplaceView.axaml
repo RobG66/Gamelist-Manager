@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
+             x:Class="Gamelist_Manager.Views.SearchReplaceView"
+             x:DataType="viewModels:MainWindowViewModel">
+
+    <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            BorderThickness="1"
+            Margin="2.5,0,0,0"
+            CornerRadius="4"
+            Background="{DynamicResource PanelBackground}"
+            Padding="8,4"
+            IsVisible="{Binding IsSearchPanelVisible}">
+        <StackPanel Orientation="Vertical" Spacing="4">
+
+            <!-- Find Row -->
+            <DockPanel LastChildFill="False">
+                <Button DockPanel.Dock="Right"
+                        Classes="icon"
+                        Width="{DynamicResource GlobalIconButtonSize}"
+                        Height="{DynamicResource GlobalIconButtonSize}"
+                        Padding="0"
+                        FontSize="{DynamicResource GlobalFontSize}"
+                        Command="{Binding CloseSearchPanelCommand}"
+                        ToolTip.Tip="Close Panel">
+                    <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
+                </Button>
+                <TextBlock Text="Find"
+                           DockPanel.Dock="Left"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"/>
+                <TextBox DockPanel.Dock="Left"
+                         Width="120"
+                         MaxLength="50"
+                         VerticalAlignment="Center"
+                         PlaceholderText="Search text..."
+                         Text="{Binding FindText, Mode=TwoWay}"
+                         Margin="0,0,8,0">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding ExecuteFindCommand}"/>
+                    </TextBox.KeyBindings>
+                </TextBox>
+                <TextBlock Text="in column"
+                           DockPanel.Dock="Left"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0"/>
+                <ComboBox DockPanel.Dock="Left"
+                          Width="140"
+                          VerticalAlignment="Center"
+                          PlaceholderText="Select column"
+                          ItemsSource="{Binding SearchableColumns}"
+                          SelectedItem="{Binding SelectedFindColumn}"
+                          Margin="0,0,8,0"/>
+                <Button DockPanel.Dock="Left"
+                        Content="Find"
+                        Classes="rounded green"
+                        Command="{Binding ExecuteFindCommand}"/>
+            </DockPanel>
+
+            <!-- Replace Row -->
+            <DockPanel LastChildFill="False">
+                <CheckBox DockPanel.Dock="Left"
+                          Content="And Replace with"
+                          IsChecked="{Binding IsReplaceEnabled}"
+                          IsEnabled="{Binding IsReplaceAllowed}"
+                          VerticalAlignment="Center"
+                          Margin="0,0,8,0"/>
+                <TextBox DockPanel.Dock="Left"
+                         Width="120"
+                         MaxLength="50"
+                         VerticalAlignment="Center"
+                         PlaceholderText="Replace with..."
+                         Text="{Binding ReplaceToText, Mode=TwoWay}"
+                         IsEnabled="{Binding IsReplaceEnabled}"
+                         Margin="0,0,8,0"/>
+                <Button DockPanel.Dock="Left"
+                        Content="{Binding ReplaceItemsButtonText}"
+                        Classes="rounded"
+                        IsEnabled="{Binding IsReplaceEnabled}"
+                        Margin="0,0,8,0"
+                        Command="{Binding ToggleReplaceScopeCommand}"/>
+                <Button DockPanel.Dock="Left"
+                        Content="Replace"
+                        Classes="rounded green"
+                        Margin="0,0,8,0"
+                        Command="{Binding ExecuteReplaceCommand}"/>
+                <Button DockPanel.Dock="Left"
+                        Content="Replace All"
+                        Classes="rounded green"
+                        Command="{Binding ExecuteReplaceAllCommand}"/>
+            </DockPanel>
+
+        </StackPanel>
+    </Border>
+
+</UserControl>

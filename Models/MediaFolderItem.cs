@@ -22,9 +22,9 @@ namespace Gamelist_Manager.Models
 
         [ObservableProperty] private string _path = string.Empty;
         [ObservableProperty] private string _suffix = string.Empty;
-
         private bool _sfxEnabled;
-
+        
+        
         // Returns false when suffixes are not applicable so the checkbox appears unchecked.
         // The backing field retains the user's preference and is restored when re-enabled.
         public bool SfxEnabled
@@ -43,13 +43,12 @@ namespace Gamelist_Manager.Models
         // Used to hide suffix columns and browse button in ES-DE mode.
         public bool IsNotEsDeMode => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe;
 
-        // Checkbox is disabled for types not supported by ES-DE — they cannot be enabled.
-        public bool IsCheckboxEnabled => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false);
+        public bool IsMediaEnabled => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false);
 
-        // In ES-DE mode, unsupported types are always treated as disabled.
         public bool EffectiveEnabled => Enabled && (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false));
 
         // In ES-DE mode shows the resolved media directory path; otherwise the relative path.
+        // The setter writes back to Path so two-way TextBox binding works in non-ES-DE mode.
         public string DisplayPath
         {
             get
@@ -67,6 +66,11 @@ namespace Gamelist_Manager.Models
                     ? System.IO.Path.Combine(mediaDir, esDeFolderName)
                     : esDeFolderName;
             }
+            set
+            {
+                if (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe)
+                    Path = value;
+            }
         }
 
         public void NotifyProfileTypeChanged()
@@ -74,7 +78,7 @@ namespace Gamelist_Manager.Models
             OnPropertyChanged(nameof(DisplayPath));
             OnPropertyChanged(nameof(IsPathReadOnly));
             OnPropertyChanged(nameof(IsNotEsDeMode));
-            OnPropertyChanged(nameof(IsCheckboxEnabled));
+            OnPropertyChanged(nameof(IsMediaEnabled));
             OnPropertyChanged(nameof(IsSuffixEnabled));
             OnPropertyChanged(nameof(EffectiveEnabled));
         }
@@ -85,5 +89,7 @@ namespace Gamelist_Manager.Models
             Suffix = DefaultSuffix;
             SfxEnabled = DefaultSfxEnabled;
         }
+
+        partial void OnPathChanged(string value) => OnPropertyChanged(nameof(DisplayPath));
     }
 }

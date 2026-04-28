@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
 using System.IO;
@@ -58,6 +59,13 @@ public partial class ScraperViewModel
             return;
         }
 
+        if (CurrentScraper == "EmuMovies")
+        {
+            CacheCountText = "";
+            IsClearCacheEnabled = false;
+            return;
+        }
+
         string system = _sharedData?.CurrentSystem ?? string.Empty;
         if (string.IsNullOrEmpty(system))
         {
@@ -71,8 +79,8 @@ public partial class ScraperViewModel
 
         if (files.Length == 0)
         {
-            CacheCountText = "Cache is empty";
             IsClearCacheEnabled = false;
+            CacheCountText = "Cache is empty";
         }
         else
         {

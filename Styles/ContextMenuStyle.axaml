@@ -1,0 +1,94 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type ContextMenu}" TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource FlyoutBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource FlyoutBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="FontSize" Value="{DynamicResource GlobalFontSize}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="Transparent" Padding="6">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}"
+                                BoxShadow="0 4 16 0 #30000000">
+                            <ScrollViewer>
+                                <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                            </ScrollViewer>
+                        </Border>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Styles.Resources>
+
+    <!-- MenuItem base -->
+    <Style Selector="ContextMenu > MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <!-- Hover state -->
+    <Style Selector="ContextMenu > MenuItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SystemAccentBrush}"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <Style Selector="ContextMenu > MenuItem:pointerover > TextBlock">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <!-- Disabled state -->
+    <Style Selector="ContextMenu > MenuItem:disabled">
+        <Setter Property="Opacity" Value="0.4"/>
+    </Style>
+
+    <!-- Separator -->
+    <Style Selector="ContextMenu > Separator">
+        <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="4,3"/>
+    </Style>
+
+    <!-- Sub-menu item base — matches MenuItem children inside a parent MenuItem (e.g. scraper list).
+         These render in a separate popup and do not inherit styles from ContextMenu, so they must
+         be targeted explicitly. -->
+    <Style Selector="MenuItem > MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="FontSize" Value="{DynamicResource GlobalFontSize}"/>
+    </Style>
+
+    <!-- Sub-menu item hover -->
+    <Style Selector="MenuItem > MenuItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SystemAccentBrush}"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <Style Selector="MenuItem > MenuItem:pointerover > TextBlock">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <!-- Sub-menu item disabled -->
+    <Style Selector="MenuItem > MenuItem:disabled">
+        <Setter Property="Opacity" Value="0.4"/>
+    </Style>
+
+    <!-- Sub-menu separator -->
+    <Style Selector="MenuItem > Separator">
+        <Setter Property="Background" Value="{DynamicResource SeparatorBrush}"/>
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="4,3"/>
+    </Style>
+
+</Styles>

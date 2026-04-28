@@ -96,6 +96,9 @@
       <Compile Update="Views\DatToolView.axaml.cs">
         <DependentUpon>DatToolView.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\SearchReplaceView.axaml.cs">
+        <DependentUpon>SearchReplaceView.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 
     <ItemGroup>

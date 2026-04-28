@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Classes.Helpers
 {
-    public static class TextSearchHelper
+    public static class EmuMoviesTextSearchHelper
     {
         private const int MaxCacheEntries = 50;
 
@@ -242,7 +242,7 @@ namespace Gamelist_Manager.Classes.Helpers
                 .AsParallel()
                 .WithCancellation(cancellationToken)
                 .ToDictionary(
-                    m => TextSearchHelper.NormalizeText(m.FileName),
+                    m => EmuMoviesTextSearchHelper.NormalizeText(m.FileName),
                     m => m.FullPath,
                     StringComparer.OrdinalIgnoreCase
                 );
@@ -266,7 +266,7 @@ namespace Gamelist_Manager.Classes.Helpers
                     else
                     {
                         // Try ROM display name
-                        string normalizedDisplayName = TextSearchHelper.NormalizeText(romName);
+                        string normalizedDisplayName = EmuMoviesTextSearchHelper.NormalizeText(romName);
                         normalizedMediaDict.TryGetValue(normalizedDisplayName, out matchedFile);
                     }
 

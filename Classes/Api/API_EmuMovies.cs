@@ -212,7 +212,7 @@ namespace Gamelist_Manager.Classes.Api
             // First pass: exact filename match (case-insensitive, extension stripped)
             foreach (string item in searchText)
             {
-                string? exactMatch = TextSearchHelper.FindExactMatch(item, mediaList);
+                string? exactMatch = EmuMoviesTextSearchHelper.FindExactMatch(item, mediaList);
                 if (!string.IsNullOrEmpty(exactMatch))
                     return exactMatch;
             }
@@ -220,7 +220,7 @@ namespace Gamelist_Manager.Classes.Api
             // Second pass: normalized fuzzy match
             foreach (string item in searchText)
             {
-                string? result = TextSearchHelper.FindTextMatch(item, mediaList);
+                string? result = EmuMoviesTextSearchHelper.FindTextMatch(item, mediaList);
                 if (!string.IsNullOrEmpty(result))
                     return result;
             }
@@ -293,121 +293,6 @@ namespace Gamelist_Manager.Classes.Api
             catch (Exception ex)
             {
                 return (false, string.Empty, $"Authentication error: {ex.Message}");
-            }
-        }
-
-        public async Task<(bool Success, List<string> MediaTypes, string ErrorMessage)> GetMediaTypesAsync(string system, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrEmpty(system))
-            {
-                return (false, new List<string>(), "System name is required");
-            }
-
-            string url = $"{ApiUrl}/Media/MediaTypes?systemName={system}";
-
-            try
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-                var httpResponse = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-                httpResponse.EnsureSuccessStatusCode();
-
-                string jsonString = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
-
-                if (string.IsNullOrEmpty(jsonString))
-                {
-                    return (false, new List<string>(), "Empty response from API");
-                }
-
-                var types = DeserializeJsonToList(jsonString);
-                if (types == null)
-                {
-                    return (false, new List<string>(), "Failed to deserialize media types");
-                }
-
-                return (true, types, string.Empty);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (HttpRequestException ex)
-            {
-                return (false, new List<string>(), $"HTTP request failed: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                return (false, new List<string>(), $"Error getting media types: {ex.Message}");
-            }
-        }
-
-        public async Task<(bool Success, List<string> MediaList, string ErrorMessage)> GetMediaListAsync(string system, string mediaTitle, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrEmpty(system) || string.IsNullOrEmpty(mediaTitle))
-            {
-                return (false, new List<string>(), "System name and media title are required");
-            }
-
-            string url = $"{ApiUrl}/Media/MediaList?systemName={system}&mediaType={mediaTitle}&mediaSet=default";
-
-            try
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-                var httpResponse = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-                httpResponse.EnsureSuccessStatusCode();
-
-                string jsonString = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
-
-                if (string.IsNullOrEmpty(jsonString))
-                {
-                    return (false, new List<string>(), "Empty response from API");
-                }
-
-                var list = DeserializeJsonToList(jsonString);
-                if (list == null)
-                {
-                    return (false, new List<string>(), "Failed to deserialize media list");
-                }
-
-                return (true, list, string.Empty);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (HttpRequestException ex)
-            {
-                return (false, new List<string>(), $"HTTP request failed: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                return (false, new List<string>(), $"Error getting media list: {ex.Message}");
-            }
-        }
-
-        private static List<string>? DeserializeJsonToList(string jsonString)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(jsonString);
-                JsonElement root = doc.RootElement;
-
-                if (!root.TryGetProperty("data", out JsonElement dataElement))
-                    return null;
-
-                List<string> dataList = new List<string>();
-                foreach (JsonElement element in dataElement.EnumerateArray())
-                {
-                    string? value = element.GetString();
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        dataList.Add(value);
-                    }
-                }
-                return dataList;
-            }
-            catch (JsonException)
-            {
-                return null;
             }
         }
     }

@@ -23,6 +23,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        GameDataGrid.ContextMenu!.Opening += ContextMenu_Opening;
+
         var version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion.Split('+')[0] ?? string.Empty;
@@ -41,6 +43,22 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, MainWindow_KeyDown, RoutingStrategies.Tunnel);
 
         BuildDataGridColumns();
+    }
+
+    private void MainWindow_DataContextChanged_ContextMenu(object? sender, EventArgs e)
+    {
+        if (GameDataGrid.ContextMenu is { } menu)
+        {
+            menu.DataContext = DataContext;
+            menu.Opening += ContextMenu_Opening;
+        }
+    }
+
+    private void ContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        GenreVisibleMenuItem.Header = vm.SetSelectedGenreVisibleMenuText;
+        GenreHiddenMenuItem.Header = vm.SetSelectedGenreHiddenMenuText;
     }
 
     private bool IsGridSelectionLocked =>

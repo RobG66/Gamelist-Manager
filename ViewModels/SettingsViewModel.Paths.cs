@@ -133,7 +133,7 @@ public partial class SettingsViewModel
 
             if (!FilePathHelper.IsValidMediaFolderPath(item.Path))
             {
-                errors.Add($"{item.Label}: Folder path is invalid. Use a relative path with no drive letters, UNC paths, or directory traversal (e.g. ./images).");
+                errors.Add($"{item.Label}: Folder path is invalid.");
                 continue;
             }
 

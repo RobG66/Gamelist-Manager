@@ -25,6 +25,18 @@ public partial class MainWindowViewModel
 {
     private const string BackupFolderName = "Gamelist Backups";
 
+    // Guards against re-entrant file operations (e.g. double-clicking while a dialog is open)
+    private bool _isNavigating = false;
+
+    private bool TryBeginNavigation()
+    {
+        if (_isNavigating) return false;
+        _isNavigating = true;
+        return true;
+    }
+
+    private void EndNavigation() => _isNavigating = false;
+
     #region Properties & Events
     public bool HasRecentFiles => _sharedData.RecentFiles.Count > 0;
     public event EventHandler? RequestSelectFirstItem;
@@ -108,190 +120,237 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private async Task BrowseForGamelistAsync()
     {
-        if (!await CheckUnsavedChangesAsync()) return;
-
-        var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
-
-        if (topLevel == null) return;
-
-        IStorageFolder? suggestedStart = null;
+        if (!TryBeginNavigation()) return;
         try
         {
-            var profileType = _sharedData.ProfileType;
-            var startPath = profileType switch
+            if (!await CheckUnsavedChangesAsync()) return;
+
+            var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow
+                : null;
+
+            if (topLevel == null) return;
+
+            IStorageFolder? suggestedStart = null;
+            try
             {
-                SettingKeys.ProfileTypeEsDe when !string.IsNullOrEmpty(_sharedData.EsDeRoot)
-                    => Path.Combine(_sharedData.EsDeRoot, "gamelists"),
-                _ when !string.IsNullOrEmpty(_sharedData.RomsFolder)
-                    => _sharedData.RomsFolder,
-                _ => null
-            };
+                var profileType = _sharedData.ProfileType;
+                var startPath = profileType switch
+                {
+                    SettingKeys.ProfileTypeEsDe when !string.IsNullOrEmpty(_sharedData.EsDeRoot)
+                        => Path.Combine(_sharedData.EsDeRoot, "gamelists"),
+                    _ when !string.IsNullOrEmpty(_sharedData.RomsFolder)
+                        => _sharedData.RomsFolder,
+                    _ => null
+                };
 
-            if (startPath != null && Directory.Exists(startPath))
-                suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
+                if (startPath != null && Directory.Exists(startPath))
+                    suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
+            }
+            catch { }
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Load Gamelist XML",
+                AllowMultiple = false,
+                SuggestedStartLocation = suggestedStart,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("Gamelist XML") { Patterns = ["gamelist.xml"] },
+                    new FilePickerFileType("All Files") { Patterns = ["*.*"] }
+                ]
+            });
+
+            if (files.Count == 0) return;
+
+            await LoadGamelistFromFileAsync(files[0].Path.LocalPath);
         }
-        catch { }
-
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        finally
         {
-            Title = "Load Gamelist XML",
-            AllowMultiple = false,
-            SuggestedStartLocation = suggestedStart,
-            FileTypeFilter =
-            [
-                new FilePickerFileType("Gamelist XML") { Patterns = ["gamelist.xml"] },
-                new FilePickerFileType("All Files") { Patterns = ["*.*"] }
-            ]
-        });
-
-        if (files.Count == 0) return;
-
-        await LoadGamelistFromFileAsync(files[0].Path.LocalPath);
+            EndNavigation();
+        }
     }
 
     [RelayCommand]
     private async Task ReloadCurrentGamelistAsync()
     {
-        if (!await CheckUnsavedChangesAsync()) return;
-        if (string.IsNullOrEmpty(_sharedData.XmlFilename)) return;
-        await LoadGamelistFromFileAsync(_sharedData.XmlFilename);
+        if (!TryBeginNavigation()) return;
+        try
+        {
+            if (!await CheckUnsavedChangesAsync()) return;
+            if (string.IsNullOrEmpty(_sharedData.XmlFilename)) return;
+            await LoadGamelistFromFileAsync(_sharedData.XmlFilename);
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     [RelayCommand]
     private async Task OpenRecentGamelistAsync(string? filePath)
     {
-        if (string.IsNullOrEmpty(filePath)) return;
-        if (!System.IO.File.Exists(filePath)) return;
-        if (!await CheckUnsavedChangesAsync()) return;
-        await LoadGamelistFromFileAsync(filePath);
+        if (!TryBeginNavigation()) return;
+        try
+        {
+            if (string.IsNullOrEmpty(filePath)) return;
+            if (!System.IO.File.Exists(filePath)) return;
+            if (!await CheckUnsavedChangesAsync()) return;
+            await LoadGamelistFromFileAsync(filePath);
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     [RelayCommand]
     private async Task OpenSystemGamelistAsync(string? gamelistPath)
     {
-        if (string.IsNullOrEmpty(gamelistPath)) return;
-        if (string.Equals(gamelistPath, _sharedData.XmlFilename, FilePathHelper.PathComparison)) return;
-        if (!await CheckUnsavedChangesAsync()) return;
-        await LoadGamelistFromFileAsync(gamelistPath);
+        if (!TryBeginNavigation()) return;
+        try
+        {
+            if (string.IsNullOrEmpty(gamelistPath)) return;
+            if (string.Equals(gamelistPath, _sharedData.XmlFilename, FilePathHelper.PathComparison)) return;
+            if (!await CheckUnsavedChangesAsync()) return;
+            await LoadGamelistFromFileAsync(gamelistPath);
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     [RelayCommand]
     private async Task NewGamelistAsync()
     {
-        if (!await CheckUnsavedChangesAsync()) return;
-
-        var candidates = await BuildSystemCandidatesAsync();
-
-        if (candidates.Count == 0)
+        if (!TryBeginNavigation()) return;
+        try
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            if (!await CheckUnsavedChangesAsync()) return;
+
+            var candidates = await BuildSystemCandidatesAsync();
+
+            if (candidates.Count == 0)
             {
-                Title = "New Gamelist",
-                Message = "No recognised system folders found.",
-                DetailMessage = "Make sure your ROMs folder contains system subfolders that match known systems.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
-            return;
-        }
+                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+                {
+                    Title = "New Gamelist",
+                    Message = "No recognised system folders found.",
+                    DetailMessage = "Make sure your ROMs folder contains system subfolders that match known systems.",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "",
+                    Button2Text = "",
+                    Button3Text = "OK"
+                });
+                return;
+            }
 
-        var mainWindow = GetMainWindow();
-        if (mainWindow == null) return;
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null) return;
 
-        var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: true);
-        var picker = new GamelistPickerView(pickerVm);
-        var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
+            var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: true);
+            var picker = new GamelistPickerView(pickerVm);
+            var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
 
-        if (selected == null) return;
+            if (selected == null) return;
 
-        if (selected.HasGamelist)
-        {
-            var confirm = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            if (selected.HasGamelist)
             {
-                Title = "Gamelist Already Exists",
-                Message = $"A gamelist already exists for '{selected.Name}'.",
-                DetailMessage = "Creating a new one will replace it. Do you want to continue?",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Continue"
-            });
-            if (confirm != ThreeButtonResult.Button3) return;
+                var confirm = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+                {
+                    Title = "Gamelist Already Exists",
+                    Message = $"A gamelist already exists for '{selected.Name}'.",
+                    DetailMessage = "Creating a new one will replace it. Do you want to continue?",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "Cancel",
+                    Button2Text = "",
+                    Button3Text = "Continue"
+                });
+                if (confirm != ThreeButtonResult.Button3) return;
+            }
+
+            var systemName = selected.Name;
+            var gamelistFolder = selected.FolderPath;
+            var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
+            // TODO: This is probably wrong and needs to be fixed for ES-DE since gamelists are in a separate folder from ROMs. Need to rethink how we build the system list and picker.
+
+            Directory.CreateDirectory(gamelistFolder);
+
+            _sharedData.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
+
+            ClearFilters();
+            ClearReportColumns();
+
+            _isLoadingData = true;
+            _sourceCache.Clear();
+            PopulateAvailableGenres();
+            _isLoadingData = false;
+
+            IsSaveEnabled = false;
+            IsGamelistLoaded = true;
+            FileStatusText = gamelistPath;
+            LastModifiedText = string.Empty;
+
+            var matchedSystem = Systems.FirstOrDefault(s => string.Equals(s.Name, systemName, FilePathHelper.PathComparison));
+            if (matchedSystem == null)
+            {
+                var logo = TryLoadSystemLogo(systemName);
+                matchedSystem = new SystemItem { Name = systemName, GamelistPath = gamelistPath, Logo = logo };
+            }
+
+            SelectedSystem = matchedSystem;
+            OnPropertyChanged(nameof(SystemLogo));
+            CalculateStatistics();
+
+            await FindNewItems();
         }
-
-        var systemName = selected.Name;
-        var gamelistFolder = selected.FolderPath;
-        var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
-        // TODO: This is probably wrong and needs to be fixed for ES-DE since gamelists are in a separate folder from ROMs. Need to rethink how we build the system list and picker.
-
-        // Create the gamelist directory if it doesn't exist
-        Directory.CreateDirectory(gamelistFolder);
-
-        _sharedData.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
-
-        ClearFilters();
-        ClearReportColumns();
-
-        _isLoadingData = true;
-        _sourceCache.Clear();
-        PopulateAvailableGenres();
-        _isLoadingData = false;
-
-        IsSaveEnabled = false;
-        IsGamelistLoaded = true;
-        FileStatusText = gamelistPath;
-        LastModifiedText = string.Empty;
-
-        var matchedSystem = Systems.FirstOrDefault(s => string.Equals(s.Name, systemName, FilePathHelper.PathComparison));
-        if (matchedSystem == null)
+        finally
         {
-            var logo = TryLoadSystemLogo(systemName);
-            matchedSystem = new SystemItem { Name = systemName, GamelistPath = gamelistPath, Logo = logo };
+            EndNavigation();
         }
-
-        SelectedSystem = matchedSystem;
-        OnPropertyChanged(nameof(SystemLogo));
-        CalculateStatistics();
-
-        await FindNewItems();
     }
 
     [RelayCommand]
     private async Task OpenSystemPickerAsync()
     {
-        if (!await CheckUnsavedChangesAsync()) return;
-
-        var candidates = await BuildSystemCandidatesAsync();
-
-        if (candidates.Count == 0 || !candidates.Any(c => c.HasGamelist))
+        if (!TryBeginNavigation()) return;
+        try
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            if (!await CheckUnsavedChangesAsync()) return;
+
+            var candidates = await BuildSystemCandidatesAsync();
+
+            if (candidates.Count == 0 || !candidates.Any(c => c.HasGamelist))
             {
-                Title = "Open Gamelist",
-                Message = "No gamelists found.",
-                DetailMessage = "No recognised system folders with a gamelist were found.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
-            return;
+                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+                {
+                    Title = "Open Gamelist",
+                    Message = "No gamelists found.",
+                    DetailMessage = "No recognised system folders with a gamelist were found.",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "",
+                    Button2Text = "",
+                    Button3Text = "OK"
+                });
+                return;
+            }
+
+            var mainWindow = GetMainWindow();
+            if (mainWindow == null) return;
+
+            var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: false);
+            var picker = new GamelistPickerView(pickerVm);
+            var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
+
+            if (selected == null) return;
+
+            await LoadGamelistFromFileAsync(Path.Combine(selected.FolderPath, "gamelist.xml"));
         }
-
-        var mainWindow = GetMainWindow();
-        if (mainWindow == null) return;
-
-        var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: false);
-        var picker = new GamelistPickerView(pickerVm);
-        var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
-
-        if (selected == null) return;
-
-        await LoadGamelistFromFileAsync(Path.Combine(selected.FolderPath, "gamelist.xml"));
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     #endregion

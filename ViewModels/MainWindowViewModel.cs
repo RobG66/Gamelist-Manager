@@ -49,6 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Public Properties
+
     public bool IsDeleteEnabled => _sharedData.EnableDelete;
     public ReadOnlyObservableCollection<GameMetadataRow> Games => _games;
     public bool IsScraping => _sharedData.IsScraping;
@@ -67,6 +68,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+  
     public IList? SelectedGames
     {
         get => _selectedGames;
