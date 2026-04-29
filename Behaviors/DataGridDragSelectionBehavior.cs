@@ -2,7 +2,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
+using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
+using Gamelist_Manager.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +34,7 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
 
         if (AssociatedObject != null)
         {
+            AssociatedObject.AddHandler(InputElement.PointerPressedEvent, OnPointerPressedPersistent, RoutingStrategies.Tunnel);
             AssociatedObject.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, handledEventsToo: true);
             AssociatedObject.AddHandler(InputElement.PointerMovedEvent, OnPointerMoved, handledEventsToo: true);
             AssociatedObject.AddHandler(InputElement.PointerReleasedEvent, OnPointerReleased, handledEventsToo: true);
@@ -45,6 +48,7 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
 
         if (AssociatedObject != null)
         {
+            AssociatedObject.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressedPersistent);
             AssociatedObject.RemoveHandler(InputElement.PointerPressedEvent, OnPointerPressed);
             AssociatedObject.RemoveHandler(InputElement.PointerMovedEvent, OnPointerMoved);
             AssociatedObject.RemoveHandler(InputElement.PointerReleasedEvent, OnPointerReleased);
@@ -53,10 +57,67 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
     }
     #endregion
 
+    private bool IsPersistentSelectionEnabled =>
+        AssociatedObject?.DataContext is MainWindowViewModel vm && vm.IsPersistentSelectionEnabled;
+
+    // Runs in the tunnel phase, before the DataGrid's own row-selection logic, so we can
+    // mark the event handled and prevent the default selection-clearing behaviour.
+    private void OnPointerPressedPersistent(object? sender, PointerPressedEventArgs e)
+    {
+        if (AssociatedObject == null || !IsPersistentSelectionEnabled) return;
+
+        var properties = e.GetCurrentPoint(AssociatedObject).Properties;
+
+        // Right-click: block the DataGrid from clearing selection, but do nothing else
+        // so the context menu still opens normally.
+        if (properties.IsRightButtonPressed)
+        {
+            if (e.Source is Visual rightSource && rightSource.FindAncestorOfType<DataGridCell>() != null)
+                e.Handled = true;
+            return;
+        }
+
+        if (!properties.IsLeftButtonPressed) return;
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            return;
+
+        if (e.Source is not Visual source || source.FindAncestorOfType<DataGridCell>() == null)
+            return;
+
+        if (source.FindAncestorOfType<CheckBox>() != null)
+            return;
+
+        var point = e.GetPosition(AssociatedObject);
+        var item = GetItemAtPoint(point);
+
+        if (item != null)
+        {
+            if (AssociatedObject.SelectedItems != null && AssociatedObject.SelectedItems.Contains(item))
+                AssociatedObject.SelectedItems.Remove(item);
+            else
+                AssociatedObject.SelectedItems?.Add(item);
+        }
+
+        // Start drag state so OnPointerMoved can extend the selection while the button is held.
+        _isDragging = true;
+        _selectionPath.Clear();
+        if (item != null)
+            _selectionPath.Add(item);
+        _capturedPointer = e.Pointer;
+        e.Pointer.Capture(AssociatedObject);
+
+        // Mark handled so the DataGrid does not process this press and reset the selection.
+        e.Handled = true;
+    }
+
     #region Pointer Handlers
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (AssociatedObject == null) return;
+
+        // The tunnel handler already handled this press for persistent selection mode.
+        if (IsPersistentSelectionEnabled) return;
 
         var properties = e.GetCurrentPoint(AssociatedObject).Properties;
         if (!properties.IsLeftButtonPressed) return;

@@ -40,6 +40,7 @@ public partial class MainWindowViewModel
     #region Properties & Events
     public bool HasRecentFiles => _sharedData.RecentFiles.Count > 0;
     public event EventHandler? RequestSelectFirstItem;
+    public event EventHandler<List<GameMetadataRow>>? RequestRestoreSelection;
 
     [ObservableProperty] private string _fileStatusText = "No file loaded";
     [ObservableProperty] private string _lastModifiedText = string.Empty;
@@ -558,6 +559,7 @@ public partial class MainWindowViewModel
 
             IsSaveEnabled = false;
             IsGamelistLoaded = true;
+            IsPersistentSelectionEnabled = false;
 
             var matchedSystem = Systems.FirstOrDefault(s => string.Equals(s.GamelistPath, filePath, FilePathHelper.PathComparison));
             if (matchedSystem == null)

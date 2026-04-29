@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Gamelist_Manager.Classes.Helpers;
@@ -31,6 +32,53 @@ public partial class MainWindowViewModel
 
     [RelayCommand]
     private Task ResetNames(string scope) => ClearItems(scope, ResetGameName, "Reset names");
+    #endregion
+
+    #region Sort Commands
+    [RelayCommand]
+    private void SortSelectionToTop()
+    {
+        if (SelectedGames == null || SelectedGames.Count == 0) return;
+        if (_sharedData.GamelistData == null) return;
+
+        // Only promote items that are currently visible through the filter
+        var visibleSet = _games.ToHashSet();
+        var selected = SelectedGames.OfType<GameMetadataRow>()
+            .Where(visibleSet.Contains)
+            .ToList();
+
+        if (selected.Count == 0) return;
+
+        var selectedSet = selected.ToHashSet();
+        var reordered = selected
+            .Concat(_sharedData.GamelistData.Where(g => !selectedSet.Contains(g)))
+            .ToList();
+
+        // Rebuild the master list in the new order
+        _isLoadingData = true;
+        _sharedData.GamelistData.Clear();
+        foreach (var game in reordered)
+            _sharedData.GamelistData.Add(game);
+
+        // AddOrUpdate with a list delegates to the internal dictionary, which
+        // iterates in hash order rather than insertion order. Clearing and then
+        // adding items one-by-one forces the bound collection to receive Add
+        // changesets in the exact sequence we want.
+        _sourceCache.Clear();
+        foreach (var game in reordered)
+            _sourceCache.AddOrUpdate(game);
+        _isLoadingData = false;
+
+        _sharedData.IsDataChanged = true;
+        IsSaveEnabled = true;
+
+        // Defer re-selection until DynamicData has pushed the changeset through
+        // the filter pipeline and the DataGrid has completed its layout pass
+        Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(() => RequestRestoreSelection?.Invoke(this, selected),
+                DispatcherPriority.Background),
+            DispatcherPriority.Background);
+    }
     #endregion
 
     #region Delete / Remove Commands

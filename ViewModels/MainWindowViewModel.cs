@@ -41,6 +41,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _hasGameSelected;
     [ObservableProperty] private bool _showSaveConfirmation;
     [ObservableProperty] private bool _isSystemsComboBoxEnabled;
+    [ObservableProperty] private bool _isPersistentSelectionEnabled;
     [ObservableProperty] private string _statusText = string.Empty;
     [ObservableProperty] private ObservableCollection<SystemItem> _systems = [];
     [ObservableProperty] private SystemItem? _selectedSystem;
@@ -63,10 +64,17 @@ public partial class MainWindowViewModel : ViewModelBase
         set
         {
             _sharedData.EnableEdit = value;
+            if (value)
+                IsPersistentSelectionEnabled = false;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsEditingAllowed));
+            OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
+            OnPropertyChanged(nameof(PersistentSelectionMenuHeader));
         }
     }
+
+    public string PersistentSelectionMenuHeader =>
+        IsPersistentSelectionEnabled ? "Disable Persistent Selection" : "Enable Persistent Selection";
 
   
     public IList? SelectedGames
@@ -97,11 +105,13 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsEditingAllowed));
                 OnPropertyChanged(nameof(IsEditToggleEnabled));
                 OnPropertyChanged(nameof(IsMenuEnabled));
+                OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
             case nameof(SharedDataService.IsBusy):
                 OnPropertyChanged(nameof(IsBusy));
                 OnPropertyChanged(nameof(IsEditToggleEnabled));
                 OnPropertyChanged(nameof(IsMenuEnabled));
+                OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
             case nameof(SharedDataService.RomsFolder):
                 _ = LoadSystemsAsync();
@@ -128,6 +138,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsStatsCardEnabled));
         OnPropertyChanged(nameof(IsEditToggleEnabled));
+        OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
     }
 
     private void OnSettingsApplied(object? sender, EventArgs e)
@@ -249,6 +260,19 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ToggleEditMode() => IsEditModeEnabled = !IsEditModeEnabled;
 
     [RelayCommand]
+    private void TogglePersistentSelection()
+    {
+        IsPersistentSelectionEnabled = !IsPersistentSelectionEnabled;
+        OnPropertyChanged(nameof(PersistentSelectionMenuHeader));
+    }
+
+    [RelayCommand]
+    private void ClearPersistentSelection()
+    {
+        SelectedGames?.Clear();
+    }
+
+    [RelayCommand]
     private void ToggleAlwaysOnTop() => IsAlwaysOnTop = !IsAlwaysOnTop;
 
     [RelayCommand]
@@ -296,6 +320,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         IsGamelistLoaded = false;
         IsEditModeEnabled = false;
+        IsPersistentSelectionEnabled = false;
         IsSaveEnabled = false;
         HasGameSelected = false;
         FirstSelectedGame = null;

@@ -36,6 +36,7 @@ public partial class MainWindowViewModel
     public bool IsEditingAllowed => IsEditModeEnabled && !IsScraping && !IsBusy;
     public bool IsEditToggleEnabled => IsGamelistLoaded && !IsScraping && !IsBusy;
     public bool IsMenuEnabled => !IsScraping && !IsBusy;
+    public bool IsPersistentSelectionToggleEnabled => IsGamelistLoaded && !IsEditModeEnabled && !IsScraping && !IsBusy;
     public GridLength BottomSplitterHeight => IsMediaPreviewVisible ? new GridLength(5) : new GridLength(0);
     public GridLength BottomPanelHeight =>
         IsScraperVisible ? GridLength.Auto :

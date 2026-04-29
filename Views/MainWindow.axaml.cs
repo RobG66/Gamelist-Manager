@@ -154,6 +154,7 @@ public partial class MainWindow : Window
             _currentViewModel.ReportColumnsCleared -= OnReportColumnsCleared;
             _currentViewModel.FindReportColumnAdded -= OnFindReportColumnAdded;
             _currentViewModel.RequestNavigateToItem -= ViewModel_RequestNavigateToItem;
+            _currentViewModel.RequestRestoreSelection -= ViewModel_RequestRestoreSelection;
         }
 
         if (DataContext is MainWindowViewModel viewModel)
@@ -165,6 +166,7 @@ public partial class MainWindow : Window
             viewModel.ReportColumnsCleared += OnReportColumnsCleared;
             viewModel.FindReportColumnAdded += OnFindReportColumnAdded;
             viewModel.RequestNavigateToItem += ViewModel_RequestNavigateToItem;
+            viewModel.RequestRestoreSelection += ViewModel_RequestRestoreSelection;
 
             Topmost = viewModel.IsAlwaysOnTop;
             ApplySizeToFitToDataGrid(viewModel.SizeToFit);
@@ -224,6 +226,21 @@ public partial class MainWindow : Window
 
         GameDataGrid.SelectedIndex = index;
         GameDataGrid.ScrollIntoView(row, null);
+    }
+
+    private void ViewModel_RequestRestoreSelection(object? sender, List<GameMetadataRow> items)
+    {
+        // Scroll to the very top first so the DataGrid anchors at row 0,
+        // then re-select and scroll to the first selected item
+        if (GameDataGrid.ItemsSource is System.Collections.ICollection { Count: > 0 } src)
+            GameDataGrid.ScrollIntoView(((System.Collections.IList)src)[0], null);
+
+        GameDataGrid.SelectedItems.Clear();
+        foreach (var item in items)
+            GameDataGrid.SelectedItems.Add(item);
+
+        if (items.Count > 0)
+            GameDataGrid.ScrollIntoView(items[0], null);
     }
 
     private void OnSettingsApplied(object? sender, EventArgs e)
