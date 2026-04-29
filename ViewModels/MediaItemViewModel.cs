@@ -151,7 +151,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
             if (!autoPlay)
             {
-                Media.AddOption(":start-time=5");
+                Media.AddOption(":start-time=1");
                 _previewSeekPending = true;
                 MediaPlayer.Volume = 0;
             }
@@ -247,10 +247,12 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             if (MediaPlayer.IsPlaying)
             {
                 MediaPlayer.Pause();
+                _sharedData.VideoUserPaused = true;
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
             }
             else
             {
+                _sharedData.VideoUserPaused = false;
                 MediaPlayer.Volume = _sharedData.DefaultVolume;
                 MediaPlayer.Play();
             }

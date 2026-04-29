@@ -34,6 +34,9 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private string _mamePath = string.Empty;
         [ObservableProperty] private bool _enableEdit;
         [ObservableProperty] private bool _videoAutoplay;
+        // Session-only: set when the user manually pauses, cleared when they manually play.
+        // Used to keep videos paused when navigating between games after a manual pause.
+        [ObservableProperty] private bool _videoUserPaused;
         [ObservableProperty] private bool _confirmBulkChanges = true;
         [ObservableProperty] private bool _enableSaveReminder = true;
         [ObservableProperty] private bool _verifyImageDownloads = true;

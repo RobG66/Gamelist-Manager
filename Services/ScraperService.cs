@@ -20,22 +20,21 @@ namespace Gamelist_Manager.Services
         private readonly FileTransferHelper _fileTransfer;
         private readonly Dictionary<string, int> _downloadStats = new();
         private readonly object _downloadStatsLock = new();
-        private readonly EmuMoviesMediaCacheHelper _mediaCache = new(
-              App.HttpClient,
-              Gamelist_Manager.Services.Secrets.EmuMoviesBearerToken
-          );
+        private readonly EmuMoviesMediaCacheHelper _mediaCache;
         public Action<string, LogLevel, string?, LogLevel>? LogAction { get; set; }
 
         public ScraperService(
             API_ArcadeDB arcadeDb,
             API_EmuMovies emuMovies,
             API_ScreenScraper screenScraper,
-            FileTransferHelper fileTransfer)
+            FileTransferHelper fileTransfer,
+            EmuMoviesMediaCacheHelper mediaCache)
         {
             _arcadeDb = arcadeDb;
             _emuMovies = emuMovies;
             _screenScraper = screenScraper;
             _fileTransfer = fileTransfer;
+            _mediaCache = mediaCache;
         }
 
         private void Log(string message, LogLevel level = LogLevel.Default, string? prefix = null, LogLevel prefixLevel = LogLevel.Default)

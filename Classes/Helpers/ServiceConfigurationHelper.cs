@@ -37,6 +37,12 @@ namespace Gamelist_Manager.Classes.Helpers
             services.AddHttpClient<API_ArcadeDB>("ScraperClient");
             services.AddHttpClient<API_EmuMovies>("ScraperClient");
             services.AddHttpClient<FileTransferHelper>("ScraperClient");
+            services.AddTransient(sp =>
+            {
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                var client = factory.CreateClient("ScraperClient");
+                return new EmuMoviesMediaCacheHelper(client, Secrets.EmuMoviesBearerToken);
+            });
             services.AddSingleton(SharedDataService.Instance);
             services.AddTransient<ScraperService>();
         }

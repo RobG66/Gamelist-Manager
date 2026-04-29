@@ -51,6 +51,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     public bool IsMediaPreviewEnabled => !_sharedData.IsScraping && !_sharedData.IsBusy;
     public bool IsScraping => _sharedData.IsScraping;
     public bool VideoAutoplay => _sharedData.VideoAutoplay;
+    private bool EffectiveAutoPlay => _sharedData.VideoAutoplay && !_sharedData.VideoUserPaused;
     public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
     public LibVLC? LibVLC { get; private set; }
     public static bool IsLibVLCInstalled { get; private set; } = true;
@@ -214,7 +215,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             {
                 mediaItem.DisposeVideoPlayer();
                 if (mediaItem.FileExists)
-                    mediaItem.InitializeVideoPlayer(LibVLC, _sharedData.VideoAutoplay);
+                        mediaItem.InitializeVideoPlayer(LibVLC, EffectiveAutoPlay);
             }
 
             SetStatus($"Successfully added {mediaType}", "ok");
@@ -280,7 +281,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         if (token.IsCancellationRequested) return;
         if (!IsLibVLCInitialized || LibVLC == null) return;
 
-        var autoPlay = _sharedData.VideoAutoplay;
+        var autoPlay = EffectiveAutoPlay;
         foreach (var item in MediaItems.Where(m => m.IsVideo && m.FileExists && m.MediaPlayer == null))
         {
             if (token.IsCancellationRequested) return;
@@ -324,7 +325,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         _videoInitCts = new CancellationTokenSource();
         var token = _videoInitCts.Token;
 
-        var autoPlay = _sharedData.VideoAutoplay;
+        var autoPlay = EffectiveAutoPlay;
 
         foreach (var item in MediaItems.Where(m => m.IsVideo))
         {
