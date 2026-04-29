@@ -71,8 +71,7 @@ If you find this program useful, please consider supporting its continued develo
 
 ## Compatibility
 Gamelist Manager is designed to work with any system running EmulationStation that stores its
-data in the standard `gamelist.xml` format. ES-DE is not supported at this time, but if there
-is interest and support, I
+data in the standard `gamelist.xml` format. ES-DE is now supported!
 
 ## Documentation
 
