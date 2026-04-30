@@ -51,6 +51,7 @@ public partial class SettingsViewModel
     [ObservableProperty] private bool _scraperMediaRegionFirst;
     [ObservableProperty] private string? _selectedScraperAvailableRegion;
     [ObservableProperty] private string? _selectedScraperFallbackRegion;
+    [ObservableProperty] private bool _showScraperPassword;
 
     #endregion
 
@@ -77,6 +78,7 @@ public partial class SettingsViewModel
 
     private async Task HandleScraperIndexChangedAsync()
     {
+        ShowScraperPassword = false;
         if (_credentialsDirty)
         {
             var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
@@ -197,6 +199,9 @@ public partial class SettingsViewModel
         _credentialsDirty = false;
         SaveCredentialsCommand.NotifyCanExecuteChanged();
     }
+
+    [RelayCommand]
+    private void ToggleShowScraperPassword() => ShowScraperPassword = !ShowScraperPassword;
 
     private bool CanSaveCredentials() => _credentialsDirty;
 

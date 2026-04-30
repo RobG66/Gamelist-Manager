@@ -44,108 +44,22 @@
     <!-- Theme-Aware Color Resources -->
     <ResourceDictionary.ThemeDictionaries>
 
-        <!-- ==================== LIGHT THEME (Default) ==================== -->
-        <ResourceDictionary x:Key="Default">
-            <!-- Title Bar - Soft cream -->
-            <SolidColorBrush x:Key="TitleBarBackground" Color="#FAF9F7"/>
-            <SolidColorBrush x:Key="TitleBarBorder"     Color="#E8E6E1"/>
-
-            <!-- Cards and Panels - Warm cream/off-white -->
-            <SolidColorBrush x:Key="CardBackground"       Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="CardBorder"           Color="#E8E6E1"/>
-            <SolidColorBrush x:Key="CardBorderSecondary"  Color="#DDD9D0"/>
-            <SolidColorBrush x:Key="PanelBackground"      Color="#F5F3F0"/>
-            <SolidColorBrush x:Key="PanelBorder"          Color="#E0DDD6"/>
-            <SolidColorBrush x:Key="TileBackground"       Color="#ECEAE6"/>
-
-            <!-- Separators -->
-            <SolidColorBrush x:Key="SeparatorBrush" Color="#E8E6E1"/>
-
-            <!-- Text Colors - Warm dark tones -->
-            <SolidColorBrush x:Key="PrimaryTextBrush"   Color="#2D2A26"/>
-            <SolidColorBrush x:Key="SecondaryTextBrush" Color="#4A4640"/>
-            <SolidColorBrush x:Key="SubtleTextBrush"    Color="#7A756D"/>
-            <SolidColorBrush x:Key="HelperTextBrush"    Color="#A39E94"/>
-
-            <!-- Accent Text Colors -->
-            <SolidColorBrush x:Key="AccentTextBrush"   Color="{DynamicResource SystemAccentColor}"/>
-            <SolidColorBrush x:Key="SuccessTextBrush"  Color="#2E9E6E"/>
-            <SolidColorBrush x:Key="WarningTextBrush"  Color="#E5A000"/>
-            <SolidColorBrush x:Key="InfoTextBrush"     Color="{DynamicResource SystemAccentColorLight1}"/>
-            <SolidColorBrush x:Key="ErrorTextBrush"    Color="#E5484D"/>
-
-            <!-- Button States -->
-            <SolidColorBrush x:Key="ButtonHoverBrush"   Color="{DynamicResource SystemAccentColorLight2}"/>
-            <SolidColorBrush x:Key="ButtonPressedBrush" Color="{DynamicResource SystemAccentColorLight1}"/>
-
-            <!-- Accent Borders -->
-            <SolidColorBrush x:Key="AccentBlueBorder"  Color="{DynamicResource SystemAccentColor}"/>
-            <SolidColorBrush x:Key="AccentGreenBorder" Color="#2E9E6E"/>
-            <SolidColorBrush x:Key="AccentIconBrush"   Color="{DynamicResource SystemAccentColor}"/>
-
-            <!-- Navigation Drawer -->
-            <SolidColorBrush x:Key="DrawerBackground"   Color="#FAF9F7"/>
-            <SolidColorBrush x:Key="DrawerBorder"       Color="#E8E6E1"/>
-            <SolidColorBrush x:Key="SectionHeaderBrush" Color="#7A756D"/>
-            <SolidColorBrush x:Key="NavButtonForeground" Color="#4A4640"/>
-
-            <!-- Flyouts -->
-            <SolidColorBrush x:Key="FlyoutBackground"  Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="FlyoutBorder"      Color="#E0DDD6"/>
-            <SolidColorBrush x:Key="FlyoutHeaderBrush" Color="#7A756D"/>
-
-            <!-- List Items -->
-            <SolidColorBrush x:Key="ListItemHoverBrush"    Color="#F5F3F0"/>
-            <SolidColorBrush x:Key="ListItemSelectedBrush" Color="{DynamicResource SystemAccentColorLight2}"/>
-
-            <SolidColorBrush x:Key="TileSelectedBackground"      Color="{DynamicResource SystemAccentColorLight2}" Opacity="0.35"/>
-            <SolidColorBrush x:Key="TileSelectedHoverBackground" Color="{DynamicResource SystemAccentColorLight2}" Opacity="0.55"/>
-            <!-- Slider -->
-            <SolidColorBrush x:Key="SliderTrackBrush"      Color="{DynamicResource SystemAccentColorLight2}"/>
-            <SolidColorBrush x:Key="SliderThumbBrush"      Color="{DynamicResource SystemAccentColor}"/>
-            <SolidColorBrush x:Key="SliderThumbHoverBrush" Color="{DynamicResource SystemAccentColorDark1}"/>
-
-            <!-- Status Bar -->
-            <SolidColorBrush x:Key="StatusBarBackground" Color="{DynamicResource SystemAccentColor}"/>
-            <SolidColorBrush x:Key="StatusBarForeground" Color="#FFFFFF"/>
-
-            <!-- GridSplitter -->
-            <SolidColorBrush x:Key="SplitterGripBrush"  Color="#C4BFB6"/>
-            <SolidColorBrush x:Key="SplitterHoverBrush" Color="{DynamicResource SystemAccentColor}"/>
-
-            <!-- DataGrid -->
-            <SolidColorBrush x:Key="DataGridColumnHeaderForegroundBrush"  Color="#4A4640"/>
-            <SolidColorBrush x:Key="DataGridGridLinesBrush"               Color="#E8E6E1"/>
-            <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush"  Color="#E0DDD8"/>
-
-            <!-- NumericUpDown -->
-            <SolidColorBrush x:Key="NumericUpDownBackground"             Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="NumericUpDownBorderBrush"            Color="#CCCCCC"/>
-            <SolidColorBrush x:Key="NumericUpDownForeground"             Color="#2D2A26"/>
-            <SolidColorBrush x:Key="NumericUpDownBorderBrushPointerOver" Color="#999999"/>
-            <SolidColorBrush x:Key="NumericUpDownBorderBrushFocused"     Color="{DynamicResource SystemAccentColor}"/>
-            <SolidColorBrush x:Key="NumericUpDownBackgroundReadOnly"     Color="#F5F3F0"/>
-            <SolidColorBrush x:Key="NumericUpDownBorderBrushReadOnly"    Color="#E0DDD6"/>
-
-            <!-- ButtonSpinner -->
-            <SolidColorBrush x:Key="ButtonSpinnerGlyphForeground"               Color="#4A4640"/>
-            <SolidColorBrush x:Key="ButtonSpinnerButtonBackgroundPointerOver"   Color="#F5F3F0"/>
-            <SolidColorBrush x:Key="ButtonSpinnerButtonBackgroundPressed"       Color="#E0DDD6"/>
-        </ResourceDictionary>
-
-        <!-- ==================== LIGHT THEME (explicit Light key) ==================== -->
+        <!-- ==================== LIGHT THEME ==================== -->
         <ResourceDictionary x:Key="Light">
             <!-- Title Bar - Soft cream -->
             <SolidColorBrush x:Key="TitleBarBackground" Color="#FAF9F7"/>
             <SolidColorBrush x:Key="TitleBarBorder"     Color="#E8E6E1"/>
 
             <!-- Cards and Panels - Warm cream/off-white -->
-            <SolidColorBrush x:Key="CardBackground"       Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="DatagridBackground"   Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="CardBackground"       Color="#FAFAFA"/>
             <SolidColorBrush x:Key="CardBorder"           Color="#E8E6E1"/>
             <SolidColorBrush x:Key="CardBorderSecondary"  Color="#DDD9D0"/>
-            <SolidColorBrush x:Key="PanelBackground"      Color="#F5F3F0"/>
+            <SolidColorBrush x:Key="PanelBackground"      Color="#FAFAFA"/>
             <SolidColorBrush x:Key="PanelBorder"          Color="#E0DDD6"/>
             <SolidColorBrush x:Key="TileBackground"       Color="#ECEAE6"/>
+            <SolidColorBrush x:Key="MediaItemBackground"  Color="#EFEFEF"/>
+
 
             <!-- Separators -->
             <SolidColorBrush x:Key="SeparatorBrush" Color="#E8E6E1"/>
@@ -227,11 +141,14 @@
             <SolidColorBrush x:Key="TitleBarBorder"     Color="#333333"/>
 
             <!-- Cards and Panels -->
+            <SolidColorBrush x:Key="DatagridBackground"   Color="#000000"/>
             <SolidColorBrush x:Key="CardBackground"      Color="#2D2D2D"/>
             <SolidColorBrush x:Key="CardBorder"          Color="#404040"/>
             <SolidColorBrush x:Key="CardBorderSecondary" Color="#4A4A4A"/>
             <SolidColorBrush x:Key="PanelBackground"     Color="#252525"/>
             <SolidColorBrush x:Key="PanelBorder"         Color="#404040"/>
+            <SolidColorBrush x:Key="MediaItemBackground"  Color="#202020"/>
+
 
             <!-- Separators -->
             <SolidColorBrush x:Key="SeparatorBrush" Color="#404040"/>

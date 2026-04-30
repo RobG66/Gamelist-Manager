@@ -8,8 +8,8 @@
 		Title="Settings"
 		CanMaximize="False"
 		CanMinimize="False"
-		MinHeight="650" MinWidth="580"
-		Height="650" Width="580"
+		MinHeight="680" MinWidth="580"
+		Height="680" Width="580"
 		FontSize="{DynamicResource GlobalFontSize}"
 		WindowStartupLocation="CenterOwner"
 		CanResize="True">
@@ -513,7 +513,7 @@
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
 									<TextBlock Text="Credentials" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
-								<Grid ColumnDefinitions="Auto,160,16,Auto,*,16,Auto">
+								<Grid ColumnDefinitions="Auto,160,16,Auto,*,Auto,16,Auto">
 									<TextBlock Grid.Column="0" Text="User ID:" VerticalAlignment="Center" Margin="0,0,6,0"
 											   ToolTip.Tip="Your registered username for the selected scraping service."/>
 									<TextBox Grid.Column="1" Text="{Binding ScraperUsername}"
@@ -521,8 +521,25 @@
 									<TextBlock Grid.Column="3" Text="Password:" VerticalAlignment="Center" Margin="0,0,6,0"
 											   ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
 									<TextBox Grid.Column="4" Text="{Binding ScraperPassword}" PasswordChar="&#x2022;"
+											 IsVisible="{Binding !ShowScraperPassword}"
 											 ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
-									<Button Grid.Column="6" Content="Save" Command="{Binding SaveCredentialsCommand}"
+									<TextBox Grid.Column="4" Text="{Binding ScraperPassword}"
+											 IsVisible="{Binding ShowScraperPassword}"
+											 ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
+									<Button Grid.Column="5" Classes="icon" Command="{Binding ToggleShowScraperPasswordCommand}"
+											Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"
+											VerticalAlignment="Center" Margin="4,0,0,0"
+											ToolTip.Tip="Toggle password visibility">
+										<Panel>
+											<Image Source="avares://Gamelist_Manager/Assets/Icons/visible.png"
+												   IsVisible="{Binding ShowScraperPassword}"
+												   Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+											<Image Source="avares://Gamelist_Manager/Assets/Icons/invisible.png"
+												   IsVisible="{Binding !ShowScraperPassword}"
+												   Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+										</Panel>
+									</Button>
+									<Button Grid.Column="7" Content="Save" Command="{Binding SaveCredentialsCommand}"
 											Classes="rounded green" FontSize="{DynamicResource GlobalFontSize}"
 											ToolTip.Tip="Save the credentials for the currently selected scraper."/>
 								</Grid>

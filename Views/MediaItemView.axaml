@@ -45,7 +45,7 @@
     </UserControl.Styles>
     
     <!-- Card wrapper for each media item -->
-    <Border Background="{DynamicResource PanelBackground}"
+    <Border Background="{DynamicResource MediaItemBackground}"
             CornerRadius="8"
             Margin="6"
             Padding="8,6,8,8">

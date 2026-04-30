@@ -101,7 +101,8 @@ public partial class SettingsViewModel : ViewModelBase
                                or nameof(IsSetupRequiresCredentials)
                                or nameof(IsSetupArcadeDB)
                                or nameof(ScraperUsername)
-                               or nameof(ScraperPassword))
+                               or nameof(ScraperPassword)
+                               or nameof(ShowScraperPassword))
                 return;
 
             IsDirty = true;

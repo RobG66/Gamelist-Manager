@@ -73,7 +73,7 @@
 
 							<!-- DataGrid -->
 							<Grid Grid.Row="0" Margin="2.5,2.5,0,2.5">
-								<Border Background="{DynamicResource CardBackground}"
+								<Border Background="{DynamicResource DatagridBackgound}"
 										CornerRadius="4"
 										ClipToBounds="True">
 									<Grid RowDefinitions="*,Auto" ClipToBounds="True">
