@@ -22,6 +22,14 @@ public class WindowService : IWindowService
         await window.ShowDialog(_owner);
     }
 
+    public async Task ShowSettingsAsync(int tabIndex, int scraperIndex)
+    {
+        if (_owner is null) return;
+        var window = new SettingsView();
+        window.NavigateTo(tabIndex, scraperIndex);
+        await window.ShowDialog(_owner);
+    }
+
     public async Task ShowAboutAsync()
     {
         if (_owner is null) return;

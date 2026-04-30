@@ -23,7 +23,7 @@
 
 
 		<!-- Tab Control -->
-		<TabControl Grid.Row="1" Margin="8,4,8,4" FontSize="{DynamicResource GlobalFontSize}">
+		<TabControl x:Name="MainTabControl" Grid.Row="1" Margin="8,4,8,4" FontSize="{DynamicResource GlobalFontSize}">
 
 			<!-- Appearance Tab -->
 			<TabItem>
@@ -513,7 +513,7 @@
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
 									<TextBlock Text="Credentials" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
-								<Grid ColumnDefinitions="Auto,160,16,Auto,*">
+								<Grid ColumnDefinitions="Auto,160,16,Auto,*,16,Auto">
 									<TextBlock Grid.Column="0" Text="User ID:" VerticalAlignment="Center" Margin="0,0,6,0"
 											   ToolTip.Tip="Your registered username for the selected scraping service."/>
 									<TextBox Grid.Column="1" Text="{Binding ScraperUsername}"
@@ -522,6 +522,9 @@
 											   ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
 									<TextBox Grid.Column="4" Text="{Binding ScraperPassword}" PasswordChar="&#x2022;"
 											 ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
+									<Button Grid.Column="6" Content="Save" Command="{Binding SaveCredentialsCommand}"
+											Classes="rounded green" FontSize="{DynamicResource GlobalFontSize}"
+											ToolTip.Tip="Save the credentials for the currently selected scraper."/>
 								</Grid>
 							</StackPanel>
 						</Border>

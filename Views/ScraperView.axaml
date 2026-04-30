@@ -43,8 +43,9 @@
                                 ToolTip.Tip="Start scraping game metadata and media from the selected source"/>
                         <Button Grid.Column="3" Classes="rounded red" Content="Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsScraping}" Margin="0,0,6,0" VerticalAlignment="Center"
                                 ToolTip.Tip="Stop the current scraping operation"/>
-                        <Button Grid.Column="4" Classes="rounded yellow" Content="Clear Cache" Command="{Binding ClearCacheCommand}" IsEnabled="{Binding IsClearCacheEnabled}" VerticalAlignment="Center"
-                                ToolTip.Tip="Delete all locally cached scraper data"/>
+                        <Button Grid.Column="4" Classes="rounded blue" Content="Setup" Command="{Binding OpenScraperSetupCommand}" VerticalAlignment="Center"
+                        IsEnabled="{Binding !IsScraping}"           
+                        ToolTip.Tip="Open scraper settings for the currently selected scraper"/>
                     </Grid>
 
                     <!-- Scraper source + Items to scrape -->
@@ -92,9 +93,14 @@
                     </Grid>
 
                     <!-- Cache status -->
-                    <TextBlock Text="{Binding CacheCountText}"
-                               FontStyle="Italic" FontSize="{DynamicResource GlobalSmallFontSize}"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding ScrapeFromCacheEnabled}">
+                        <TextBlock Text="{Binding CacheCountText}"
+                                   FontStyle="Italic" FontSize="{DynamicResource GlobalSmallFontSize}"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                   VerticalAlignment="Center"/>
+                        <Button Classes="rounded yellow" Content="Clear Cache" Command="{Binding ClearCacheCommand}" IsEnabled="{Binding IsClearCacheEnabled}"
+                                ToolTip.Tip="Delete all locally cached scraper data"/>
+                    </StackPanel>
 
                 </StackPanel>
             </Border>

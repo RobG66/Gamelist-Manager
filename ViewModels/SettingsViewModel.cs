@@ -95,7 +95,13 @@ public partial class SettingsViewModel : ViewModelBase
             if (e.PropertyName is nameof(IsDirty)
                                or nameof(SelectedProfileName)
                                or nameof(SelectedProfileIsEsDe)
-                               or nameof(SelectedProfileEsDeMediaRoot))
+                               or nameof(SelectedProfileEsDeMediaRoot)
+                               or nameof(SelectedSetupScraperIndex)
+                               or nameof(IsSetupScreenScraper)
+                               or nameof(IsSetupRequiresCredentials)
+                               or nameof(IsSetupArcadeDB)
+                               or nameof(ScraperUsername)
+                               or nameof(ScraperPassword))
                 return;
 
             IsDirty = true;

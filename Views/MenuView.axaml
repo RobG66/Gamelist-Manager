@@ -220,7 +220,7 @@
 									<Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>
 							</MenuItem>
-							<Separator/>
+							<Separator IsVisible="False"/>
 							<MenuItem Header="Video Jukebox"
 									  IsVisible="False"
 									  IsEnabled="{Binding IsGamelistLoaded}"

@@ -61,7 +61,6 @@ public partial class ScraperViewModel
 
         if (CurrentScraper == "EmuMovies")
         {
-            CacheCountText = "";
             IsClearCacheEnabled = false;
             return;
         }

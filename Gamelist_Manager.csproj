@@ -32,6 +32,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="ini\thegamesdb.ini" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="ini\thegamesdb.ini" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Include=".github\copilot-instructions.md" />
       <None Include=".github\workflows\release.yml" />
     </ItemGroup>

@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
@@ -53,6 +55,18 @@ public partial class ScraperViewModel
 
         RefreshCacheCount();
         Log($"Cleared {deleted} cached file(s).", LogLevel.Warning);
+    }
+
+    [RelayCommand]
+    private async Task OpenScraperSetup()
+    {
+        var scraperIndex = ScraperRegistry.All
+            .Select((s, i) => (s, i))
+            .FirstOrDefault(x => string.Equals(x.s.Name, CurrentScraper, StringComparison.OrdinalIgnoreCase))
+            .i;
+
+        // Scraper tab is index 4 in Settings
+        await WindowService.Instance.ShowSettingsAsync(4, scraperIndex);
     }
     #endregion
 

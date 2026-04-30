@@ -33,6 +33,12 @@ namespace Gamelist_Manager.Views
             Closing += SettingsWindow_Closing;
         }
 
+        public void NavigateTo(int tabIndex, int scraperIndex)
+        {
+            MainTabControl.SelectedIndex = tabIndex;
+            ViewModel.SelectedSetupScraperIndex = scraperIndex;
+        }
+
         #region Event Handlers - Window
 
         private void OnOpened(object? sender, EventArgs e)

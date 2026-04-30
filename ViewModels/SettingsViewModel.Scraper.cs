@@ -3,11 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
+using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -16,6 +18,7 @@ public partial class SettingsViewModel
     #region Fields
 
     private static readonly string DefaultFallbackJson = SettingKeys.ScreenScraperRegionFallback.Default;
+    private bool _credentialsDirty;
     private string SetupScraperName => SelectedSetupScraperIndex switch
     {
         0 => ScraperRegistry.ArcadeDB.Name,
@@ -34,8 +37,12 @@ public partial class SettingsViewModel
     [NotifyPropertyChangedFor(nameof(IsSetupArcadeDB))]
     private int _selectedSetupScraperIndex;
 
-    [ObservableProperty] private string _scraperUsername = string.Empty;
-    [ObservableProperty] private string _scraperPassword = string.Empty;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCredentialsCommand))]
+    private string _scraperUsername = string.Empty;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCredentialsCommand))]
+    private string _scraperPassword = string.Empty;
     [ObservableProperty] private string? _selectedScraperLanguage;
     [ObservableProperty] private string? _selectedScraperPrimaryRegion;
     [ObservableProperty] private bool _scraperGenreAlwaysEnglish;
@@ -65,7 +72,37 @@ public partial class SettingsViewModel
     partial void OnSelectedSetupScraperIndexChanged(int value)
     {
         if (!_isLoading)
-            LoadScraperCredentials();
+            _ = HandleScraperIndexChangedAsync();
+    }
+
+    private async Task HandleScraperIndexChangedAsync()
+    {
+        if (_credentialsDirty)
+        {
+            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Unsaved Credentials",
+                Message = "You have unsaved credentials. Save them before switching scrapers?",
+                IconTheme = DialogIconTheme.Question,
+                Button1Text = "",
+                Button2Text = "Discard",
+                Button3Text = "Save"
+            });
+
+            if (result == ThreeButtonResult.Button3)
+                CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
+        }
+        LoadScraperCredentials();
+    }
+
+    partial void OnScraperUsernameChanged(string value)
+    {
+        if (!_isLoading) _credentialsDirty = true;
+    }
+
+    partial void OnScraperPasswordChanged(string value)
+    {
+        if (!_isLoading) _credentialsDirty = true;
     }
 
     partial void OnSelectedScraperAvailableRegionChanged(string? value) =>
@@ -84,13 +121,23 @@ public partial class SettingsViewModel
 
     private void LoadScraperCredentials()
     {
-        var scraperName = SetupScraperName;
-        var (userName, password) = CredentialHelper.GetCredentials(scraperName);
-        ScraperUsername = userName ?? string.Empty;
-        ScraperPassword = password ?? string.Empty;
+        _isLoading = true;
+        try
+        {
+            var scraperName = SetupScraperName;
+            var (userName, password) = CredentialHelper.GetCredentials(scraperName);
+            ScraperUsername = userName ?? string.Empty;
+            ScraperPassword = password ?? string.Empty;
 
-        if (scraperName == ScraperRegistry.ScreenScraper.Name)
-            LoadRegionsAndLanguages();
+            if (scraperName == ScraperRegistry.ScreenScraper.Name)
+                LoadRegionsAndLanguages();
+        }
+        finally
+        {
+            _isLoading = false;
+            _credentialsDirty = false;
+            SaveCredentialsCommand.NotifyCanExecuteChanged();
+        }
     }
 
     private void LoadRegionsAndLanguages()
@@ -142,6 +189,16 @@ public partial class SettingsViewModel
     #endregion
 
     #region Commands
+
+    [RelayCommand(CanExecute = nameof(CanSaveCredentials))]
+    private void SaveCredentials()
+    {
+        CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
+        _credentialsDirty = false;
+        SaveCredentialsCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanSaveCredentials() => _credentialsDirty;
 
     [RelayCommand(CanExecute = nameof(CanAddScraperRegion))]
     private void AddScraperRegion()
