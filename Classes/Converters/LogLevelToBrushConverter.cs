@@ -10,11 +10,12 @@ public class LogLevelToBrushConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not LogLevel level || level == LogLevel.Default)
+        if (value is not LogLevel level)
             return AvaloniaProperty.UnsetValue;
 
         string resourceKey = level switch
         {
+            LogLevel.Default => "PrimaryTextBrush",
             LogLevel.Info => "SubtleTextBrush",
             LogLevel.Status => "InfoTextBrush",
             LogLevel.Success => "SuccessTextBrush",

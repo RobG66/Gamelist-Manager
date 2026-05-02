@@ -1,3 +1,4 @@
+using Gamelist_Manager.Classes.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +10,7 @@ public partial class DatToolViewModel
 {
     #region Report Helpers
 
-    internal static string EscapeCsv(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return string.Empty;
-        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
-            return $"\"{value.Replace("\"", "\"\"")}\"";
-        return value;
-    }
-
-    // Builds a plain-text report of missing parents and clones, grouped and sorted alphabetically.
+    // Builds a plain-text report
     internal static string GenerateTextReport(
         List<(string Name, string Description, string NonPlayable, string CHDRequired)> missingParents,
         List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)> missingClones,
@@ -91,13 +84,13 @@ public partial class DatToolViewModel
         foreach (var p in missingParents.OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
         {
             sb.AppendLine(string.Join(",",
-                "Parent",
-                EscapeCsv(p.Name),
-                string.Empty,
-                EscapeCsv(p.Description),
-                string.IsNullOrEmpty(p.NonPlayable) ? "Yes" : "No",
-                EscapeCsv(p.NonPlayable),
-                EscapeCsv(p.CHDRequired)));
+                    "Parent",
+                    CsvHelper.EscapeCsv(p.Name),
+                    string.Empty,
+                    CsvHelper.EscapeCsv(p.Description),
+                    string.IsNullOrEmpty(p.NonPlayable) ? "Yes" : "No",
+                    CsvHelper.EscapeCsv(p.NonPlayable),
+                    CsvHelper.EscapeCsv(p.CHDRequired)));
         }
 
         foreach (var group in missingClones
@@ -108,12 +101,12 @@ public partial class DatToolViewModel
             {
                 sb.AppendLine(string.Join(",",
                     "Clone",
-                    EscapeCsv(c.Name),
-                    EscapeCsv(c.CloneOf),
-                    EscapeCsv(c.Description),
+                    CsvHelper.EscapeCsv(c.Name),
+                    CsvHelper.EscapeCsv(c.CloneOf),
+                    CsvHelper.EscapeCsv(c.Description),
                     string.IsNullOrEmpty(c.NonPlayable) ? "Yes" : "No",
-                    EscapeCsv(c.NonPlayable),
-                    EscapeCsv(c.CHDRequired)));
+                    CsvHelper.EscapeCsv(c.NonPlayable),
+                    CsvHelper.EscapeCsv(c.CHDRequired)));
             }
         }
 

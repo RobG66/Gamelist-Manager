@@ -46,7 +46,7 @@
 
         <!-- ==================== LIGHT THEME ==================== -->
         <ResourceDictionary x:Key="Light">
-            <!-- Title Bar - Soft cream -->
+            <!-- Title Bar -->
             <SolidColorBrush x:Key="TitleBarBackground" Color="#FAF9F7"/>
             <SolidColorBrush x:Key="TitleBarBorder"     Color="#E8E6E1"/>
 
@@ -64,11 +64,12 @@
             <!-- Separators -->
             <SolidColorBrush x:Key="SeparatorBrush" Color="#E8E6E1"/>
 
-            <!-- Text Colors - Warm dark tones -->
+            <!-- Text Colors -->
             <SolidColorBrush x:Key="PrimaryTextBrush"   Color="#2D2A26"/>
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="#4A4640"/>
             <SolidColorBrush x:Key="SubtleTextBrush"    Color="#7A756D"/>
             <SolidColorBrush x:Key="HelperTextBrush"    Color="#A39E94"/>
+            <SolidColorBrush x:Key="HeaderTextBrush"    Color="{DynamicResource SystemAccentColorLight2}"/>
 
             <!-- Accent Text Colors -->
             <SolidColorBrush x:Key="AccentTextBrush"   Color="{DynamicResource SystemAccentColor}"/>
@@ -158,6 +159,7 @@
             <SolidColorBrush x:Key="SecondaryTextBrush" Color="#D0D0D0"/>
             <SolidColorBrush x:Key="SubtleTextBrush"    Color="#A0A0A0"/>
             <SolidColorBrush x:Key="HelperTextBrush"    Color="#888888"/>
+            <SolidColorBrush x:Key="HeaderTextBrush"    Color="{DynamicResource SystemAccentColorLight2}"/>
 
             <!-- Accent Text Colors -->
             <SolidColorBrush x:Key="AccentTextBrush"  Color="{DynamicResource SystemAccentColorLight1}"/>

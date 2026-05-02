@@ -12,6 +12,7 @@ using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
+using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -47,6 +48,59 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Commands
+
+    [RelayCommand]
+    private async Task ExportToCSV()
+    {
+        if (Games.Count == 0) return;
+
+        var mainWindow = GetMainWindow();
+        if (mainWindow == null) return;
+
+        var options = await ExportCsvOptionsView.ShowAsync(mainWindow);
+        if (options == null) return;
+
+        var file = await mainWindow.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Export Gamelist to CSV",
+            DefaultExtension = "csv",
+            FileTypeChoices =
+            [
+                new FilePickerFileType("CSV Files") { Patterns = ["*.csv"] },
+            new FilePickerFileType("All Files") { Patterns = ["*"] }
+            ]
+        });
+
+        if (file == null) return;
+
+        var filePath = file.Path.LocalPath;
+
+        try
+        {
+            await Task.Run(() => ExportDataToCsv(filePath, Games.ToList(), options));
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Export Successful",
+                Message = $"Gamelist exported to CSV successfully.\nFile: {filePath}",
+                IconTheme = DialogIconTheme.Info,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            }, mainWindow);
+        }
+        catch (Exception ex)
+        {
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Export Failed",
+                Message = $"Failed to export gamelist to CSV.\nError: {ex.Message}",
+                IconTheme = DialogIconTheme.Error,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            }, mainWindow);
+        }
+    }
 
     [RelayCommand]
     private void ClearRecentFiles()
@@ -646,6 +700,37 @@ public partial class MainWindowViewModel
     private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];
     private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
     private static readonly string[] ManualExtensions = [".pdf"];
+
+    private void ExportDataToCsv(string filePath, IList<GameMetadataRow> filteredRows, ExportCsvOptions options)
+    {
+        var rows = options.UseFilteredRows
+            ? filteredRows
+            : _sourceCache.Items.ToList();
+
+        var columns = GamelistMetaData.GetColumnDeclarations()
+            .Where(d => d.Key != MetaDataKeys.music && d.Key != MetaDataKeys.desc)
+            .Where(d =>
+            {
+                if (!options.UseVisibleColumnsOnly) return true;
+                if (d.AlwaysVisible) return true;
+                return d.IsMedia ? MediaPathsVisible : GetColumnVisible(d.Type);
+            })
+            .ToList();
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine(string.Join(",", columns.Select(d => CsvHelper.EscapeCsv(d.Name))));
+
+        foreach (var game in rows)
+        {
+            sb.AppendLine(string.Join(",", columns.Select(d =>
+            {
+                var value = game.GetValue(d.Key);
+                return CsvHelper.EscapeCsv(value?.ToString() ?? string.Empty);
+            })));
+        }
+
+        File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.UTF8);
+    }
 
     private static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
     {

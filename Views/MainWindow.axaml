@@ -292,10 +292,11 @@
 										   Text="Description"
 										   FontSize="{DynamicResource GlobalHeaderFontSize}"
 										   FontWeight="SemiBold"
-										   Foreground="{DynamicResource AccentIconBrush}"
+										   Foreground="{DynamicResource HeaderTextBrush}"
 										   Margin="10"/>
 								<ScrollViewer Grid.Row="1"
 											  VerticalScrollBarVisibility="Auto"
+											  Margin="0,0,0,15"
 											  HorizontalScrollBarVisibility="Disabled">
 									<TextBox Name="DescriptionTextBox"
 											 AcceptsReturn="True"

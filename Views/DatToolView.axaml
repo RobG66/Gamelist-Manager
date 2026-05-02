@@ -44,7 +44,7 @@
                     <TextBlock Text="DAT Summary"
                                FontSize="{DynamicResource GlobalHeaderFontSize}"
                                FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentIconBrush}"
+                               Foreground="{DynamicResource HeaderTextBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
@@ -127,7 +127,7 @@
                     <TextBlock Text="Gamelist Summary"
                                FontSize="{DynamicResource GlobalHeaderFontSize}"
                                FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentIconBrush}"
+                               Foreground="{DynamicResource HeaderTextBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
@@ -241,7 +241,7 @@
                     <TextBlock Text="Report Summary:"
                                FontSize="{DynamicResource GlobalHeaderFontSize}"
                                FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentIconBrush}"
+                               Foreground="{DynamicResource HeaderTextBrush}"
                                VerticalAlignment="Center"/>
                     <ComboBox Width="140"
                               Margin="10,0,0,0"
@@ -265,7 +265,7 @@
                     <TextBlock Text="DAT Information"
                                FontSize="{DynamicResource GlobalHeaderFontSize}"
                                FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentIconBrush}"
+                               Foreground="{DynamicResource HeaderTextBrush}"
                                Margin="0,0,0,4"/>
 
                     <Grid>

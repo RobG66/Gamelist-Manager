@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="240"
+	x:Class="Gamelist_Manager.Views.ExportCsvOptionsView"
+	Title="Export to CSV"
+	SizeToContent="Height"
+	Width="300"
+	FontSize="{DynamicResource GlobalFontSize}"
+	WindowStartupLocation="CenterOwner"
+	CanResize="False">
+
+	<StackPanel Margin="10" Spacing="10">
+
+		<Border Padding="10"
+				BorderThickness="1"
+				BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+				CornerRadius="4"
+				Background="{DynamicResource CardBackground}">
+			<StackPanel Spacing="8">
+
+				<!-- Card header -->
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<TextBlock Grid.Column="0"
+							   Text="Export Options"
+							   FontWeight="Bold"
+							   FontSize="{DynamicResource GlobalHeaderFontSize}"
+							   Foreground="{DynamicResource AccentTextBrush}"
+							   VerticalAlignment="Center"
+							   Margin="0,0,8,0"/>
+					<Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center"
+							   Fill="{DynamicResource SystemAccentColor}"/>
+				</Grid>
+
+				<!-- Rows -->
+				<StackPanel Spacing="4">
+					<TextBlock Text="Rows" FontWeight="SemiBold"/>
+					<RadioButton x:Name="RadioAllRows"
+								 Content="All items"
+								 GroupName="RowScope"
+								 IsChecked="True"/>
+					<RadioButton x:Name="RadioFilteredRows"
+								 Content="Filtered items only"
+								 GroupName="RowScope"/>
+				</StackPanel>
+
+				<!-- Columns -->
+				<StackPanel Spacing="4">
+					<TextBlock Text="Columns" FontWeight="SemiBold"/>
+					<RadioButton x:Name="RadioVisibleColumns"
+								 Content="Visible columns only"
+								 GroupName="ColScope"
+								 IsChecked="True"/>
+					<RadioButton x:Name="RadioAllColumns"
+								 Content="All columns"
+								 GroupName="ColScope"/>
+				</StackPanel>
+
+				<!-- Action buttons -->
+				<StackPanel Orientation="Horizontal"
+							HorizontalAlignment="Right"
+							Spacing="8"
+							Margin="0,4,0,0">
+					<Button x:Name="CancelButton"
+							Content="Cancel"
+							Click="CancelButton_Click"
+							Classes="rounded grey"
+							FontSize="{DynamicResource GlobalFontSize}"/>
+					<Button x:Name="ExportButton"
+							Content="Export"
+							Click="ExportButton_Click"
+							Classes="rounded green"
+							FontSize="{DynamicResource GlobalFontSize}"/>
+				</StackPanel>
+
+			</StackPanel>
+		</Border>
+
+	</StackPanel>
+</Window>

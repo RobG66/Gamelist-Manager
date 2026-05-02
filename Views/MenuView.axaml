@@ -29,7 +29,7 @@
 								   IsVisible="{Binding IsPaneOpen}"
 								   FontSize="{DynamicResource GlobalHeaderFontSize}"
 								   FontWeight="SemiBold"
-								   Foreground="{DynamicResource AccentIconBrush}"/>
+								   Foreground="{DynamicResource HeaderTextBrush}"/>
 					</StackPanel>
 				</Button>
 
@@ -76,7 +76,8 @@
 								</MenuItem.Icon>
 							</MenuItem>
 							<Separator/>
-							<MenuItem Header="Export to CSV" IsEnabled="False" ToolTip.Tip="Export gamelist data to CSV file">
+							<MenuItem Header="Export to CSV" IsEnabled="{Binding IsGamelistLoaded}" ToolTip.Tip="Export gamelist data to CSV file"
+									  Command="{Binding ExportToCSVCommand}">
 								<MenuItem.Icon>
 									<Image Source="/Assets/Icons/export.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>

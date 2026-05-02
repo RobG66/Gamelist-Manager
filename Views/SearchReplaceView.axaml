@@ -6,7 +6,7 @@
 
     <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
             BorderThickness="1"
-            Margin="2.5,0,0,0"
+            Margin="2.5,2.5,0,2.5"
             CornerRadius="4"
             Background="{DynamicResource PanelBackground}"
             Padding="8,4"

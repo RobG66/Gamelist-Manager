@@ -37,7 +37,7 @@
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                             <Image Source="/Assets/Icons/gamepad.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
                             <TextBlock Text="Total:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
-                            <TextBlock Text="{Binding TotalGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource AccentIconBrush}"/>
+                            <TextBlock Text="{Binding TotalGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource HeaderTextBrush}"/>
                         </StackPanel>
                         <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
