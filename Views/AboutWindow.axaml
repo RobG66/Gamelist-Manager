@@ -40,12 +40,14 @@
                        Margin="0,0,0,20"
                        FontSize="{DynamicResource GlobalFontSize}"
                        MaxWidth="400">
-                Manage and scrape your ROM libraries easily.
-                Supports ScreenScraper, ArcadeDB, EmuMovies.
-                Organize metadata, artwork, videos, and more.
+                Manage and scrape your ROM gamelists easily.
+                Supports scraping from ScreenScraper, ArcadeDB, EmuMovies.
+                Organize metadata, artwork, videos, and more.  Cross platform
+                compatible with Windows and Linux.  Compatible with EmulationStation
+                and ES-DE gamelists.
             </TextBlock>
 
-            <TextBlock Text="Created by Rob Ganshorn" 
+            <TextBlock Text="Created by Rob Ganshorn (Canada)" 
                        HorizontalAlignment="Center"
                        FontSize="{DynamicResource GlobalFontSize}"
                        Margin="0,0,0,5"/>
@@ -56,12 +58,12 @@
                     Cursor="Hand"
                     Command="{Binding OpenGitHubCommand}"
                     HorizontalAlignment="Center">
-                <TextBlock Text="GitHub: https://github.com/RobG66/Gamelist-Manager-Avalonia"
+                <TextBlock Text="GitHub: https://github.com/RobG66/Gamelist-Manager"
                            TextDecorations="Underline"
                            FontSize="{DynamicResource GlobalFontSize}"/>
             </Button>
 
-            <TextBlock Text="Support development:" 
+            <TextBlock Text="Please help support development:" 
                        Margin="0,25,0,10" 
                        HorizontalAlignment="Center"
                        FontSize="{DynamicResource GlobalFontSize}"

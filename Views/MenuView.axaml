@@ -18,7 +18,7 @@
 					  HorizontalScrollBarVisibility="Disabled">
 			<StackPanel Margin="0">
 				<!-- Hamburger Button to toggle pane -->
-				<Button Classes="NavButton" Command="{Binding TriggerPane}" ToolTip.Tip="Toggle menu">
+				<Button Classes="NavButton" Command="{Binding TriggerMenu}" ToolTip.Tip="Toggle menu">
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<PathIcon Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"
 								  Width="16"
@@ -26,7 +26,7 @@
 								  Foreground="{DynamicResource AccentIconBrush}"/>
 						<TextBlock Text="Menu"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   FontSize="{DynamicResource GlobalHeaderFontSize}"
 								   FontWeight="SemiBold"
 								   Foreground="{DynamicResource HeaderTextBrush}"/>
@@ -86,7 +86,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/folder.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="File" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="File" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -97,7 +97,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/reload.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="Recent Files" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="Recent Files" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -125,7 +125,7 @@
 						</Button.Flyout>
 						<StackPanel Orientation="Horizontal" Spacing="10">
 							<Image Source="/Assets/Icons/gamepad.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-							<TextBlock Text="Systems" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+							<TextBlock Text="Systems" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 						</StackPanel>
 					</Button>
 					<TextBlock Text="{Binding StatusText}"
@@ -242,7 +242,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/visible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="View" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="View" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -407,7 +407,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/edit.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="Edit" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="Edit" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -438,7 +438,7 @@
 								</MenuItem.Icon>
 							</MenuItem>
 							<Separator/>
-							<MenuItem Header="Search and Replace"
+							<MenuItem Header="Find / Search and Replace"
 									  Command="{Binding ToggleSearchPanelCommand}"
 									  ToolTip.Tip="Find text and replace if needed">
 								<MenuItem.Icon>
@@ -450,7 +450,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/magnifying-glass.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="Find" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="Find" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -528,7 +528,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/menu.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="Columns" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="Columns" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -585,7 +585,7 @@
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/remote.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="Remote" VerticalAlignment="Center" IsVisible="{Binding IsPaneOpen}"/>
+						<TextBlock Text="Remote" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>
 
@@ -612,7 +612,7 @@
 						</Grid>
 						<TextBlock Text="{Binding IsEditModeEnabled, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Editing: On|Editing: Off', FallbackValue='Editing: Off'}"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
@@ -640,7 +640,7 @@
 						</Grid>
 						<TextBlock Text="Media Preview"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
@@ -663,7 +663,7 @@
 						</Grid>
 						<TextBlock Text="Scraper"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
@@ -686,7 +686,7 @@
 						</Grid>
 						<TextBlock Text="DAT Tool"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
@@ -731,7 +731,7 @@
 						<Image Source="/Assets/Icons/profile.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Select Profile"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
@@ -757,7 +757,7 @@
 						<Image Source="/Assets/Icons/settings.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Settings"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
@@ -782,7 +782,7 @@
 						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Help"
 								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsPaneOpen}"
+								   IsVisible="{Binding IsMenuOpen}"
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>

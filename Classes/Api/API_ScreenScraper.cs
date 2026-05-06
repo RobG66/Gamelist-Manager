@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -38,18 +39,24 @@ namespace Gamelist_Manager.Classes.Api
             _devPassword = Gamelist_Manager.Services.Secrets.ScreenScraperDevPassword;
         }
 
-        private async Task<(bool Success, string Xml, string ErrorMessage)> FetchFromApi(string url)
+        private async Task<(bool Success, string Xml, string ErrorMessage)> FetchFromApi(string url, CancellationToken cancellationToken = default)
         {
             try
             {
-                using var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+                using var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                string xml = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string xml = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                 return (true, xml, string.Empty);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (HttpRequestException ex)
             {
-                return (false, string.Empty, $"HTTP request failed: {ex.Message}");
+                int lastColon = ex.Message.LastIndexOf(':');
+                string reason = lastColon >= 0 ? ex.Message[(lastColon + 1)..].Trim() : ex.Message;
+                return (false, string.Empty, reason);
             }
             catch (Exception ex)
             {
@@ -62,32 +69,36 @@ namespace Gamelist_Manager.Classes.Api
             if (string.IsNullOrEmpty(cacheFolder) || string.IsNullOrEmpty(xml))
                 return;
 
+            Directory.CreateDirectory(cacheFolder);
+
+            var redactions = new[]
+            {
+                (parameters.UserPassword, "{{REDACTED_USERPASS}}"),
+                (parameters.UserID, "{{REDACTED_USERID}}"),
+                (_devPassword, "{{REDACTED_PASSWORD}}"),
+                (_devId, "{{REDACTED_DEVID}}")
+            };
+
+            foreach (var (sensitive, placeholder) in redactions)
+            {
+                if (!string.IsNullOrEmpty(sensitive))
+                {
+                    xml = xml.Replace(sensitive, placeholder);
+                }
+            }
+
+            string filePath = Path.Combine(cacheFolder, $"{romName}.xml");
+            string tmpPath = filePath + ".tmp";
+
             try
             {
-                Directory.CreateDirectory(cacheFolder);
-
-                var redactions = new[]
-                {
-                    (parameters.UserPassword, "{{REDACTED_USERPASS}}"),
-                    (parameters.UserID, "{{REDACTED_USERID}}"),
-                    (_devPassword, "{{REDACTED_PASSWORD}}"),
-                    (_devId, "{{REDACTED_DEVID}}")
-                };
-
-                foreach (var (sensitive, placeholder) in redactions)
-                {
-                    if (!string.IsNullOrEmpty(sensitive))
-                    {
-                        xml = xml.Replace(sensitive, placeholder);
-                    }
-                }
-
-                string filePath = Path.Combine(cacheFolder, $"{romName}.xml");
-                File.WriteAllText(filePath, xml);
+                File.WriteAllText(tmpPath, xml);
+                File.Move(tmpPath, filePath, overwrite: true);
             }
             catch
             {
                 // Ignore cache write errors
+                try { File.Delete(tmpPath); } catch { }
             }
         }
 
@@ -106,7 +117,10 @@ namespace Gamelist_Manager.Classes.Api
                 string xml = File.ReadAllText(filePath);
 
                 if (string.IsNullOrWhiteSpace(xml))
+                {
+                    try { File.Delete(filePath); } catch { }
                     return string.Empty;
+                }
 
                 // Restore redacted values
                 var restorations = new[]
@@ -129,6 +143,7 @@ namespace Gamelist_Manager.Classes.Api
             }
             catch
             {
+                try { File.Delete(filePath); } catch { }
                 return string.Empty;
             }
         }
@@ -151,7 +166,7 @@ namespace Gamelist_Manager.Classes.Api
 
             var (success, xml, fetchError) = await FetchFromApi(url);
 
-            if (!success)
+            if (!success || string.IsNullOrEmpty(xml))
             {
                 string errorMsg = string.IsNullOrEmpty(fetchError)
                     ? "Failed to retrieve authentication data"
@@ -192,20 +207,6 @@ namespace Gamelist_Manager.Classes.Api
                 if (maxRequestsNode != null && int.TryParse(maxRequestsNode.InnerText, out int maxReq))
                 {
                     userInfo.MaxRequestsPerDay = maxReq;
-                }
-
-                // Get account type/level
-                XmlNode? niveauNode = xmlDoc.SelectSingleNode("//ssuser/niveau");
-                if (niveauNode != null)
-                {
-                    string niveau = niveauNode.InnerText;
-                    userInfo.AccountType = niveau switch
-                    {
-                        "0" => "Free",
-                        "1" => "Standard",
-                        "2" => "Premium",
-                        _ => niveau
-                    };
                 }
 
                 return (true, userInfo, string.Empty);
@@ -413,7 +414,7 @@ namespace Gamelist_Manager.Classes.Api
                                     if (parameters.RemoveZzzNotGamePrefix)
                                     {
                                         int colonIndex = name.IndexOf(':');
-                                        if (colonIndex >= 0)
+                                        if (colonIndex >= 0 && name[..colonIndex].Trim().StartsWith("zzz", StringComparison.OrdinalIgnoreCase))
                                             name = name[(colonIndex + 1)..].Trim();
                                     }
                                 gameData.Data["name"] = EncodingHelper.FixMojibake(name);
@@ -550,7 +551,7 @@ namespace Gamelist_Manager.Classes.Api
             }
         }
 
-        public async Task<(bool Success, ScrapedGameData Data, List<string> Messages, int ScrapeLimitProgress, int ScrapeLimitMax)> ScrapeScreenScraperAsync(ScraperParameters parameters)
+        public async Task<(bool Success, ScrapedGameData Data, List<string> Messages, int ScrapeLimitProgress, int ScrapeLimitMax)> ScrapeScreenScraperAsync(ScraperParameters parameters, CancellationToken cancellationToken = default)
         {
             var data = new ScrapedGameData();
             var messages = new List<string>();
@@ -593,13 +594,13 @@ namespace Gamelist_Manager.Classes.Api
             if (string.IsNullOrEmpty(xml))
             {
                 string url = BuildScrapeUrl(parameters, romName);
-                var (success, apiXml, fetchError) = await FetchFromApi(url);
+                var (success, apiXml, fetchError) = await FetchFromApi(url, cancellationToken);
 
                 if (!success)
                 {
                     messages.Add(string.IsNullOrEmpty(fetchError)
-                        ? "Failed to fetch game data from API"
-                        : fetchError);
+                        ? $"Failed to fetch game data from API for {romName}"
+                        : $"{romName}: {fetchError}");
                     return (false, data, messages, scrapeLimitProgress, scrapeLimitMax);
                 }
                 xml = apiXml;
@@ -610,7 +611,7 @@ namespace Gamelist_Manager.Classes.Api
                     string retryUrl = BuildScrapeUrlByName(parameters);
                     if (!string.IsNullOrEmpty(retryUrl))
                     {
-                        (var retrySuccess, var retryXml, var retryError) = await FetchFromApi(retryUrl);
+                        (var retrySuccess, var retryXml, var retryError) = await FetchFromApi(retryUrl, cancellationToken);
                         if (retrySuccess)
                         {
                             xml = retryXml;
@@ -626,13 +627,8 @@ namespace Gamelist_Manager.Classes.Api
                 {
                     messages.Add(string.IsNullOrEmpty(fetchError)
                         ? $"Failed to retrieve data from ScreenScraper for {romName}"
-                        : fetchError);
+                        : $"{romName}: {fetchError}");
                     return (false, data, messages, scrapeLimitProgress, scrapeLimitMax);
-                }
-
-                if (!string.IsNullOrEmpty(parameters.CacheFolder))
-                {
-                    SaveToCache(xml, parameters.CacheFolder, romName, parameters);
                 }
             }
 
@@ -648,6 +644,11 @@ namespace Gamelist_Manager.Classes.Api
                 return (false, data, messages, scrapeLimitProgress, scrapeLimitMax);
             }
 
+            // Only cache after successful parse — guards against corrupt remote responses
+            if (!fromCache && !string.IsNullOrEmpty(parameters.CacheFolder))
+            {
+                SaveToCache(xml, parameters.CacheFolder, romName, parameters);
+            }
             // Get scrape limits (only if not from cache)
             if (!fromCache)
             {

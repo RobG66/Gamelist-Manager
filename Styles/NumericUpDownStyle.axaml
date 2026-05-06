@@ -73,8 +73,7 @@
     <ControlTheme x:Key="{x:Type ButtonSpinner}" TargetType="ButtonSpinner">
       <Setter Property="Template">
         <ControlTemplate>
-          <DataValidationErrors>
-            <Grid ColumnDefinitions="*,Auto">
+          <Grid ColumnDefinitions="*,Auto">
 
               <ContentPresenter Grid.Column="0"
                                 Name="PART_ContentHost"
@@ -137,7 +136,6 @@
               </Border>
 
             </Grid>
-          </DataValidationErrors>
         </ControlTemplate>
       </Setter>
     </ControlTheme>

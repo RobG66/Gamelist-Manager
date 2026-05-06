@@ -7,7 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Assets\Icons\icon.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <Version>9.5.1</Version>
+        <Version>9.5.2</Version>
         <AssemblyVersion>9.0.0.0</AssemblyVersion>
         <FileVersion>9.0.0.0</FileVersion>
     </PropertyGroup>
@@ -66,6 +66,7 @@
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.7" />
         <PackageReference Include="SSH.NET" Version="2025.1.0" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.7" />
+        <PackageReference Include="System.Threading.RateLimiting" Version="10.0.7" />
         <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
         <!-- Native VLC binaries: Windows only. Linux uses system-installed libvlc (apt install libvlc-dev). -->
         <!-- Condition targets win-* RIDs explicitly so cross-compiling for Linux from Windows is excluded. -->

@@ -56,7 +56,7 @@ namespace Gamelist_Manager.Services
 
         public string? GetScraperLanguageCode(string scraperName)
         {
-            string savedLanguage = _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_Language", string.Empty);
+            string savedLanguage = _settings.GetValue(SettingKeys.ScraperOptionsSection, $"{scraperName}_Language", string.Empty);
             if (!string.IsNullOrEmpty(savedLanguage))
             {
                 string code = ExtractRegionCode(savedLanguage);
@@ -71,7 +71,7 @@ namespace Gamelist_Manager.Services
 
         public string? GetScraperPrimaryRegionCode(string scraperName)
         {
-            string saved = _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_PrimaryRegion", string.Empty);
+            string saved = _settings.GetValue(SettingKeys.ScraperOptionsSection, $"{scraperName}_PrimaryRegion", string.Empty);
             if (!string.IsNullOrEmpty(saved))
             {
                 string code = ExtractRegionCode(saved);
@@ -90,7 +90,7 @@ namespace Gamelist_Manager.Services
 
         public IReadOnlyList<string> GetScraperFallbackRegionCodes(string scraperName)
         {
-            var json = _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_RegionFallback", string.Empty);
+            var json = _settings.GetValue(SettingKeys.ScraperOptionsSection, $"{scraperName}_RegionFallback", string.Empty);
             if (string.IsNullOrEmpty(json)) return [];
             try
             {
@@ -134,10 +134,10 @@ namespace Gamelist_Manager.Services
         }
 
         public string GetScraperSourceSetting(string scraperName, string sectionName)
-            => _settings.GetValue(SettingKeys.ScraperSection, $"{scraperName}_{sectionName}", "");
+            => _settings.GetValue(SettingKeys.ScraperOptionsSection, $"{scraperName}_{sectionName}", "");
 
         public bool GetScraperBoolSetting(string scraperName, string settingName, bool defaultValue = false)
-            => _settings.GetBool(SettingKeys.ScraperSection, $"{scraperName}_{settingName}", defaultValue);
+            => _settings.GetBool(SettingKeys.ScraperOptionsSection, $"{scraperName}_{settingName}", defaultValue);
 
         #endregion
 

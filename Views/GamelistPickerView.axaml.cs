@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Gamelist_Manager.ViewModels;
 using System;
 
@@ -13,6 +12,7 @@ public partial class GamelistPickerView : Window
     public GamelistPickerView()
     {
         InitializeComponent();
+        this.Loaded += (_, _) => SearchBox.Focus();
     }
 
     public GamelistPickerView(GamelistPickerViewModel vm) : this()

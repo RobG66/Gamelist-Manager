@@ -23,8 +23,8 @@ namespace Gamelist_Manager.Models
         [ObservableProperty] private string _path = string.Empty;
         [ObservableProperty] private string _suffix = string.Empty;
         private bool _sfxEnabled;
-        
-        
+
+
         // Returns false when suffixes are not applicable so the checkbox appears unchecked.
         // The backing field retains the user's preference and is restored when re-enabled.
         public bool SfxEnabled

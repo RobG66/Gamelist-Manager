@@ -178,6 +178,8 @@ namespace Gamelist_Manager.Services
             }
 
             IniFileService.WriteIniFile(_settingsFilePath, existingSettings);
+            ProfileService.MigrateProfile(_settingsFilePath);
+            InvalidateCache();
         }
 
         public void ResetToDefaults()

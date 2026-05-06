@@ -1,5 +1,4 @@
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -256,7 +255,7 @@ namespace Gamelist_Manager.Services
         // For MediaPaths: adds missing keys with defaults only — never removes (user paths are preserved).
         // RecentFiles is left entirely untouched.
         // Writes the file back only if at least one change was made.
-        private static void MigrateProfile(string profilePath)
+        internal static void MigrateProfile(string profilePath)
         {
             if (!File.Exists(profilePath)) return;
 
@@ -302,8 +301,8 @@ namespace Gamelist_Manager.Services
                     }
                 }
 
-                // Remove obsolete keys — but NOT in ScraperSection which has dynamic runtime keys.
-                if (section.Equals(SettingKeys.ScraperSection, StringComparison.OrdinalIgnoreCase))
+                // Remove obsolete keys — but NOT in ScrapersSection which has dynamic runtime keys.
+                if (section.Equals(SettingKeys.ScrapersSection, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 var obsolete = existing.Keys

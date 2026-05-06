@@ -219,16 +219,6 @@
 										<TextBox Text="{Binding RecentFilesCount}" MaxLength="2"
 												 ToolTip.Tip="Maximum number of recently opened files shown in the File menu. (Default: 15)"/>
 									</StackPanel>
-									<StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,10,0,0">
-										<TextBlock Text="Log Verbosity:" Margin="0,0,5,0"
-												   ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call"/>
-										<ComboBox Grid.ColumnSpan="2" SelectedIndex="{Binding LogVerbosityIndex}" Width="100" HorizontalAlignment="Left"
-												  ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call">
-											<ComboBoxItem Content="Minimal"/>
-											<ComboBoxItem Content="Normal"/>
-											<ComboBoxItem Content="Verbose"/>
-										</ComboBox>
-									</StackPanel>
 									<StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
 										<TextBlock Text="Volume:" VerticalAlignment="Center" Margin="0,0,5,0"
 												   ToolTip.Tip="Default playback volume for video previews in the media viewer (0 = mute, 100 = full)."/>
@@ -467,19 +457,57 @@
 									<ComboBoxItem Content="ScreenScraper"/>
 								</ComboBox>
 									</StackPanel>
-									<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads" Margin="0,0,4,2"
-											  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
-									<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Show scraper Log Timestamps" Margin="0,0,4,2"
-											  ToolTip.Tip="Show the time of each entry in the scraper log."/>
-								
-								<StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-									<TextBlock Text="Save Scraper Configuration:" VerticalAlignment="Center"/>
-									<ComboBox SelectedIndex="{Binding ScraperConfigSaveIndex}" MinWidth="160"
-											  ToolTip.Tip="Controls whether scraper settings (selected metadata, media, sources) are persisted between sessions.&#10;Don't Save: settings reset each session.&#10;Save Per Scraper: one set of settings per scraper.&#10;Save Per System: separate settings for each system per scraper.">
-										<ComboBoxItem Content="Save Per Scraper"/>
-										<ComboBoxItem Content="Save Per System"/>
-									</ComboBox>
-								</StackPanel>
+									<UniformGrid Rows="2" Columns="2" RowSpacing="4" ColumnSpacing="8">
+										<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads"
+												  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
+										<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Show Log Timestamps"
+												  ToolTip.Tip="Show the time of each entry in the scraper log."/>
+										<CheckBox IsChecked="{Binding OverrideConcurrency}" Content="Override Max Concurrency"
+												  ToolTip.Tip="When checked, limits concurrent scraping threads to the value on the right, even if the service allows more.  This does not allow more threads than you are entitled to by the scraper service."/>
+										<CheckBox IsChecked="{Binding LogToDisk}" Content="Log to Disk"
+												  ToolTip.Tip="Save all scraper log output to a file in the logs folder. Off by default."/>
+									</UniformGrid>
+
+									<Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto" Margin="0,4,0,0">
+
+										<!-- Row 0: Concurrency value (checkbox moved to options row above) -->
+											<TextBlock Grid.Row="0" Grid.Column="0"
+													   Text="Max Concurrency Override:"
+													   VerticalAlignment="Center"
+													   IsEnabled="{Binding OverrideConcurrency}"
+													   ToolTip.Tip="Maximum concurrent scrape threads (1-30). Active only when Override Max Concurrency is checked."/>
+											<NumericUpDown Grid.Row="0" Grid.Column="2"
+													   Value="{Binding ConcurrencyOverride}"
+													   Minimum="1" Maximum="30" Increment="1"
+													   FormatString="0" Width="70"
+													   IsEnabled="{Binding OverrideConcurrency}"
+													   ToolTip.Tip="Maximum concurrent scrape threads (1-30). Active only when Override Max Concurrency is checked."/>
+
+										<!-- Row 2: Log Verbosity -->
+										<TextBlock Grid.Row="2" Grid.Column="0"
+												   Text="Log Verbosity:"
+												   VerticalAlignment="Center"
+												   ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call"/>
+										<ComboBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3"
+												  SelectedIndex="{Binding LogVerbosityIndex}" Width="100"
+												  ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call">
+											<ComboBoxItem Content="Minimal"/>
+											<ComboBoxItem Content="Normal"/>
+											<ComboBoxItem Content="Verbose"/>
+										</ComboBox>
+
+										<!-- Row 4: Save Scraper Configuration -->
+										<TextBlock Grid.Row="4" Grid.Column="0"
+												   Text="Save Scraper Configuration:"
+												   VerticalAlignment="Center"/>
+										<ComboBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3"
+												  SelectedIndex="{Binding ScraperConfigSaveIndex}" MinWidth="160"
+												  ToolTip.Tip="Controls whether scraper settings are persisted between sessions.&#10;Save Per Scraper: one set of settings per scraper.&#10;Save Per System: separate settings for each system per scraper.">
+											<ComboBoxItem Content="Save Per Scraper"/>
+											<ComboBoxItem Content="Save Per System"/>
+										</ComboBox>
+
+									</Grid>
 							</StackPanel>
 						</Border>
 
@@ -753,7 +781,7 @@
 										IsVisible="False">
 									<StackPanel Spacing="4">
 										<TextBlock Text="From Template" FontWeight="SemiBold" FontSize="{DynamicResource GlobalFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
-										<TextBlock Text="Pre-fills connection settings (hostname, credentials, ROMs path) for known EmulationStation systems. Edit Ini/templates.ini to add or remove templates."
+										<TextBlock Text="Pre-fills connection settings (hostname, credentials, ROMs path) for known EmulationStation systems. Edit ini/templates.ini to add or remove templates."
 												   FontSize="{DynamicResource GlobalSmallFontSize}" FontStyle="Italic" Opacity="0.7" TextWrapping="Wrap"/>
 										<Grid ColumnDefinitions="Auto,*,Auto">
 											<TextBlock Grid.Column="0" Text="Template:" VerticalAlignment="Center" Margin="0,0,6,0"

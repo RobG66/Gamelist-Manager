@@ -193,6 +193,7 @@ public partial class MainWindowViewModel
         GenreFilterSelection = "All Genre";
         CustomFilterText = string.Empty;
         SelectedCustomFilterColumn = null;
+        ApplyFilter();
     }
 
     // Captures all filter state as local variables so the returned delegate is a

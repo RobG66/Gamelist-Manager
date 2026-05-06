@@ -16,7 +16,8 @@ public partial class MainWindowViewModel
     [ObservableProperty] private bool _isMediaPreviewVisible;
     [ObservableProperty] private bool _isScraperVisible;
     [ObservableProperty] private bool _isDatToolVisible;
-    [ObservableProperty] private double _navPaneWidth = 155;
+    [ObservableProperty] private double _menuWidth = 155;
+    private const double BaseMenuWidth = 155;
     [ObservableProperty] private ScraperViewModel? _scraperPanelViewModel;
     [ObservableProperty] private DatToolViewModel? _datToolPanelViewModel;
     [ObservableProperty] private bool _hasReportColumns;
@@ -140,7 +141,7 @@ public partial class MainWindowViewModel
     #region Public Methods
     public void DisposeMediaPreview() => _mediaPreviewViewModel.Dispose();
 
-    public void UpdateScaledLayoutWidths() => NavPaneWidth = GetScaledNavPaneWidth();
+    public void UpdateScaledLayoutWidths() => MenuWidth = GetScaledMenuWidth();
 
     public void RefreshScraper()
     {
@@ -154,7 +155,7 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Private Methods
-    private double GetScaledNavPaneWidth() => ScaleToFontSize(155);
+    private double GetScaledMenuWidth() => ScaleToFontSize(BaseMenuWidth);
 
     private double ScaleToFontSize(double baseValue)
     {

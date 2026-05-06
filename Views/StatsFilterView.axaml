@@ -9,6 +9,12 @@
              x:DataType="vm:MainWindowViewModel"
              FontSize="{DynamicResource GlobalFontSize}">
 
+    <UserControl.Styles>
+        <Style Selector="ComboBox#GenreComboBox /template/ Popup">
+            <Setter Property="Width" Value="300" />
+        </Style>
+    </UserControl.Styles>
+
     <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
             BorderThickness="1"
             Margin="0,2.5,0,0"
@@ -87,7 +93,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                     IsVisible="{Binding IsGenreFilterMode}">
                             <TextBlock Text="Genre:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
-                            <ComboBox ItemsSource="{Binding AvailableGenres}" SelectedItem="{Binding GenreFilterSelection}" MinWidth="200" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="GenreComboBox" ItemsSource="{Binding AvailableGenres}" SelectedItem="{Binding GenreFilterSelection}" Width="230" VerticalAlignment="Center"/>
                             <Button Classes="icon" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>

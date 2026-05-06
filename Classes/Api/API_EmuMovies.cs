@@ -9,7 +9,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Classes.Api
@@ -284,7 +283,9 @@ namespace Gamelist_Manager.Classes.Api
             }
             catch (HttpRequestException ex)
             {
-                return (false, string.Empty, $"HTTP request failed: {ex.Message}");
+                int lastColon = ex.Message.LastIndexOf(':');
+                string reason = lastColon >= 0 ? ex.Message[(lastColon + 1)..].Trim() : ex.Message;
+                return (false, string.Empty, reason);
             }
             catch (JsonException ex)
             {

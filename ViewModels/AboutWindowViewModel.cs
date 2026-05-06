@@ -25,7 +25,7 @@ namespace Gamelist_Manager.ViewModels
         [RelayCommand]
         private void OpenGitHub()
         {
-            OpenUrl("https://github.com/RobG66/Gamelist-Manager-Avalonia");
+            OpenUrl("https://github.com/RobG66/Gamelist-Manager");
         }
 
         [RelayCommand]

@@ -7,11 +7,11 @@ namespace Gamelist_Manager.Classes.Helpers
 {
     internal class FileTransferHelper
     {
-        private readonly HttpClient _httpClientService;
+        private readonly HttpClient _httpClient;
 
-        public FileTransferHelper(HttpClient httpClientService)
+        public FileTransferHelper(HttpClient httpClient)
         {
-            _httpClientService = httpClientService;
+            _httpClient = httpClient;
         }
 
         public async Task<bool> DownloadFile(
@@ -59,7 +59,7 @@ namespace Gamelist_Manager.Classes.Helpers
                 }
 
                 using HttpResponseMessage response =
-                    await _httpClientService.SendAsync(
+                    await _httpClient.SendAsync(
                         request,
                         HttpCompletionOption.ResponseHeadersRead);
 

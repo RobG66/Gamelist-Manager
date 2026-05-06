@@ -35,7 +35,9 @@ namespace Gamelist_Manager.Classes.Api
             }
             catch (HttpRequestException ex)
             {
-                return (false, string.Empty, $"HTTP request failed: {ex.Message}");
+                int lastColon = ex.Message.LastIndexOf(':');
+                string reason = lastColon >= 0 ? ex.Message[(lastColon + 1)..].Trim() : ex.Message;
+                return (false, string.Empty, reason);
             }
             catch (Exception ex)
             {
@@ -48,15 +50,19 @@ namespace Gamelist_Manager.Classes.Api
             if (string.IsNullOrEmpty(cacheFolder) || string.IsNullOrEmpty(json))
                 return;
 
+            Directory.CreateDirectory(cacheFolder);
+            string filePath = Path.Combine(cacheFolder, $"{romName}.json");
+            string tmpPath = filePath + ".tmp";
+
             try
             {
-                Directory.CreateDirectory(cacheFolder);
-                string filePath = Path.Combine(cacheFolder, $"{romName}.json");
-                File.WriteAllText(filePath, json);
+                File.WriteAllText(tmpPath, json);
+                File.Move(tmpPath, filePath, overwrite: true);
             }
             catch
             {
                 // Ignore cache write errors
+                try { File.Delete(tmpPath); } catch { }
             }
         }
 
@@ -253,7 +259,7 @@ namespace Gamelist_Manager.Classes.Api
             return result;
         }
 
-        public async Task<(bool Success, ScrapedGameData Data, List<string> Messages)> ScrapeArcadeDBAsync(ScraperParameters parameters)
+        public async Task<(bool Success, ScrapedGameData Data, List<string> Messages)> ScrapeArcadeDBAsync(ScraperParameters parameters, CancellationToken cancellationToken = default)
         {
             var messages = new List<string>();
 
@@ -296,13 +302,13 @@ namespace Gamelist_Manager.Classes.Api
             {
                 // Fetch metadata
                 string metadataUrl = $"{ApiUrl}?ajax=query_mame&game_name={romName}";
-                var (metadataFetched, metadataJson, metadataError) = await FetchFromApi(metadataUrl);
+                var (metadataFetched, metadataJson, metadataError) = await FetchFromApi(metadataUrl, cancellationToken);
 
                 if (!metadataFetched)
                 {
                     messages.Add(string.IsNullOrEmpty(metadataError)
                         ? $"Failed to retrieve metadata from ArcadeDB for {romName}"
-                        : metadataError);
+                        : $"{romName}: {metadataError}");
                 }
                 else
                 {
@@ -322,13 +328,13 @@ namespace Gamelist_Manager.Classes.Api
 
                 // Fetch media
                 string mediaUrl = $"{ApiUrl}?ajax=query_mame_media&game_name={romName}";
-                var (mediaFetched, mediaJson, mediaError) = await FetchFromApi(mediaUrl);
+                var (mediaFetched, mediaJson, mediaError) = await FetchFromApi(mediaUrl, cancellationToken);
 
                 if (!mediaFetched)
                 {
                     messages.Add(string.IsNullOrEmpty(mediaError)
                         ? $"Failed to retrieve media from ArcadeDB for {romName}"
-                        : mediaError);
+                        : $"{romName}: {mediaError}");
                 }
                 else
                 {

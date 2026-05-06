@@ -215,7 +215,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             {
                 mediaItem.DisposeVideoPlayer();
                 if (mediaItem.FileExists)
-                        mediaItem.InitializeVideoPlayer(LibVLC, EffectiveAutoPlay);
+                    mediaItem.InitializeVideoPlayer(LibVLC, EffectiveAutoPlay);
             }
 
             SetStatus($"Successfully added {mediaType}", "ok");

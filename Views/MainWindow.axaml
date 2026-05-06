@@ -32,8 +32,8 @@
 	</Design.DataContext>
 
 	<Panel>
-		<SplitView IsPaneOpen="{Binding IsPaneOpen}"
-				   OpenPaneLength="{Binding NavPaneWidth}"
+		<SplitView IsPaneOpen="{Binding IsMenuOpen}"
+				   OpenPaneLength="{Binding MenuWidth}"
 				   CompactPaneLength="45"
 				   DisplayMode="CompactInline"
 				   PanePlacement="Left"
@@ -136,14 +136,14 @@
 														</MenuItem.Icon>
 													</MenuItem>
 													<Separator/>
-													<MenuItem Header="Remove Selected Item"
+													<MenuItem Header="Remove Selected Items"
 															  Command="{Binding RemoveSelectedItemsCommand}"
 															  ToolTip.Tip="Remove selected item from gamelist, no files are deleted">
 														<MenuItem.Icon>
 															<Image Source="/Assets/Icons/remove1.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 														</MenuItem.Icon>
 													</MenuItem>
-													<MenuItem Header="Delete Selected Item"
+													<MenuItem Header="Delete Selected Items"
 															  Command="{Binding DeleteSelectedItemsCommand}"
 															  IsEnabled="{Binding IsDeleteEnabled}"
 															  ToolTip.Tip="Permanently deletes the selected items and their media files">
@@ -216,16 +216,16 @@
 
 										<!-- File Status Bar -->
 										<Border Grid.Row="1"
-												BorderThickness="0,1,0,0"
-												BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-												Background="{DynamicResource StatusBarBackground}"
-												CornerRadius="0,0,4,4"
-												Padding="8,3">
+													BorderThickness="0,1,0,0"
+													BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+													Background="{DynamicResource StatusBarBackground}"
+													CornerRadius="0,0,4,4"
+													Height="22"
+													Padding="8,0">
 											<Grid>
 												<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
 													<Button Grid.Column="0"
-															Classes="icon"
-															Padding="2,1"
+															Classes="pill"
 															Command="{Binding ClearReportColumnsCommand}"
 															IsVisible="{Binding HasReportColumns}"
 															ToolTip.Tip="Clear report columns"

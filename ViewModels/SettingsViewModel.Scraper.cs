@@ -154,16 +154,16 @@ public partial class SettingsViewModel
             ScraperLanguages.Add(lang);
 
         var settings = SettingsService.Instance;
-        var savedLanguage = settings.GetValue(SettingKeys.ScraperSection, "ScreenScraper_Language", string.Empty);
+        var savedLanguage = settings.GetValue(SettingKeys.ScreenScraperLanguage);
         SelectedScraperLanguage = ScraperLanguages.FirstOrDefault(l => l == savedLanguage) ?? ScraperLanguages.FirstOrDefault();
 
-        var savedRegion = settings.GetValue(SettingKeys.ScraperSection, "ScreenScraper_PrimaryRegion", string.Empty);
+        var savedRegion = settings.GetValue(SettingKeys.ScreenScraperPrimaryRegion);
         SelectedScraperPrimaryRegion = ScraperPrimaryRegions.FirstOrDefault(r => r == savedRegion) ?? ScraperPrimaryRegions.FirstOrDefault();
 
-        ScraperGenreAlwaysEnglish = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_GenreEnglish", false);
-        ScraperScrapeAnyMedia = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_AnyMedia", false);
-        ScraperNamesLanguageFirst = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_NamesLanguageFirst", false);
-        ScraperMediaRegionFirst = settings.GetBool(SettingKeys.ScraperSection, "ScreenScraper_MediaRegionFirst", false);
+        ScraperGenreAlwaysEnglish = settings.GetBool(SettingKeys.ScreenScraperGenreEnglish);
+        ScraperScrapeAnyMedia = settings.GetBool(SettingKeys.ScreenScraperAnyMedia);
+        ScraperNamesLanguageFirst = settings.GetBool(SettingKeys.ScreenScraperNamesLanguageFirst);
+        ScraperMediaRegionFirst = settings.GetBool(SettingKeys.ScreenScraperMediaRegionFirst);
 
         LoadScraperFallbackRegions();
     }
@@ -176,7 +176,7 @@ public partial class SettingsViewModel
         foreach (var region in ScraperPrimaryRegions)
             ScraperAvailableRegions.Add(region);
 
-        var json = SettingsService.Instance.GetValue(SettingKeys.ScraperSection, "ScreenScraper_RegionFallback", DefaultFallbackJson);
+        var json = SettingsService.Instance.GetValue(SettingKeys.ScreenScraperRegionFallback);
         List<string> fallback;
         try { fallback = JsonSerializer.Deserialize<List<string>>(json) ?? []; }
         catch { fallback = JsonSerializer.Deserialize<List<string>>(DefaultFallbackJson) ?? []; }
@@ -277,7 +277,7 @@ public partial class SettingsViewModel
     [RelayCommand]
     private void ResetScraperFallback()
     {
-        SettingsService.Instance.SetValue("Scraper", "ScreenScraper_RegionFallback", DefaultFallbackJson);
+        SettingsService.Instance.SetValue(SettingKeys.ScraperOptionsSection, SettingKeys.ScreenScraperRegionFallback.Key, DefaultFallbackJson);
         LoadScraperFallbackRegions();
     }
 

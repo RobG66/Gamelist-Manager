@@ -6,7 +6,6 @@ using Gamelist_Manager.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,6 +53,8 @@ public partial class ScraperViewModel
         var logVerbosity = _sharedData.LogVerbosity;
         var batchProcessing = _sharedData.BatchProcessing;
         var verifyImageDownloads = _sharedData.VerifyImageDownloads;
+        var overrideConcurrency = _sharedData.OverrideConcurrency;
+        var concurrencyOverride = _sharedData.ConcurrencyOverride;
         var profileType = _sharedData.ProfileType;
         var availableMedia = _sharedData.AvailableMedia;
 
@@ -65,6 +66,7 @@ public partial class ScraperViewModel
         scraperService.LogAction = Log;
         scraperService.ClearDownloadStats();
         Log($"Starting {currentScraper} scraper...", LogLevel.Success);
+        StartLogFileSession(currentScraper, currentSystem ?? "unknown");
 
         try
         {
@@ -98,6 +100,17 @@ public partial class ScraperViewModel
                 return;
             }
 
+            if (overrideConcurrency && concurrencyOverride >= 1)
+            {
+                int naturalMax = scraperProperties.MaxConcurrency;
+                scraperProperties.MaxConcurrency = Math.Min(naturalMax, concurrencyOverride);
+
+                if (concurrencyOverride >= naturalMax)
+                    Log($"Concurrency override ({concurrencyOverride}) ignored — scraper max is {naturalMax}.", LogLevel.Info);
+                else
+                    Log($"Concurrency override: {concurrencyOverride} of {naturalMax} threads.", LogLevel.Info);
+            }
+
             var rowsToScrape = GetRowsToScrape();
             if (rowsToScrape.Count == 0)
             {
@@ -115,14 +128,34 @@ public partial class ScraperViewModel
             bool completed = await scraperService.RunScrapeAsync(
                 baseParameters, scraperProperties, rowsToScrape,
                 maxBatch,
-                (current, total, item) => Dispatcher.UIThread.Post(() => UpdateScrapeProgress(current, total, item)),
-                (progress, max) => Dispatcher.UIThread.Post(() => LimitText = $"{progress}/{max}"),
-                () => _sharedData.IsDataChanged = true,
+                new ScrapingCallbacks(
+                    OnProgress: (current, total, item) =>
+                    {
+                        var now = DateTime.Now;
+                        if (current == total || (now - _lastProgressUpdate).TotalMilliseconds >= 100)
+                        {
+                            _lastProgressUpdate = now;
+                            Dispatcher.UIThread.Post(() => UpdateScrapeProgress(current, total, item), Avalonia.Threading.DispatcherPriority.Background);
+                        }
+                    },
+                    OnLimitUpdate: (progress, max) => Dispatcher.UIThread.Post(() => LimitText = $"{progress}/{max}"),
+                    OnDataChanged: () => _sharedData.IsDataChanged = true,
+                    OnQuotaExceeded: () =>
+                    {
+                        _cts?.Cancel();
+                        Dispatcher.UIThread.Post(() => Log("Daily API quota reached — scraping stopped.", LogLevel.Warning));
+                    }),
                 _cts.Token);
 
             scraperService.LogDownloadSummary();
             if (completed)
-                Log("Scraping complete!", LogLevel.Success);
+            {
+                var elapsed = DateTime.Now - _startTime;
+                string timeStr = elapsed.TotalHours >= 1
+                    ? elapsed.ToString(@"h\:mm\:ss")
+                    : elapsed.ToString(@"m\:ss");
+                Log($"Scraping complete! ({timeStr})", LogLevel.Success);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -134,6 +167,7 @@ public partial class ScraperViewModel
         }
         finally
         {
+            await StopLogFileSession();
             await Task.Delay(2000);
             IsScraping = false;
             CurrentScrapeText = "N/A";
@@ -196,61 +230,5 @@ public partial class ScraperViewModel
     }
 
     private List<string> BuildElementsToScrape()
-    {
-        var elements = new List<string>();
-        if (MetaName) elements.Add("name");
-        if (MetaDescription) elements.Add("desc");
-        if (MetaGenre) elements.Add("genre");
-        if (MetaPlayers) elements.Add("players");
-        if (MetaRating) elements.Add("rating");
-        if (MetaRegion) elements.Add("region");
-        if (MetaLanguage) elements.Add("lang");
-        if (MetaReleaseDate) elements.Add("releasedate");
-        if (MetaDeveloper) elements.Add("developer");
-        if (MetaPublisher) elements.Add("publisher");
-        if (MetaArcadeName) elements.Add("arcadesystemname");
-        if (MetaFamily) elements.Add("family");
-        if (MetaGameId) elements.Add("id");
-        if (MediaTitleshot) elements.Add("titleshot");
-        if (MediaMap) elements.Add("map");
-        if (MediaManual) elements.Add("manual");
-        if (MediaBezel) elements.Add("bezel");
-        if (MediaFanArt) elements.Add("fanart");
-        if (MediaBoxBack) elements.Add("boxback");
-        if (MediaMusic) elements.Add("music");
-        if (MediaImage) elements.Add("image");
-        if (MediaMarquee) elements.Add("marquee");
-        if (MediaThumbnail) elements.Add("thumbnail");
-        if (MediaCartridge) elements.Add("cartridge");
-        if (MediaVideo) elements.Add("video");
-        if (MediaBoxArt) elements.Add("boxart");
-        if (MediaMix) elements.Add("mix");
-        if (MediaWheel) elements.Add("wheel");
-        return elements;
-    }
-
-    private static void RestoreSource(ObservableCollection<string> collection, string savedValue, Action<int> setIndex)
-    {
-        if (string.IsNullOrEmpty(savedValue) || collection.Count == 0) return;
-        var idx = collection.IndexOf(savedValue);
-        if (idx >= 0) setIndex(idx);
-    }
-
-    private void ApplySource(ObservableCollection<string> collection, string sectionName, Action<int> setIndex, out bool enabled)
-    {
-        collection.Clear();
-        var sources = ScraperConfigService.Instance.GetScraperSources(CurrentScraper, sectionName);
-        if (sources.Count > 0)
-        {
-            foreach (var key in sources.Keys)
-                collection.Add(key);
-            setIndex(0);
-            enabled = true;
-        }
-        else
-        {
-            setIndex(-1);
-            enabled = false;
-        }
-    }
+        => GetBoolToggles().Where(t => t.GetValue()).Select(t => t.ElementKey).ToList();
 }

@@ -1,4 +1,3 @@
-using Gamelist_Manager.Classes.Api;
 using Gamelist_Manager.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -19,30 +18,29 @@ namespace Gamelist_Manager.Classes.Helpers
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient("ScraperClient", client =>
+            services.AddHttpClient(HttpClientNames.Scraper, client =>
             {
-                client.Timeout = TimeSpan.FromSeconds(30);
+                client.Timeout = TimeSpan.FromSeconds(40);
             })
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
-                MaxConnectionsPerServer = 50
+                MaxConnectionsPerServer = 100
             });
 
-            services.AddHttpClient("MediaDropClient", client =>
+            services.AddHttpClient(HttpClientNames.ScreenScraper, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(40);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                MaxConnectionsPerServer = 100
+            });
+
+            services.AddHttpClient(HttpClientNames.MediaDrop, client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
             });
 
-            services.AddHttpClient<API_ScreenScraper>("ScraperClient");
-            services.AddHttpClient<API_ArcadeDB>("ScraperClient");
-            services.AddHttpClient<API_EmuMovies>("ScraperClient");
-            services.AddHttpClient<FileTransferHelper>("ScraperClient");
-            services.AddTransient(sp =>
-            {
-                var factory = sp.GetRequiredService<IHttpClientFactory>();
-                var client = factory.CreateClient("ScraperClient");
-                return new EmuMoviesMediaCacheHelper(client, Secrets.EmuMoviesBearerToken);
-            });
             services.AddSingleton(SharedDataService.Instance);
             services.AddTransient<ScraperService>();
         }

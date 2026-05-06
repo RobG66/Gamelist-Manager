@@ -30,7 +30,7 @@
                                FontSize="{DynamicResource GlobalSmallFontSize}"
                                Opacity="0.6"/>
                 </StackPanel>
-                <TextBox Grid.Column="2"
+                <TextBox x:Name="SearchBox" Grid.Column="2"
                          Text="{Binding SearchText}"
                          PlaceholderText="Search systems..."
                          VerticalAlignment="Center"/>

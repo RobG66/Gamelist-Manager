@@ -50,6 +50,9 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private int _defaultVolume = 75;
         [ObservableProperty] private int _maxUndo = 5;
         [ObservableProperty] private bool _removeZZZNotGamePrefix = true;
+        [ObservableProperty] private bool _overrideConcurrency;
+        [ObservableProperty] private int _concurrencyOverride = 1;
+        [ObservableProperty] private bool _logToDisk;
         [ObservableProperty] private int _searchDepth = 2;
         [ObservableProperty] private int _maxBatch = 300;
         [ObservableProperty] private int _recentFilesCount = 15;
@@ -141,6 +144,10 @@ namespace Gamelist_Manager.Services
             UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
             MediaViewerScaledDisplay = settings.GetBool(SettingKeys.ScaledDisplay);
             RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
+
+            OverrideConcurrency = settings.GetBool(SettingKeys.OverrideConcurrency);
+            ConcurrencyOverride = settings.GetInt(SettingKeys.ConcurrencyOverride);
+            LogToDisk = settings.GetBool(SettingKeys.LogToDisk);
 
             DefaultVolume = settings.GetInt(SettingKeys.Volume);
             MaxUndo = settings.GetInt(SettingKeys.MaxUndo);

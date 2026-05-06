@@ -13,7 +13,7 @@ namespace Gamelist_Manager.Classes.Helpers
             try
             {
                 var factory = Startup.Services.GetRequiredService<System.Net.Http.IHttpClientFactory>();
-                using var httpClient = factory.CreateClient("MediaDropClient");
+                using var httpClient = factory.CreateClient(HttpClientNames.MediaDrop);
 
                 var response = await httpClient.GetAsync(url);
                 response.EnsureSuccessStatusCode();

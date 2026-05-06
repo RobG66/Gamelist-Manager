@@ -34,7 +34,7 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Observable Properties
-    [ObservableProperty] private bool _isPaneOpen = true;
+    [ObservableProperty] private bool _isMenuOpen = true;
     [ObservableProperty] private bool _isSaveEnabled;
     [ObservableProperty] private bool _isGamelistLoaded;
     [ObservableProperty] private bool _isAlwaysOnTop;
@@ -76,7 +76,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string PersistentSelectionMenuHeader =>
         IsPersistentSelectionEnabled ? "Disable Persistent Selection" : "Enable Persistent Selection";
 
-  
+
     public IList? SelectedGames
     {
         get => _selectedGames;
@@ -175,7 +175,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _selectedFindColumn = SearchableColumns.FirstOrDefault();
         _selectedReplaceColumn = SearchableColumns.FirstOrDefault();
 
-        NavPaneWidth = GetScaledNavPaneWidth();
+        MenuWidth = GetScaledMenuWidth();
 
         _ = MediaPreviewViewModel.PreloadLibVLCAsync().ContinueWith(
             _ => OnPropertyChanged(nameof(IsLibVLCMissing)),
@@ -254,7 +254,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Commands
     [RelayCommand]
-    public void TriggerPane() => IsPaneOpen = !IsPaneOpen;
+    public void TriggerMenu() => IsMenuOpen = !IsMenuOpen;
 
     [RelayCommand]
     private void ToggleEditMode() => IsEditModeEnabled = !IsEditModeEnabled;
@@ -297,7 +297,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "https://github.com/RobG66/Gamelist-Manager-Avalonia/issues",
+                FileName = "https://github.com/RobG66/Gamelist-Manager/issues",
                 UseShellExecute = true
             });
         }

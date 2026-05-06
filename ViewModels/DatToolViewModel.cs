@@ -145,11 +145,11 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
         string columnName = value switch
         {
-            1 => "DAT: Parents",
-            2 => "DAT: Clones",
-            3 => "DAT: CHD",
-            4 => "DAT: Non-Playable",
-            5 => "DAT: Not In DAT",
+            1 => "Parents",
+            2 => "Clones",
+            3 => "Requires CHD",
+            4 => "Non-Playable",
+            5 => "Not In DAT",
             _ => string.Empty
         };
 

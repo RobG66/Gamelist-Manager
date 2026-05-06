@@ -39,6 +39,8 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _confirmBulkChanges;
     [ObservableProperty] private bool _enableSaveReminder;
     [ObservableProperty] private bool _verifyImageDownloads;
+    [ObservableProperty] private bool _overrideConcurrency;
+    [ObservableProperty] private int _concurrencyOverride = 1;
     [ObservableProperty] private bool _videoAutoplay;
     [ObservableProperty] private bool _rememberColumns;
     [ObservableProperty] private bool _rememberAutosize;
@@ -48,6 +50,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _removeZZZNotGamePrefix;
     [ObservableProperty] private bool _useSimpleSystemPicker;
     [ObservableProperty] private bool _showLogTimestamp;
+    [ObservableProperty] private bool _logToDisk;
     [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
 
     [ObservableProperty] private int _scraperConfigSaveIndex;
@@ -132,6 +135,8 @@ public partial class SettingsViewModel : ViewModelBase
             ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
             EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
             VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
+            OverrideConcurrency = settings.GetBool(SettingKeys.OverrideConcurrency);
+            ConcurrencyOverride = settings.GetInt(SettingKeys.ConcurrencyOverride);
             VideoAutoplay = settings.GetBool(SettingKeys.VideoAutoplay);
             RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
             RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
@@ -140,6 +145,7 @@ public partial class SettingsViewModel : ViewModelBase
             IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
             BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
             ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
+            LogToDisk = settings.GetBool(SettingKeys.LogToDisk);
             CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
             UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
 
@@ -226,16 +232,13 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 [SettingKeys.ConfirmBulkChange.Key] = ConfirmBulkChanges.ToString(),
                 [SettingKeys.SaveReminder.Key] = EnableSaveReminder.ToString(),
-                [SettingKeys.VerifyDownloadedImages.Key] = VerifyImageDownloads.ToString(),
+                [SettingKeys.OverrideConcurrency.Key] = OverrideConcurrency.ToString(),
+                [SettingKeys.ConcurrencyOverride.Key] = ConcurrencyOverride.ToString(),
                 [SettingKeys.VideoAutoplay.Key] = VideoAutoplay.ToString(),
                 [SettingKeys.RememberColumns.Key] = RememberColumns.ToString(),
                 [SettingKeys.RememberAutoSize.Key] = RememberAutosize.ToString(),
                 [SettingKeys.EnableDelete.Key] = EnableDelete.ToString(),
                 [SettingKeys.IgnoreDuplicates.Key] = IgnoreDuplicates.ToString(),
-                [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
-                [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
-                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),
-                [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
                 [SettingKeys.CheckForNewAndMissingGamesOnLoad.Key] = CheckForNewAndMissingGamesOnLoad.ToString(),
                 [SettingKeys.UseSimpleSystemPicker.Key] = UseSimpleSystemPicker.ToString()
             },
@@ -283,15 +286,37 @@ public partial class SettingsViewModel : ViewModelBase
 
         if (IsSetupScreenScraper)
         {
-            settings[SettingKeys.ScraperSection] = new()
+            settings[SettingKeys.ScraperOptionsSection] = new()
             {
-                ["ScreenScraper_Language"] = SelectedScraperLanguage ?? string.Empty,
-                ["ScreenScraper_PrimaryRegion"] = SelectedScraperPrimaryRegion ?? string.Empty,
-                ["ScreenScraper_GenreEnglish"] = ScraperGenreAlwaysEnglish.ToString(),
-                ["ScreenScraper_AnyMedia"] = ScraperScrapeAnyMedia.ToString(),
-                ["ScreenScraper_NamesLanguageFirst"] = ScraperNamesLanguageFirst.ToString(),
-                ["ScreenScraper_MediaRegionFirst"] = ScraperMediaRegionFirst.ToString(),
-                ["ScreenScraper_RegionFallback"] = JsonSerializer.Serialize(ScraperFallbackRegions.ToList()),
+                [SettingKeys.ScreenScraperLanguage.Key] = SelectedScraperLanguage ?? string.Empty,
+                [SettingKeys.ScreenScraperPrimaryRegion.Key] = SelectedScraperPrimaryRegion ?? string.Empty,
+                [SettingKeys.ScreenScraperGenreEnglish.Key] = ScraperGenreAlwaysEnglish.ToString(),
+                [SettingKeys.ScreenScraperAnyMedia.Key] = ScraperScrapeAnyMedia.ToString(),
+                [SettingKeys.ScreenScraperNamesLanguageFirst.Key] = ScraperNamesLanguageFirst.ToString(),
+                [SettingKeys.ScreenScraperMediaRegionFirst.Key] = ScraperMediaRegionFirst.ToString(),
+                [SettingKeys.ScreenScraperRegionFallback.Key] = JsonSerializer.Serialize(ScraperFallbackRegions.ToList()),
+                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),
+                [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
+                [SettingKeys.VerifyDownloadedImages.Key] = VerifyImageDownloads.ToString(),
+                [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
+                [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
+                [SettingKeys.LogToDisk.Key] = LogToDisk.ToString(),
+                [SettingKeys.OverrideConcurrency.Key] = OverrideConcurrency.ToString(),
+                [SettingKeys.ConcurrencyOverride.Key] = ConcurrencyOverride.ToString(),
+            };
+        }
+        else
+        {
+            settings[SettingKeys.ScraperOptionsSection] = new()
+            {
+                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),
+                [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
+                [SettingKeys.VerifyDownloadedImages.Key] = VerifyImageDownloads.ToString(),
+                [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
+                [SettingKeys.ShowLogTimestamp.Key] = ShowLogTimestamp.ToString(),
+                [SettingKeys.LogToDisk.Key] = LogToDisk.ToString(),
+                [SettingKeys.OverrideConcurrency.Key] = OverrideConcurrency.ToString(),
+                [SettingKeys.ConcurrencyOverride.Key] = ConcurrencyOverride.ToString(),
             };
         }
 

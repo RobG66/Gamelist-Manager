@@ -4,8 +4,10 @@
              xmlns:models="using:Gamelist_Manager.Models"
              xmlns:behaviors="clr-namespace:Gamelist_Manager.Behaviors"
              xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:services="using:Gamelist_Manager.Services"
              x:Class="Gamelist_Manager.Views.ScraperView"
              x:DataType="vm:ScraperViewModel"
+             x:Name="scraperView"
              FontSize="{DynamicResource GlobalFontSize}"
              IsEnabled="{Binding !IsBusy}"
              Padding="2.5">
@@ -357,7 +359,7 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
-                                                                   IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                                   IsVisible="{Binding ShowLogTimestamp, Source={x:Static services:SharedDataService.Instance}}"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
                                                     </Grid>
@@ -394,7 +396,7 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
-                                                                   IsVisible="{Binding DataContext.ShowLogTimestamp, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                                   IsVisible="{Binding ShowLogTimestamp, Source={x:Static services:SharedDataService.Instance}}"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
                                                     </Grid>

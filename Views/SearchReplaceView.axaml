@@ -77,7 +77,7 @@
                          Margin="0,0,8,0"/>
                 <Button DockPanel.Dock="Left"
                         Content="{Binding ReplaceItemsButtonText}"
-                        Classes="rounded"
+                        Classes="rounded blue"
                         IsEnabled="{Binding IsReplaceEnabled}"
                         Margin="0,0,8,0"
                         Command="{Binding ToggleReplaceScopeCommand}"/>

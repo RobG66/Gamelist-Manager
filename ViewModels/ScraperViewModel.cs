@@ -1,12 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -22,6 +25,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private bool _isDisposed;
     private CancellationTokenSource? _cts;
     private DateTime _startTime;
+    private DateTime _lastProgressUpdate;
     private int _scrapeSuccessCount;
     private int _scrapeFailedCount;
     private int _dlSuccessCount;
@@ -247,6 +251,37 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     #region Private Methods
 
+    private void RefreshCacheCount()
+    {
+        if (CurrentScraper == ScraperRegistry.EmuMovies.Name)
+        {
+            IsClearCacheEnabled = false;
+            return;
+        }
+
+        string system = _sharedData?.CurrentSystem ?? string.Empty;
+        if (string.IsNullOrEmpty(system))
+        {
+            CacheCountText = "0 items cached";
+            IsClearCacheEnabled = false;
+            return;
+        }
+
+        string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
+        var files = Directory.Exists(cacheFolder) ? Directory.GetFiles(cacheFolder) : [];
+
+        if (files.Length == 0)
+        {
+            IsClearCacheEnabled = false;
+            CacheCountText = "Cache is empty";
+        }
+        else
+        {
+            CacheCountText = $"{files.Length} items cached";
+            IsClearCacheEnabled = true;
+        }
+    }
+
     private void LoadScraperSettings()
     {
         var key = ScraperSettingsKey;
@@ -258,11 +293,18 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             key = ScraperSettingsKey; // recompute after CurrentScraper is set
         }
 
-        ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeAllMode", SettingKeys.ScrapeAllMode.Default);
+        LoadGeneralSettings(key);
+        ApplyScraperCapabilities();
+        RestoreToggleValues(key);
+    }
+
+    private void LoadGeneralSettings(string key)
+    {
+        ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeAllMode", SettingKeys.ScrapeAllMode.Default);
         ScrapeSelectedMode = !ScrapeAllMode;
-        OverwriteName = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteName", SettingKeys.OverwriteName.Default);
-        OverwriteMedia = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteMedia", SettingKeys.OverwriteMedia.Default);
-        ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeHiddenItems", SettingKeys.ScrapeHiddenItems.Default);
+        OverwriteName = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteName", SettingKeys.OverwriteName.Default);
+        OverwriteMedia = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMedia", SettingKeys.OverwriteMedia.Default);
+        ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeHiddenItems", SettingKeys.ScrapeHiddenItems.Default);
         ShowLogTimestamp = _sharedData.ShowLogTimestamp;
 
         // Reset capability flags to defaults before applying scraper-specific overrides.
@@ -279,104 +321,65 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             OverwriteMetadataEnabled = false;
             OverwriteMetadata = false;
         }
+    }
 
+    private void ApplyScraperCapabilities()
+    {
         var scraperElements = GamelistMetaData.GetScraperElements(CurrentScraper);
+        var availableMedia = _sharedData.AvailableMedia;
+        bool HasMedia(string type) => availableMedia.Any(m => m.Type == type);
 
-        MetaNameEnabled = scraperElements.Contains("name");
-        MetaDescriptionEnabled = scraperElements.Contains("desc");
-        MetaGenreEnabled = scraperElements.Contains("genre");
-        MetaPlayersEnabled = scraperElements.Contains("players");
-        MetaRatingEnabled = scraperElements.Contains("rating");
-        MetaRegionEnabled = scraperElements.Contains("region");
-        MetaLanguageEnabled = scraperElements.Contains("lang");
-        MetaReleaseDateEnabled = scraperElements.Contains("releasedate");
-        MetaDeveloperEnabled = scraperElements.Contains("developer");
-        MetaPublisherEnabled = scraperElements.Contains("publisher");
-        MetaArcadeNameEnabled = scraperElements.Contains("arcadesystemname");
-        MetaFamilyEnabled = scraperElements.Contains("family");
-        MetaGameIdEnabled = scraperElements.Contains("id");
-
-        if (!MetaNameEnabled) MetaName = false;
-        if (!MetaDescriptionEnabled) MetaDescription = false;
-        if (!MetaGenreEnabled) MetaGenre = false;
-        if (!MetaPlayersEnabled) MetaPlayers = false;
-        if (!MetaRatingEnabled) MetaRating = false;
-        if (!MetaRegionEnabled) MetaRegion = false;
-        if (!MetaLanguageEnabled) MetaLanguage = false;
-        if (!MetaReleaseDateEnabled) MetaReleaseDate = false;
-        if (!MetaDeveloperEnabled) MetaDeveloper = false;
-        if (!MetaPublisherEnabled) MetaPublisher = false;
-        if (!MetaArcadeNameEnabled) MetaArcadeName = false;
-        if (!MetaFamilyEnabled) MetaFamily = false;
-        if (!MetaGameIdEnabled) MetaGameId = false;
-
-        MediaTitleshotEnabled = scraperElements.Contains("titleshot");
-        MediaMapEnabled = scraperElements.Contains("map");
-        MediaManualEnabled = scraperElements.Contains("manual");
-        MediaBezelEnabled = scraperElements.Contains("bezel");
-        MediaFanArtEnabled = scraperElements.Contains("fanart");
-        MediaBoxBackEnabled = scraperElements.Contains("boxback");
-        MediaMusicEnabled = scraperElements.Contains("music");
-
-        if (!MediaTitleshotEnabled) MediaTitleshot = false;
-        if (!MediaMapEnabled) MediaMap = false;
-        if (!MediaManualEnabled) MediaManual = false;
-        if (!MediaBezelEnabled) MediaBezel = false;
-        if (!MediaFanArtEnabled) MediaFanArt = false;
-        if (!MediaBoxBackEnabled) MediaBoxBack = false;
-        if (!MediaMusicEnabled) MediaMusic = false;
-
-        ApplySource(ImageSources, "ImageSource", v => SelectedImageSource = v, out bool imgEnabled);
-        MediaImageEnabled = imgEnabled;
-        if (!imgEnabled) MediaImage = false;
-
-        ApplySource(MarqueeSources, "MarqueeSource", v => SelectedMarqueeSource = v, out bool mrqEnabled);
-        MediaMarqueeEnabled = mrqEnabled;
-        if (!mrqEnabled) MediaMarquee = false;
-
-        ApplySource(ThumbnailSources, "ThumbnailSource", v => SelectedThumbnailSource = v, out bool thmEnabled);
-        MediaThumbnailEnabled = thmEnabled;
-        if (!thmEnabled) MediaThumbnail = false;
-
-        ApplySource(CartridgeSources, "CartridgeSource", v => SelectedCartridgeSource = v, out bool crtEnabled);
-        MediaCartridgeEnabled = crtEnabled;
-        if (!crtEnabled) MediaCartridge = false;
-
-        ApplySource(VideoSources, "VideoSource", v => SelectedVideoSource = v, out bool vidEnabled);
-        MediaVideoEnabled = vidEnabled;
-        if (!vidEnabled) MediaVideo = false;
-
-        ApplySource(BoxArtSources, "BoxArtSource", v => SelectedBoxArtSource = v, out bool boxEnabled);
-        MediaBoxArtEnabled = boxEnabled;
-        if (!boxEnabled) MediaBoxArt = false;
-
-        ApplySource(MixSources, "MixSource", v => SelectedMixSource = v, out bool mixEnabled);
-        MediaMixEnabled = mixEnabled;
-        if (!mixEnabled) MediaMix = false;
-
-        ApplySource(WheelSources, "WheelSource", v => SelectedWheelSource = v, out bool whlEnabled);
-        MediaWheelEnabled = whlEnabled;
-        if (!whlEnabled) MediaWheel = false;
-
-        ApplyMediaAvailability();
-
-        if (ScrapeFromCacheEnabled)
-            ScrapeFromCache = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_ScrapeFromCache", ScrapeFromCache);
-        if (SkipNonCachedItemsEnabled)
-            SkipNonCachedItems = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_SkipNonCachedItems", false);
-        if (OverwriteMetadataEnabled)
-            OverwriteMetadata = _settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_OverwriteMetadata", false);
-
-        foreach (var (name, getEnabled, _, setValue) in GetBoolToggles())
+        foreach (var t in GetBoolToggles())
         {
-            if (!getEnabled()) continue;
-            setValue(_settingsService.GetBool(SettingKeys.ScraperSection, $"{key}_{name}", false));
+            bool supported = scraperElements.Contains(t.ElementKey);
+            t.SetEnabled(supported);
+            if (!supported) t.SetValue(false);
         }
 
-        foreach (var (name, sources, _, setSelected) in GetSourceToggles())
+        // Source-backed toggles: enabled state comes from whether the scraper config provides sources.
+        foreach (var s in GetSourceToggles())
         {
-            string savedValue = _settingsService.GetValue(SettingKeys.ScraperSection, $"{key}_{name}", "");
-            RestoreSource(sources, savedValue, setSelected);
+            ApplySource(s.Sources, s.Name, s.SetSelected, out bool enabled);
+            var toggle = GetBoolToggles().FirstOrDefault(t => t.ElementKey == s.AvailabilityType);
+            toggle.SetEnabled(enabled);
+            if (!enabled) toggle.SetValue(false);
+        }
+
+        // Further restrict: disable any media type not present in the current folder setup.
+        foreach (var t in GetBoolToggles().Where(t => t.IsMedia))
+        {
+            if (!HasMedia(t.ElementKey)) { t.SetEnabled(false); t.SetValue(false); }
+        }
+        foreach (var s in GetSourceToggles())
+        {
+            if (!HasMedia(s.AvailabilityType))
+            {
+                var toggle = GetBoolToggles().FirstOrDefault(t => t.ElementKey == s.AvailabilityType);
+                toggle.SetEnabled(false);
+                toggle.SetValue(false);
+            }
+        }
+    }
+
+    private void RestoreToggleValues(string key)
+    {
+        if (ScrapeFromCacheEnabled)
+            ScrapeFromCache = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeFromCache", ScrapeFromCache);
+        if (SkipNonCachedItemsEnabled)
+            SkipNonCachedItems = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_SkipNonCachedItems", false);
+        if (OverwriteMetadataEnabled)
+            OverwriteMetadata = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMetadata", false);
+
+        foreach (var t in GetBoolToggles())
+        {
+            if (!t.GetEnabled()) continue;
+            t.SetValue(_settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_{t.Name}", false));
+        }
+
+        foreach (var s in GetSourceToggles())
+        {
+            string savedValue = _settingsService.GetValue(SettingKeys.ScrapersSection, $"{key}_{s.Name}", "");
+            RestoreSource(s.Sources, savedValue, s.SetSelected);
         }
 
         if (ScrapeFromCacheEnabled)
@@ -384,27 +387,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             SkipNonCachedItemsEnabled = ScrapeFromCache;
             if (!ScrapeFromCache) SkipNonCachedItems = false;
         }
-    }
-
-    private void ApplyMediaAvailability()
-    {
-        var media = _sharedData.AvailableMedia;
-        bool Has(string type) => media.Any(m => m.Type == type);
-        if (!Has("image"))     { MediaImageEnabled = false;     MediaImage = false; }
-        if (!Has("titleshot")) { MediaTitleshotEnabled = false; MediaTitleshot = false; }
-        if (!Has("marquee"))   { MediaMarqueeEnabled = false;   MediaMarquee = false; }
-        if (!Has("wheel"))     { MediaWheelEnabled = false;     MediaWheel = false; }
-        if (!Has("thumbnail")) { MediaThumbnailEnabled = false; MediaThumbnail = false; }
-        if (!Has("cartridge")) { MediaCartridgeEnabled = false; MediaCartridge = false; }
-        if (!Has("video"))     { MediaVideoEnabled = false;     MediaVideo = false; }
-        if (!Has("music"))     { MediaMusicEnabled = false;     MediaMusic = false; }
-        if (!Has("map"))       { MediaMapEnabled = false;       MediaMap = false; }
-        if (!Has("bezel"))     { MediaBezelEnabled = false;     MediaBezel = false; }
-        if (!Has("manual"))    { MediaManualEnabled = false;    MediaManual = false; }
-        if (!Has("fanart"))    { MediaFanArtEnabled = false;    MediaFanArt = false; }
-        if (!Has("boxart"))    { MediaBoxArtEnabled = false;    MediaBoxArt = false; }
-        if (!Has("mix"))       { MediaMixEnabled = false;       MediaMix = false; }
-        if (!Has("boxback"))   { MediaBoxBackEnabled = false;   MediaBoxBack = false; }
     }
 
     private string BuildScraperKey(string scraper, string system)
@@ -418,79 +400,201 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     {
         if (_settingsService is null) return;
 
+        var panelValues = new Dictionary<string, string>();
 
-        var values = new Dictionary<string, string>
+        panelValues[$"{key}_ScrapeAllMode"] = ScrapeAllMode.ToString();
+        panelValues[$"{key}_OverwriteName"] = OverwriteName.ToString();
+        panelValues[$"{key}_OverwriteMedia"] = OverwriteMedia.ToString();
+        panelValues[$"{key}_ScrapeHiddenItems"] = ScrapeHiddenItems.ToString();
+        panelValues[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
+        panelValues[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
+        panelValues[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
+
+        foreach (var t in GetBoolToggles())
+            panelValues[$"{key}_{t.Name}"] = t.GetValue().ToString();
+
+        foreach (var s in GetSourceToggles())
         {
-            [SettingKeys.SelectedScraper.Key] = CurrentScraper,
-        };
-
-        values[$"{key}_ScrapeAllMode"] = ScrapeAllMode.ToString();
-        values[$"{key}_OverwriteName"] = OverwriteName.ToString();
-        values[$"{key}_OverwriteMedia"] = OverwriteMedia.ToString();
-        values[$"{key}_ScrapeHiddenItems"] = ScrapeHiddenItems.ToString();
-        values[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
-        values[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
-        values[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
-
-        foreach (var (name, _, getValue, _) in GetBoolToggles())
-            values[$"{key}_{name}"] = getValue().ToString();
-
-        foreach (var (name, sources, getSelected, _) in GetSourceToggles())
-        {
-            int idx = getSelected();
-            values[$"{key}_{name}"] = idx >= 0 && idx < sources.Count ? sources[idx] : "";
+            int idx = s.GetSelected();
+            panelValues[$"{key}_{s.Name}"] = idx >= 0 && idx < s.Sources.Count ? s.Sources[idx] : "";
         }
 
         _settingsService.SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
         {
-            [SettingKeys.ScraperSection] = values
+            [SettingKeys.ScraperOptionsSection] = new() { [SettingKeys.SelectedScraper.Key] = CurrentScraper },
+            [SettingKeys.ScrapersSection] = panelValues
         });
     }
 
 
-    private (string Name, Func<bool> GetEnabled, Func<bool> GetValue, Action<bool> SetValue)[] GetBoolToggles() =>
+    // Name       = settings key suffix
+    // ElementKey = scraper element string used in scraperElements / BuildElementsToScrape
+    // IsMedia    = true for media toggles, false for metadata
+    // GetEnabled / GetValue / SetValue / SetEnabled = property accessors
+    private (string Name, string ElementKey, bool IsMedia, Func<bool> GetEnabled, Action<bool> SetEnabled, Func<bool> GetValue, Action<bool> SetValue)[] GetBoolToggles() =>
     [
-        ("MetaName", () => MetaNameEnabled, () => MetaName, v => MetaName = v),
-        ("MetaDescription", () => MetaDescriptionEnabled, () => MetaDescription, v => MetaDescription = v),
-        ("MetaGenre", () => MetaGenreEnabled, () => MetaGenre, v => MetaGenre = v),
-        ("MetaPlayers", () => MetaPlayersEnabled, () => MetaPlayers, v => MetaPlayers = v),
-        ("MetaRating", () => MetaRatingEnabled, () => MetaRating, v => MetaRating = v),
-        ("MetaRegion", () => MetaRegionEnabled, () => MetaRegion, v => MetaRegion = v),
-        ("MetaLanguage", () => MetaLanguageEnabled, () => MetaLanguage, v => MetaLanguage = v),
-        ("MetaReleaseDate", () => MetaReleaseDateEnabled, () => MetaReleaseDate, v => MetaReleaseDate = v),
-        ("MetaDeveloper", () => MetaDeveloperEnabled, () => MetaDeveloper, v => MetaDeveloper = v),
-        ("MetaPublisher", () => MetaPublisherEnabled, () => MetaPublisher, v => MetaPublisher = v),
-        ("MetaArcadeName", () => MetaArcadeNameEnabled, () => MetaArcadeName, v => MetaArcadeName = v),
-        ("MetaFamily", () => MetaFamilyEnabled, () => MetaFamily, v => MetaFamily = v),
-        ("MetaGameId", () => MetaGameIdEnabled, () => MetaGameId, v => MetaGameId = v),
-        ("MediaTitleshot", () => MediaTitleshotEnabled, () => MediaTitleshot, v => MediaTitleshot = v),
-        ("MediaMap", () => MediaMapEnabled, () => MediaMap, v => MediaMap = v),
-        ("MediaManual", () => MediaManualEnabled, () => MediaManual, v => MediaManual = v),
-        ("MediaBezel", () => MediaBezelEnabled, () => MediaBezel, v => MediaBezel = v),
-        ("MediaFanArt", () => MediaFanArtEnabled, () => MediaFanArt, v => MediaFanArt = v),
-        ("MediaBoxBack", () => MediaBoxBackEnabled, () => MediaBoxBack, v => MediaBoxBack = v),
-        ("MediaMusic", () => MediaMusicEnabled, () => MediaMusic, v => MediaMusic = v),
-        ("MediaImage", () => MediaImageEnabled, () => MediaImage, v => MediaImage = v),
-        ("MediaMarquee", () => MediaMarqueeEnabled, () => MediaMarquee, v => MediaMarquee = v),
-        ("MediaThumbnail", () => MediaThumbnailEnabled, () => MediaThumbnail, v => MediaThumbnail = v),
-        ("MediaCartridge", () => MediaCartridgeEnabled, () => MediaCartridge, v => MediaCartridge = v),
-        ("MediaVideo", () => MediaVideoEnabled, () => MediaVideo, v => MediaVideo = v),
-        ("MediaBoxArt", () => MediaBoxArtEnabled, () => MediaBoxArt, v => MediaBoxArt = v),
-        ("MediaMix", () => MediaMixEnabled, () => MediaMix, v => MediaMix = v),
-        ("MediaWheel", () => MediaWheelEnabled, () => MediaWheel, v => MediaWheel = v),
+        ("MetaName",        "name",             false, () => MetaNameEnabled,         v => MetaNameEnabled = v,         () => MetaName,        v => MetaName = v),
+        ("MetaDescription", "desc",             false, () => MetaDescriptionEnabled,  v => MetaDescriptionEnabled = v,  () => MetaDescription, v => MetaDescription = v),
+        ("MetaGenre",       "genre",            false, () => MetaGenreEnabled,        v => MetaGenreEnabled = v,        () => MetaGenre,       v => MetaGenre = v),
+        ("MetaPlayers",     "players",          false, () => MetaPlayersEnabled,      v => MetaPlayersEnabled = v,      () => MetaPlayers,     v => MetaPlayers = v),
+        ("MetaRating",      "rating",           false, () => MetaRatingEnabled,       v => MetaRatingEnabled = v,       () => MetaRating,      v => MetaRating = v),
+        ("MetaRegion",      "region",           false, () => MetaRegionEnabled,       v => MetaRegionEnabled = v,       () => MetaRegion,      v => MetaRegion = v),
+        ("MetaLanguage",    "lang",             false, () => MetaLanguageEnabled,     v => MetaLanguageEnabled = v,     () => MetaLanguage,    v => MetaLanguage = v),
+        ("MetaReleaseDate", "releasedate",      false, () => MetaReleaseDateEnabled,  v => MetaReleaseDateEnabled = v,  () => MetaReleaseDate, v => MetaReleaseDate = v),
+        ("MetaDeveloper",   "developer",        false, () => MetaDeveloperEnabled,    v => MetaDeveloperEnabled = v,    () => MetaDeveloper,   v => MetaDeveloper = v),
+        ("MetaPublisher",   "publisher",        false, () => MetaPublisherEnabled,    v => MetaPublisherEnabled = v,    () => MetaPublisher,   v => MetaPublisher = v),
+        ("MetaArcadeName",  "arcadesystemname", false, () => MetaArcadeNameEnabled,   v => MetaArcadeNameEnabled = v,   () => MetaArcadeName,  v => MetaArcadeName = v),
+        ("MetaFamily",      "family",           false, () => MetaFamilyEnabled,       v => MetaFamilyEnabled = v,       () => MetaFamily,      v => MetaFamily = v),
+        ("MetaGameId",      "id",               false, () => MetaGameIdEnabled,       v => MetaGameIdEnabled = v,       () => MetaGameId,      v => MetaGameId = v),
+        ("MediaTitleshot",  "titleshot",        true,  () => MediaTitleshotEnabled,   v => MediaTitleshotEnabled = v,   () => MediaTitleshot,  v => MediaTitleshot = v),
+        ("MediaMap",        "map",              true,  () => MediaMapEnabled,         v => MediaMapEnabled = v,         () => MediaMap,        v => MediaMap = v),
+        ("MediaManual",     "manual",           true,  () => MediaManualEnabled,      v => MediaManualEnabled = v,      () => MediaManual,     v => MediaManual = v),
+        ("MediaBezel",      "bezel",            true,  () => MediaBezelEnabled,       v => MediaBezelEnabled = v,       () => MediaBezel,      v => MediaBezel = v),
+        ("MediaFanArt",     "fanart",           true,  () => MediaFanArtEnabled,      v => MediaFanArtEnabled = v,      () => MediaFanArt,     v => MediaFanArt = v),
+        ("MediaBoxBack",    "boxback",          true,  () => MediaBoxBackEnabled,     v => MediaBoxBackEnabled = v,     () => MediaBoxBack,    v => MediaBoxBack = v),
+        ("MediaMusic",      "music",            true,  () => MediaMusicEnabled,       v => MediaMusicEnabled = v,       () => MediaMusic,      v => MediaMusic = v),
+        ("MediaImage",      "image",            true,  () => MediaImageEnabled,       v => MediaImageEnabled = v,       () => MediaImage,      v => MediaImage = v),
+        ("MediaMarquee",    "marquee",          true,  () => MediaMarqueeEnabled,     v => MediaMarqueeEnabled = v,     () => MediaMarquee,    v => MediaMarquee = v),
+        ("MediaThumbnail",  "thumbnail",        true,  () => MediaThumbnailEnabled,   v => MediaThumbnailEnabled = v,   () => MediaThumbnail,  v => MediaThumbnail = v),
+        ("MediaCartridge",  "cartridge",        true,  () => MediaCartridgeEnabled,   v => MediaCartridgeEnabled = v,   () => MediaCartridge,  v => MediaCartridge = v),
+        ("MediaVideo",      "video",            true,  () => MediaVideoEnabled,       v => MediaVideoEnabled = v,       () => MediaVideo,      v => MediaVideo = v),
+        ("MediaBoxArt",     "boxart",           true,  () => MediaBoxArtEnabled,      v => MediaBoxArtEnabled = v,      () => MediaBoxArt,     v => MediaBoxArt = v),
+        ("MediaMix",        "mix",              true,  () => MediaMixEnabled,         v => MediaMixEnabled = v,         () => MediaMix,        v => MediaMix = v),
+        ("MediaWheel",      "wheel",            true,  () => MediaWheelEnabled,       v => MediaWheelEnabled = v,       () => MediaWheel,      v => MediaWheel = v),
     ];
 
-    private (string Name, ObservableCollection<string> Sources, Func<int> GetSelected, Action<int> SetSelected)[] GetSourceToggles() =>
+    // AvailabilityType = media type string checked against AvailableMedia
+    private (string Name, string AvailabilityType, ObservableCollection<string> Sources, Func<int> GetSelected, Action<int> SetSelected)[] GetSourceToggles() =>
     [
-        ("ImageSource", ImageSources, () => SelectedImageSource, v => SelectedImageSource = v),
-        ("MarqueeSource", MarqueeSources, () => SelectedMarqueeSource, v => SelectedMarqueeSource = v),
-        ("ThumbnailSource", ThumbnailSources, () => SelectedThumbnailSource, v => SelectedThumbnailSource = v),
-        ("CartridgeSource", CartridgeSources, () => SelectedCartridgeSource, v => SelectedCartridgeSource = v),
-        ("VideoSource", VideoSources, () => SelectedVideoSource, v => SelectedVideoSource = v),
-        ("BoxArtSource", BoxArtSources, () => SelectedBoxArtSource, v => SelectedBoxArtSource = v),
-        ("MixSource", MixSources, () => SelectedMixSource, v => SelectedMixSource = v),
-        ("WheelSource", WheelSources, () => SelectedWheelSource, v => SelectedWheelSource = v),
+        ("ImageSource",    "image",     ImageSources,    () => SelectedImageSource,    v => SelectedImageSource = v),
+        ("MarqueeSource",  "marquee",   MarqueeSources,  () => SelectedMarqueeSource,  v => SelectedMarqueeSource = v),
+        ("ThumbnailSource","thumbnail", ThumbnailSources,() => SelectedThumbnailSource,v => SelectedThumbnailSource = v),
+        ("CartridgeSource","cartridge", CartridgeSources,() => SelectedCartridgeSource,v => SelectedCartridgeSource = v),
+        ("VideoSource",    "video",     VideoSources,    () => SelectedVideoSource,    v => SelectedVideoSource = v),
+        ("BoxArtSource",   "boxart",    BoxArtSources,   () => SelectedBoxArtSource,   v => SelectedBoxArtSource = v),
+        ("MixSource",      "mix",       MixSources,      () => SelectedMixSource,      v => SelectedMixSource = v),
+        ("WheelSource",    "wheel",     WheelSources,    () => SelectedWheelSource,    v => SelectedWheelSource = v),
     ];
+
+    private static void RestoreSource(ObservableCollection<string> collection, string savedValue, Action<int> setIndex)
+    {
+        if (string.IsNullOrEmpty(savedValue) || collection.Count == 0) return;
+        var idx = collection.IndexOf(savedValue);
+        if (idx >= 0) setIndex(idx);
+    }
+
+    private void ApplySource(ObservableCollection<string> collection, string sectionName, Action<int> setIndex, out bool enabled)
+    {
+        collection.Clear();
+        var sources = ScraperConfigService.Instance.GetScraperSources(CurrentScraper, sectionName);
+        if (sources.Count > 0)
+        {
+            foreach (var key in sources.Keys)
+                collection.Add(key);
+            setIndex(0);
+            enabled = true;
+        }
+        else
+        {
+            setIndex(-1);
+            enabled = false;
+        }
+    }
+    #endregion
+
+    #region Commands
+    [RelayCommand(CanExecute = nameof(CanStart))]
+    private async Task Start()
+    {
+        _isStopping = false;
+        IsScraping = true;
+        await StartAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanStop))]
+    private void Stop()
+    {
+        _isStopping = true;
+        StopCommand.NotifyCanExecuteChanged();
+        _cts?.Cancel();
+        Log("Stopping scraper...", LogLevel.Warning);
+    }
+
+    [RelayCommand]
+    private void ClearCache()
+    {
+        string system = _sharedData.CurrentSystem ?? string.Empty;
+        if (string.IsNullOrEmpty(system))
+        {
+            Log("No system loaded, cannot clear cache.", LogLevel.Warning);
+            return;
+        }
+
+        string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
+        if (!Directory.Exists(cacheFolder))
+        {
+            RefreshCacheCount();
+            Log("Cache is already empty.", LogLevel.Info);
+            return;
+        }
+
+        int deleted = 0;
+        foreach (var file in Directory.EnumerateFiles(cacheFolder))
+        {
+            try { File.Delete(file); deleted++; }
+            catch (Exception ex) { Log($"Failed to delete {Path.GetFileName(file)}: {ex.Message}", LogLevel.Warning); }
+        }
+
+        RefreshCacheCount();
+        Log($"Cleared {deleted} cached file(s).", LogLevel.Warning);
+    }
+
+    [RelayCommand]
+    private async Task OpenScraperSetup()
+    {
+        var scraperIndex = ScraperRegistry.All
+            .Select((s, i) => (s, i))
+            .FirstOrDefault(x => string.Equals(x.s.Name, CurrentScraper, StringComparison.OrdinalIgnoreCase))
+            .i;
+
+        // Scraper tab is index 4 in Settings
+        await WindowService.Instance.ShowSettingsAsync(4, scraperIndex);
+    }
+
+    [RelayCommand]
+    private void SelectAllMetadata()
+    {
+        foreach (var t in GetBoolToggles().Where(t => !t.IsMedia && t.GetEnabled()))
+            t.SetValue(true);
+    }
+
+    [RelayCommand]
+    private void SelectNoneMetadata()
+    {
+        foreach (var t in GetBoolToggles().Where(t => !t.IsMedia))
+            t.SetValue(false);
+    }
+
+    [RelayCommand]
+    private void SelectAllMedia()
+    {
+        foreach (var t in GetBoolToggles().Where(t => t.IsMedia && t.GetEnabled()))
+            t.SetValue(true);
+    }
+
+    [RelayCommand]
+    private void SelectNoneMedia()
+    {
+        foreach (var t in GetBoolToggles().Where(t => t.IsMedia))
+            t.SetValue(false);
+    }
+
+    [RelayCommand]
+    private void ResetSources()
+    {
+        foreach (var s in GetSourceToggles().Where(s => GetBoolToggles().Any(t => t.ElementKey == s.AvailabilityType && t.GetEnabled())))
+            s.SetSelected(0);
+    }
     #endregion
 
     #region Dispose

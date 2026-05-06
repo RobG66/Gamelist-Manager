@@ -23,7 +23,7 @@
 
     <!-- ButtonSpinner sizing -->
     <x:Double   x:Key="ButtonSpinnerButtonWidth">20</x:Double>
-    <x:Double   x:Key="ButtonSpinnerButtonHeight">13</x:Double>
+    <x:Double   x:Key="ButtonSpinnerButtonHeight">9</x:Double>
     <x:Double   x:Key="ButtonSpinnerGlyphStrokeThickness">1.5</x:Double>
     <x:Double   x:Key="ButtonSpinnerButtonDisabledOpacity">0.3</x:Double>
     <Thickness  x:Key="ButtonSpinnerButtonDividerThickness">1,0,0,0</Thickness>

@@ -71,6 +71,19 @@ public partial class MainWindowViewModel
 
     #region Partial Handlers
 
+    partial void OnIsSearchPanelVisibleChanged(bool value)
+    {
+        if (!value) return;
+
+        FindText = string.Empty;
+        ReplaceToText = string.Empty;
+        SelectedFindColumn = null;
+        IsReplaceEnabled = false;
+        ReplaceAllItems = true;
+        ReplaceItemsButtonText = "All Items";
+        _findMatchIndex = -1;
+    }
+
     partial void OnFindTextChanged(string value) => _findMatchIndex = -1;
 
     partial void OnSelectedFindColumnChanged(string? value)
@@ -238,7 +251,7 @@ public partial class MainWindowViewModel
             var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
                 Title = "Replace All",
-                Message = $"Replace {totalOccurrences} {occurrenceLabel} of \"{FindText}\"?",
+                Message = $"Replace {totalOccurrences} {occurrenceLabel} of \"{FindText}\" in column \"{SelectedFindColumn}\" with \"{ReplaceToText}\"?",
                 IconTheme = DialogIconTheme.Question,
                 Button1Text = "No",
                 Button2Text = "",

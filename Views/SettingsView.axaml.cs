@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
@@ -215,7 +214,7 @@ namespace Gamelist_Manager.Views
 
             var locationPath = SharedDataService.Instance.CurrentRomFolder
                ?? SharedDataService.Instance.RomsFolder;
-                       
+
             IStorageFolder? startLocation = null;
             if (locationPath != null)
             {

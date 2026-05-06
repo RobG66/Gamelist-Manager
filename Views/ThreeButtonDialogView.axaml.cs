@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -70,6 +71,29 @@ namespace Gamelist_Manager.Views
             }
             else
                 Button3.IsVisible = false;
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (e.Key is not (Key.Enter or Key.Escape))
+                return;
+
+            // Only act when exactly one button is visible — keyboard dismissal is
+            // ambiguous when multiple choices are present.
+            int visibleCount = (Button1.IsVisible ? 1 : 0)
+                             + (Button2.IsVisible ? 1 : 0)
+                             + (Button3.IsVisible ? 1 : 0);
+
+            if (visibleCount != 1)
+                return;
+
+            if (Button1.IsVisible) Close(_button1Result);
+            else if (Button2.IsVisible) Close(_button2Result);
+            else Close(_button3Result);
+
+            e.Handled = true;
         }
 
         private void ApplyIconTheme(DialogIconTheme theme)

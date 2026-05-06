@@ -1,8 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.VisualTree;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using Gamelist_Manager.ViewModels;
 using System;
@@ -25,6 +26,16 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
     private Point _pendingDragOrigin;
     private object? _pendingDragItem;
     private const double DragThreshold = 4.0;
+
+    // Continuous edge-scroll: fires at a dynamic interval while the pointer is held outside the grid.
+    // The further past the boundary the pointer is, the faster the scroll.
+    private DispatcherTimer? _scrollTimer;
+    private int _scrollDirection;
+    private double _scrollOvershoot;
+    private const int ScrollIntervalMinMs = 20;   // fastest (pointer far outside)
+    private const int ScrollIntervalMaxMs = 150;  // slowest (pointer just past boundary)
+    private const double ScrollAccelZone = 50.0; // pixels of overshoot over which speed ramps up
+
     #endregion
 
     #region Lifecycle
@@ -191,24 +202,15 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
 
         if (point.Y < 0)
         {
-            var neighbor = GetNeighborItem(direction: -1);
-            if (neighbor != null)
-            {
-                AssociatedObject.ScrollIntoView(neighbor, null);
-                AddToSelection(neighbor);
-            }
+            StartScrollTimer(-1, -point.Y);
         }
         else if (point.Y > gridHeight)
         {
-            var neighbor = GetNeighborItem(direction: 1);
-            if (neighbor != null)
-            {
-                AssociatedObject.ScrollIntoView(neighbor, null);
-                AddToSelection(neighbor);
-            }
+            StartScrollTimer(1, point.Y - gridHeight);
         }
         else
         {
+            StopScrollTimer();
             SelectItemAtPoint(point);
         }
     }
@@ -224,6 +226,7 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
         _isPendingDrag = false;
         _pendingDragItem = null;
         _selectionPath.Clear();
+        StopScrollTimer();
 
         if (_capturedPointer != null && AssociatedObject != null)
         {
@@ -232,13 +235,62 @@ public class DataGridDragSelectionBehavior : Behavior<DataGrid>
         }
     }
 
-    // Returns the item immediately before (direction=-1) or after (direction=1)
-    // the tail of the current selection path.
+    private void StartScrollTimer(int direction, double overshoot)
+    {
+        _scrollOvershoot = overshoot;
+
+        if (_scrollTimer != null && _scrollDirection == direction)
+        {
+            // Already running in the right direction — just update the interval.
+            _scrollTimer.Interval = TimeSpan.FromMilliseconds(IntervalForOvershoot(overshoot));
+            return;
+        }
+
+        StopScrollTimer();
+        _scrollDirection = direction;
+        _scrollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(IntervalForOvershoot(overshoot)) };
+        _scrollTimer.Tick += OnScrollTick;
+        _scrollTimer.Start();
+    }
+
+    // Maps overshoot distance to an interval: near boundary = slow, far = fast.
+    private static int IntervalForOvershoot(double overshoot)
+    {
+        var t = Math.Clamp(overshoot / ScrollAccelZone, 0.0, 1.0);
+        return (int)(ScrollIntervalMaxMs - t * (ScrollIntervalMaxMs - ScrollIntervalMinMs));
+    }
+
+    private void StopScrollTimer()
+    {
+        if (_scrollTimer == null) return;
+        _scrollTimer.Stop();
+        _scrollTimer.Tick -= OnScrollTick;
+        _scrollTimer = null;
+    }
+
+    private void OnScrollTick(object? sender, EventArgs e)
+    {
+        if (AssociatedObject == null || !_isDragging) { StopScrollTimer(); return; }
+
+        var neighbor = GetNeighborItem(_scrollDirection);
+        if (neighbor == null) return;
+
+        AssociatedObject.ScrollIntoView(neighbor, null);
+        AddToSelection(neighbor);
+    }
+
+    // Returns the item immediately before (direction=-1) or after (direction=1) the tail of
+    // the current selection path, using the DataGrid's sorted CollectionView to determine order.
     private object? GetNeighborItem(int direction)
     {
-        if (AssociatedObject?.ItemsSource == null) return null;
+        if (AssociatedObject == null) return null;
 
-        var items = AssociatedObject.ItemsSource.Cast<object>().ToList();
+        // CollectionView is the DataGrid's internal sorted/filtered view — it always reflects
+        // the current display order, regardless of what is bound to ItemsSource.
+        var view = AssociatedObject.CollectionView;
+        if (view == null) return null;
+
+        var items = view.Cast<object>().ToList();
         if (items.Count == 0) return null;
 
         var tail = _selectionPath.LastOrDefault();

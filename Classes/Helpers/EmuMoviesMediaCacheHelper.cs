@@ -102,8 +102,9 @@ namespace Gamelist_Manager.Classes.Helpers
 
             try
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-                var httpResponse = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+                var httpResponse = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 httpResponse.EnsureSuccessStatusCode();
 
                 string jsonString = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -140,8 +141,9 @@ namespace Gamelist_Manager.Classes.Helpers
 
             try
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-                var httpResponse = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+                var httpResponse = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 httpResponse.EnsureSuccessStatusCode();
 
                 string jsonString = await httpResponse.Content.ReadAsStringAsync(cancellationToken);

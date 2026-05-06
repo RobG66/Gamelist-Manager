@@ -519,4 +519,25 @@
         </Setter>
     </Style>
 
+    <!-- Pill Button — fully rounded, compact, fits inside a status bar without growing its height -->
+    <Style Selector="Button.pill">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontSize" Value="{DynamicResource GlobalSmallFontSize}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Padding" Value="8,1"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="ToolTip.Placement" Value="Bottom"/>
+        <Setter Property="ToolTip.VerticalOffset" Value="6"/>
+    </Style>
+
+    <Style Selector="Button.pill /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="8,1"/>
+    </Style>
+
 </Styles>

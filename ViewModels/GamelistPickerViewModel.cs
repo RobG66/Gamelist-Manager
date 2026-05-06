@@ -13,8 +13,12 @@ using System.Xml;
 
 namespace Gamelist_Manager.ViewModels;
 
+#region SystemPickerItem
+
 public partial class SystemPickerItem : ObservableObject
 {
+    #region Properties
+
     public string Name { get; init; } = string.Empty;
     public string FolderPath { get; init; } = string.Empty;
     public Bitmap? Logo { get; init; }
@@ -29,21 +33,35 @@ public partial class SystemPickerItem : ObservableObject
     public string GameCountText => GameCount switch
     {
         -1 => string.Empty,
-        0  => "empty",
-        1  => "1 game",
-        _  => $"{GameCount} games"
+        0 => "empty",
+        1 => "1 game",
+        _ => $"{GameCount} games"
     };
 
+    #endregion
+
+    #region Property Change Handlers
+
     partial void OnGameCountChanged(int value) => OnPropertyChanged(nameof(GameCountText));
+
+    #endregion
 }
+
+#endregion
+
+#region GamelistPickerViewModel
 
 public partial class GamelistPickerViewModel : ObservableObject
 {
-    // When true: show ALL recognised systems (new gamelist mode).
-    // When false: show only systems that already have a gamelist (open mode).
+    #region Fields
+
     private readonly bool _showAllSystems;
     private readonly List<SystemPickerItem> _allSystems;
     private CancellationTokenSource? _countCts;
+
+    #endregion
+
+    #region Observable Properties
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FilteredSystems))]
@@ -53,11 +71,25 @@ public partial class GamelistPickerViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
     private SystemPickerItem? _selectedSystem;
 
-    public ObservableCollection<SystemPickerItem> FilteredSystems { get; } = [];
+    #endregion
 
+    #region Public Properties
+
+    public ObservableCollection<SystemPickerItem> FilteredSystems { get; } = [];
     public string ConfirmButtonText { get; }
     public string SubtitleText { get; }
     public bool ShowGamelistBadge { get; }
+
+    #endregion
+
+    #region Events
+
+    public event EventHandler? ConfirmRequested;
+    public event EventHandler? CancelRequested;
+
+    #endregion
+
+    #region Constructor
 
     public GamelistPickerViewModel(IEnumerable<SystemPickerItem> candidates, bool showAllSystems)
     {
@@ -75,7 +107,51 @@ public partial class GamelistPickerViewModel : ObservableObject
         RefreshFilter();
     }
 
+    #endregion
+
+    #region Property Change Handlers
+
     partial void OnSearchTextChanged(string value) => RefreshFilter();
+
+    #endregion
+
+    #region Commands
+
+    [RelayCommand]
+    private void SelectSystem(SystemPickerItem? item)
+    {
+        if (item == null) return;
+
+        if (SelectedSystem != null)
+            SelectedSystem.IsSelected = false;
+
+        SelectedSystem = item;
+        item.IsSelected = true;
+    }
+
+    [RelayCommand]
+    private void ConfirmSystem(SystemPickerItem? item)
+    {
+        if (item == null) return;
+        SelectSystem(item);
+        Confirm();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanConfirm))]
+    private void Confirm() => ConfirmRequested?.Invoke(this, EventArgs.Empty);
+
+    [RelayCommand]
+    private void Cancel() => CancelRequested?.Invoke(this, EventArgs.Empty);
+
+    #endregion
+
+    #region Command Guards
+
+    private bool CanConfirm() => SelectedSystem != null;
+
+    #endregion
+
+    #region Filtering
 
     private void RefreshFilter()
     {
@@ -93,37 +169,9 @@ public partial class GamelistPickerViewModel : ObservableObject
             SelectedSystem = null;
     }
 
-    [RelayCommand]
-    private void SelectSystem(SystemPickerItem? item)
-    {
-        if (item == null) return;
+    #endregion
 
-        if (SelectedSystem != null)
-            SelectedSystem.IsSelected = false;
-
-        SelectedSystem = item;
-        item.IsSelected = true;
-    }
-
-    // Called on double-click — select and confirm in one action
-    [RelayCommand]
-    private void ConfirmSystem(SystemPickerItem? item)
-    {
-        if (item == null) return;
-        SelectSystem(item);
-        Confirm();
-    }
-
-    public event EventHandler? ConfirmRequested;
-    public event EventHandler? CancelRequested;
-
-    [RelayCommand(CanExecute = nameof(CanConfirm))]
-    private void Confirm() => ConfirmRequested?.Invoke(this, EventArgs.Empty);
-
-    private bool CanConfirm() => SelectedSystem != null;
-
-    [RelayCommand]
-    private void Cancel() => CancelRequested?.Invoke(this, EventArgs.Empty);
+    #region Game Counting
 
     public void StartCountingGames()
     {
@@ -177,4 +225,8 @@ public partial class GamelistPickerViewModel : ObservableObject
         }
         catch { return 0; }
     }
+
+    #endregion
 }
+
+#endregion
