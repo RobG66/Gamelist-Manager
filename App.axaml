@@ -21,7 +21,6 @@
             <converters:BooleanToGridLengthConverter x:Key="BooleanToGridLengthConverter"/>
             <converters:BooleanToScrollBarVisibilityConverter x:Key="BooleanToScrollBarVisibilityConverter"/>
             <converters:BoolToTextConverter x:Key="BoolToTextConverter"/>
-            <converters:PathToBitmapConverter x:Key="PathToBitmapConverter"/>
             <converters:BooleanToPlaceholderTextConverter x:Key="BooleanToPlaceholderTextConverter"/>
             <converters:LogLevelToBrushConverter x:Key="LogLevelToBrushConverter"/>
             

@@ -1,3 +1,4 @@
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
@@ -25,6 +26,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     #region Observable Properties
     [ObservableProperty] private string _mediaType = string.Empty;
     [ObservableProperty] private string? _mediaPath;
+    [ObservableProperty] private Bitmap? _imageBitmap;
     [ObservableProperty] private bool _hasMedia;
     [ObservableProperty] private bool _isVisible = true;
     [ObservableProperty]
@@ -99,6 +101,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         MediaPath = null;
         MediaPath = newPath;
         UpdateFileExistence();
+        UpdateImageBitmap();
 
         if (IsVideo && newPath == null)
             DisposeVideoPlayer();
@@ -108,6 +111,19 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     #endregion
 
     #region Public Methods
+    public void UpdateImageBitmap()
+    {
+        var old = ImageBitmap;
+        ImageBitmap = null;
+        old?.Dispose();
+
+        if (!IsVideo && !IsManual && FileExists && !string.IsNullOrWhiteSpace(MediaPath))
+        {
+            var fullPath = ResolveFullPath(MediaPath);
+            ImageBitmap = ImageHelper.LoadImageWithoutLock(fullPath);
+        }
+    }
+
     public void UpdateFileExistence()
     {
         HasMedia = !string.IsNullOrWhiteSpace(MediaPath);
@@ -310,6 +326,9 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         _changeMediaCts.Dispose();
         AttachGame(null);
         DisposeVideoPlayer();
+        var bmp = ImageBitmap;
+        ImageBitmap = null;
+        bmp?.Dispose();
     }
     #endregion
 

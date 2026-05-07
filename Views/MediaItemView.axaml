@@ -72,7 +72,7 @@
             <Panel>
                 <!-- Image content (when file exists and not manual or video) -->
                 <Image Classes="MediaImage"
-                       Source="{Binding MediaPath, Converter={StaticResource PathToBitmapConverter}}">
+                       Source="{Binding ImageBitmap}">
                     <Image.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="FileExists"/>
