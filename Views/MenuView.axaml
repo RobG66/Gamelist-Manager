@@ -360,6 +360,7 @@
 							<MenuItem Header="Clear Selected Media Paths"
 									  Command="{Binding ClearMediaPathsCommand}"
 									  CommandParameter="selected"
+									  IsVisible="{Binding !IsProfileTypeESDE}"
 									  IsEnabled="{Binding HasGameSelected}"
 									  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
 								<MenuItem.Icon>
@@ -367,15 +368,25 @@
 								</MenuItem.Icon>
 							</MenuItem>
 								<MenuItem Header="Clear All Media Paths"
-										  Command="{Binding ClearMediaPathsCommand}"
-										  CommandParameter="all"
-										  IsEnabled="{Binding IsGamelistLoaded}"
-										  ToolTip.Tip="Clear all media paths, media is not deleted">
-									<MenuItem.Icon>
-										<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-									</MenuItem.Icon>
-								</MenuItem>
-									<Separator/>
+											  Command="{Binding ClearMediaPathsCommand}"
+											  CommandParameter="all"
+											  IsVisible="{Binding !IsProfileTypeESDE}"
+											  IsEnabled="{Binding IsGamelistLoaded}"
+											  ToolTip.Tip="Clear all media paths, media is not deleted">
+										<MenuItem.Icon>
+											<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+										</MenuItem.Icon>
+									</MenuItem>
+									<Separator IsVisible="{Binding !IsProfileTypeESDE}"/>
+									<MenuItem Header="Set / Clear Column Data"
+											  Command="{Binding SetColumnValueCommand}"
+											  IsEnabled="{Binding IsGamelistLoaded}"
+											  ToolTip.Tip="Set or clear a value for a column across all or selected items">
+										<MenuItem.Icon>
+											<Image Source="/Assets/Icons/edit.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+										</MenuItem.Icon>
+									</MenuItem>
+										<Separator/>
 									<MenuItem Header="{Binding PersistentSelectionMenuHeader}"
 											  Command="{Binding TogglePersistentSelectionCommand}"
 											  IsEnabled="{Binding IsPersistentSelectionToggleEnabled}"

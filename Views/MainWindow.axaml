@@ -8,7 +8,7 @@
 		xmlns:i="using:Avalonia.Xaml.Interactivity"
 		mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="550"
 		MinHeight="550" MinWidth="950"
-		Width="950" Height="550"		
+		Width="950" Height="550"
 		x:Class="Gamelist_Manager.Views.MainWindow"
 		x:DataType="viewModels:MainWindowViewModel"
 		x:Name="MainWindowRoot"
@@ -172,43 +172,44 @@
 														</MenuItem.Icon>
 													</MenuItem>
 													<MenuItem Header="Clear Selected Media Paths"
-																					  Command="{Binding ClearMediaPathsCommand}"
-																					  CommandParameter="selected"
-																					  IsEnabled="{Binding HasGameSelected}"
-																					  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
-																					<MenuItem.Icon>
-																						<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-																					</MenuItem.Icon>
-																				</MenuItem>
-																					<Separator/>
-																					<MenuItem Header="{Binding PersistentSelectionMenuHeader}"
-																							  Command="{Binding TogglePersistentSelectionCommand}"
-																							  IsEnabled="{Binding IsPersistentSelectionToggleEnabled}"
-																							  ToolTip.Tip="Keep current selection when clicking other rows">
-																						<MenuItem.Icon>
-																							<CheckBox IsChecked="{Binding IsPersistentSelectionEnabled, Mode=OneWay}"
-																									  Padding="0"
-																									  BorderThickness="0"
-																									  IsHitTestVisible="False"/>
-																						</MenuItem.Icon>
-																					</MenuItem>
-																					<MenuItem Header="Clear Selection"
-																							  Command="{Binding ClearPersistentSelectionCommand}"
-																							  IsEnabled="{Binding IsPersistentSelectionEnabled}"
-																							  ToolTip.Tip="Clear the current selection">
-																						<MenuItem.Icon>
-																							<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-																						</MenuItem.Icon>
-																					</MenuItem>
-																					<MenuItem Header="Sort Selection To Top"
-																																				  Command="{Binding SortSelectionToTopCommand}"
-																																				  IsEnabled="{Binding IsPersistentSelectionEnabled}"
-																																				  ToolTip.Tip="Move selected items to the top of the list">
-																																				<MenuItem.Icon>
-																																					<Image Source="/Assets/Icons/uparrow.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-																																				</MenuItem.Icon>
-																																			</MenuItem>
-																				</ContextMenu>
+															  Command="{Binding ClearMediaPathsCommand}"
+															  CommandParameter="selected"
+															  IsVisible="{Binding !IsProfileTypeESDE}"
+															  IsEnabled="{Binding HasGameSelected}"
+															  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
+														<MenuItem.Icon>
+															<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+														</MenuItem.Icon>
+													</MenuItem>
+													<Separator/>
+													<MenuItem Header="{Binding PersistentSelectionMenuHeader}"
+															  Command="{Binding TogglePersistentSelectionCommand}"
+															  IsEnabled="{Binding IsPersistentSelectionToggleEnabled}"
+															  ToolTip.Tip="Keep current selection when clicking other rows">
+														<MenuItem.Icon>
+															<CheckBox IsChecked="{Binding IsPersistentSelectionEnabled, Mode=OneWay}"
+																	  Padding="0"
+																	  BorderThickness="0"
+																	  IsHitTestVisible="False"/>
+														</MenuItem.Icon>
+													</MenuItem>
+													<MenuItem Header="Clear Selection"
+															  Command="{Binding ClearPersistentSelectionCommand}"
+															  IsEnabled="{Binding IsPersistentSelectionEnabled}"
+															  ToolTip.Tip="Clear the current selection">
+														<MenuItem.Icon>
+															<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+														</MenuItem.Icon>
+													</MenuItem>
+													<MenuItem Header="Sort Selection To Top"
+															  Command="{Binding SortSelectionToTopCommand}"
+															  IsEnabled="{Binding IsPersistentSelectionEnabled}"
+															  ToolTip.Tip="Move selected items to the top of the list">
+														<MenuItem.Icon>
+															<Image Source="/Assets/Icons/uparrow.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+														</MenuItem.Icon>
+													</MenuItem>
+												</ContextMenu>
 											</DataGrid.ContextMenu>
 											<DataGrid.Columns>
 											</DataGrid.Columns>
@@ -216,12 +217,12 @@
 
 										<!-- File Status Bar -->
 										<Border Grid.Row="1"
-													BorderThickness="0,1,0,0"
-													BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-													Background="{DynamicResource StatusBarBackground}"
-													CornerRadius="0,0,4,4"
-													Height="22"
-													Padding="8,0">
+												BorderThickness="0,1,0,0"
+												BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+												Background="{DynamicResource StatusBarBackground}"
+												CornerRadius="0,0,4,4"
+												Height="22"
+												Padding="8,0">
 											<Grid>
 												<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
 													<Button Grid.Column="0"
@@ -239,7 +240,9 @@
 																	   VerticalAlignment="Center"/>
 														</StackPanel>
 													</Button>
-													<Image Grid.Column="1" Source="/Assets/Icons/load.png" Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+													<Button Classes="transparentbutton" Command="{Binding SaveGamelistCommand}" IsEnabled="{Binding IsSaveEnabled}" ToolTip.Tip="Save Gamelist">
+														<Image Grid.Column="1" Source="/Assets/Icons/save.png" Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+													</Button>
 													<TextBlock Grid.Column="2" Text="{Binding FileStatusText}" Foreground="{DynamicResource StatusBarForeground}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
 															   FontSize="{DynamicResource GlobalSmallFontSize}" ToolTip.Tip="{Binding FileStatusText, FallbackValue='No Gamelist Loaded'}"/>
 													<TextBlock Grid.Column="3" Text="{Binding LastModifiedText}" Foreground="{DynamicResource StatusBarForeground}" Opacity="0.9" VerticalAlignment="Center"

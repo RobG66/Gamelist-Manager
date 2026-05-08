@@ -63,9 +63,9 @@ public partial class MediaPreviewViewModel
                 null);
 
             var elementsToScrape = specificElements != null
-                ? specificElements.Where(e => availableMedia.Any(m => m.Type == e)).ToList()
+                ? specificElements.Where(e => availableMedia.Any(m => m.Type == e) || GamelistMetaData.GetDeclByType(e) is { IsMedia: false }).ToList()
                 : GamelistMetaData.GetScraperElements(scraperName)
-                    .Where(e => availableMedia.Any(m => m.Type == e))
+                    .Where(e => availableMedia.Any(m => m.Type == e) || GamelistMetaData.GetDeclByType(e) is { IsMedia: false })
                     .ToList();
 
             if (elementsToScrape.Count == 0)

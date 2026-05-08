@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
@@ -47,6 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private SystemItem? _selectedSystem;
     [ObservableProperty] private ViewModelBase? _currentBottomPanel;
     [ObservableProperty] private GameMetadataRow? _firstSelectedGame;
+    [ObservableProperty] private bool _isProfileTypeESDE;
     #endregion
 
     #region Public Properties
@@ -131,6 +133,9 @@ public partial class MainWindowViewModel : ViewModelBase
             case nameof(SharedDataService.RememberColumns):
                 OnPropertyChanged(nameof(RememberColumns));
                 break;
+            case nameof(SharedDataService.ProfileType):
+                IsProfileTypeESDE = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
+                break;
         }
     }
 
@@ -150,7 +155,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Constructor
     public MainWindowViewModel()
-    {
+    {        
         _sourceCache = new SourceCache<GameMetadataRow, string>(game => game.Path);
         _filterSubject = new BehaviorSubject<Func<GameMetadataRow, bool>>(BuildFilterPredicate());
 
@@ -164,6 +169,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
         _sharedData.SettingsApplied += OnSettingsApplied;
+
+        IsProfileTypeESDE = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
 
         LoadColumnSettings();
         _sharedData.RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));

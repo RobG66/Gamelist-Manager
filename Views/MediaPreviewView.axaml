@@ -114,6 +114,15 @@
 								  VerticalScrollBarVisibility="Disabled">
 						<Grid x:Name="ScrollContentHost" MinHeight="30"/>
 					</ScrollViewer>
+
+					<!-- No-media logo: shown when a game is selected but has no media and Show All is off -->
+					<Image Source="/Assets/nomedia.png"
+						   Stretch="Uniform"
+						   Margin="30"
+						   HorizontalAlignment="Stretch"
+						   VerticalAlignment="Stretch"
+						   IsVisible="{Binding ShowNoMediaLogo}"
+						   IsHitTestVisible="False"/>
 				</Grid>
 			</Border>
 

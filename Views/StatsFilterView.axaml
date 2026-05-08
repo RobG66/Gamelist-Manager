@@ -84,7 +84,7 @@
                         <!-- Toggle button: swaps between Genre and Custom filter -->
                         <Button Command="{Binding ToggleFilterModeCommand}"
                                 ToolTip.Tip="Switch between Genre and Custom filter"
-                                Classes="icon"
+                                Classes="transparentbutton"
                                 Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
                             <Image Source="/Assets/Buttons/filter1.png" Height="{DynamicResource GlobalIconSize}"/>
                         </Button>
@@ -94,7 +94,7 @@
                                     IsVisible="{Binding IsGenreFilterMode}">
                             <TextBlock Text="Genre:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
                             <ComboBox x:Name="GenreComboBox" ItemsSource="{Binding AvailableGenres}" SelectedItem="{Binding GenreFilterSelection}" Width="230" VerticalAlignment="Center"/>
-                            <Button Classes="icon" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
+                            <Button Classes="transparentbutton" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
                         </StackPanel>
@@ -105,7 +105,7 @@
                             <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
                             <ComboBox ItemsSource="{Binding FilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
-                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="icon" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
+                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="transparentbutton" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
                         </StackPanel>
@@ -119,7 +119,7 @@
                 <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto">
                     <Button Grid.Column="0"
                             Click="ScrollMediaLeft_Click"
-                            Classes="icon"
+                            Classes="transparentbutton"
                             Padding="2,0"
                             Width="14"
                             VerticalAlignment="Stretch"
@@ -170,7 +170,7 @@
 
                     <Button Grid.Column="2"
                             Click="ScrollMediaRight_Click"
-                            Classes="icon"
+                            Classes="transparentbutton"
                             Padding="2,0"
                             Width="14"
                             VerticalAlignment="Stretch"

@@ -1,0 +1,115 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="320"
+		x:Class="Gamelist_Manager.Views.SetColumnValueView"
+		Title="Set Column Value"
+		SizeToContent="Height"
+		Width="320"
+		FontSize="{DynamicResource GlobalFontSize}"
+		WindowStartupLocation="CenterOwner"
+		CanResize="False">
+
+	<StackPanel Margin="10" Spacing="10">
+
+		<Border Padding="10"
+				BorderThickness="1"
+				BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+				CornerRadius="4"
+				Background="{DynamicResource CardBackground}">
+			<StackPanel Spacing="10">
+
+				<!-- Card header -->
+				<Grid ColumnDefinitions="Auto,*">
+					<TextBlock Grid.Column="0"
+							   Text="Set Column Value"
+							   FontWeight="Bold"
+							   FontSize="{DynamicResource GlobalHeaderFontSize}"
+							   Foreground="{DynamicResource AccentTextBrush}"
+							   VerticalAlignment="Center"
+							   Margin="0,0,8,0"/>
+					<Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center"
+							   Fill="{DynamicResource SystemAccentColor}"/>
+				</Grid>
+
+				<!-- Scope -->
+				<StackPanel Spacing="4">
+					<TextBlock Text="Apply To" FontWeight="SemiBold"/>
+					<RadioButton x:Name="RadioAllItems"
+								 Content="All items"
+								 GroupName="Scope"
+								 IsChecked="True"/>
+					<RadioButton x:Name="RadioSelectedItems"
+								 Content="Selected items"
+								 GroupName="Scope"/>
+				</StackPanel>
+
+				<!-- Column picker -->
+				<StackPanel Spacing="4">
+					<TextBlock Text="Column" FontWeight="SemiBold"/>
+					<ComboBox x:Name="ColumnComboBox"
+							  HorizontalAlignment="Stretch"
+							  PlaceholderText="Select a column..."
+							  SelectionChanged="ColumnComboBox_SelectionChanged"/>
+				</StackPanel>
+
+				<!-- Value picker — shown only after a column is chosen -->
+				<StackPanel x:Name="ValueSection" Spacing="4" IsVisible="False">
+					<TextBlock Text="Value" FontWeight="SemiBold"/>
+
+					<!-- Bool column options -->
+					<StackPanel x:Name="BoolValuePanel" Spacing="4" IsVisible="False">
+						<RadioButton x:Name="RadioBoolEmpty"
+									 Content="Empty (false)"
+									 GroupName="BoolValue"
+									 IsChecked="True"/>
+						<RadioButton x:Name="RadioBoolTrue"
+									 Content="True"
+									 GroupName="BoolValue"/>
+						<RadioButton x:Name="RadioBoolFalse"
+									 Content="False"
+									 GroupName="BoolValue"/>
+					</StackPanel>
+
+					<!-- String / media column options -->
+					<StackPanel x:Name="StringValuePanel" Spacing="4" IsVisible="False">
+						<RadioButton x:Name="RadioStringEmpty"
+									 Content="Empty (clear value)"
+									 GroupName="StringValue"
+									 IsChecked="True"
+									 IsCheckedChanged="StringValueRadio_Changed"/>
+						<RadioButton x:Name="RadioStringCustom"
+									 Content="Custom value"
+									 GroupName="StringValue"
+									 IsCheckedChanged="StringValueRadio_Changed"/>
+						<TextBox x:Name="CustomValueTextBox"
+								 PlaceholderText="Enter value..."
+								 IsEnabled="False"
+								 TextChanged="CustomValueTextBox_TextChanged"/>
+					</StackPanel>
+				</StackPanel>
+
+				<!-- Action buttons -->
+				<StackPanel Orientation="Horizontal"
+							HorizontalAlignment="Right"
+							Spacing="8"
+							Margin="0,4,0,0">
+					<Button x:Name="CancelButton"
+							Content="Cancel"
+							Click="CancelButton_Click"
+							Classes="rounded grey"
+							FontSize="{DynamicResource GlobalFontSize}"/>
+					<Button x:Name="ApplyButton"
+							Content="Apply"
+							Click="ApplyButton_Click"
+							Classes="rounded green"
+							IsEnabled="False"
+							FontSize="{DynamicResource GlobalFontSize}"/>
+				</StackPanel>
+
+			</StackPanel>
+		</Border>
+
+	</StackPanel>
+</Window>

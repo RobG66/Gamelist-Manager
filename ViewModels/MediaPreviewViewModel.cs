@@ -45,6 +45,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _isLibVLCInitialized;
     [ObservableProperty] private bool _overwriteMedia;
     [ObservableProperty] private bool _overwriteMetadata;
+    [ObservableProperty] private bool _showNoMediaLogo;
     #endregion
 
     #region Public Properties
@@ -371,6 +372,12 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
             item.IsVisible = newVisible;
         }
+
+        // Show the no-media logo when a game is selected, has no media at all, and
+        // Show All is off (Show All provides its own drop placeholders instead).
+        ShowNoMediaLogo = SelectedGame != null
+            && !ShowAllMedia
+            && MediaItems.All(m => !m.HasMedia);
     }
 
     private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

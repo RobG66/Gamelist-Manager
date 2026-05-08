@@ -16,7 +16,7 @@
             <!-- Find Row -->
             <DockPanel LastChildFill="False">
                 <Button DockPanel.Dock="Right"
-                        Classes="icon"
+                        Classes="transparentbutton"
                         Width="{DynamicResource GlobalIconButtonSize}"
                         Height="{DynamicResource GlobalIconButtonSize}"
                         Padding="0"

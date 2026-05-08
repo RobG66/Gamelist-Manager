@@ -31,6 +31,47 @@ public partial class MainWindowViewModel
 
     [RelayCommand]
     private Task ResetNames(string scope) => ClearItems(scope, ResetGameName, "Reset names");
+
+    [RelayCommand]
+    private async Task SetColumnValue()
+    {
+        var options = await SetColumnValueView.ShowAsync(HasGameSelected);
+        if (options == null) return;
+
+        var games = options.UseAllItems
+            ? Games.ToList()
+            : SelectedGames?.OfType<GameMetadataRow>().ToList();
+
+        if (games == null || games.Count == 0) return;
+
+        if (_sharedData.ConfirmBulkChanges && games.Count > 1)
+        {
+            var label = options.UseAllItems ? $"all {games.Count} visible" : $"{games.Count} selected";
+            var decl = GamelistMetaData.GetMetaDataDictionary()[options.Key];
+            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Confirm Bulk Operation",
+                Message = $"Set '{decl.Name}' for {label} items?",
+                IconTheme = DialogIconTheme.Question,
+                Button1Text = "No",
+                Button2Text = "",
+                Button3Text = "Yes"
+            });
+            if (result != ThreeButtonResult.Button3) return;
+        }
+
+        // For bool columns a null "empty" choice maps to false
+        var writeValue = options.Value == null && GamelistMetaData.GetMetaDataDictionary()[options.Key].DataType == MetaDataType.Bool
+            ? (object?)false
+            : options.Value;
+
+        foreach (var game in games)
+            game.SetValue(options.Key, writeValue);
+
+        _sourceCache.Refresh();
+        _sharedData.IsDataChanged = true;
+        IsSaveEnabled = true;
+    }
     #endregion
 
     #region Sort Commands

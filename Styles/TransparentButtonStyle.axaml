@@ -3,7 +3,7 @@
 
     <!-- Transparent/chrome-free button - shows only its content (e.g. an image) -->
     <!-- Transitions live on the Button itself so pseudo-class changes animate reliably -->
-    <Style Selector="Button.icon">
+    <Style Selector="Button.transparentbutton">
         <Setter Property="Padding" Value="0"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Opacity" Value="0.75"/>
@@ -27,17 +27,17 @@
         </Setter>
     </Style>
 
-    <Style Selector="Button.icon:not(:disabled):pointerover">
+    <Style Selector="Button.transparentbutton:not(:disabled):pointerover">
         <Setter Property="Opacity" Value="1"/>
         <Setter Property="RenderTransform" Value="scale(1.05)"/>
     </Style>
 
-    <Style Selector="Button.icon:not(:disabled):pressed">
+    <Style Selector="Button.transparentbutton:not(:disabled):pressed">
         <Setter Property="Opacity" Value="1"/>
         <Setter Property="RenderTransform" Value="scale(0.95)"/>
     </Style>
 
-    <Style Selector="Button.icon:disabled">
+    <Style Selector="Button.transparentbutton:disabled"> 
         <Setter Property="Opacity" Value="0.3"/>
         <Setter Property="Cursor" Value="Arrow"/>
     </Style>

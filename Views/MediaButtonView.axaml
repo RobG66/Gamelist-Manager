@@ -22,7 +22,7 @@
 
 			<!-- Context Menu Button -->
 			<Button x:Name="MenuButton"
-					Classes="icon"
+					Classes="transparentbutton"
 					Width="22"
 					Height="22"
 					Padding="0"
@@ -53,7 +53,7 @@
 
 			<!-- Expand/Preview Button -->
 				<Button x:Name="ExpandButton"
-						Classes="icon"
+						Classes="transparentbutton"
 						Width="22"
 						Height="22"
 						Padding="0"
@@ -68,7 +68,7 @@
 
 				<!-- Play/Pause Button (video only) -->
 				<Button x:Name="PlayPauseButton"
-						Classes="icon"
+						Classes="transparentbutton"
 						Width="22"
 						Height="22"
 						Padding="0"
