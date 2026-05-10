@@ -60,13 +60,10 @@
 
 					<!-- Bool column options -->
 					<StackPanel x:Name="BoolValuePanel" Spacing="4" IsVisible="False">
-						<RadioButton x:Name="RadioBoolEmpty"
-									 Content="Empty (false)"
-									 GroupName="BoolValue"
-									 IsChecked="True"/>
 						<RadioButton x:Name="RadioBoolTrue"
 									 Content="True"
-									 GroupName="BoolValue"/>
+									 GroupName="BoolValue"
+									 IsChecked="True"/>
 						<RadioButton x:Name="RadioBoolFalse"
 									 Content="False"
 									 GroupName="BoolValue"/>

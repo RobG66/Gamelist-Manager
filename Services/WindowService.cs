@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Gamelist_Manager.Views;
 using System.Threading.Tasks;
 
@@ -35,5 +36,13 @@ public class WindowService : IWindowService
         if (_owner is null) return;
         var window = new AboutWindow();
         await window.ShowDialog(_owner);
+    }
+
+    public async Task CopyToClipboardAsync(string text)
+    {
+        if (_owner is null) return;
+        var clipboard = TopLevel.GetTopLevel(_owner)?.Clipboard;
+        if (clipboard != null)
+            await clipboard.SetTextAsync(text);
     }
 }

@@ -20,10 +20,9 @@
 				<!-- Hamburger Button to toggle pane -->
 				<Button Classes="NavButton" Command="{Binding TriggerMenu}" ToolTip.Tip="Toggle menu">
 					<StackPanel Orientation="Horizontal" Spacing="10">
-						<PathIcon Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"
-								  Width="16"
-								  Height="16"
-								  Foreground="{DynamicResource AccentIconBrush}"/>
+						<Image Source="/Assets/Buttons/menu.png"
+								   Width="{DynamicResource GlobalMenuIconSize}"
+								   Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Menu"
 								   VerticalAlignment="Center"
 								   IsVisible="{Binding IsMenuOpen}"
@@ -538,7 +537,7 @@
 						</MenuFlyout>
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
-						<Image Source="/Assets/Icons/menu.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<Image Source="/Assets/Icons/columns.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Columns" VerticalAlignment="Center" IsVisible="{Binding IsMenuOpen}"/>
 					</StackPanel>
 				</Button>

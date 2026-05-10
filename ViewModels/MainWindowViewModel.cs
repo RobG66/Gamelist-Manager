@@ -32,11 +32,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private DispatcherTimer? _selectionDebounceTimer;
     private IList? _selectedGames;
     private bool _isLoadingData;
+    private bool _isSaveEnabled;
     #endregion
 
     #region Observable Properties
     [ObservableProperty] private bool _isMenuOpen = true;
-    [ObservableProperty] private bool _isSaveEnabled;
     [ObservableProperty] private bool _isGamelistLoaded;
     [ObservableProperty] private bool _isAlwaysOnTop;
     [ObservableProperty] private bool _hasGameSelected;
@@ -54,6 +54,16 @@ public partial class MainWindowViewModel : ViewModelBase
     #region Public Properties
 
     public bool IsDeleteEnabled => _sharedData.EnableDelete;
+    public bool IsSaveEnabled
+    {
+        get => _isSaveEnabled && !_sharedData.IsBusy && !_sharedData.IsScraping;
+        set
+        {
+            if (_isSaveEnabled == value) return;
+            _isSaveEnabled = value;
+            OnPropertyChanged();
+        }
+    }
     public ReadOnlyObservableCollection<GameMetadataRow> Games => _games;
     public bool IsScraping => _sharedData.IsScraping;
     public bool IsBusy => _sharedData.IsBusy;
@@ -102,6 +112,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case nameof(SharedDataService.IsScraping):
                 OnPropertyChanged(nameof(IsScraping));
+                OnPropertyChanged(nameof(IsSaveEnabled));
                 OnPropertyChanged(nameof(IsGridSelectionLocked));
                 OnPropertyChanged(nameof(IsStatsCardEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
@@ -111,6 +122,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
             case nameof(SharedDataService.IsBusy):
                 OnPropertyChanged(nameof(IsBusy));
+                OnPropertyChanged(nameof(IsSaveEnabled));
                 OnPropertyChanged(nameof(IsEditToggleEnabled));
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));

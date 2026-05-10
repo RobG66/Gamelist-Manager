@@ -55,6 +55,7 @@
                           Margin="0,0,8,0"/>
                 <Button DockPanel.Dock="Left"
                         Content="Find"
+                        ToolTip.Tip="Find first/next instance"
                         Classes="rounded green"
                         Command="{Binding ExecuteFindCommand}"/>
             </DockPanel>
@@ -78,16 +79,19 @@
                 <Button DockPanel.Dock="Left"
                         Content="{Binding ReplaceItemsButtonText}"
                         Classes="rounded blue"
+                        ToolTip.Tip="Toggle between replacing all items or only selected items"
                         IsEnabled="{Binding IsReplaceEnabled}"
                         Margin="0,0,8,0"
                         Command="{Binding ToggleReplaceScopeCommand}"/>
                 <Button DockPanel.Dock="Left"
                         Content="Replace"
                         Classes="rounded green"
+                        ToolTip.Tip="Replace next instance"
                         Margin="0,0,8,0"
                         Command="{Binding ExecuteReplaceCommand}"/>
                 <Button DockPanel.Dock="Left"
                         Content="Replace All"
+                        ToolTip.Tip="Replace all instances"
                         Classes="rounded green"
                         Command="{Binding ExecuteReplaceAllCommand}"/>
             </DockPanel>

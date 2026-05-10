@@ -93,7 +93,7 @@
 												  Background="Transparent"
 												  BorderThickness="0">
 											<i:Interaction.Behaviors>
-												<behaviors:DataGridDragSelectionBehavior/>
+												<behaviors:DataGridPersistentSelectionBehavior/>
 											</i:Interaction.Behaviors>
 											<DataGrid.ContextMenu>
 												<ContextMenu DataContext="{Binding $parent[Window].DataContext}"
@@ -182,7 +182,24 @@
 														</MenuItem.Icon>
 													</MenuItem>
 													<Separator/>
-													<MenuItem Header="{Binding PersistentSelectionMenuHeader}"
+														<MenuItem Header="Copy File Names To Clipboard"
+																  Command="{Binding CopyRomFilenamesToClipboardCommand}"
+																  IsEnabled="{Binding HasGameSelected}"
+																  ToolTip.Tip="Copy selected rom filenames to clipboard">
+															<MenuItem.Icon>
+																<Image Source="/Assets/Icons/spreadsheet.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+															</MenuItem.Icon>
+														</MenuItem>
+														<MenuItem Header="Copy File Paths To Clipboard"
+																  Command="{Binding CopyRomPathsToClipboardCommand}"
+																  IsEnabled="{Binding HasGameSelected}"
+																  ToolTip.Tip="Copy selected rom full paths to clipboard">
+															<MenuItem.Icon>
+																<Image Source="/Assets/Icons/folder.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+															</MenuItem.Icon>
+														</MenuItem>
+														<Separator/>
+														<MenuItem Header="{Binding PersistentSelectionMenuHeader}"
 															  Command="{Binding TogglePersistentSelectionCommand}"
 															  IsEnabled="{Binding IsPersistentSelectionToggleEnabled}"
 															  ToolTip.Tip="Keep current selection when clicking other rows">

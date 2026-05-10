@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFrameworks>$(AvsCurrentTargetFramework);$(AvsLegacyTargetFrameworks)</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Include="Themes/**/*.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup Label="InternalsVisibleTo">
+    <InternalsVisibleTo Include="Avalonia.Controls.DataGrid.UnitTests, PublicKey=$(AvaloniaPublicKey)" />
+    <InternalsVisibleTo Include="Avalonia.DesignerSupport, PublicKey=$(AvaloniaPublicKey)" />
+  </ItemGroup>
+
+  <Import Project="../../build/SharedVersion.props" />
+
+  <Target Name="UpdateCIBuildNumber" BeforeTargets="PreBuildEvent" Condition="'$(TargetFramework)' == '$(AvsCurrentTargetFramework)' And '$(CIBranchName)' != ''">
+
+    <Message Text="##vso[build.updatebuildnumber]$(Version)" Importance="high" />
+
+  </Target>
+
+  <Target Name="VerifyCIBranch" BeforeTargets="PreBuildEvent" Condition="'$(CIBranchName)' != ''">
+
+    <Message Text="Building non-release version $(Version) for $(TargetFramework)" Condition="'$(CIVersionSuffix)' != ''" Importance="high" />
+
+    <Message Text="Building RELEASE version $(Version) for $(TargetFramework)" Condition="'$(CIVersionSuffix)' == ''" Importance="high" />
+
+    <Error Text="Current release branch '$(CIBranchName)' does not match version '$(Version)'!" Condition="'$(CIVersionSuffix)' == '' And '$(CIBranchName)' != '$(Version)'" />
+
+  </Target>
+
+</Project>

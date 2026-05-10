@@ -42,7 +42,7 @@ namespace Gamelist_Manager.Views
 
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape && e.Source is not (TextBox or ComboBox))
             {
                 Close(null);
                 e.Handled = true;
@@ -60,7 +60,7 @@ namespace Gamelist_Manager.Views
             ValueSection.IsVisible = _selectedDecl != null;
 
             // Reset value panels to their defaults
-            RadioBoolEmpty.IsChecked = true;
+            RadioBoolTrue.IsChecked = true;
             RadioStringEmpty.IsChecked = true;
             CustomValueTextBox.Text = string.Empty;
             CustomValueTextBox.IsEnabled = false;
@@ -106,9 +106,7 @@ namespace Gamelist_Manager.Views
 
             if (_selectedDecl.DataType == MetaDataType.Bool)
             {
-                value = RadioBoolTrue.IsChecked == true ? true
-                      : RadioBoolFalse.IsChecked == true ? false
-                      : null; // Empty maps to null; BulkOperations will write false
+                value = RadioBoolTrue.IsChecked == true;
             }
             else
             {

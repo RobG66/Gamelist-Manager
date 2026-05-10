@@ -60,10 +60,8 @@ public partial class MainWindowViewModel
             if (result != ThreeButtonResult.Button3) return;
         }
 
-        // For bool columns a null "empty" choice maps to false
-        var writeValue = options.Value == null && GamelistMetaData.GetMetaDataDictionary()[options.Key].DataType == MetaDataType.Bool
-            ? (object?)false
-            : options.Value;
+        // For bool columns the dialog always returns true or false — no coercion needed
+        var writeValue = options.Value;
 
         foreach (var game in games)
             game.SetValue(options.Key, writeValue);
@@ -94,6 +92,12 @@ public partial class MainWindowViewModel
             .Concat(_sharedData.GamelistData.Where(g => !selectedSet.Contains(g)))
             .ToList();
 
+        // Clear the DataGrid's selection before modifying the source cache.
+        // The DataGrid holds slot-index references that become out-of-bounds the
+        // moment the cache is cleared; raising this event lets the view flush its
+        // selection synchronously before any collection-changed notifications fire.
+        RequestClearSelection?.Invoke(this, EventArgs.Empty);
+
         // Rebuild the master list in the new order
         _isLoadingData = true;
         _sharedData.GamelistData.Clear();
@@ -109,15 +113,39 @@ public partial class MainWindowViewModel
             _sourceCache.AddOrUpdate(game);
         _isLoadingData = false;
 
-        _sharedData.IsDataChanged = true;
-        IsSaveEnabled = true;
-
-        // Defer re-selection until DynamicData has pushed the changeset through
+        // Defer re-selection
         // the filter pipeline and the DataGrid has completed its layout pass
         Dispatcher.UIThread.Post(() =>
             Dispatcher.UIThread.Post(() => RequestRestoreSelection?.Invoke(this, selected),
                 DispatcherPriority.Background),
             DispatcherPriority.Background);
+    }
+    #endregion
+
+    #region Clipboard Commands
+    [RelayCommand]
+    private async Task CopyRomFilenamesToClipboard()
+    {
+        if (SelectedGames == null || SelectedGames.Count == 0) return;
+
+        var filenames = SelectedGames.OfType<GameMetadataRow>()
+            .Select(g => System.IO.Path.GetFileName(g.Path))
+            .Where(f => !string.IsNullOrEmpty(f));
+
+        await _windowService.CopyToClipboardAsync(string.Join(Environment.NewLine, filenames));
+    }
+
+    [RelayCommand]
+    private async Task CopyRomPathsToClipboard()
+    {
+        if (SelectedGames == null || SelectedGames.Count == 0) return;
+        if (string.IsNullOrEmpty(_sharedData.CurrentRomFolder)) return;
+
+        var paths = SelectedGames.OfType<GameMetadataRow>()
+            .Select(g => FilePathHelper.GamelistPathToFullPath(g.Path, _sharedData.CurrentRomFolder!))
+            .Where(p => !string.IsNullOrEmpty(p));
+
+        await _windowService.CopyToClipboardAsync(string.Join(Environment.NewLine, paths));
     }
     #endregion
 

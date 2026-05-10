@@ -9,4 +9,5 @@ public interface IWindowService
     Task ShowSettingsAsync();
     Task ShowSettingsAsync(int tabIndex, int scraperIndex);
     Task ShowAboutAsync();
+    Task CopyToClipboardAsync(string text);
 }

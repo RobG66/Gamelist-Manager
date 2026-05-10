@@ -39,6 +39,7 @@ public partial class MainWindowViewModel
     #region Properties & Events
     public bool HasRecentFiles => _sharedData.RecentFiles.Count > 0;
     public event EventHandler? RequestSelectFirstItem;
+    public event EventHandler? RequestClearSelection;
     public event EventHandler<List<GameMetadataRow>>? RequestRestoreSelection;
 
     [ObservableProperty] private string _fileStatusText = "No file loaded";

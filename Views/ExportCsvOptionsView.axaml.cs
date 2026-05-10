@@ -25,7 +25,7 @@ namespace Gamelist_Manager.Views
 
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape && e.Source is not (TextBox or ComboBox))
             {
                 Close(null);
                 e.Handled = true;

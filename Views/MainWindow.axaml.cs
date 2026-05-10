@@ -104,6 +104,23 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (viewModel.IsBusy)
+            {
+                e.Cancel = true;
+                var busyDialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                {
+                    Title = "Save in Progress",
+                    Message = "The gamelist is currently being saved.",
+                    DetailMessage = "Please wait until the save has completed before closing.",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "",
+                    Button2Text = "",
+                    Button3Text = "OK"
+                });
+                await busyDialog.ShowDialog<ThreeButtonResult>(this);
+                return;
+            }
+
             var sharedData = SharedDataService.Instance;
 
             if (sharedData.IsDataChanged && sharedData.EnableSaveReminder)
@@ -154,6 +171,7 @@ public partial class MainWindow : Window
             _currentViewModel.ReportColumnsCleared -= OnReportColumnsCleared;
             _currentViewModel.FindReportColumnAdded -= OnFindReportColumnAdded;
             _currentViewModel.RequestNavigateToItem -= ViewModel_RequestNavigateToItem;
+            _currentViewModel.RequestClearSelection -= ViewModel_RequestClearSelection;
             _currentViewModel.RequestRestoreSelection -= ViewModel_RequestRestoreSelection;
         }
 
@@ -166,6 +184,7 @@ public partial class MainWindow : Window
             viewModel.ReportColumnsCleared += OnReportColumnsCleared;
             viewModel.FindReportColumnAdded += OnFindReportColumnAdded;
             viewModel.RequestNavigateToItem += ViewModel_RequestNavigateToItem;
+            viewModel.RequestClearSelection += ViewModel_RequestClearSelection;
             viewModel.RequestRestoreSelection += ViewModel_RequestRestoreSelection;
 
             Topmost = viewModel.IsAlwaysOnTop;
@@ -226,6 +245,11 @@ public partial class MainWindow : Window
 
         GameDataGrid.SelectedIndex = index;
         GameDataGrid.ScrollIntoView(row, null);
+    }
+
+    private void ViewModel_RequestClearSelection(object? sender, EventArgs e)
+    {
+        GameDataGrid.SelectedItems.Clear();
     }
 
     private void ViewModel_RequestRestoreSelection(object? sender, List<GameMetadataRow> items)
