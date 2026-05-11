@@ -16,14 +16,6 @@
         <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
     </Style>
     
-    <!-- DataGrid Cell Styling -->
-    <Style Selector="DataGridCell">
-        <Setter Property="Padding" Value="2,0"/>
-        <Setter Property="FontSize" Value="{DynamicResource DataGridFontSizeResource}"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="MinWidth" Value="0"/>
-    </Style>
-    
     <!-- DataGrid Column Header Styling - Fixed 12px column reserves space for sort arrow -->
     <Style Selector="DataGridColumnHeader">
         <Setter Property="Padding" Value="4,0,4,0"/>
