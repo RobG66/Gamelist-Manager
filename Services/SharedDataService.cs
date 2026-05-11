@@ -167,8 +167,7 @@ namespace Gamelist_Manager.Services
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
-                _settings.CurrentGamelistFolder(_settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
-                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                ResolveMediaBaseFolder(),
                 _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
 
             SettingsApplied?.Invoke(this, EventArgs.Empty);
@@ -214,8 +213,7 @@ namespace Gamelist_Manager.Services
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
-                _settings.CurrentGamelistFolder(_settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
-                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                ResolveMediaBaseFolder(),
                 _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
@@ -223,8 +221,7 @@ namespace Gamelist_Manager.Services
         {
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
-                _settings.CurrentGamelistFolder(_settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
-                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                ResolveMediaBaseFolder(),
                 _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
@@ -233,8 +230,7 @@ namespace Gamelist_Manager.Services
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
-                _settings.CurrentGamelistFolder(_settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
-                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                ResolveMediaBaseFolder(),
                 _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
@@ -243,14 +239,18 @@ namespace Gamelist_Manager.Services
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
-                _settings.CurrentGamelistFolder(_settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder), CurrentSystem),
-                _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem),
+                ResolveMediaBaseFolder(),
                 _settings.GetSection(SettingKeys.MediaPathsSection) ?? new Dictionary<string, string>());
         }
 
         #endregion
 
         #region Private Methods
+
+        private string? ResolveMediaBaseFolder() =>
+            _profileType == SettingKeys.ProfileTypeEsDe
+                ? _settings.EsDeMediaDirectory(EsDeMediaBase, CurrentSystem)
+                : Path.GetDirectoryName(XmlFilename) ?? _settings.CurrentGamelistFolder(_settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder), CurrentSystem);
 
         private void RefreshProfileState()
         {

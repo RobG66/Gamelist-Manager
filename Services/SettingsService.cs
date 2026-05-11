@@ -243,12 +243,14 @@ namespace Gamelist_Manager.Services
         // Callers receive ready-to-use FolderPath values — no profile knowledge required.
         public IReadOnlyList<AvailableMediaFolder> BuildAvailableMedia(
             string profileType,
-            string? gamelistFolderCurrent,
-            string? esDeMediaDirectory,
+            string? mediaBaseFolder,
             Dictionary<string, string> mediaPaths)
         {
             bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
             var result = new List<AvailableMediaFolder>();
+
+            if (string.IsNullOrEmpty(mediaBaseFolder))
+                return result;
 
             foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
             {
@@ -266,18 +268,14 @@ namespace Gamelist_Manager.Services
                 string folderPath;
                 if (isEsDe)
                 {
-                    if (string.IsNullOrEmpty(esDeMediaDirectory))
-                        continue;
-                    folderPath = Path.Combine(esDeMediaDirectory, decl.EsDeFolderName);
+                    folderPath = Path.Combine(mediaBaseFolder, decl.EsDeFolderName);
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(gamelistFolderCurrent))
-                        continue;
                     var relativePath = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;
                     // Strip leading "./" or "." before combining
                     var cleanRelative = relativePath.TrimStart('.').TrimStart('/').TrimStart('\\');
-                    folderPath = Path.Combine(gamelistFolderCurrent, cleanRelative);
+                    folderPath = Path.Combine(mediaBaseFolder, cleanRelative);
                 }
 
                 var suffix = isEsDe ? string.Empty : (mediaPaths.TryGetValue($"{decl.Type}_suffix", out var sfx) ? sfx : decl.DefaultSuffix);
