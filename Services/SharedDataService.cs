@@ -59,6 +59,7 @@ namespace Gamelist_Manager.Services
         [ObservableProperty] private int _logVerbosity = 1;
         [ObservableProperty] private string _theme = "Default";
         [ObservableProperty] private string _color = "Blue";
+        [ObservableProperty] private string _accentVariant = "Base";
         [ObservableProperty] private int _alternatingRowColorIndex = 1;
         [ObservableProperty] private int _gridLinesVisibilityIndex;
         [ObservableProperty] private int _appFontSize = 12;
@@ -158,6 +159,7 @@ namespace Gamelist_Manager.Services
 
             Theme = settings.GetValue(SettingKeys.Theme);
             Color = settings.GetValue(SettingKeys.Color);
+            AccentVariant = settings.GetValue(SettingKeys.AccentVariant);
             AlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
             GridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
             AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);

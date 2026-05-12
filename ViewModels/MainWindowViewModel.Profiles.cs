@@ -268,7 +268,8 @@ public partial class MainWindowViewModel
 
         var themeIndex = ThemeService.GetThemeIndex(_sharedData.Theme);
         var colorIndex = ThemeService.GetColorIndex(_sharedData.Color);
-        ThemeService.ApplyTheme(themeIndex, colorIndex);
+        var variantIndex = ThemeService.GetAccentVariantIndex(_sharedData.AccentVariant);
+        ThemeService.ApplyTheme(themeIndex, colorIndex, variantIndex);
 
         _ = LoadSystemsAsync();
         ActiveProfileName = profileName;

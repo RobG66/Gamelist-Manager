@@ -34,12 +34,18 @@
     <Color x:Key="SystemAccentColor">#0078D4</Color>
     <Color x:Key="SystemAccentColorLight1">#1E8CE5</Color>
     <Color x:Key="SystemAccentColorLight2">#3CA0F0</Color>
+    <Color x:Key="SystemAccentColorLight3">#5AB4FA</Color>
     <Color x:Key="SystemAccentColorDark1">#0064BA</Color>
+    <Color x:Key="SystemAccentColorDark2">#0053A0</Color>
+    <Color x:Key="SystemAccentColorDark3">#003D7A</Color>
 
     <SolidColorBrush x:Key="SystemAccentBrush"       Color="{DynamicResource SystemAccentColor}"/>
     <SolidColorBrush x:Key="SystemAccentBrushLight1" Color="{DynamicResource SystemAccentColorLight1}"/>
     <SolidColorBrush x:Key="SystemAccentBrushLight2" Color="{DynamicResource SystemAccentColorLight2}"/>
+    <SolidColorBrush x:Key="SystemAccentBrushLight3" Color="{DynamicResource SystemAccentColorLight3}"/>
     <SolidColorBrush x:Key="SystemAccentBrushDark1"  Color="{DynamicResource SystemAccentColorDark1}"/>
+    <SolidColorBrush x:Key="SystemAccentBrushDark2"  Color="{DynamicResource SystemAccentColorDark2}"/>
+    <SolidColorBrush x:Key="SystemAccentBrushDark3"  Color="{DynamicResource SystemAccentColorDark3}"/>
 
     <!-- Theme-Aware Color Resources -->
     <ResourceDictionary.ThemeDictionaries>

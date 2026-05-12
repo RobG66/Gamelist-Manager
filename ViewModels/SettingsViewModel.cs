@@ -22,6 +22,7 @@ public partial class SettingsViewModel : ViewModelBase
         "Blue", "Red", "Orange", "Green", "Yellow",
         "Magenta", "Purple", "Teal", "Lime", "Light Blue", "Indigo"
     ];
+    private static readonly string[] AccentVariantNames = ["Base", "Lighter", "Darker"];
 
     #endregion
 
@@ -30,6 +31,7 @@ public partial class SettingsViewModel : ViewModelBase
     // Appearance
     [ObservableProperty] private int _selectedThemeIndex;
     [ObservableProperty] private int _selectedColorIndex;
+    [ObservableProperty] private int _selectedAccentVariantIndex;
     [ObservableProperty] private int _selectedAlternatingRowColorIndex;
     [ObservableProperty] private int _selectedGridLinesVisibilityIndex;
     [ObservableProperty] private int _appFontSize = 12;
@@ -126,6 +128,7 @@ public partial class SettingsViewModel : ViewModelBase
             // Appearance
             SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.Theme));
             SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.Color));
+            SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, settings.GetValue(SettingKeys.AccentVariant));
             SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
             SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
             AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
@@ -215,6 +218,7 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 [SettingKeys.Theme.Key] = IndexToName(ThemeNames, SelectedThemeIndex),
                 [SettingKeys.Color.Key] = IndexToName(ColorNames, SelectedColorIndex),
+                [SettingKeys.AccentVariant.Key] = IndexToName(AccentVariantNames, SelectedAccentVariantIndex),
                 [SettingKeys.AlternatingRowColorIndex.Key] = SelectedAlternatingRowColorIndex.ToString(),
                 [SettingKeys.GridLinesVisibilityIndex.Key] = SelectedGridLinesVisibilityIndex.ToString(),
                 [SettingKeys.GridLineVisibility.Key] = SelectedGridLinesVisibilityIndex switch
@@ -335,7 +339,7 @@ public partial class SettingsViewModel : ViewModelBase
 
         SettingsService.Instance.SaveAllSettings(settings);
 
-        ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex);
+        ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         _sharedData.LoadFromSettings();
 
         IsDirty = false;
@@ -353,8 +357,9 @@ public partial class SettingsViewModel : ViewModelBase
 
         var themeIndex = NameToIndex(ThemeNames, shared.Theme);
         var colorIndex = NameToIndex(ColorNames, shared.Color);
+        var variantIndex = NameToIndex(AccentVariantNames, shared.AccentVariant);
 
-        ThemeService.ApplyTheme(themeIndex, colorIndex);
+        ThemeService.ApplyTheme(themeIndex, colorIndex, variantIndex);
         ThemeService.ApplyFontSizes(shared.AppFontSize, shared.GridFontSize);
     }
 

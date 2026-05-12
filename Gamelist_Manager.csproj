@@ -7,7 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Assets\Icons\icon.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <Version>9.5.5</Version>
+        <Version>9.5.6</Version>
         <AssemblyVersion>9.0.0.0</AssemblyVersion>
         <FileVersion>9.0.0.0</FileVersion>
     </PropertyGroup>

@@ -46,6 +46,7 @@ public static class SettingKeys
 
     public static readonly SettingDef<string> Theme = new(AppearanceSection, "Theme", "Light");
     public static readonly SettingDef<string> Color = new(AppearanceSection, "Color", "Blue");
+    public static readonly SettingDef<string> AccentVariant = new(AppearanceSection, "AccentVariant", "Base");
     public static readonly SettingDef<int> AlternatingRowColorIndex = new(AppearanceSection, "AlternatingRowColorIndex", 1);
     public static readonly SettingDef<int> GridLinesVisibilityIndex = new(AppearanceSection, "GridLinesVisibilityIndex", 0);
     public static readonly SettingDef<string> GridLineVisibility = new(AppearanceSection, "GridLineVisibility", "Horizontal");
@@ -141,7 +142,7 @@ public static class SettingKeys
     public static readonly IReadOnlyList<object> AllDefinitions =
     [
         // Appearance
-        Theme, Color, AlternatingRowColorIndex, GridLinesVisibilityIndex,
+        Theme, Color, AccentVariant, AlternatingRowColorIndex, GridLinesVisibilityIndex,
         GridLineVisibility, GlobalFontSize, GridFontSize,
 
         // Behavior

@@ -84,10 +84,10 @@ namespace Gamelist_Manager.Services
 
         }
 
-        public static void ApplyTheme(int themeIndex, int colorIndex)
+        public static void ApplyTheme(int themeIndex, int colorIndex, int variantIndex = 0)
         {
             ApplyThemeVariant(themeIndex);
-            ApplyAccentColor(colorIndex);
+            ApplyAccentColor(colorIndex, variantIndex);
         }
 
         public static void ApplyThemeVariant(int themeIndex)
@@ -107,14 +107,22 @@ namespace Gamelist_Manager.Services
             app.Resources["DropIconImage"] = new Bitmap(AssetLoader.Open(uri));
         }
 
-        public static void ApplyAccentColor(int colorIndex)
+        public static void ApplyAccentColor(int colorIndex, int variantIndex = 0)
         {
             var app = Application.Current;
             if (app == null) return;
 
-            var accentColor = colorIndex >= 0 && colorIndex < AccentColors.Length
+            var baseColor = colorIndex >= 0 && colorIndex < AccentColors.Length
                 ? AccentColors[colorIndex].Color
                 : DefaultAccentColor;
+
+            // Variant offsets match Avalonia FluentTheme source (value / 255).
+            // Positive = lighter, negative = darker.
+            float[] variantDeltas = [0f, 39/255f, -(28.5f/255f)];
+            var variantDelta = (uint)variantIndex < (uint)variantDeltas.Length ? variantDeltas[variantIndex] : 0f;
+
+            // The chosen variant becomes the new accent origin.
+            var accentColor = variantDelta == 0f ? baseColor : ShiftLightness(baseColor, variantDelta);
 
             // Update FluentTheme palette Accent (the only property that supports runtime changes)
             foreach (var style in app.Styles)
@@ -130,12 +138,15 @@ namespace Gamelist_Manager.Services
                 }
             }
 
-            // Update SystemAccentColor* resources used by ThemeResources.axaml custom brushes
-            // Light1/Light2 are lighter (higher lightness), Dark1 is darker — derived via HSL
-            app.Resources["SystemAccentColor"] = accentColor;
-            app.Resources["SystemAccentColorLight1"] = ShiftLightness(accentColor, +0.15f);
-            app.Resources["SystemAccentColorLight2"] = ShiftLightness(accentColor, +0.30f);
-            app.Resources["SystemAccentColorDark1"] = ShiftLightness(accentColor, -0.15f);
+            // Update SystemAccentColor* resources used by ThemeResources.axaml custom brushes.
+            // All 6 derived shades are relative to the chosen variant origin.
+            app.Resources["SystemAccentColor"]       = accentColor;
+            app.Resources["SystemAccentColorLight1"] = ShiftLightness(accentColor,  39 / 255f);
+            app.Resources["SystemAccentColorLight2"] = ShiftLightness(accentColor,  70 / 255f);
+            app.Resources["SystemAccentColorLight3"] = ShiftLightness(accentColor, 103 / 255f);
+            app.Resources["SystemAccentColorDark1"]  = ShiftLightness(accentColor, -(28.5f / 255f));
+            app.Resources["SystemAccentColorDark2"]  = ShiftLightness(accentColor, -(49   / 255f));
+            app.Resources["SystemAccentColorDark3"]  = ShiftLightness(accentColor, -(74.5f / 255f));
         }
 
         #region Private Methods
@@ -208,6 +219,28 @@ namespace Gamelist_Manager.Services
             return colorIndex >= 0 && colorIndex < AccentColors.Length
                 ? AccentColors[colorIndex].Name
                 : AccentColors[0].Name;
+        }
+
+        public static string GetAccentVariantName(int variantIndex)
+        {
+            return variantIndex switch
+            {
+                0 => "Base",
+                1 => "Lighter",
+                2 => "Darker",
+                _ => "Base"
+            };
+        }
+
+        public static int GetAccentVariantIndex(string variantName)
+        {
+            return variantName?.ToLower() switch
+            {
+                "base"  => 0,
+                "lighter" => 1,
+                "darker"  => 2,
+                _       => 0
+            };
         }
 
         public static int GetThemeIndex(string themeName)

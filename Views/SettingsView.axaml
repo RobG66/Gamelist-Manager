@@ -42,7 +42,7 @@
 								<Border BorderBrush="{DynamicResource SystemAccentColor}" BorderThickness="0,0,0,1" Padding="0,0,0,4" Margin="0,0,0,4">
 									<TextBlock Text="Theme" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
-								<Grid ColumnDefinitions="*,12,*">
+								<Grid ColumnDefinitions="*,12,*,12,*">
 									<StackPanel Grid.Column="0" Spacing="3">
 										<TextBlock Text="Application Theme"/>
 										<ComboBox SelectedIndex="{Binding SelectedThemeIndex}" Width="160" HorizontalAlignment="Left"
@@ -66,6 +66,15 @@
 											<ComboBoxItem Content="Lime"/>
 											<ComboBoxItem Content="Light Blue"/>
 											<ComboBoxItem Content="Indigo"/>
+										</ComboBox>
+									</StackPanel>
+									<StackPanel Grid.Column="4" Spacing="3">
+										<TextBlock Text="Accent Variant"/>
+										<ComboBox SelectedIndex="{Binding SelectedAccentVariantIndex}" Width="160" HorizontalAlignment="Left"
+												  ToolTip.Tip="Shift the accent color lighter or darker. Base uses the chosen color directly.">
+											<ComboBoxItem Content="Base"/>
+											<ComboBoxItem Content="Lighter"/>
+											<ComboBoxItem Content="Darker"/>
 										</ComboBox>
 									</StackPanel>
 								</Grid>
