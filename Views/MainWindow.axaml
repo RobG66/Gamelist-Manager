@@ -9,6 +9,8 @@
 		mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="550"
 		MinHeight="550" MinWidth="950"
 		Width="950" Height="550"
+		RenderOptions.BitmapInterpolationMode="HighQuality"
+		TextOptions.TextRenderingMode="SubpixelAntialias"	
 		x:Class="Gamelist_Manager.Views.MainWindow"
 		x:DataType="viewModels:MainWindowViewModel"
 		x:Name="MainWindowRoot"

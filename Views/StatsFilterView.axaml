@@ -20,21 +20,21 @@
             Margin="0,2.5,0,0"
             CornerRadius="4"
             Background="{DynamicResource PanelBackground}"
-            Padding="8,4">
+            Padding="5,4">
         <Grid ColumnDefinitions="Auto,Auto,*">
             <!-- System Logo -->
             <Image Grid.Column="0"
                    Source="{Binding SystemLogo}"
-                   MaxHeight="46" MaxWidth="90"
+                   MaxHeight="46" MaxWidth="130"
                    Stretch="Uniform"
-                   Margin="0,0,8,0"
+                   Margin="0,0,5,0"
                    VerticalAlignment="Center"/>
 
             <!-- Vertical separator -->
             <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="0,2" VerticalAlignment="Stretch"/>
 
             <!-- Right side: Stats + Filters | Separator | Media Audit -->
-            <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto,*" Margin="8,0,0,0">
+            <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto,*" Margin="5,0,0,0">
 
                 <!-- Stats + Filters stacked vertically -->
                 <Grid Grid.Column="0" RowDefinitions="Auto,Auto" RowSpacing="3">
@@ -103,7 +103,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                     IsVisible="{Binding !IsGenreFilterMode}">
                             <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
-                            <ComboBox ItemsSource="{Binding FilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
+                            <ComboBox ItemsSource="{Binding CurrentFilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
                             <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="transparentbutton" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
@@ -113,7 +113,7 @@
                 </Grid>
 
                 <!-- Vertical separator -->
-                <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2" VerticalAlignment="Stretch"/>
+                <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="5,2" VerticalAlignment="Stretch"/>
 
                 <!-- Media Audit - spans full height, 2 rows × N columns -->
                 <Grid Grid.Column="2" ColumnDefinitions="Auto,*,Auto">

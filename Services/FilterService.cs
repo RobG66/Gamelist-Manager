@@ -10,13 +10,29 @@ namespace Gamelist_Manager.Services
             string filterText,
             string selectedMode)
         {
-            if (string.IsNullOrWhiteSpace(filterText) && selectedMode != "Is Empty" && selectedMode != "Is Not Empty")
+            if (string.IsNullOrWhiteSpace(filterText) &&
+                selectedMode != "Is Empty" && selectedMode != "Is Not Empty" &&
+                selectedMode != "Is True" && selectedMode != "Is False" && selectedMode != "Is Anything")
             {
                 return _ => true; // No filter
             }
 
             return selectedMode switch
             {
+                "Is Anything" => _ => true,
+
+                "Is True" => game =>
+                {
+                    var value = GetProperty(game, filterItem);
+                    return value != null && value.Equals("true", StringComparison.OrdinalIgnoreCase);
+                },
+
+                "Is False" => game =>
+                {
+                    var value = GetProperty(game, filterItem);
+                    return value == null || value.Equals("false", StringComparison.OrdinalIgnoreCase);
+                },
+
                 "Is" => game => GetProperty(game, filterItem)?.Equals(filterText, StringComparison.OrdinalIgnoreCase) == true,
 
                 "Is Like" => game =>

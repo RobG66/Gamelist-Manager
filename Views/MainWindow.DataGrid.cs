@@ -38,7 +38,7 @@ public partial class MainWindow
                 var templateColumn = new DataGridTemplateColumn
                 {
                     Header = decl.Name,
-                    Width = new DataGridLength(62),
+                    Width = DataGridLength.SizeToHeader,
                     CanUserReorder = false,
                     CanUserResize = false,
                     SortMemberPath = decl.PropertyName,

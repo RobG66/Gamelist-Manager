@@ -101,6 +101,9 @@ namespace Gamelist_Manager.Services
             }
         }
 
+        // The root folder where gamelists are stored. For ES-DE this is EsDeRoot/gamelists; for standard profiles it is RomsFolder.
+        public string GamelistsRootFolder => _settings.GamelistsRootFolder(_profileType, EsDeRoot, RomsFolder);
+
         // The full path to the current system's ROM/gamelist folder, built by SettingsService.
         public string? CurrentRomFolder { get; private set; }
 
@@ -201,8 +204,8 @@ namespace Gamelist_Manager.Services
 
         public void SaveEsDeRoot(string path)
         {
-            EsDeRoot = path;
             _settings.SetValue(SettingKeys.EsDeRoot.Section, SettingKeys.EsDeRoot.Key, path);
+            EsDeRoot = path;
         }
 
         #endregion
@@ -212,6 +215,7 @@ namespace Gamelist_Manager.Services
         partial void OnEsDeRootChanged(string value)
         {
             RefreshProfileState();
+            OnPropertyChanged(nameof(GamelistsRootFolder));
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
@@ -229,6 +233,7 @@ namespace Gamelist_Manager.Services
 
         partial void OnRomsFolderChanged(string value)
         {
+            OnPropertyChanged(nameof(GamelistsRootFolder));
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
                 _profileType,
@@ -267,6 +272,7 @@ namespace Gamelist_Manager.Services
             {
                 _profileType = resolvedType;
                 OnPropertyChanged(nameof(ProfileType));
+                OnPropertyChanged(nameof(GamelistsRootFolder));
             }
 
             if (resolvedType == SettingKeys.ProfileTypeEsDe)

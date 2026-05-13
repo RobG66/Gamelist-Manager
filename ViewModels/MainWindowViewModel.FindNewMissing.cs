@@ -139,7 +139,7 @@ public partial class MainWindowViewModel
                 newRows.Select(r => r.Path),
                 FilePathHelper.PathComparer);
 
-            RaiseFindReportColumn("Find: New", newPaths);
+            RaiseFindReportColumn("New", newPaths);
         }
     }
 
@@ -212,7 +212,7 @@ public partial class MainWindowViewModel
             {
                 Title = "Find Missing Items",
                 Message = $"Found {missingGamelistPaths.Count} missing {itemLabel}.",
-                DetailMessage = "Mark them in a 'Find: Missing' report column?",
+                DetailMessage = "Identify them in a 'Missing' report column?",
                 IconTheme = DialogIconTheme.Question,
                 Button1Text = "No",
                 Button3Text = "Yes"
@@ -221,7 +221,7 @@ public partial class MainWindowViewModel
         if (result != ThreeButtonResult.Button3)
             return;
 
-        RaiseFindReportColumn("Find: Missing", missingGamelistPaths);
+        RaiseFindReportColumn("Missing", missingGamelistPaths);
     }
 
     #endregion

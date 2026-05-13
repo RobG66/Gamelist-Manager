@@ -127,12 +127,13 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
-            case nameof(SharedDataService.RomsFolder):
+            case nameof(SharedDataService.GamelistsRootFolder):
                 _ = LoadSystemsAsync();
+                break;
+            case nameof(SharedDataService.RomsFolder):
                 OnPropertyChanged(nameof(IsNewGamelistEnabled));
                 break;
             case nameof(SharedDataService.EsDeRoot):
-                _ = LoadSystemsAsync();
                 OnPropertyChanged(nameof(IsNewGamelistEnabled));
                 break;
             case nameof(SharedDataService.EnableDelete):

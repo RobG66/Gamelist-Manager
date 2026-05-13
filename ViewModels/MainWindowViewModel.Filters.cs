@@ -20,13 +20,19 @@ public partial class MainWindowViewModel
     [ObservableProperty] private string? _selectedCustomFilterColumn;
     [ObservableProperty] private string _selectedCustomFilterMode = "Is Like";
     [ObservableProperty] private string _customFilterText = string.Empty;
+    [ObservableProperty] private bool _isSelectedColumnBool;
     #endregion
 
     #region Public Properties
     public ObservableCollection<string> AvailableGenres { get; } = ["All Genre"];
 
-    public string[] FilterModes { get; } =
+    public static string[] TextFilterModes { get; } =
         ["Is Like", "Is Not Like", "Starts With", "Ends With", "Is", "Is Empty", "Is Not Empty"];
+
+    public static string[] BoolFilterModes { get; } =
+        ["Is Anything", "Is True", "Is False"];
+
+    public string[] CurrentFilterModes => IsSelectedColumnBool ? BoolFilterModes : TextFilterModes;
 
     public string GenreFilterMenuText
     {
@@ -48,7 +54,7 @@ public partial class MainWindowViewModel
 
     public bool IsGenreFilterEnabled => FirstSelectedGame != null;
     public bool IsGenreFilterActive => GenreFilterSelection != "All Genre";
-    public bool IsCustomFilterTextEnabled => SelectedCustomFilterMode is not ("Is Empty" or "Is Not Empty");
+    public bool IsCustomFilterTextEnabled => !IsSelectedColumnBool && SelectedCustomFilterMode is not ("Is Empty" or "Is Not Empty");
     public string SetSelectedGenreVisibleMenuText => $"Set All '{SelectedGenreLabel}' Genre Visible";
     public string SetSelectedGenreHiddenMenuText => $"Set All '{SelectedGenreLabel}' Genre Hidden";
     #endregion
@@ -71,6 +77,11 @@ public partial class MainWindowViewModel
         ApplyFilter();
     }
 
+    partial void OnIsSelectedColumnBoolChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsCustomFilterTextEnabled));
+    }
+
     partial void OnSelectedCustomFilterModeChanged(string value)
     {
         if (!IsCustomFilterTextEnabled)
@@ -81,6 +92,12 @@ public partial class MainWindowViewModel
 
     partial void OnSelectedCustomFilterColumnChanged(string? value)
     {
+        var decl = value == null ? null
+            : GamelistMetaData.GetColumnDeclarations().FirstOrDefault(d => d.Name == value);
+        IsSelectedColumnBool = decl?.DataType == MetaDataType.Bool;
+        OnPropertyChanged(nameof(CurrentFilterModes));
+        SelectedCustomFilterMode = IsSelectedColumnBool ? "Is Anything" : "Is Like";
+        CustomFilterText = string.Empty;
         ApplyFilter();
     }
 

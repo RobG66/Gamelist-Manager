@@ -265,7 +265,7 @@
 											 ToolTip.Tip="Full path to the MAME executable. Used to launch games and retrieve ROM information directly from MAME."/>
 									<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
 											ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
-									<TextBlock Grid.Row="1" Grid.Column="0" Text="ROMs Path:" VerticalAlignment="Center" Margin="0,0,6,0"
+									<TextBlock Grid.Row="1" Grid.Column="0" Text="ROM Path:" VerticalAlignment="Center" Margin="0,0,6,0"
 											   IsVisible="{Binding !IsEsDeProfile}"
 											   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
 									<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RomsPath}" PlaceholderText="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"

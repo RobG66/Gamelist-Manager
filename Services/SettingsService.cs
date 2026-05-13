@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Xml;
 using System.Xml.Linq;
 using IniData = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
 
@@ -291,6 +293,7 @@ namespace Gamelist_Manager.Services
 
         #endregion
 
+
         public static EsDeDetectedPaths ReadPathsFromEsDeSettings(string esDeRoot)
         {
             if (string.IsNullOrWhiteSpace(esDeRoot))
@@ -299,51 +302,46 @@ namespace Gamelist_Manager.Services
             string? romDirectory = null;
             string? mediaDirectory = null;
 
-            var settingsPath = Path.Combine(esDeRoot, "settings", "es_settings.xml");
+            var settingsPath = System.IO.Path.Combine(esDeRoot, "settings", "es_settings.xml");
             if (File.Exists(settingsPath))
             {
-                try
+                foreach (var line in File.ReadLines(settingsPath))
                 {
-                    var doc = XDocument.Load(settingsPath);
-
-                    var romDir = doc.Descendants("string")
-                        .FirstOrDefault(e => string.Equals(e.Attribute("name")?.Value, "ROMDirectory", StringComparison.Ordinal))
-                        ?.Attribute("value")?.Value;
-
-                    if (!string.IsNullOrWhiteSpace(romDir))
+                    if (line.Contains("\"ROMDirectory\""))
                     {
-                        var expanded = ExpandTilde(romDir);
-                        var trimmed = Path.TrimEndingDirectorySeparator(expanded);
-                        if (Directory.Exists(trimmed))
-                            romDirectory = trimmed;
+                        var match = Regex.Match(line, @"value=""([^""]+)""");
+                        if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
+                        {
+                            var expanded = ExpandTilde(match.Groups[1].Value);
+                            romDirectory = System.IO.Path.TrimEndingDirectorySeparator(expanded);
+                        }
+                    }
+                    else if (line.Contains("\"MediaDirectory\""))
+                    {
+                        var match = Regex.Match(line, @"value=""([^""]+)""");
+                        if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
+                        {
+                            var expanded = ExpandTilde(match.Groups[1].Value);
+                            mediaDirectory = System.IO.Path.TrimEndingDirectorySeparator(expanded);
+                        }
                     }
 
-                    var mediaDir = doc.Descendants("string")
-                        .FirstOrDefault(e => string.Equals(e.Attribute("name")?.Value, "MediaDirectory", StringComparison.Ordinal))
-                        ?.Attribute("value")?.Value;
-
-                    if (!string.IsNullOrWhiteSpace(mediaDir))
-                    {
-                        var expanded = ExpandTilde(mediaDir);
-                        var trimmed = Path.TrimEndingDirectorySeparator(expanded);
-                        if (Directory.Exists(trimmed))
-                            mediaDirectory = trimmed;
-                    }
+                    if (romDirectory != null && mediaDirectory != null)
+                        break;
                 }
-                catch { }
             }
 
             if (romDirectory == null)
             {
-                var fallback = Path.Combine(esDeRoot, "..", "ROMs");
-                fallback = Path.GetFullPath(fallback);
+                var fallback = System.IO.Path.Combine(esDeRoot, "..", "ROMs");
+                fallback = System.IO.Path.GetFullPath(fallback);
                 if (Directory.Exists(fallback))
                     romDirectory = fallback;
             }
 
             if (mediaDirectory == null)
             {
-                var fallback = Path.Combine(esDeRoot, "downloaded_media");
+                var fallback = System.IO.Path.Combine(esDeRoot, "downloaded_media");
                 if (Directory.Exists(fallback))
                     mediaDirectory = fallback;
             }

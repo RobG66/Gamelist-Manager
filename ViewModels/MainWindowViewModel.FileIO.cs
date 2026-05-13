@@ -451,11 +451,7 @@ public partial class MainWindowViewModel
     private async Task LoadSystemsAsync()
     {
         var profileType = _sharedData.ProfileType;
-        var scanFolder = profileType switch
-        {
-            SettingKeys.ProfileTypeEsDe => Path.Combine(_sharedData.EsDeRoot, "gamelists"),
-            _ => _sharedData.RomsFolder
-        };
+        var scanFolder = _sharedData.GamelistsRootFolder;
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
         {

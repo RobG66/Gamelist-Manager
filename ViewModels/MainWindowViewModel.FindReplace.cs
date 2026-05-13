@@ -110,12 +110,11 @@ public partial class MainWindowViewModel
     {
         SearchableColumns.Clear();
 
-        var nonBoolNames = new HashSet<string>(
+        var searchableNames = new HashSet<string>(
             GamelistMetaData.GetColumnDeclarations()
-                .Where(d => d.DataType != MetaDataType.Bool)
                 .Select(d => d.Name));
 
-        foreach (var name in visibleColumnNames.Where(h => nonBoolNames.Contains(h)))
+        foreach (var name in visibleColumnNames.Where(h => searchableNames.Contains(h)))
             SearchableColumns.Add(name);
 
         if (DescriptionPanelVisible)

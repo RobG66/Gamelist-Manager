@@ -148,10 +148,12 @@ public partial class SettingsViewModel
 
         if (activate != ThreeButtonResult.Button3) return;
 
+        if (IsDirty) SaveSettings();
+
         if (ApplyMainProfileSwitch != null)
             await ApplyMainProfileSwitch(profileName);
 
-        DoSwitchProfile(saveFirst: IsDirty);
+        DoSwitchProfile(saveFirst: false);
     }
 
     [RelayCommand(CanExecute = nameof(CanCreateProfile))]
