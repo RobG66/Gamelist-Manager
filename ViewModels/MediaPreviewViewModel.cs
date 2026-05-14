@@ -56,6 +56,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
     public LibVLC? LibVLC { get; private set; }
     public static bool IsLibVLCInstalled { get; private set; } = true;
+
+    // Called from App startup when the native library probe fails, so the
+    // rest of the app knows not to attempt VLC before any native code runs.
+    public static void MarkLibVLCUnavailable() => IsLibVLCInstalled = false;
     #endregion
 
     #region Constructor

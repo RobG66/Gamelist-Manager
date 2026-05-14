@@ -214,7 +214,19 @@ namespace Gamelist_Manager.Services
 
         partial void OnEsDeRootChanged(string value)
         {
-            RefreshProfileState();
+            if (!string.IsNullOrWhiteSpace(value) && Directory.Exists(value))
+            {
+                var detected = SettingsService.ReadPathsFromEsDeSettings(value);
+                EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+                RomsFolder = detected.RomDirectory ?? string.Empty;
+            }
+            else
+            {
+                EsDeMediaBase = string.Empty;
+                if (_profileType == SettingKeys.ProfileTypeEsDe)
+                    RomsFolder = string.Empty;
+            }
+
             OnPropertyChanged(nameof(GamelistsRootFolder));
             CurrentRomFolder = _settings.CurrentRomFolder(RomsFolder, CurrentSystem);
             AvailableMedia = _settings.BuildAvailableMedia(
@@ -275,27 +287,11 @@ namespace Gamelist_Manager.Services
                 OnPropertyChanged(nameof(GamelistsRootFolder));
             }
 
+            // Setting EsDeRoot triggers OnEsDeRootChanged, which owns all path derivation.
             if (resolvedType == SettingKeys.ProfileTypeEsDe)
-            {
                 EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
-
-                if (!string.IsNullOrWhiteSpace(EsDeRoot) && Directory.Exists(EsDeRoot))
-                {
-                    var detected = SettingsService.ReadPathsFromEsDeSettings(EsDeRoot);
-                    EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
-                    RomsFolder = detected.RomDirectory ?? string.Empty;
-                }
-                else
-                {
-                    EsDeMediaBase = string.Empty;
-                    RomsFolder = string.Empty;
-                }
-            }
             else
-            {
                 EsDeRoot = string.Empty;
-                EsDeMediaBase = string.Empty;
-            }
         }
 
         #endregion
