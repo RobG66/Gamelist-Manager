@@ -16,21 +16,21 @@ public partial class ScraperViewModel
 {
     private async Task StartAsync()
     {
-        if (_sharedData.GamelistData == null || _sharedData.GamelistData.Count == 0)
+        if (_sessionState.GamelistData == null || _sessionState.GamelistData.Count == 0)
         {
             Log("No gamelist loaded.", LogLevel.Error);
             IsScraping = false;
             return;
         }
 
-        if (string.IsNullOrEmpty(_sharedData.CurrentSystem))
+        if (string.IsNullOrEmpty(_sessionState.CurrentSystem))
         {
             Log("No system selected.", LogLevel.Error);
             IsScraping = false;
             return;
         }
 
-        if (string.IsNullOrEmpty(_sharedData.CurrentRomFolder))
+        if (string.IsNullOrEmpty(_sessionState.CurrentRomFolder))
         {
             Log("No gamelist directory found.", LogLevel.Error);
             IsScraping = false;
@@ -45,18 +45,18 @@ public partial class ScraperViewModel
             return;
         }
 
-        var currentSystem = _sharedData.CurrentSystem;
-        var gamelistDirectory = _sharedData.CurrentRomFolder;
+        var currentSystem = _sessionState.CurrentSystem;
+        var gamelistDirectory = _sessionState.CurrentRomFolder;
         var currentScraper = CurrentScraper;
-        var maxBatch = _sharedData.MaxBatch;
-        var removeZzzNotGamePrefix = _sharedData.RemoveZZZNotGamePrefix;
-        var logVerbosity = _sharedData.LogVerbosity;
-        var batchProcessing = _sharedData.BatchProcessing;
-        var verifyImageDownloads = _sharedData.VerifyImageDownloads;
-        var overrideConcurrency = _sharedData.OverrideConcurrency;
-        var concurrencyOverride = _sharedData.ConcurrencyOverride;
-        var profileType = _sharedData.ProfileType;
-        var availableMedia = _sharedData.AvailableMedia;
+        var maxBatch = _settingsState.MaxBatch;
+        var removeZzzNotGamePrefix = _settingsState.RemoveZZZNotGamePrefix;
+        var logVerbosity = _settingsState.LogVerbosity;
+        var batchProcessing = _settingsState.BatchProcessing;
+        var verifyImageDownloads = _settingsState.VerifyImageDownloads;
+        var overrideConcurrency = _settingsState.OverrideConcurrency;
+        var concurrencyOverride = _settingsState.ConcurrencyOverride;
+        var profileType = _sessionState.ProfileType;
+        var availableMedia = _sessionState.AvailableMedia;
 
         SaveScraperSettings();
         ResetScrapeUI();
@@ -139,7 +139,7 @@ public partial class ScraperViewModel
                         }
                     },
                     OnLimitUpdate: (progress, max) => Dispatcher.UIThread.Post(() => LimitText = $"{progress}/{max}"),
-                    OnDataChanged: () => _sharedData.IsDataChanged = true,
+                    OnDataChanged: () => _sessionState.IsDataChanged = true,
                     OnQuotaExceeded: () =>
                     {
                         _cts?.Cancel();
@@ -202,9 +202,9 @@ public partial class ScraperViewModel
     private List<GameMetadataRow> GetRowsToScrape()
     {
         return (ScrapeSelectedMode
-                ? _sharedData.SelectedItems?.OfType<GameMetadataRow>() ?? Enumerable.Empty<GameMetadataRow>()
-                : _sharedData.FilteredGamelistData
-                  ?? _sharedData.GamelistData?.AsEnumerable()
+                ? _sessionState.SelectedItems?.OfType<GameMetadataRow>() ?? Enumerable.Empty<GameMetadataRow>()
+                : _sessionState.FilteredGamelistData
+                  ?? _sessionState.GamelistData?.AsEnumerable()
                   ?? Enumerable.Empty<GameMetadataRow>())
             .Where(r => ScrapeHiddenItems || r.GetValue(MetaDataKeys.hidden) is not true)
             .ToList();

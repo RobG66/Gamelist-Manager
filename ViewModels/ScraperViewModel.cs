@@ -16,11 +16,15 @@ namespace Gamelist_Manager.ViewModels;
 public partial class ScraperViewModel : ViewModelBase, IDisposable
 {
     #region Services
+
     private readonly SettingsService _settingsService = SettingsService.Instance;
-    private readonly SharedDataService _sharedData = SharedDataService.Instance;
+    private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsState _settingsState = SettingsState.Instance;
+
     #endregion
 
     #region Private Fields
+
     private bool _isLoading;
     private bool _isDisposed;
     private CancellationTokenSource? _cts;
@@ -32,9 +36,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private int _dlFailedCount;
     private bool _isStopping;
     private string _previousSystem = string.Empty;
+
     #endregion
 
     #region Observable Properties - Basic Settings
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLimitVisible))]
     private string _currentScraper = ScraperRegistry.All[0].Name;
@@ -56,9 +62,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _isClearCacheEnabled;
     [ObservableProperty] private string _cacheCountText = "0 items cached";
     [ObservableProperty] private bool _showLogTimestamp;
+
     #endregion
 
     #region Observable Properties - Metadata
+
     [ObservableProperty] private bool _metaName;
     [ObservableProperty] private bool _metaNameEnabled;
     [ObservableProperty] private bool _metaDescription;
@@ -85,9 +93,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _metaFamilyEnabled;
     [ObservableProperty] private bool _metaGameId;
     [ObservableProperty] private bool _metaGameIdEnabled;
+
     #endregion
 
     #region Observable Properties - Media
+
     [ObservableProperty] private bool _mediaTitleshot;
     [ObservableProperty] private bool _mediaTitleshotEnabled;
     [ObservableProperty] private bool _mediaMap;
@@ -118,9 +128,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _mediaMixEnabled;
     [ObservableProperty] private bool _mediaWheel;
     [ObservableProperty] private bool _mediaWheelEnabled;
+
     #endregion
 
     #region Observable Properties - Media Sources
+
     public ObservableCollection<string> ImageSources { get; } = [];
     public ObservableCollection<string> MarqueeSources { get; } = [];
     public ObservableCollection<string> ThumbnailSources { get; } = [];
@@ -129,6 +141,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     public ObservableCollection<string> BoxArtSources { get; } = [];
     public ObservableCollection<string> MixSources { get; } = [];
     public ObservableCollection<string> WheelSources { get; } = [];
+
     [ObservableProperty] private int _selectedImageSource = -1;
     [ObservableProperty] private int _selectedMarqueeSource = -1;
     [ObservableProperty] private int _selectedThumbnailSource = -1;
@@ -137,9 +150,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private int _selectedBoxArtSource = -1;
     [ObservableProperty] private int _selectedMixSource = -1;
     [ObservableProperty] private int _selectedWheelSource = -1;
+
     #endregion
 
     #region Observable Properties - Progress
+
     [ObservableProperty] private string _currentScrapeText = "N/A";
     [ObservableProperty] private string _threadCountText = "1";
     [ObservableProperty] private double _progressValue;
@@ -154,75 +169,87 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<LogEntry> LogEntries { get; } = [];
     public ObservableCollection<LogEntry> DownloadLogEntries { get; } = [];
+
     #endregion
 
     #region Public Properties
+
     public List<string> ScraperNames { get; } = ScraperRegistry.All.Select(s => s.Name).ToList();
     public bool IsLimitVisible => CurrentScraper == ScraperRegistry.ScreenScraper.Name;
-    public bool IsBusy => _sharedData.IsBusy;
-    private bool CanStop => IsScraping && !_isStopping;
-    private bool CanStart => !IsScraping;
+    public bool IsBusy => _sessionState.IsBusy;
 
-    // 0 = Save Per Scraper, 1 = Save Per System
-    private int ScraperConfigSaveMode => _settingsService.GetInt(SettingKeys.ScraperConfigSave);
+    #endregion
 
-    private string ScraperSettingsKey => ScraperConfigSaveMode == 1 && !string.IsNullOrEmpty(_sharedData.CurrentSystem)
-        ? $"{CurrentScraper}_{_sharedData.CurrentSystem}"
+    #region Private Properties
+
+    private int ScraperConfigSaveMode => _settingsState.ScraperConfigSave;
+
+    private string ScraperSettingsKey => ScraperConfigSaveMode == 1 && !string.IsNullOrEmpty(_sessionState.CurrentSystem)
+        ? $"{CurrentScraper}_{_sessionState.CurrentSystem}"
         : CurrentScraper;
+
     #endregion
 
     #region Constructor
+
     public ScraperViewModel()
     {
-        _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
-        _sharedData.SettingsApplied += OnSettingsApplied;
+        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
+        _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
 
         _isLoading = true;
         LoadScraperSettings();
         _isLoading = false;
-        _previousSystem = _sharedData.CurrentSystem ?? string.Empty;
+        _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
         RefreshCacheCount();
         Log("Ready to scrape...", LogLevel.Info);
     }
+
     #endregion
 
     #region Event Handlers
-    private void OnSettingsApplied(object? sender, EventArgs e)
-    {
-        ShowLogTimestamp = _sharedData.ShowLogTimestamp;
-    }
 
-    private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnSettingsStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
-            case nameof(SharedDataService.CurrentSystem):
-                // In Save Per System mode, persist the settings for the system we are leaving
-                // before the load triggered by AvailableMedia picks up the new system.
-                if (ScraperConfigSaveMode == 1 && !IsScraping)
-                    SaveScraperSettings(BuildScraperKey(CurrentScraper, _previousSystem));
-                _previousSystem = _sharedData.CurrentSystem ?? string.Empty;
-                RefreshCacheCount();
-                break;
-            case nameof(SharedDataService.AvailableMedia):
-                if (!IsScraping)
-                    LoadScraperSettings();
-                break;
-            case nameof(SharedDataService.IsScraping):
-                if (IsScraping != _sharedData.IsScraping)
-                    IsScraping = _sharedData.IsScraping;
-                break;
-            case nameof(SharedDataService.IsBusy):
-                OnPropertyChanged(nameof(IsBusy));
+            case nameof(SettingsState.ShowLogTimestamp):
+                ShowLogTimestamp = _settingsState.ShowLogTimestamp;
                 break;
         }
     }
+
+    private void OnSessionStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SessionState.CurrentSystem):
+                if (ScraperConfigSaveMode == 1 && !IsScraping)
+                    SaveScraperSettings(BuildScraperKey(CurrentScraper, _previousSystem));
+                _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
+                RefreshCacheCount();
+                break;
+            case nameof(SessionState.IsBusy):
+                OnPropertyChanged(nameof(IsBusy));
+                break;
+            case nameof(SessionState.AvailableMedia):
+                if (!IsScraping)
+                    LoadScraperSettings();
+                break;
+            case nameof(SessionState.IsScraping):
+                if (IsScraping != _sessionState.IsScraping)
+                    IsScraping = _sessionState.IsScraping;
+                break;
+        }
+    }
+
     #endregion
 
     #region Property Change Callbacks
+
     partial void OnIsScrapingChanged(bool value)
     {
-        _sharedData.IsScraping = value;
+        _sessionState.IsScraping = value;
         if (value) IsClearCacheEnabled = false;
     }
 
@@ -246,8 +273,8 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         SkipNonCachedItemsEnabled = value;
         if (!value) SkipNonCachedItems = false;
     }
-    #endregion
 
+    #endregion
 
     #region Private Methods
 
@@ -259,7 +286,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        string system = _sharedData?.CurrentSystem ?? string.Empty;
+        var system = _sessionState.CurrentSystem ?? string.Empty;
         if (string.IsNullOrEmpty(system))
         {
             CacheCountText = "0 items cached";
@@ -267,7 +294,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
+        var cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
         var files = Directory.Exists(cacheFolder) ? Directory.GetFiles(cacheFolder) : [];
 
         if (files.Length == 0)
@@ -288,9 +315,9 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
         if (_isLoading)
         {
-            string savedScraper = _settingsService.GetValue(SettingKeys.SelectedScraper);
+            var savedScraper = _settingsState.SelectedScraper;
             CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
-            key = ScraperSettingsKey; // recompute after CurrentScraper is set
+            key = ScraperSettingsKey;
         }
 
         LoadGeneralSettings(key);
@@ -305,9 +332,8 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         OverwriteName = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteName", SettingKeys.OverwriteName.Default);
         OverwriteMedia = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMedia", SettingKeys.OverwriteMedia.Default);
         ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeHiddenItems", SettingKeys.ScrapeHiddenItems.Default);
-        ShowLogTimestamp = _sharedData.ShowLogTimestamp;
+        ShowLogTimestamp = _settingsState.ShowLogTimestamp;
 
-        // Reset capability flags to defaults before applying scraper-specific overrides.
         ScrapeFromCacheEnabled = true;
         SkipNonCachedItemsEnabled = true;
         OverwriteMetadataEnabled = true;
@@ -326,7 +352,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private void ApplyScraperCapabilities()
     {
         var scraperElements = GamelistMetaData.GetScraperElements(CurrentScraper);
-        var availableMedia = _sharedData.AvailableMedia;
+        var availableMedia = _sessionState.AvailableMedia;
         bool HasMedia(string type) => availableMedia.Any(m => m.Type == type);
 
         foreach (var t in GetBoolToggles())
@@ -336,7 +362,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             if (!supported) t.SetValue(false);
         }
 
-        // Source-backed toggles: enabled state comes from whether the scraper config provides sources.
         foreach (var s in GetSourceToggles())
         {
             ApplySource(s.Sources, s.Name, s.SetSelected, out bool enabled);
@@ -345,7 +370,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             if (!enabled) toggle.SetValue(false);
         }
 
-        // Further restrict: disable any media type not present in the current folder setup.
         foreach (var t in GetBoolToggles().Where(t => t.IsMedia))
         {
             if (!HasMedia(t.ElementKey)) { t.SetEnabled(false); t.SetValue(false); }
@@ -378,7 +402,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
         foreach (var s in GetSourceToggles())
         {
-            string savedValue = _settingsService.GetValue(SettingKeys.ScrapersSection, $"{key}_{s.Name}", "");
+            var savedValue = _settingsService.GetValue(SettingKeys.ScrapersSection, $"{key}_{s.Name}", "");
             RestoreSource(s.Sources, savedValue, s.SetSelected);
         }
 
@@ -398,24 +422,23 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     private void SaveScraperSettings(string key)
     {
-        if (_settingsService is null) return;
-
-        var panelValues = new Dictionary<string, string>();
-
-        panelValues[$"{key}_ScrapeAllMode"] = ScrapeAllMode.ToString();
-        panelValues[$"{key}_OverwriteName"] = OverwriteName.ToString();
-        panelValues[$"{key}_OverwriteMedia"] = OverwriteMedia.ToString();
-        panelValues[$"{key}_ScrapeHiddenItems"] = ScrapeHiddenItems.ToString();
-        panelValues[$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString();
-        panelValues[$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString();
-        panelValues[$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString();
+        var panelValues = new Dictionary<string, string>
+        {
+            [$"{key}_ScrapeAllMode"] = ScrapeAllMode.ToString(),
+            [$"{key}_OverwriteName"] = OverwriteName.ToString(),
+            [$"{key}_OverwriteMedia"] = OverwriteMedia.ToString(),
+            [$"{key}_ScrapeHiddenItems"] = ScrapeHiddenItems.ToString(),
+            [$"{key}_ScrapeFromCache"] = ScrapeFromCache.ToString(),
+            [$"{key}_SkipNonCachedItems"] = SkipNonCachedItems.ToString(),
+            [$"{key}_OverwriteMetadata"] = OverwriteMetadata.ToString(),
+        };
 
         foreach (var t in GetBoolToggles())
             panelValues[$"{key}_{t.Name}"] = t.GetValue().ToString();
 
         foreach (var s in GetSourceToggles())
         {
-            int idx = s.GetSelected();
+            var idx = s.GetSelected();
             panelValues[$"{key}_{s.Name}"] = idx >= 0 && idx < s.Sources.Count ? s.Sources[idx] : "";
         }
 
@@ -426,54 +449,48 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         });
     }
 
-
-    // Name       = settings key suffix
-    // ElementKey = scraper element string used in scraperElements / BuildElementsToScrape
-    // IsMedia    = true for media toggles, false for metadata
-    // GetEnabled / GetValue / SetValue / SetEnabled = property accessors
     private (string Name, string ElementKey, bool IsMedia, Func<bool> GetEnabled, Action<bool> SetEnabled, Func<bool> GetValue, Action<bool> SetValue)[] GetBoolToggles() =>
     [
-        ("MetaName",        "name",             false, () => MetaNameEnabled,         v => MetaNameEnabled = v,         () => MetaName,        v => MetaName = v),
-        ("MetaDescription", "desc",             false, () => MetaDescriptionEnabled,  v => MetaDescriptionEnabled = v,  () => MetaDescription, v => MetaDescription = v),
-        ("MetaGenre",       "genre",            false, () => MetaGenreEnabled,        v => MetaGenreEnabled = v,        () => MetaGenre,       v => MetaGenre = v),
-        ("MetaPlayers",     "players",          false, () => MetaPlayersEnabled,      v => MetaPlayersEnabled = v,      () => MetaPlayers,     v => MetaPlayers = v),
-        ("MetaRating",      "rating",           false, () => MetaRatingEnabled,       v => MetaRatingEnabled = v,       () => MetaRating,      v => MetaRating = v),
-        ("MetaRegion",      "region",           false, () => MetaRegionEnabled,       v => MetaRegionEnabled = v,       () => MetaRegion,      v => MetaRegion = v),
-        ("MetaLanguage",    "lang",             false, () => MetaLanguageEnabled,     v => MetaLanguageEnabled = v,     () => MetaLanguage,    v => MetaLanguage = v),
-        ("MetaReleaseDate", "releasedate",      false, () => MetaReleaseDateEnabled,  v => MetaReleaseDateEnabled = v,  () => MetaReleaseDate, v => MetaReleaseDate = v),
-        ("MetaDeveloper",   "developer",        false, () => MetaDeveloperEnabled,    v => MetaDeveloperEnabled = v,    () => MetaDeveloper,   v => MetaDeveloper = v),
-        ("MetaPublisher",   "publisher",        false, () => MetaPublisherEnabled,    v => MetaPublisherEnabled = v,    () => MetaPublisher,   v => MetaPublisher = v),
-        ("MetaArcadeName",  "arcadesystemname", false, () => MetaArcadeNameEnabled,   v => MetaArcadeNameEnabled = v,   () => MetaArcadeName,  v => MetaArcadeName = v),
-        ("MetaFamily",      "family",           false, () => MetaFamilyEnabled,       v => MetaFamilyEnabled = v,       () => MetaFamily,      v => MetaFamily = v),
-        ("MetaGameId",      "id",               false, () => MetaGameIdEnabled,       v => MetaGameIdEnabled = v,       () => MetaGameId,      v => MetaGameId = v),
-        ("MediaTitleshot",  "titleshot",        true,  () => MediaTitleshotEnabled,   v => MediaTitleshotEnabled = v,   () => MediaTitleshot,  v => MediaTitleshot = v),
-        ("MediaMap",        "map",              true,  () => MediaMapEnabled,         v => MediaMapEnabled = v,         () => MediaMap,        v => MediaMap = v),
-        ("MediaManual",     "manual",           true,  () => MediaManualEnabled,      v => MediaManualEnabled = v,      () => MediaManual,     v => MediaManual = v),
-        ("MediaBezel",      "bezel",            true,  () => MediaBezelEnabled,       v => MediaBezelEnabled = v,       () => MediaBezel,      v => MediaBezel = v),
-        ("MediaFanArt",     "fanart",           true,  () => MediaFanArtEnabled,      v => MediaFanArtEnabled = v,      () => MediaFanArt,     v => MediaFanArt = v),
-        ("MediaBoxBack",    "boxback",          true,  () => MediaBoxBackEnabled,     v => MediaBoxBackEnabled = v,     () => MediaBoxBack,    v => MediaBoxBack = v),
-        ("MediaMusic",      "music",            true,  () => MediaMusicEnabled,       v => MediaMusicEnabled = v,       () => MediaMusic,      v => MediaMusic = v),
-        ("MediaImage",      "image",            true,  () => MediaImageEnabled,       v => MediaImageEnabled = v,       () => MediaImage,      v => MediaImage = v),
-        ("MediaMarquee",    "marquee",          true,  () => MediaMarqueeEnabled,     v => MediaMarqueeEnabled = v,     () => MediaMarquee,    v => MediaMarquee = v),
-        ("MediaThumbnail",  "thumbnail",        true,  () => MediaThumbnailEnabled,   v => MediaThumbnailEnabled = v,   () => MediaThumbnail,  v => MediaThumbnail = v),
-        ("MediaCartridge",  "cartridge",        true,  () => MediaCartridgeEnabled,   v => MediaCartridgeEnabled = v,   () => MediaCartridge,  v => MediaCartridge = v),
-        ("MediaVideo",      "video",            true,  () => MediaVideoEnabled,       v => MediaVideoEnabled = v,       () => MediaVideo,      v => MediaVideo = v),
-        ("MediaBoxArt",     "boxart",           true,  () => MediaBoxArtEnabled,      v => MediaBoxArtEnabled = v,      () => MediaBoxArt,     v => MediaBoxArt = v),
-        ("MediaMix",        "mix",              true,  () => MediaMixEnabled,         v => MediaMixEnabled = v,         () => MediaMix,        v => MediaMix = v),
-        ("MediaWheel",      "wheel",            true,  () => MediaWheelEnabled,       v => MediaWheelEnabled = v,       () => MediaWheel,      v => MediaWheel = v),
+        ("MetaName",        "name",             false, () => MetaNameEnabled,        v => MetaNameEnabled = v,        () => MetaName,        v => MetaName = v),
+        ("MetaDescription", "desc",             false, () => MetaDescriptionEnabled, v => MetaDescriptionEnabled = v, () => MetaDescription, v => MetaDescription = v),
+        ("MetaGenre",       "genre",            false, () => MetaGenreEnabled,       v => MetaGenreEnabled = v,       () => MetaGenre,       v => MetaGenre = v),
+        ("MetaPlayers",     "players",          false, () => MetaPlayersEnabled,     v => MetaPlayersEnabled = v,     () => MetaPlayers,     v => MetaPlayers = v),
+        ("MetaRating",      "rating",           false, () => MetaRatingEnabled,      v => MetaRatingEnabled = v,      () => MetaRating,      v => MetaRating = v),
+        ("MetaRegion",      "region",           false, () => MetaRegionEnabled,      v => MetaRegionEnabled = v,      () => MetaRegion,      v => MetaRegion = v),
+        ("MetaLanguage",    "lang",             false, () => MetaLanguageEnabled,    v => MetaLanguageEnabled = v,    () => MetaLanguage,    v => MetaLanguage = v),
+        ("MetaReleaseDate", "releasedate",      false, () => MetaReleaseDateEnabled, v => MetaReleaseDateEnabled = v, () => MetaReleaseDate, v => MetaReleaseDate = v),
+        ("MetaDeveloper",   "developer",        false, () => MetaDeveloperEnabled,   v => MetaDeveloperEnabled = v,   () => MetaDeveloper,   v => MetaDeveloper = v),
+        ("MetaPublisher",   "publisher",        false, () => MetaPublisherEnabled,   v => MetaPublisherEnabled = v,   () => MetaPublisher,   v => MetaPublisher = v),
+        ("MetaArcadeName",  "arcadesystemname", false, () => MetaArcadeNameEnabled,  v => MetaArcadeNameEnabled = v,  () => MetaArcadeName,  v => MetaArcadeName = v),
+        ("MetaFamily",      "family",           false, () => MetaFamilyEnabled,      v => MetaFamilyEnabled = v,      () => MetaFamily,      v => MetaFamily = v),
+        ("MetaGameId",      "id",               false, () => MetaGameIdEnabled,      v => MetaGameIdEnabled = v,      () => MetaGameId,      v => MetaGameId = v),
+        ("MediaTitleshot",  "titleshot",        true,  () => MediaTitleshotEnabled,  v => MediaTitleshotEnabled = v,  () => MediaTitleshot,  v => MediaTitleshot = v),
+        ("MediaMap",        "map",              true,  () => MediaMapEnabled,        v => MediaMapEnabled = v,        () => MediaMap,        v => MediaMap = v),
+        ("MediaManual",     "manual",           true,  () => MediaManualEnabled,     v => MediaManualEnabled = v,     () => MediaManual,     v => MediaManual = v),
+        ("MediaBezel",      "bezel",            true,  () => MediaBezelEnabled,      v => MediaBezelEnabled = v,      () => MediaBezel,      v => MediaBezel = v),
+        ("MediaFanArt",     "fanart",           true,  () => MediaFanArtEnabled,     v => MediaFanArtEnabled = v,     () => MediaFanArt,     v => MediaFanArt = v),
+        ("MediaBoxBack",    "boxback",          true,  () => MediaBoxBackEnabled,    v => MediaBoxBackEnabled = v,    () => MediaBoxBack,    v => MediaBoxBack = v),
+        ("MediaMusic",      "music",            true,  () => MediaMusicEnabled,      v => MediaMusicEnabled = v,      () => MediaMusic,      v => MediaMusic = v),
+        ("MediaImage",      "image",            true,  () => MediaImageEnabled,      v => MediaImageEnabled = v,      () => MediaImage,      v => MediaImage = v),
+        ("MediaMarquee",    "marquee",          true,  () => MediaMarqueeEnabled,    v => MediaMarqueeEnabled = v,    () => MediaMarquee,    v => MediaMarquee = v),
+        ("MediaThumbnail",  "thumbnail",        true,  () => MediaThumbnailEnabled,  v => MediaThumbnailEnabled = v,  () => MediaThumbnail,  v => MediaThumbnail = v),
+        ("MediaCartridge",  "cartridge",        true,  () => MediaCartridgeEnabled,  v => MediaCartridgeEnabled = v,  () => MediaCartridge,  v => MediaCartridge = v),
+        ("MediaVideo",      "video",            true,  () => MediaVideoEnabled,      v => MediaVideoEnabled = v,      () => MediaVideo,      v => MediaVideo = v),
+        ("MediaBoxArt",     "boxart",           true,  () => MediaBoxArtEnabled,     v => MediaBoxArtEnabled = v,     () => MediaBoxArt,     v => MediaBoxArt = v),
+        ("MediaMix",        "mix",              true,  () => MediaMixEnabled,        v => MediaMixEnabled = v,        () => MediaMix,        v => MediaMix = v),
+        ("MediaWheel",      "wheel",            true,  () => MediaWheelEnabled,      v => MediaWheelEnabled = v,      () => MediaWheel,      v => MediaWheel = v),
     ];
 
-    // AvailabilityType = media type string checked against AvailableMedia
     private (string Name, string AvailabilityType, ObservableCollection<string> Sources, Func<int> GetSelected, Action<int> SetSelected)[] GetSourceToggles() =>
     [
-        ("ImageSource",    "image",     ImageSources,    () => SelectedImageSource,    v => SelectedImageSource = v),
-        ("MarqueeSource",  "marquee",   MarqueeSources,  () => SelectedMarqueeSource,  v => SelectedMarqueeSource = v),
-        ("ThumbnailSource","thumbnail", ThumbnailSources,() => SelectedThumbnailSource,v => SelectedThumbnailSource = v),
-        ("CartridgeSource","cartridge", CartridgeSources,() => SelectedCartridgeSource,v => SelectedCartridgeSource = v),
-        ("VideoSource",    "video",     VideoSources,    () => SelectedVideoSource,    v => SelectedVideoSource = v),
-        ("BoxArtSource",   "boxart",    BoxArtSources,   () => SelectedBoxArtSource,   v => SelectedBoxArtSource = v),
-        ("MixSource",      "mix",       MixSources,      () => SelectedMixSource,      v => SelectedMixSource = v),
-        ("WheelSource",    "wheel",     WheelSources,    () => SelectedWheelSource,    v => SelectedWheelSource = v),
+        ("ImageSource",     "image",     ImageSources,     () => SelectedImageSource,     v => SelectedImageSource = v),
+        ("MarqueeSource",   "marquee",   MarqueeSources,   () => SelectedMarqueeSource,   v => SelectedMarqueeSource = v),
+        ("ThumbnailSource", "thumbnail", ThumbnailSources, () => SelectedThumbnailSource, v => SelectedThumbnailSource = v),
+        ("CartridgeSource", "cartridge", CartridgeSources, () => SelectedCartridgeSource, v => SelectedCartridgeSource = v),
+        ("VideoSource",     "video",     VideoSources,     () => SelectedVideoSource,     v => SelectedVideoSource = v),
+        ("BoxArtSource",    "boxart",    BoxArtSources,    () => SelectedBoxArtSource,    v => SelectedBoxArtSource = v),
+        ("MixSource",       "mix",       MixSources,       () => SelectedMixSource,       v => SelectedMixSource = v),
+        ("WheelSource",     "wheel",     WheelSources,     () => SelectedWheelSource,     v => SelectedWheelSource = v),
     ];
 
     private static void RestoreSource(ObservableCollection<string> collection, string savedValue, Action<int> setIndex)
@@ -500,9 +517,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             enabled = false;
         }
     }
+
     #endregion
 
     #region Commands
+
     [RelayCommand(CanExecute = nameof(CanStart))]
     private async Task Start()
     {
@@ -523,14 +542,14 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void ClearCache()
     {
-        string system = _sharedData.CurrentSystem ?? string.Empty;
+        var system = _sessionState.CurrentSystem ?? string.Empty;
         if (string.IsNullOrEmpty(system))
         {
             Log("No system loaded, cannot clear cache.", LogLevel.Warning);
             return;
         }
 
-        string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
+        var cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
         if (!Directory.Exists(cacheFolder))
         {
             RefreshCacheCount();
@@ -557,7 +576,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             .FirstOrDefault(x => string.Equals(x.s.Name, CurrentScraper, StringComparison.OrdinalIgnoreCase))
             .i;
 
-        // Scraper tab is index 4 in Settings
         await WindowService.Instance.ShowSettingsAsync(4, scraperIndex);
     }
 
@@ -595,19 +613,29 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         foreach (var s in GetSourceToggles().Where(s => GetBoolToggles().Any(t => t.ElementKey == s.AvailabilityType && t.GetEnabled())))
             s.SetSelected(0);
     }
+
+    #endregion
+
+    #region Command Guards
+
+    private bool CanStart => !IsScraping;
+    private bool CanStop => IsScraping && !_isStopping;
+
     #endregion
 
     #region Dispose
+
     public void Dispose()
     {
         if (_isDisposed) return;
         _isDisposed = true;
-        _sharedData.PropertyChanged -= OnSharedDataPropertyChanged;
-        _sharedData.SettingsApplied -= OnSettingsApplied;
+        _sessionState.PropertyChanged -= OnSessionStatePropertyChanged;
+        _settingsState.PropertyChanged -= OnSettingsStatePropertyChanged;
         _cts?.Cancel();
         _cts?.Dispose();
         SaveScraperSettings();
         GC.SuppressFinalize(this);
     }
+
     #endregion
 }

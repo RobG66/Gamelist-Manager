@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Services;
 
 namespace Gamelist_Manager.Models
 {
     public partial class MediaFolderItem : ObservableObject
     {
+        // --- Identity / defaults ---
+
         public string Key { get; init; } = string.Empty;
         public string Label { get; init; } = string.Empty;
         public string DefaultPath { get; init; } = string.Empty;
@@ -13,83 +13,57 @@ namespace Gamelist_Manager.Models
         public bool DefaultEnabled { get; init; } = true;
         public bool DefaultSfxEnabled => !string.IsNullOrEmpty(DefaultSuffix);
 
-        private MetaDataDecl? Decl => GamelistMetaData.GetDeclByType(Key);
 
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsSuffixEnabled))]
-        [NotifyPropertyChangedFor(nameof(SfxEnabled))]
-        private bool _enabled;
+        // --- Observable state ---
 
+        [ObservableProperty] private bool _enabled;
         [ObservableProperty] private string _path = string.Empty;
         [ObservableProperty] private string _suffix = string.Empty;
+        [ObservableProperty] private string _displayPath = string.Empty;
+
         private bool _sfxEnabled;
-
-
-        // Returns false when suffixes are not applicable so the checkbox appears unchecked.
-        // The backing field retains the user's preference and is restored when re-enabled.
         public bool SfxEnabled
         {
-            get => _sfxEnabled && IsSuffixEnabled;
+            get => _sfxEnabled;
             set => SetProperty(ref _sfxEnabled, value);
         }
 
-        // Suffix controls are only editable when the row is enabled and suffixes are not
-        // globally disabled (e.g. in ES-DE mode, where suffixes have no meaning).
-        public bool IsSuffixEnabled => Enabled && SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe;
+        // --- Display state (set by SettingsViewModel via RefreshDisplayState) ---
 
-        // Path textbox is read-only in ES-DE mode — paths are fixed by the ES-DE layout.
-        public bool IsPathReadOnly => SharedDataService.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
+        [ObservableProperty] private bool _isNotEsDeMode = true;
+        [ObservableProperty] private bool _isPathReadOnly = false;
+        [ObservableProperty] private bool _isMediaEnabled = true;
+        [ObservableProperty] private bool _isSuffixEnabled = true;
 
-        // Used to hide suffix columns and browse button in ES-DE mode.
-        public bool IsNotEsDeMode => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe;
-
-        public bool IsMediaEnabled => SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false);
-
-        public bool EffectiveEnabled => Enabled && (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe || (Decl?.IsEsDeSupported ?? false));
-
-        // In ES-DE mode shows the resolved media directory path; otherwise the relative path.
-        // The setter writes back to Path so two-way TextBox binding works in non-ES-DE mode.
-        public string DisplayPath
-        {
-            get
-            {
-                if (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe)
-                    return Path;
-
-                var esDeFolderName = Decl?.EsDeFolderName;
-                if (string.IsNullOrEmpty(esDeFolderName))
-                    return string.Empty;
-
-                var shared = SharedDataService.Instance;
-                var mediaDir = SettingsService.Instance.EsDeMediaDirectory(shared.EsDeMediaBase, shared.CurrentSystem);
-                return !string.IsNullOrEmpty(mediaDir)
-                    ? System.IO.Path.Combine(mediaDir, esDeFolderName)
-                    : esDeFolderName;
-            }
-            set
-            {
-                if (SharedDataService.Instance.ProfileType != SettingKeys.ProfileTypeEsDe)
-                    Path = value;
-            }
-        }
-
-        public void NotifyProfileTypeChanged()
-        {
-            OnPropertyChanged(nameof(DisplayPath));
-            OnPropertyChanged(nameof(IsPathReadOnly));
-            OnPropertyChanged(nameof(IsNotEsDeMode));
-            OnPropertyChanged(nameof(IsMediaEnabled));
-            OnPropertyChanged(nameof(IsSuffixEnabled));
-            OnPropertyChanged(nameof(EffectiveEnabled));
-        }
+        // --- Mutations ---
 
         public void ResetToDefaults()
         {
             Path = DefaultPath;
             Suffix = DefaultSuffix;
             SfxEnabled = DefaultSfxEnabled;
+            Enabled = DefaultEnabled;
         }
 
-        partial void OnPathChanged(string value) => OnPropertyChanged(nameof(DisplayPath));
+        partial void OnPathChanged(string value)
+        {
+            if (IsNotEsDeMode)
+                DisplayPath = value;
+        }
+
+        public void RefreshDisplayState(bool isEsDe, bool isEsDeSupported, string esDeMediaBase, string? currentSystem, string? esDeFolderName)
+        {
+            IsNotEsDeMode = !isEsDe;
+            IsPathReadOnly = isEsDe;
+            IsMediaEnabled = !isEsDe || isEsDeSupported;
+            IsSuffixEnabled = Enabled && !isEsDe;
+
+            if (!isEsDe)
+                DisplayPath = Path;
+            else if (!string.IsNullOrEmpty(esDeFolderName) && !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem))
+                DisplayPath = System.IO.Path.Combine(esDeMediaBase, currentSystem, esDeFolderName);
+            else
+                DisplayPath = esDeFolderName ?? string.Empty;
+        }
     }
 }

@@ -4,10 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Linq;
-using IniData = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
 
 namespace Gamelist_Manager.Services
 {
@@ -18,81 +14,65 @@ namespace Gamelist_Manager.Services
 
         private string _settingsFilePath;
         private readonly string _iniFolder;
-        private Dictionary<string, Dictionary<string, string>>? _cachedSections;
+        private Dictionary<string, Dictionary<string, string>>? _cache;
         private Dictionary<string, string>? _fileTypesCache;
 
         private SettingsService()
         {
             var programDirectory = AppContext.BaseDirectory;
             _iniFolder = Path.Combine(programDirectory, "ini");
-
             _settingsFilePath = ProfileService.Instance.ActiveProfilePath;
 
             if (!ProfileService.Instance.NoProfilesExist && !File.Exists(_settingsFilePath))
-            {
                 CreateDefaultSettings();
-            }
         }
 
         public void SwitchProfile(string profilePath)
         {
-            InvalidateCache();
             _settingsFilePath = profilePath;
+            InvalidateCache();
             if (!File.Exists(_settingsFilePath))
                 CreateDefaultSettings();
         }
 
-        private void CreateDefaultSettings()
-        {
-            IniFileService.WriteIniFile(_settingsFilePath, BuildDefaultSections());
-            InvalidateCache();
-        }
-
-        private Dictionary<string, Dictionary<string, string>> GetCachedSections()
-            => _cachedSections ??= IniFileService.ReadIniFile(_settingsFilePath);
-
-        private void InvalidateCache()
-            => _cachedSections = null;
+        // --- Core read ---
 
         public string GetValue(string section, string key, string defaultValue = "")
         {
             try
             {
-                var sections = GetCachedSections();
-                if (sections.TryGetValue(section, out var sectionData) && sectionData.TryGetValue(key, out var value))
-                    return value;
-                return defaultValue;
+                var sections = Cache();
+                return sections.TryGetValue(section, out var s) && s.TryGetValue(key, out var v)
+                    ? v : defaultValue;
             }
-            catch
-            {
-                return defaultValue;
-            }
+            catch { return defaultValue; }
         }
 
         public bool GetBool(string section, string key, bool defaultValue = false)
         {
-            var value = GetValue(section, key, defaultValue.ToString());
-            return bool.TryParse(value, out var result) ? result : defaultValue;
+            var v = GetValue(section, key, defaultValue.ToString());
+            return bool.TryParse(v, out var r) ? r : defaultValue;
         }
 
         public int GetInt(string section, string key, int defaultValue = 0)
         {
-            var value = GetValue(section, key, defaultValue.ToString());
-            return int.TryParse(value, out var result) ? result : defaultValue;
+            var v = GetValue(section, key, defaultValue.ToString());
+            return int.TryParse(v, out var r) ? r : defaultValue;
         }
 
-        // Convenience overloads that pull section, key, and default from a SettingDef.
+        // SettingDef overloads — preferred call style
         public string GetValue(SettingDef<string> def) => GetValue(def.Section, def.Key, def.Default);
-        public bool GetBool(SettingDef<bool> def) => GetBool(def.Section, def.Key, def.Default);
-        public int GetInt(SettingDef<int> def) => GetInt(def.Section, def.Key, def.Default);
+        public bool GetBool(SettingDef<bool> def)     => GetBool(def.Section, def.Key, def.Default);
+        public int GetInt(SettingDef<int> def)         => GetInt(def.Section, def.Key, def.Default);
 
         public Dictionary<string, string>? GetSection(string sectionName)
         {
-            var sections = GetCachedSections();
+            var sections = Cache();
             return sections.TryGetValue(sectionName, out var section) ? section : null;
         }
 
-        // Reads the standalone filetypes.ini data file (not profile-specific).
+        // --- File types (separate data file, not profile-specific) ---
+
         public IReadOnlyDictionary<string, string> GetFileTypes()
         {
             if (_fileTypesCache != null)
@@ -100,86 +80,66 @@ namespace Gamelist_Manager.Services
 
             var iniPath = Path.Combine(_iniFolder, "filetypes.ini");
             var sections = IniFileService.ReadIniFile(iniPath);
-            _fileTypesCache = sections.TryGetValue("Filetypes", out var filetypes)
-                ? filetypes
-                : [];
-
+            _fileTypesCache = sections.TryGetValue("Filetypes", out var ft) ? ft : [];
             return _fileTypesCache;
         }
 
+        // --- Core write ---
+
         public void SetValue(string section, string key, string value)
         {
-            var sections = GetCachedSections();
-
+            var sections = Cache();
             if (!sections.ContainsKey(section))
-                sections[section] = new Dictionary<string, string>();
-
+                sections[section] = [];
             sections[section][key] = value;
             IniFileService.WriteIniFile(_settingsFilePath, sections);
         }
 
-        public void SetBool(string section, string key, bool value)
-        {
+        public void SetBool(string section, string key, bool value) =>
             SetValue(section, key, value.ToString());
-        }
+
+        // --- Recent files ---
 
         public List<string> GetRecentFiles()
         {
-            var recentFiles = new List<string>();
-            var sections = GetCachedSections();
-
+            var sections = Cache();
             if (!sections.TryGetValue(SettingKeys.RecentFilesSection, out var section))
-                return recentFiles;
+                return [];
 
-            var fileKeys = section.Keys
+            return section.Keys
                 .Where(k => k.StartsWith("file"))
-                .OrderBy(k =>
-                {
-                    var numStr = k.Substring(4);
-                    return int.TryParse(numStr, out var num) ? num : int.MaxValue;
-                })
+                .OrderBy(k => int.TryParse(k[4..], out var n) ? n : int.MaxValue)
+                .Select(k => section[k])
+                .Where(f => !string.IsNullOrWhiteSpace(f))
                 .ToList();
-
-            foreach (var key in fileKeys)
-            {
-                var filePath = section[key];
-                if (!string.IsNullOrWhiteSpace(filePath))
-                    recentFiles.Add(filePath);
-            }
-
-            return recentFiles;
         }
 
         public void SaveRecentFiles(List<string> recentFiles)
         {
-            var recentFilesDict = new Dictionary<string, string>();
-
-            var resolvedFiles = recentFiles
+            var dict = recentFiles
                 .Where(f => !string.IsNullOrEmpty(f))
-                .ToList();
+                .Select((f, i) => (Key: $"file{i + 1}", Value: f))
+                .ToDictionary(x => x.Key, x => x.Value);
 
-            for (int i = 0; i < resolvedFiles.Count; i++)
-                recentFilesDict[$"file{i + 1}"] = resolvedFiles[i]!;
-
-            var allSettings = GetCachedSections();
-            allSettings[SettingKeys.RecentFilesSection] = recentFilesDict;
-            IniFileService.WriteIniFile(_settingsFilePath, allSettings);
+            var all = Cache();
+            all[SettingKeys.RecentFilesSection] = dict;
+            IniFileService.WriteIniFile(_settingsFilePath, all);
         }
 
-        public void SaveAllSettings(Dictionary<string, Dictionary<string, string>> allSettings)
+        // --- Bulk save ---
+
+        public void SaveAllSettings(Dictionary<string, Dictionary<string, string>> incoming)
         {
-            var existingSettings = GetCachedSections();
-
-            foreach (var section in allSettings)
+            var existing = Cache();
+            foreach (var (section, keys) in incoming)
             {
-                if (!existingSettings.ContainsKey(section.Key))
-                    existingSettings[section.Key] = new Dictionary<string, string>();
-
-                foreach (var kvp in section.Value)
-                    existingSettings[section.Key][kvp.Key] = kvp.Value;
+                if (!existing.ContainsKey(section))
+                    existing[section] = [];
+                foreach (var (k, v) in keys)
+                    existing[section][k] = v;
             }
 
-            IniFileService.WriteIniFile(_settingsFilePath, existingSettings);
+            IniFileService.WriteIniFile(_settingsFilePath, existing);
             ProfileService.MigrateProfile(_settingsFilePath);
             InvalidateCache();
         }
@@ -192,174 +152,37 @@ namespace Gamelist_Manager.Services
             CreateDefaultSettings();
         }
 
-        public IniData BuildDefaultSections()
+        // --- Default INI structure ---
+
+        public Dictionary<string, Dictionary<string, string>> BuildDefaultSections()
         {
-            var result = new IniData();
+            var result = new Dictionary<string, Dictionary<string, string>>();
 
             foreach (var def in SettingKeys.AllDefinitions)
             {
-                var (section, key, defaultStr) = def switch
+                if (!result.TryGetValue(def.Section, out var dict))
                 {
-                    SettingDef<string> s => (s.Section, s.Key, s.Default),
-                    SettingDef<bool> b => (b.Section, b.Key, b.Default.ToString()),
-                    SettingDef<int> i => (i.Section, i.Key, i.Default.ToString()),
-                    _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
-                };
-
-                if (!result.TryGetValue(section, out var dict))
-                {
-                    dict = new Dictionary<string, string>();
-                    result[section] = dict;
+                    dict = [];
+                    result[def.Section] = dict;
                 }
-                dict[key] = defaultStr;
+                dict[def.Key] = def.DefaultStr;
             }
 
             result[SettingKeys.MediaPathsSection] = new Dictionary<string, string>(SettingKeys.DefaultMediaPaths);
-
             return result;
         }
 
-        #region Calculated Properties
+        // --- Private helpers ---
 
-        public string EsDeMediaDirectory(string esDeMediaBase, string? currentSystem)
-            => !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem)
-                ? Path.Combine(esDeMediaBase, currentSystem)
-                : string.Empty;
+        private Dictionary<string, Dictionary<string, string>> Cache() =>
+            _cache ??= IniFileService.ReadIniFile(_settingsFilePath);
 
-        public string GamelistsRootFolder(string profileType, string esDeRoot, string romsFolder)
-            => profileType == SettingKeys.ProfileTypeEsDe && !string.IsNullOrEmpty(esDeRoot)
-                ? Path.Combine(esDeRoot, "gamelists")
-                : romsFolder;
+        private void InvalidateCache() => _cache = null;
 
-        public string? CurrentGamelistFolder(string gamelistsRootFolder, string? currentSystem)
-            => !string.IsNullOrEmpty(gamelistsRootFolder) && !string.IsNullOrEmpty(currentSystem)
-                ? Path.Combine(gamelistsRootFolder, currentSystem)
-                : null;
-
-        public string? CurrentRomFolder(string romsFolder, string? currentSystem)
-            => !string.IsNullOrEmpty(romsFolder) && !string.IsNullOrEmpty(currentSystem)
-                ? Path.Combine(romsFolder, currentSystem)
-                : null;
-
-        // Resolves all enabled media folders for the current profile into a flat list.
-        // Callers receive ready-to-use FolderPath values — no profile knowledge required.
-        public IReadOnlyList<AvailableMediaFolder> BuildAvailableMedia(
-            string profileType,
-            string? mediaBaseFolder,
-            Dictionary<string, string> mediaPaths)
+        private void CreateDefaultSettings()
         {
-            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
-            var result = new List<AvailableMediaFolder>();
-
-            if (string.IsNullOrEmpty(mediaBaseFolder))
-                return result;
-
-            foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
-            {
-                bool isEnabled = mediaPaths.TryGetValue($"{decl.Type}_enabled", out var enabled)
-                    ? bool.TryParse(enabled, out var eb) && eb
-                    : decl.DefaultEnabled;
-
-                // ES-DE types without a dedicated folder name are not supported
-                if (isEsDe && string.IsNullOrEmpty(decl.EsDeFolderName))
-                    continue;
-
-                if (!isEnabled)
-                    continue;
-
-                string folderPath;
-                if (isEsDe)
-                {
-                    folderPath = Path.Combine(mediaBaseFolder, decl.EsDeFolderName);
-                }
-                else
-                {
-                    var relativePath = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;
-                    // Strip leading "./" or "." before combining
-                    var cleanRelative = relativePath.TrimStart('.').TrimStart('/').TrimStart('\\');
-                    folderPath = Path.Combine(mediaBaseFolder, cleanRelative);
-                }
-
-                var suffix = isEsDe ? string.Empty : (mediaPaths.TryGetValue($"{decl.Type}_suffix", out var sfx) ? sfx : decl.DefaultSuffix);
-                var sfxEnabled = !isEsDe && (mediaPaths.TryGetValue($"{decl.Type}_sfx_enabled", out var sfxEnabledStr)
-                    ? bool.TryParse(sfxEnabledStr, out var seb) && seb
-                    : !string.IsNullOrEmpty(decl.DefaultSuffix));
-
-                result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, sfxEnabled));
-            }
-
-            return result;
+            IniFileService.WriteIniFile(_settingsFilePath, BuildDefaultSections());
+            InvalidateCache();
         }
-
-        #endregion
-
-
-        public static EsDeDetectedPaths ReadPathsFromEsDeSettings(string esDeRoot)
-        {
-            if (string.IsNullOrWhiteSpace(esDeRoot))
-                return new EsDeDetectedPaths(null, null);
-
-            string? romDirectory = null;
-            string? mediaDirectory = null;
-
-            var settingsPath = System.IO.Path.Combine(esDeRoot, "settings", "es_settings.xml");
-            if (File.Exists(settingsPath))
-            {
-                foreach (var line in File.ReadLines(settingsPath))
-                {
-                    if (line.Contains("\"ROMDirectory\""))
-                    {
-                        var match = Regex.Match(line, @"value=""([^""]+)""");
-                        if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
-                        {
-                            var expanded = ExpandTilde(match.Groups[1].Value);
-                            romDirectory = System.IO.Path.TrimEndingDirectorySeparator(expanded);
-                        }
-                    }
-                    else if (line.Contains("\"MediaDirectory\""))
-                    {
-                        var match = Regex.Match(line, @"value=""([^""]+)""");
-                        if (match.Success && !string.IsNullOrWhiteSpace(match.Groups[1].Value))
-                        {
-                            var expanded = ExpandTilde(match.Groups[1].Value);
-                            mediaDirectory = System.IO.Path.TrimEndingDirectorySeparator(expanded);
-                        }
-                    }
-
-                    if (romDirectory != null && mediaDirectory != null)
-                        break;
-                }
-            }
-
-            if (romDirectory == null)
-            {
-                var fallback = System.IO.Path.Combine(esDeRoot, "..", "ROMs");
-                fallback = System.IO.Path.GetFullPath(fallback);
-                if (Directory.Exists(fallback))
-                    romDirectory = fallback;
-            }
-
-            if (mediaDirectory == null)
-            {
-                var fallback = System.IO.Path.Combine(esDeRoot, "downloaded_media");
-                if (Directory.Exists(fallback))
-                    mediaDirectory = fallback;
-            }
-
-            return new EsDeDetectedPaths(romDirectory, mediaDirectory);
-        }
-
-        // Expands a leading ~ to the current user's home directory, matching shell behaviour on Linux/macOS.
-        private static string ExpandTilde(string path)
-        {
-            if (path.StartsWith("~/", StringComparison.Ordinal) || path == "~")
-            {
-                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                return home + path[1..];
-            }
-            return path;
-        }
-
-        public record EsDeDetectedPaths(string? RomDirectory, string? MediaDirectory);
     }
 }

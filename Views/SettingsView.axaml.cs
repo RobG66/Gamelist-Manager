@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
@@ -14,6 +16,8 @@ namespace Gamelist_Manager.Views
         private const double BASE_WIDTH = 580;
         private const double BASE_HEIGHT = 600;
         private const double BASE_FONT_SIZE = 12.0;
+        private readonly SettingsState _settingsState = SettingsState.Instance;
+        private readonly SessionState _sessionState = SessionState.Instance;
 
         private SettingsViewModel ViewModel => (SettingsViewModel)DataContext!;
 
@@ -23,7 +27,7 @@ namespace Gamelist_Manager.Views
             DataContext = new SettingsViewModel();
 
             // Scale window dimensions proportionally to font size (base: 580x600 at font 12)
-            var scale = SharedDataService.Instance.AppFontSize / BASE_FONT_SIZE;
+            var scale = SettingsState.Instance.AppFontSize / BASE_FONT_SIZE;
             Width = Math.Round(BASE_WIDTH * scale);
             Height = Math.Round(BASE_HEIGHT * scale);
 
@@ -212,8 +216,8 @@ namespace Gamelist_Manager.Views
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel == null) return;
 
-            var locationPath = SharedDataService.Instance.CurrentRomFolder
-               ?? SharedDataService.Instance.RomsFolder;
+            var locationPath = _sessionState.CurrentRomFolder
+                ?? _settingsState.RomsFolder;
 
             IStorageFolder? startLocation = null;
             if (locationPath != null)

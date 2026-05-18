@@ -12,7 +12,22 @@ namespace Gamelist_Manager.ViewModels;
 
 public partial class ImageEditViewModel : ViewModelBase, IDisposable
 {
+    #region Private Fields
+
+    private readonly string _imagePath;
+    private SKBitmap? _originalBitmap;
+    private SKBitmap? _currentResult;
+    private CancellationTokenSource? _cts;
+    private bool _isSaving;
+    private bool _isLoaded;
+    private int _sourceWidth;
+    private int _sourceHeight;
+    private bool _updatingDimensions;
+
+    #endregion
+
     #region Observable Properties
+
     [ObservableProperty] private Bitmap? _originalImage;
     [ObservableProperty] private Bitmap? _previewImage;
     [ObservableProperty] private bool _isBusy = true;
@@ -50,26 +65,25 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _previewSizeText = string.Empty;
 
     [ObservableProperty] private bool _isCircleMode;
+
     #endregion
 
-    #region Private Fields
-    private readonly string _imagePath;
-    private SKBitmap? _originalBitmap;
-    private SKBitmap? _currentResult;
-    private CancellationTokenSource? _cts;
-    private bool _isSaving;
-    private bool _isLoaded;
-    private int _sourceWidth;
-    private int _sourceHeight;
-    private bool _updatingDimensions;
-    #endregion
+    #region Events
 
     public event Action<string?>? CloseRequested;
+
+    #endregion
+
+    #region Constructor
 
     public ImageEditViewModel(string imagePath)
     {
         _imagePath = imagePath;
     }
+
+    #endregion
+
+    #region Public Methods
 
     public async Task LoadAsync()
     {
@@ -89,6 +103,8 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         _isLoaded = true;
         await UpdatePreviewAsync();
     }
+
+    #endregion
 
     #region Commands
     [RelayCommand(CanExecute = nameof(CanKeep))]
@@ -354,6 +370,8 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     }
     #endregion
 
+    #region Dispose
+
     public void Dispose()
     {
         _cts?.Cancel();
@@ -364,4 +382,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         OriginalImage?.Dispose();
         GC.SuppressFinalize(this);
     }
+
+    #endregion
 }

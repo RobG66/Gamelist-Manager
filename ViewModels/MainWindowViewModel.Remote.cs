@@ -19,9 +19,9 @@ public partial class MainWindowViewModel
     #region Private Methods
     private bool LoadSSHCredentials()
     {
-        _sshTarget = _sharedData.Hostname ?? string.Empty;
-        _username = _sharedData.UserId ?? string.Empty;
-        _password = _sharedData.Password ?? string.Empty;
+        _sshTarget = _settingsState.Hostname ?? string.Empty;
+        _username = _settingsState.UserId ?? string.Empty;
+        _password = _settingsState.Password ?? string.Empty;
 
         return !string.IsNullOrEmpty(_sshTarget) &&
                !string.IsNullOrEmpty(_username) &&

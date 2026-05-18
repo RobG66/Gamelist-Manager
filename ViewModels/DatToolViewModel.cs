@@ -13,7 +13,8 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 {
     #region Fields
 
-    private readonly SharedDataService _sharedData = SharedDataService.Instance;
+    private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsState _settingsState = SettingsState.Instance;
     private readonly List<GameReportItem> _gamelistSummary = [];
     private readonly List<GameReportItem> _datSummary = [];
     private bool _allowStreamingFromMame;
@@ -95,7 +96,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     public DatToolViewModel()
     {
-        _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
+        _sessionState.PropertyChanged += OnSharedDataPropertyChanged;
         Reset();
     }
 
@@ -105,7 +106,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     private void OnSharedDataPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(SharedDataService.CurrentSystem) or nameof(SharedDataService.MamePath))
+        if (e.PropertyName is nameof(_sessionState.CurrentSystem) or nameof(_settingsState.MamePath))
             UpdateMameStreamingEligibility();
     }
 
@@ -174,7 +175,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
         }
 
         var lookup = new Dictionary<string, string>(FilePathHelper.PathComparer);
-        var gamelistData = _sharedData.GamelistData;
+        var gamelistData = _sessionState.GamelistData;
 
         if (gamelistData != null)
         {
@@ -222,9 +223,9 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     private void UpdateMameStreamingEligibility()
     {
         _allowStreamingFromMame =
-            _sharedData?.CurrentSystem == "mame" &&
-            !string.IsNullOrWhiteSpace(_sharedData.MamePath) &&
-            File.Exists(_sharedData.MamePath);
+            _sessionState.CurrentSystem == "mame" &&
+            !string.IsNullOrWhiteSpace(_settingsState.MamePath) &&
+            File.Exists(_settingsState.MamePath);
 
         IsStreamFromMameEnabled = _allowStreamingFromMame;
     }
@@ -238,8 +239,8 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
         if (_isDisposed) return;
         _isDisposed = true;
 
-        if (_sharedData != null)
-            _sharedData.PropertyChanged -= OnSharedDataPropertyChanged;
+        if (_sessionState != null)
+            _sessionState.PropertyChanged -= OnSharedDataPropertyChanged;
 
         PanelDisposing?.Invoke(this, EventArgs.Empty);
         ReportLookup.Clear();

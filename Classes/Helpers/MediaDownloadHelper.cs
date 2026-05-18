@@ -1,5 +1,4 @@
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using System;
 using System.IO;
 using System.Threading;
@@ -19,8 +18,6 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             if (scrapedData.Media == null || scrapedData.Media.Count == 0)
                 return;
-
-            var profileType = SharedDataService.Instance.ProfileType;
 
             foreach (var mediaResult in scrapedData.Media)
             {
@@ -60,12 +57,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
                     if (downloadSuccess)
                     {
-                        // Save media path (ESDE paths are just for reference and not saved)
-                        scrapedData.Data[mediaType] = profileType switch
-                        {
-                            SettingKeys.ProfileTypeEsDe => fullPath,
-                            _ => FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, parameters.ParentFolderPath!)
-                        };
+                        scrapedData.Data[mediaType] = fullPath;
                         recordDownload(mediaType);
                         log?.Invoke($"{mediaType}{regionDisplay}: {Path.GetFileName(fullPath)}", LogLevel.Default, LogPrefix.Download, LogLevel.Success);
                     }

@@ -14,7 +14,8 @@ namespace Gamelist_Manager.ViewModels;
 public partial class MediaItemViewModel : ObservableObject, IDisposable
 {
     #region Private Fields
-    private readonly SharedDataService _sharedData = SharedDataService.Instance;
+    private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsState _settingsState = SettingsState.Instance;
     private volatile bool _previewSeekPending;
     private GameMetadataRow? _game;
     private readonly MetaDataKeys _pathKey;
@@ -158,7 +159,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             MediaPlayer = new MediaPlayer(libVlc)
             {
                 Media = Media,
-                Volume = _sharedData.DefaultVolume,
+                Volume = _settingsState.DefaultVolume,
                 EnableHardwareDecoding = true
             };
 
@@ -212,7 +213,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         }
         else
         {
-            MediaPlayer.Volume = _sharedData.DefaultVolume;
+            MediaPlayer.Volume = _settingsState.DefaultVolume;
         }
 
         // Swap the media reference on the UI thread before handing off,
@@ -263,13 +264,13 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             if (MediaPlayer.IsPlaying)
             {
                 MediaPlayer.Pause();
-                _sharedData.VideoUserPaused = true;
+                _sessionState.VideoUserPaused = true;
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
             }
             else
             {
-                _sharedData.VideoUserPaused = false;
-                MediaPlayer.Volume = _sharedData.DefaultVolume;
+                _sessionState.VideoUserPaused = false;
+                MediaPlayer.Volume = _settingsState.DefaultVolume;
                 MediaPlayer.Play();
             }
         }
@@ -364,7 +365,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         if (Path.IsPathRooted(path)) return path;
 
         // TODO:  What are we trying to achieve here?  If the path is already rooted, we return it as-is, even if it doesn't exist.  If it's not rooted, we treat it as relative to the gamelist directory.  But what if the gamelist directory isn't actually the correct base path for this media item?  Should we be trying to resolve relative to the game's own location instead?  Or should we be trying to resolve against multiple base paths (gamelist directory, game directory, etc.) and returning the first one that results in an existing file?
-        var gamelistDirectory = _sharedData.CurrentRomFolder;
+        var gamelistDirectory = _sessionState.CurrentRomFolder;
         return !string.IsNullOrEmpty(gamelistDirectory)
             ? FilePathHelper.GamelistPathToFullPath(path, gamelistDirectory)
             : path;

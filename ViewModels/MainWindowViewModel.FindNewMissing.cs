@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
 using System.Collections.Concurrent;
@@ -23,13 +24,13 @@ public partial class MainWindowViewModel
 
     private async Task FindNewItemsCore(bool silent)
     {
-        var scanDir = _sharedData.CurrentRomFolder;
-        var systemName = _sharedData.CurrentSystem;
+        var scanDir = _sessionState.CurrentRomFolder;
+        var systemName = _sessionState.CurrentSystem;
 
         if (string.IsNullOrEmpty(scanDir) || string.IsNullOrEmpty(systemName))
             return;
 
-        var fileTypes = _sharedData.GetFileTypes();
+        var fileTypes = _settingsService.GetFileTypes();
 
         if (!fileTypes.TryGetValue(systemName, out var extensionsCsv))
         {
@@ -54,19 +55,19 @@ public partial class MainWindowViewModel
 
         var existingPaths = new HashSet<string>(FilePathHelper.PathComparer);
 
-        if (_sharedData.GamelistData != null)
+        if (_sessionState.GamelistData != null)
         {
-            foreach (var row in _sharedData.GamelistData)
+            foreach (var row in _sessionState.GamelistData)
                 existingPaths.Add(FilePathHelper.GamelistPathToFullPath(row.Path, scanDir));
         }
 
         List<string> newFiles;
 
-        _sharedData.IsBusy = true;
+        _sessionState.IsBusy = true;
         try
         {
             newFiles = await Task.Run(() =>
-                ScanForRoms(scanDir, extensions, mediaFolders, _sharedData.SearchDepth));
+                ScanForRoms(scanDir, extensions, mediaFolders, _settingsState.SearchDepth));
 
             newFiles = newFiles
                 .Where(f => !existingPaths.Contains(f))
@@ -87,7 +88,7 @@ public partial class MainWindowViewModel
         }
         finally
         {
-            _sharedData.IsBusy = false;
+            _sessionState.IsBusy = false;
         }
 
         if (newFiles.Count == 0)
@@ -124,8 +125,8 @@ public partial class MainWindowViewModel
             return;
 
         bool newGamelist =
-            _sharedData.GamelistData == null ||
-            !_sharedData.GamelistData.Any();
+            _sessionState.GamelistData == null ||
+            !_sessionState.GamelistData.Any();
 
         var newRows = newFiles
             .Select(f => BuildNewItemRow(f, scanDir))
@@ -152,17 +153,17 @@ public partial class MainWindowViewModel
 
     private async Task FindMissingItemsCore(bool silent)
     {
-        var directoryToScan = _sharedData.CurrentRomFolder;
+        var directoryToScan = _sessionState.CurrentRomFolder;
 
-        if (string.IsNullOrEmpty(directoryToScan) || _sharedData.GamelistData == null)
+        if (string.IsNullOrEmpty(directoryToScan) || _sessionState.GamelistData == null)
             return;
 
-        var allRows = _sharedData.GamelistData.ToList();
+        var allRows = _sessionState.GamelistData.ToList();
         var extensions = GetRomExtensionsForCurrentSystem();
 
         HashSet<string> missingGamelistPaths;
 
-        _sharedData.IsBusy = true;
+        _sessionState.IsBusy = true;
         try
         {
             missingGamelistPaths = await Task.Run(() =>
@@ -184,7 +185,7 @@ public partial class MainWindowViewModel
         }
         finally
         {
-            _sharedData.IsBusy = false;
+            _sessionState.IsBusy = false;
         }
 
         if (missingGamelistPaths.Count == 0)
@@ -232,7 +233,7 @@ public partial class MainWindowViewModel
     // Returns the set of media subfolder names (e.g. "images", "videos") to exclude from ROM scans.
     private HashSet<string> GetMediaFolderNames()
     {
-        return _sharedData.AvailableMedia
+        return _sessionState.AvailableMedia
             .Where(m => !string.IsNullOrEmpty(m.FolderPath))
             .Select(m => Path.GetFileName(m.FolderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)))
             .Where(n => !string.IsNullOrEmpty(n))
@@ -242,11 +243,11 @@ public partial class MainWindowViewModel
     // Returns the valid ROM extensions for the current system, or an empty set if not defined.
     private HashSet<string> GetRomExtensionsForCurrentSystem()
     {
-        var systemName = _sharedData.CurrentSystem;
+        var systemName = _sessionState.CurrentSystem;
         if (string.IsNullOrEmpty(systemName))
             return [];
 
-        var fileTypes = _sharedData.GetFileTypes();
+        var fileTypes = _settingsService.GetFileTypes();
 
         if (!fileTypes.TryGetValue(systemName, out var csv))
             return [];

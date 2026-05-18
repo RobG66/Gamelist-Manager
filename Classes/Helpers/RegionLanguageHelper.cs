@@ -1,4 +1,4 @@
-﻿using Gamelist_Manager.Services;
+﻿using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -109,7 +109,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
         public static string? GetRegion(string romName, string? fallback = null)
         {
-            var currentSystem = (SharedDataService.Instance.CurrentSystem ?? string.Empty).ToLowerInvariant();
+            var currentSystem = (SessionState.Instance.CurrentSystem ?? string.Empty).ToLowerInvariant();
 
             // Japan default systems
             if (JapanDefaults.Contains(currentSystem))
@@ -149,7 +149,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
         public static string GetLanguage(string fileName)
         {
-            var currentSystem = (SharedDataService.Instance.CurrentSystem ?? string.Empty).ToLowerInvariant();
+            var currentSystem = (SessionState.Instance.CurrentSystem ?? string.Empty).ToLowerInvariant();
 
             // Special translation handling
             if (Regex.IsMatch(fileName, @"(\(T(-Eng)?\)|\[T-?En(g)?\])", RegexOptions.IgnoreCase))

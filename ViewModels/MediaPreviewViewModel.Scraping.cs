@@ -19,11 +19,11 @@ public partial class MediaPreviewViewModel
     public bool IsScraperAvailable(ScraperConfig scraper)
     {
         if (!scraper.ArcadeOnly) return true;
-        var system = _sharedData.CurrentSystem ?? string.Empty;
+        var system = _sessionState.CurrentSystem ?? string.Empty;
         return ArcadeSystemIDHelper.IsInitialized && ArcadeSystemIDHelper.HasArcadeSystemName(system);
     }
 
-    private bool CanScrapeGame() => !IsScraping && SelectedGame != null;
+    private bool CanScrapeGame() => !_sessionState.IsScraping && SelectedGame != null;
 
     [RelayCommand(CanExecute = nameof(CanScrapeGame))]
     private async Task ScrapeGame(string scraperName) => await ReScrapeGameAsync(scraperName, null);
@@ -32,23 +32,23 @@ public partial class MediaPreviewViewModel
     {
         if (SelectedGame == null || string.IsNullOrEmpty(scraperName)) return;
 
-        if (string.IsNullOrEmpty(_sharedData.CurrentRomFolder))
+        if (string.IsNullOrEmpty(_sessionState.CurrentRomFolder))
         {
             SetScraperStatus("No gamelist loaded.", "error");
             return;
         }
 
-        if (string.IsNullOrEmpty(_sharedData.CurrentSystem))
+        if (string.IsNullOrEmpty(_sessionState.CurrentSystem))
         {
             SetScraperStatus("No system selected.", "error");
             return;
         }
 
-        var currentSystem = _sharedData.CurrentSystem;
-        var gamelistDirectory = _sharedData.CurrentRomFolder;
-        var availableMedia = _sharedData.AvailableMedia;
+        var currentSystem = _sessionState.CurrentSystem;
+        var gamelistDirectory = _sessionState.CurrentRomFolder;
+        var availableMedia = _sessionState.AvailableMedia;
 
-        _sharedData.IsScraping = true;
+        _sessionState.IsScraping = true;
         bool scrapingVideo = false;
         try
         {
@@ -89,8 +89,8 @@ public partial class MediaPreviewViewModel
 
             var baseParameters = ScraperParameters.Create(
                 gamelistDirectory,
-                _sharedData.VerifyImageDownloads,
-                _sharedData.ProfileType,
+                _settingsState.VerifyImageDownloads,
+                _sessionState.ProfileType,
                 availableMedia,
                 scraperName,
                 currentSystem,
@@ -117,7 +117,7 @@ public partial class MediaPreviewViewModel
             if (success && data.Data.Count > 0)
             {
                 await scraperService.SaveScrapedDataAsync(SelectedGame, data, baseParameters);
-                _sharedData.IsDataChanged = true;
+                _sessionState.IsDataChanged = true;
                 SetScraperStatus(
                     !string.IsNullOrEmpty(itemLabel)
                         ? $"{itemLabel} rescrape complete."
@@ -149,7 +149,7 @@ public partial class MediaPreviewViewModel
         {
             if (scrapingVideo && IsLibVLCInitialized && LibVLC != null)
                 InitializeVideosForCurrentGame();
-            _sharedData.IsScraping = false;
+            _sessionState.IsScraping = false;
         }
     }
 }

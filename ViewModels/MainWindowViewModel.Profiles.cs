@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
@@ -84,7 +85,7 @@ public partial class MainWindowViewModel
     internal async Task<bool> EnsureMatchingProfileAsync(string gamelistPath)
     {
         var gamelistType = IsEsDeGamelistPath(gamelistPath) ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
-        var profileType = _sharedData.ProfileType;
+        var profileType = _sessionState.ProfileType;
 
         if (string.Equals(gamelistType, profileType, StringComparison.OrdinalIgnoreCase))
             return true;
@@ -152,7 +153,7 @@ public partial class MainWindowViewModel
 
     internal async Task PromptEsDeRootAsync(string contextMessage = "An ES-DE gamelist has been detected.", Window? owner = null)
     {
-        var currentRoot = _sharedData.EsDeRoot;
+        var currentRoot = _settingsState.EsDeRoot;
         var hasRoot = !string.IsNullOrWhiteSpace(currentRoot) && Directory.Exists(currentRoot);
 
         // If no root is set yet, check the home folder for a default ES-DE installation.
@@ -203,7 +204,7 @@ public partial class MainWindowViewModel
 
         var chosen = await FolderPickerHelper.BrowseForFolderAsync(
             "Select ES-DE Root Folder",
-            _sharedData.EsDeRoot,
+            _settingsState.EsDeRoot,
             owner);
 
         if (string.IsNullOrEmpty(chosen)) return;
@@ -213,10 +214,14 @@ public partial class MainWindowViewModel
 
     private async Task ApplyEsDeRootAsync(string root)
     {
-        _sharedData.SaveEsDeRoot(root);
-        var detected = SettingsService.ReadPathsFromEsDeSettings(root);
-        _sharedData.RomsFolder = detected.RomDirectory ?? string.Empty;
-        _sharedData.EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+        SettingsService.Instance.SetValue(SettingKeys.EsDeRoot.Section, SettingKeys.EsDeRoot.Key, root);
+
+        var detected = EsDePathResolver.ReadPathsFromEsDeSettings(root);
+
+        SettingsService.Instance.SetValue(SettingKeys.RomsFolder.Section, SettingKeys.RomsFolder.Key,
+            detected.RomDirectory ?? string.Empty);
+
+        SettingsState.Instance.Reload();
     }
 
     #endregion
@@ -261,14 +266,15 @@ public partial class MainWindowViewModel
     {
         _profileService.SetActiveProfile(profileName);
         _settingsService.SwitchProfile(_profileService.ActiveProfilePath);
-        _sharedData.LoadFromSettings();
+        SettingsState.Instance.Reload();
+        SessionState.Instance.ProfileType = SettingsService.Instance.GetValue(SettingKeys.ProfileType);
 
         LoadColumnSettings();
         LoadRecentFilesFromSettings();
 
-        var themeIndex = ThemeService.GetThemeIndex(_sharedData.Theme);
-        var colorIndex = ThemeService.GetColorIndex(_sharedData.Color);
-        var variantIndex = ThemeService.GetAccentVariantIndex(_sharedData.AccentVariant);
+        var themeIndex = ThemeService.GetThemeIndex(_settingsState.Theme);
+        var colorIndex = ThemeService.GetColorIndex(_settingsState.Color);
+        var variantIndex = ThemeService.GetAccentVariantIndex(_settingsState.AccentVariant);
         ThemeService.ApplyTheme(themeIndex, colorIndex, variantIndex);
 
         _ = LoadSystemsAsync();

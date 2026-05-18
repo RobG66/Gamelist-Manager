@@ -44,7 +44,7 @@ public partial class MainWindowViewModel
 
         if (games == null || games.Count == 0) return;
 
-        if (_sharedData.ConfirmBulkChanges && games.Count > 1)
+        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
         {
             var label = options.UseAllItems ? $"all {games.Count} visible" : $"{games.Count} selected";
             var decl = GamelistMetaData.GetMetaDataDictionary()[options.Key];
@@ -67,7 +67,7 @@ public partial class MainWindowViewModel
             game.SetValue(options.Key, writeValue);
 
         _sourceCache.Refresh();
-        _sharedData.IsDataChanged = true;
+        _sessionState.IsDataChanged = true;
         IsSaveEnabled = true;
     }
     #endregion
@@ -77,7 +77,7 @@ public partial class MainWindowViewModel
     private void SortSelectionToTop()
     {
         if (SelectedGames == null || SelectedGames.Count == 0) return;
-        if (_sharedData.GamelistData == null) return;
+        if (_sessionState.GamelistData == null) return;
 
         // Only promote items that are currently visible through the filter
         var visibleSet = _games.ToHashSet();
@@ -89,7 +89,7 @@ public partial class MainWindowViewModel
 
         var selectedSet = selected.ToHashSet();
         var reordered = selected
-            .Concat(_sharedData.GamelistData.Where(g => !selectedSet.Contains(g)))
+            .Concat(_sessionState.GamelistData.Where(g => !selectedSet.Contains(g)))
             .ToList();
 
         // Clear the DataGrid's selection before modifying the source cache.
@@ -100,9 +100,9 @@ public partial class MainWindowViewModel
 
         // Rebuild the master list in the new order
         _isLoadingData = true;
-        _sharedData.GamelistData.Clear();
+        _sessionState.GamelistData.Clear();
         foreach (var game in reordered)
-            _sharedData.GamelistData.Add(game);
+            _sessionState.GamelistData.Add(game);
 
         // AddOrUpdate with a list delegates to the internal dictionary, which
         // iterates in hash order rather than insertion order. Clearing and then
@@ -139,10 +139,10 @@ public partial class MainWindowViewModel
     private async Task CopyRomPathsToClipboard()
     {
         if (SelectedGames == null || SelectedGames.Count == 0) return;
-        if (string.IsNullOrEmpty(_sharedData.CurrentRomFolder)) return;
+        if (string.IsNullOrEmpty(_sessionState.CurrentRomFolder)) return;
 
         var paths = SelectedGames.OfType<GameMetadataRow>()
-            .Select(g => FilePathHelper.GamelistPathToFullPath(g.Path, _sharedData.CurrentRomFolder!))
+            .Select(g => FilePathHelper.GamelistPathToFullPath(g.Path, _sessionState.CurrentRomFolder!))
             .Where(p => !string.IsNullOrEmpty(p));
 
         await _windowService.CopyToClipboardAsync(string.Join(Environment.NewLine, paths));
@@ -153,7 +153,7 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private async Task DeleteSelectedItems()
     {
-        if (SelectedGames == null || !_sharedData.EnableDelete) return;
+        if (SelectedGames == null || !_settingsState.EnableDelete) return;
 
         var itemLabel = SelectedGames.Count == 1 ? "item" : "items";
         var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
@@ -209,7 +209,7 @@ public partial class MainWindowViewModel
         var games = GetGamesByScope(scope);
         if (games == null || games.Count == 0) return;
 
-        if (_sharedData.ConfirmBulkChanges && games.Count > 1)
+        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
         {
             var action = hidden ? "hidden" : "visible";
             var label = ScopeLabel(scope, games.Count);
@@ -236,7 +236,7 @@ public partial class MainWindowViewModel
         var games = scope == "all" ? Games.ToList() : SelectedGames?.OfType<GameMetadataRow>().ToList();
         if (games == null || games.Count == 0) return;
 
-        if (_sharedData.ConfirmBulkChanges && games.Count > 1)
+        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
         {
             var label = ScopeLabel(scope, games.Count);
             var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
@@ -292,17 +292,17 @@ public partial class MainWindowViewModel
     {
         game.PropertyChanged -= GameItem_PropertyChanged;
         _sourceCache.Remove(game);
-        _sharedData.GamelistData?.Remove(game);
-        _sharedData.IsDataChanged = true;
+        _sessionState.GamelistData?.Remove(game);
+        _sessionState.IsDataChanged = true;
         IsSaveEnabled = true;
     }
 
     private void AddGame(GameMetadataRow game)
     {
-        _sharedData.GamelistData?.Add(game);
+        _sessionState.GamelistData?.Add(game);
         _sourceCache.AddOrUpdate(game);
         game.PropertyChanged += GameItem_PropertyChanged;
-        _sharedData.IsDataChanged = true;
+        _sessionState.IsDataChanged = true;
         IsSaveEnabled = true;
     }
 
@@ -315,7 +315,7 @@ public partial class MainWindowViewModel
 
     private void DeleteGameFile(GameMetadataRow game)
     {
-        var romDirectory = _sharedData.CurrentRomFolder;
+        var romDirectory = _sessionState.CurrentRomFolder;
         // Should never be empty, but safe to check before doing any file operations
         if (string.IsNullOrEmpty(romDirectory)) return;
 
@@ -344,7 +344,7 @@ public partial class MainWindowViewModel
 
     private void DeleteMediaFiles(GameMetadataRow game)
     {
-        foreach (var media in _sharedData.AvailableMedia)
+        foreach (var media in _sessionState.AvailableMedia)
         {
             if (!Enum.TryParse<MetaDataKeys>(media.Type, out var key)) continue;
 

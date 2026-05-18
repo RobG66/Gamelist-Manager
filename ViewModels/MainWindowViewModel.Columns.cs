@@ -19,8 +19,8 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Public Properties
-    public bool RememberColumns => _sharedData.RememberColumns;
-    public bool RememberAutosize => _sharedData.RememberAutosize;
+    public bool RememberColumns => _settingsState.RememberColumns;
+    public bool RememberAutosize => _settingsState.RememberAutosize;
     #endregion
 
     #region Public Methods
@@ -62,15 +62,13 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private void ToggleRememberColumns()
     {
-        _sharedData.RememberColumns = !_sharedData.RememberColumns;
-        _settingsService.SetBool(SettingKeys.RememberColumns.Section, SettingKeys.RememberColumns.Key, _sharedData.RememberColumns);
+        _settingsState.Save(SettingKeys.RememberColumns, !_settingsState.RememberColumns);
     }
 
     [RelayCommand]
     private void ToggleRememberAutosize()
     {
-        _sharedData.RememberAutosize = !_sharedData.RememberAutosize;
-        _settingsService.SetBool(SettingKeys.RememberAutoSize.Section, SettingKeys.RememberAutoSize.Key, _sharedData.RememberAutosize);
+        _settingsState.Save(SettingKeys.RememberAutoSize, !_settingsState.RememberAutosize);
     }
 
     [RelayCommand]
@@ -103,35 +101,44 @@ public partial class MainWindowViewModel
     #region Private Methods
     private void LoadColumnSettings()
     {
-        if (_sharedData.RememberAutosize || _sharedData.RememberColumns)
-            SizeToFit = _settingsService.GetBool("ColumnVisibility", "SizeToFit", true);
+        var saved = _settingsState.GetColumnVisibility();
+
+        if (_settingsState.RememberAutosize || _settingsState.RememberColumns)
+            SizeToFit = saved != null && bool.TryParse(saved.GetValueOrDefault("SizeToFit", "true"), out var v) ? v : true;
 
         foreach (var column in GamelistMetaData.GetToggleableColumns())
             _columnVisibility[column.Type] = column.DefaultVisible;
 
-        if (!_sharedData.RememberColumns)
+        if (!_settingsState.RememberColumns || saved == null)
             return;
 
-        DescriptionPanelVisible = _settingsService.GetBool("ColumnVisibility", "DescriptionPanel", true);
-        MediaPathsVisible = _settingsService.GetBool("ColumnVisibility", "MediaPaths", false);
+        DescriptionPanelVisible = bool.TryParse(saved.GetValueOrDefault("DescriptionPanel", "true"), out var dp) ? dp : true;
+        MediaPathsVisible = bool.TryParse(saved.GetValueOrDefault("MediaPaths", "false"), out var mp) ? mp : false;
 
         foreach (var column in GamelistMetaData.GetToggleableColumns())
-            _columnVisibility[column.Type] = _settingsService.GetBool("ColumnVisibility", column.Type, column.DefaultVisible);
+            _columnVisibility[column.Type] = bool.TryParse(saved.GetValueOrDefault(column.Type, column.DefaultVisible.ToString()), out var cv) ? cv : column.DefaultVisible;
     }
 
     private void SaveColumnSettings()
     {
-        if (_sharedData.RememberAutosize || _sharedData.RememberColumns)
-            _settingsService.SetBool("ColumnVisibility", "SizeToFit", SizeToFit);
-
-        if (!_sharedData.RememberColumns)
+        if (!_settingsState.RememberAutosize && !_settingsState.RememberColumns)
             return;
 
-        _settingsService.SetBool("ColumnVisibility", "DescriptionPanel", DescriptionPanelVisible);
-        _settingsService.SetBool("ColumnVisibility", "MediaPaths", MediaPathsVisible);
+        var values = new Dictionary<string, string>();
 
-        foreach (var column in GamelistMetaData.GetToggleableColumns())
-            _settingsService.SetBool("ColumnVisibility", column.Type, GetColumnVisible(column.Type));
+        if (_settingsState.RememberAutosize || _settingsState.RememberColumns)
+            values["SizeToFit"] = SizeToFit.ToString();
+
+        if (_settingsState.RememberColumns)
+        {
+            values["DescriptionPanel"] = DescriptionPanelVisible.ToString();
+            values["MediaPaths"] = MediaPathsVisible.ToString();
+
+            foreach (var column in GamelistMetaData.GetToggleableColumns())
+                values[column.Type] = GetColumnVisible(column.Type).ToString();
+        }
+
+        _settingsState.SaveColumnVisibility(values);
     }
     #endregion
 }

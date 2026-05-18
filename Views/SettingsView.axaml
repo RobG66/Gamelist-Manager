@@ -266,14 +266,14 @@
 									<Button Grid.Row="0" Grid.Column="2" Content="Browse..." Padding="8,4" Margin="0,0,0,4" Classes="rounded green" Click="BrowseMameExecutable_Click"
 											ToolTip.Tip="Open a file browser to locate the MAME executable on your system."/>
 									<TextBlock Grid.Row="1" Grid.Column="0" Text="ROM Path:" VerticalAlignment="Center" Margin="0,0,6,0"
-											   IsVisible="{Binding !IsEsDeProfile}"
+											   IsVisible="{Binding RomsPathVisible}"
 											   ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations."/>
 									<TextBox Grid.Row="1" Grid.Column="1" Text="{Binding RomsPath}" PlaceholderText="\\batocera\share\roms  or  \\retropie\share\roms" Margin="0,0,6,0"
-											 IsVisible="{Binding !IsEsDeProfile}"
+											 IsVisible="{Binding RomsPathVisible}"
 											 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
 									<Button Grid.Row="1" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green"
-											IsVisible="{Binding !IsEsDeProfile}"
-											Click="BrowseRomsFolder_Click"
+											IsVisible="{Binding RomsPathVisible}"
+																							Click="BrowseRomsFolder_Click"
 											ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
 								</Grid>
 							</StackPanel>
@@ -329,9 +329,9 @@
 										<TextBlock Grid.Column="1" Text="(read-only)"
 												   FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
 												   VerticalAlignment="Center" Margin="8,0,8,0"
-												   IsVisible="{Binding IsEsDeProfile}"/>
+												   IsVisible="{Binding EsDePathsVisible}"/>
 										<Button Grid.Column="2" Content="Reset to Defaults" Classes="rounded orange" Padding="8,4" Click="Button_Reset_Click"
-												IsVisible="{Binding !IsEsDeProfile}"
+												IsVisible="{Binding !EsDePathsVisible}"
 												ToolTip.Tip="Restore all media folder paths and suffixes to their factory default values."/>
 									</Grid>
 								</Border>
@@ -395,7 +395,7 @@
 										 FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,4,0,0"/>
 				
 										<TextBlock Text="Media folder paths are relative to the selected system rom path and must begin with ./"
-										 FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,4,0,0" IsVisible="{Binding !IsEsDeProfile}"/>
+										 Margin="0,4,0,0" IsVisible="{Binding RomsPathVisible}"/>
 								</StackPanel>
 							</StackPanel>
 						</Border>
@@ -405,7 +405,7 @@
 			</TabItem>
 
 			<!-- Remote Tab -->
-			<TabItem IsVisible="{Binding !IsEsDeProfile}">
+			<TabItem IsVisible="{Binding RemoteTabVisible}">
 				<TabItem.Header>
 					<StackPanel Orientation="Horizontal" Spacing="4">
 						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>

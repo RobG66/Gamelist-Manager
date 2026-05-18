@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Messages;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
@@ -13,7 +15,9 @@ public partial class SettingsViewModel : ViewModelBase
 {
     #region Fields / Constants
 
-    private readonly SharedDataService _sharedData = SharedDataService.Instance;
+    private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsState _settingsState = SettingsState.Instance;
+
     private bool _isLoading;
 
     private static readonly string[] ThemeNames = ["Light", "Dark"];
@@ -72,6 +76,17 @@ public partial class SettingsViewModel : ViewModelBase
 
     #endregion
 
+    #region Public Properties
+
+    public bool SuffixesEnabled => _sessionState.ProfileType == SettingKeys.ProfileTypeEs;
+    public bool RomsPathVisible => _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe;
+    public bool EsDePathsVisible => _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
+    public bool RemoteTabVisible => _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe;
+    public bool MediaPathsReadOnly => _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
+    public bool ResetToDefaultsVisible => _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe;
+
+    #endregion
+
     #region Property Change Callbacks
 
     partial void OnSelectedThemeIndexChanged(int value)
@@ -90,8 +105,22 @@ public partial class SettingsViewModel : ViewModelBase
 
         InitializeMediaFolderItems();
         LoadSettings();
+        RefreshMediaFolderDisplayState();
 
         _isLoading = false;
+
+        _sessionState.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SessionState.ProfileType))
+            {
+                OnPropertyChanged(nameof(SuffixesEnabled));
+                OnPropertyChanged(nameof(RomsPathVisible));
+                OnPropertyChanged(nameof(EsDePathsVisible));
+                OnPropertyChanged(nameof(RemoteTabVisible));
+                OnPropertyChanged(nameof(MediaPathsReadOnly));
+                OnPropertyChanged(nameof(ResetToDefaultsVisible));
+            }
+        };
 
         PropertyChanged += (_, e) =>
         {
@@ -123,84 +152,70 @@ public partial class SettingsViewModel : ViewModelBase
         _isLoading = true;
         try
         {
-            var settings = SettingsService.Instance;
+            var s = SettingsState.Instance;
+            var isEsDe = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
 
             // Appearance
-            SelectedThemeIndex = NameToIndex(ThemeNames, settings.GetValue(SettingKeys.Theme));
-            SelectedColorIndex = NameToIndex(ColorNames, settings.GetValue(SettingKeys.Color));
-            SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, settings.GetValue(SettingKeys.AccentVariant));
-            SelectedAlternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
-            SelectedGridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
-            AppFontSize = settings.GetInt(SettingKeys.GlobalFontSize);
-            GridFontSize = settings.GetInt(SettingKeys.GridFontSize);
+            SelectedThemeIndex = NameToIndex(ThemeNames, s.Theme);
+            SelectedColorIndex = NameToIndex(ColorNames, s.Color);
+            SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, s.AccentVariant);
+            SelectedAlternatingRowColorIndex = s.AlternatingRowColorIndex;
+            SelectedGridLinesVisibilityIndex = s.GridLinesVisibilityIndex;
+            AppFontSize = s.AppFontSize;
+            GridFontSize = s.GridFontSize;
 
             // Behavior
-            ConfirmBulkChanges = settings.GetBool(SettingKeys.ConfirmBulkChange);
-            EnableSaveReminder = settings.GetBool(SettingKeys.SaveReminder);
-            VerifyImageDownloads = settings.GetBool(SettingKeys.VerifyDownloadedImages);
-            OverrideConcurrency = settings.GetBool(SettingKeys.OverrideConcurrency);
-            ConcurrencyOverride = settings.GetInt(SettingKeys.ConcurrencyOverride);
-            VideoAutoplay = settings.GetBool(SettingKeys.VideoAutoplay);
-            RememberColumns = settings.GetBool(SettingKeys.RememberColumns);
-            RememberAutosize = settings.GetBool(SettingKeys.RememberAutoSize);
-            EnableDelete = settings.GetBool(SettingKeys.EnableDelete);
-            RemoveZZZNotGamePrefix = settings.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
-            IgnoreDuplicates = settings.GetBool(SettingKeys.IgnoreDuplicates);
-            BatchProcessing = settings.GetBool(SettingKeys.BatchProcessing);
-            ShowLogTimestamp = settings.GetBool(SettingKeys.ShowLogTimestamp);
-            LogToDisk = settings.GetBool(SettingKeys.LogToDisk);
-            CheckForNewAndMissingGamesOnLoad = settings.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
-            UseSimpleSystemPicker = settings.GetBool(SettingKeys.UseSimpleSystemPicker);
+            ConfirmBulkChanges = s.ConfirmBulkChanges;
+            EnableSaveReminder = s.EnableSaveReminder;
+            VerifyImageDownloads = s.VerifyImageDownloads;
+            OverrideConcurrency = s.OverrideConcurrency;
+            ConcurrencyOverride = s.ConcurrencyOverride;
+            VideoAutoplay = s.VideoAutoplay;
+            RememberColumns = s.RememberColumns;
+            RememberAutosize = s.RememberAutosize;
+            EnableDelete = s.EnableDelete;
+            RemoveZZZNotGamePrefix = s.RemoveZZZNotGamePrefix;
+            IgnoreDuplicates = s.IgnoreDuplicates;
+            BatchProcessing = s.BatchProcessing;
+            ShowLogTimestamp = s.ShowLogTimestamp;
+            LogToDisk = s.LogToDisk;
+            CheckForNewAndMissingGamesOnLoad = s.CheckForNewAndMissingGamesOnLoad;
+            UseSimpleSystemPicker = s.UseSimpleSystemPicker;
 
-            ScraperConfigSaveIndex = settings.GetInt(SettingKeys.ScraperConfigSave);
-            MaxUndo = settings.GetInt(SettingKeys.MaxUndo);
-            SearchDepth = settings.GetInt(SettingKeys.SearchDepth);
-            RecentFilesCount = settings.GetInt(SettingKeys.RecentFilesCount);
-            MaxBatch = settings.GetInt(SettingKeys.BatchProcessingMaximum);
-            DefaultVolume = settings.GetInt(SettingKeys.Volume);
-            LogVerbosityIndex = settings.GetInt(SettingKeys.LogVerbosity);
+            ScraperConfigSaveIndex = s.ScraperConfigSave;
+            MaxUndo = s.MaxUndo;
+            SearchDepth = s.SearchDepth;
+            RecentFilesCount = s.RecentFilesCount;
+            MaxBatch = s.MaxBatch;
+            DefaultVolume = s.DefaultVolume;
+            LogVerbosityIndex = s.LogVerbosity;
 
-            // Remote
-            Hostname = settings.GetValue(SettingKeys.HostName) ?? string.Empty;
-            UserId = settings.GetValue(SettingKeys.UserID) ?? string.Empty;
-            Password = settings.GetValue(SettingKeys.Password) ?? string.Empty;
+            // Connection
+            Hostname = s.Hostname;
+            UserId = s.UserId;
+            Password = s.Password;
 
-            // Paths / Profiles
-            MamePath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.MamePath.Key) ?? string.Empty;
-
-            var profileType = settings.GetValue(SettingKeys.ProfileType);
-            var isEsDe = string.Equals(profileType, SettingKeys.ProfileTypeEsDe, StringComparison.OrdinalIgnoreCase);
+            // Paths
+            MamePath = s.MamePath;
+            RomsPath = s.RomsFolder;
 
             foreach (var item in MediaFolderItems)
             {
-                item.Path = LoadMediaPath(settings.GetValue(SettingKeys.MediaPathsSection, item.Key, item.DefaultPath), item.DefaultPath);
-                item.Suffix = settings.GetValue(SettingKeys.MediaPathsSection, $"{item.Key}_suffix", item.DefaultSuffix);
-                item.SfxEnabled = settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_sfx_enabled", item.DefaultSfxEnabled);
-
+                item.Path = LoadMediaPath(s.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
+                item.Suffix = s.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix);
+                item.SfxEnabled = bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
                 item.Enabled = (!isEsDe || (GamelistMetaData.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
-                               settings.GetBool(SettingKeys.MediaPathsSection, $"{item.Key}_enabled", item.DefaultEnabled);
+                               (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
             }
 
             LoadScraperCredentials();
             RefreshProfileList();
 
-            if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+            if (isEsDe)
             {
-                EsDeRoot = settings.GetValue(SettingKeys.EsDeRoot);
-                EsDeMediaBase = _sharedData.EsDeMediaBase;
-                RomsPath = _sharedData.RomsFolder;
+                EsDeRoot = s.EsDeRoot;
+                EsDeMediaBase = _sessionState.MediaRootFolder ?? string.Empty;
             }
-            else if (_sharedData.ProfileType == SettingKeys.ProfileTypeEs)
-            {
-                RomsPath = settings.GetValue(SettingKeys.FolderPathsSection, SettingKeys.RomsFolder.Key) ?? string.Empty;
-            }
-
-            foreach (var item in MediaFolderItems)
-                item.NotifyProfileTypeChanged();
-
-            OnPropertyChanged(nameof(IsEsDeProfile));
-            OnPropertyChanged(nameof(EsDePathsVisible));
-            OnPropertyChanged(nameof(SuffixesEnabled));
 
             IsDirty = false;
         }
@@ -266,17 +281,17 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.MamePath.Key] = MamePath,
                 [SettingKeys.RomsFolder.Key] = RomsPath
             },
-            [SettingKeys.MediaPathsSection] = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe
+            [SettingKeys.MediaPathsSection] = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe
                 ? MediaFolderItems
                     .Select(item => new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString()))
                     .ToDictionary(kv => kv.Key, kv => kv.Value)
                 : MediaFolderItems
                     .SelectMany(item => new[]
                     {
-                        new KeyValuePair<string, string>(item.Key,                      item.Path),
-                        new KeyValuePair<string, string>($"{item.Key}_enabled",         item.Enabled.ToString()),
-                        new KeyValuePair<string, string>($"{item.Key}_suffix",          item.Suffix),
-                        new KeyValuePair<string, string>($"{item.Key}_sfx_enabled",     item.SfxEnabled.ToString()),
+                        new KeyValuePair<string, string>(item.Key,                  item.Path),
+                        new KeyValuePair<string, string>($"{item.Key}_enabled",     item.Enabled.ToString()),
+                        new KeyValuePair<string, string>($"{item.Key}_suffix",      item.Suffix),
+                        new KeyValuePair<string, string>($"{item.Key}_sfx_enabled", item.SfxEnabled.ToString()),
                     })
                     .ToDictionary(kv => kv.Key, kv => kv.Value)
         };
@@ -326,10 +341,10 @@ public partial class SettingsViewModel : ViewModelBase
 
         settings[SettingKeys.ProfileSection] = new()
         {
-            [SettingKeys.ProfileType.Key] = _sharedData.ProfileType,
+            [SettingKeys.ProfileType.Key] = _sessionState.ProfileType,
         };
 
-        if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+        if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe)
         {
             settings[SettingKeys.EsDeSection] = new()
             {
@@ -338,10 +353,9 @@ public partial class SettingsViewModel : ViewModelBase
         }
 
         SettingsService.Instance.SaveAllSettings(settings);
-
+        SettingsState.Instance.Reload();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
-        _sharedData.LoadFromSettings();
-
+        WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
         IsDirty = false;
     }
 
@@ -349,18 +363,18 @@ public partial class SettingsViewModel : ViewModelBase
     {
         SettingsService.Instance.ResetToDefaults();
         LoadSettings();
+        RefreshMediaFolderDisplayState();
     }
 
     public static void ApplyThemeOnStartup()
     {
-        var shared = SharedDataService.Instance;
-
-        var themeIndex = NameToIndex(ThemeNames, shared.Theme);
-        var colorIndex = NameToIndex(ColorNames, shared.Color);
-        var variantIndex = NameToIndex(AccentVariantNames, shared.AccentVariant);
+        var settings = SettingsState.Instance;
+        var themeIndex = NameToIndex(ThemeNames, settings.Theme);
+        var colorIndex = NameToIndex(ColorNames, settings.Color);
+        var variantIndex = NameToIndex(AccentVariantNames, settings.AccentVariant);
 
         ThemeService.ApplyTheme(themeIndex, colorIndex, variantIndex);
-        ThemeService.ApplyFontSizes(shared.AppFontSize, shared.GridFontSize);
+        ThemeService.ApplyFontSizes(settings.AppFontSize, settings.GridFontSize);
     }
 
     #endregion

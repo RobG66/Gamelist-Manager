@@ -14,7 +14,7 @@ public partial class ScraperViewModel
 
     private void StartLogFileSession(string scraper, string system)
     {
-        if (!_sharedData.LogToDisk) return;
+        if (!_settingsState.LogToDisk) return;
 
         string logDir = Path.Combine(AppContext.BaseDirectory, "logs");
         Directory.CreateDirectory(logDir);

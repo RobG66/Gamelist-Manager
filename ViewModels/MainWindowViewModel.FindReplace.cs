@@ -243,7 +243,7 @@ public partial class MainWindowViewModel
             return;
         }
 
-        if (_sharedData.ConfirmBulkChanges)
+        if (_settingsState.ConfirmBulkChanges)
         {
             var totalOccurrences = CountReplacementOccurrences(matches, SelectedFindColumn!, FindText);
             var occurrenceLabel = totalOccurrences == 1 ? "occurrence" : "occurrences";

@@ -1,10 +1,20 @@
-﻿using Gamelist_Manager.Models;
+using Gamelist_Manager.Models;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Gamelist_Manager.Classes.Helpers;
 
-public record SettingDef<T>(string Section, string Key, T Default);
+public interface ISettingDef
+{
+    string Section { get; }
+    string Key { get; }
+    string DefaultStr { get; }
+}
+
+public record SettingDef<T>(string Section, string Key, T Default) : ISettingDef
+{
+    public string DefaultStr => Default?.ToString() ?? "";
+}
 
 public record ProfileTypeOption(string Key, string DisplayName)
 {
@@ -37,12 +47,13 @@ public static class SettingKeys
 
     public static readonly IReadOnlyList<ProfileTypeOption> AllProfileTypes =
     [
-    new ProfileTypeOption(ProfileTypeEs,   "ES"),
-    new ProfileTypeOption(ProfileTypeEsDe, "ES-DE"),
+        new ProfileTypeOption(ProfileTypeEs,   "ES"),
+        new ProfileTypeOption(ProfileTypeEsDe, "ES-DE"),
     ];
+
     #endregion
 
-    #region Appearance Settings
+    #region Appearance
 
     public static readonly SettingDef<string> Theme = new(AppearanceSection, "Theme", "Light");
     public static readonly SettingDef<string> Color = new(AppearanceSection, "Color", "Blue");
@@ -55,7 +66,7 @@ public static class SettingKeys
 
     #endregion
 
-    #region Behavior Settings
+    #region Behavior
 
     public static readonly SettingDef<bool> ConfirmBulkChange = new(BehaviorSection, "ConfirmBulkChange", true);
     public static readonly SettingDef<bool> SaveReminder = new(BehaviorSection, "SaveReminder", true);
@@ -67,16 +78,36 @@ public static class SettingKeys
     public static readonly SettingDef<bool> CheckForNewAndMissingGamesOnLoad = new(BehaviorSection, "CheckForNewAndMissingGamesOnLoad", false);
     public static readonly SettingDef<bool> UseSimpleSystemPicker = new(BehaviorSection, "UseSimpleSystemPicker", false);
 
+    #endregion
+
+    #region Scraper Options
+
     public static readonly SettingDef<bool> VerifyDownloadedImages = new(ScraperOptionsSection, "VerifyDownloadedImages", true);
     public static readonly SettingDef<bool> BatchProcessing = new(ScraperOptionsSection, "BatchProcessing", true);
     public static readonly SettingDef<bool> ShowLogTimestamp = new(ScraperOptionsSection, "ShowLogTimestamp", false);
     public static readonly SettingDef<bool> OverrideConcurrency = new(ScraperOptionsSection, "OverrideConcurrency", false);
     public static readonly SettingDef<int> ConcurrencyOverride = new(ScraperOptionsSection, "ConcurrencyOverride", 1);
     public static readonly SettingDef<bool> LogToDisk = new(ScraperOptionsSection, "LogToDisk", false);
+    public static readonly SettingDef<string> SelectedScraper = new(ScraperOptionsSection, "SelectedScraper", "");
+    public static readonly SettingDef<int> ScraperConfigSave = new(ScraperOptionsSection, "ScraperConfigSave", 0);
+    public static readonly SettingDef<bool> ScrapeAllMode = new(ScraperOptionsSection, "ScrapeAllMode", true);
+    public static readonly SettingDef<bool> OverwriteName = new(ScraperOptionsSection, "OverwriteName", true);
+    public static readonly SettingDef<bool> OverwriteMedia = new(ScraperOptionsSection, "OverwriteMedia", false);
+    public static readonly SettingDef<bool> ScrapeHiddenItems = new(ScraperOptionsSection, "ScrapeHiddenItems", false);
+    public static readonly SettingDef<bool> RemoveZZZNotGamePrefix = new(ScraperOptionsSection, "RemoveZZZNotGamePrefix", true);
+
+    public static readonly SettingDef<string> ScreenScraperLanguage = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_Language", "English (en)");
+    public static readonly SettingDef<string> ScreenScraperPrimaryRegion = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_PrimaryRegion", "USA (us)");
+    public static readonly SettingDef<bool> ScreenScraperGenreEnglish = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_GenreEnglish", false);
+    public static readonly SettingDef<bool> ScreenScraperAnyMedia = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_AnyMedia", true);
+    public static readonly SettingDef<bool> ScreenScraperNamesLanguageFirst = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_NamesLanguageFirst", false);
+    public static readonly SettingDef<bool> ScreenScraperMediaRegionFirst = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_MediaRegionFirst", false);
+    public static readonly SettingDef<string> ScreenScraperRegionFallback = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_RegionFallback",
+        """["USA (us)", "Europe (eu)", "United Kingdom (uk)", "World (wor)", "Japan (jp)", "ScreenScraper (ss)", "Custom (cus)"]""");
 
     #endregion
 
-    #region Advanced Settings
+    #region Advanced
 
     public static readonly SettingDef<int> MaxUndo = new(AdvancedSection, "MaxUndo", 5);
     public static readonly SettingDef<int> SearchDepth = new(AdvancedSection, "SearchDepth", 2);
@@ -87,7 +118,7 @@ public static class SettingKeys
 
     #endregion
 
-    #region Connection Settings
+    #region Connection
 
     public static readonly SettingDef<string> HostName = new(ConnectionSection, "HostName", "");
     public static readonly SettingDef<string> UserID = new(ConnectionSection, "UserID", "");
@@ -95,52 +126,32 @@ public static class SettingKeys
 
     #endregion
 
-    #region Folder Paths Settings
+    #region Folder Paths
 
     public static readonly SettingDef<string> MamePath = new(FolderPathsSection, "MamePath", "");
     public static readonly SettingDef<string> RomsFolder = new(FolderPathsSection, "RomsFolder", "");
 
     #endregion
 
-    #region MediaViewer Settings
+    #region MediaViewer
 
     public static readonly SettingDef<bool> ScaledDisplay = new(MediaViewerSection, "ScaledDisplay", true);
 
     #endregion
 
-    #region ES-DE Settings
+    #region ES-DE
 
     public static readonly SettingDef<string> EsDeRoot = new(EsDeSection, "EsDeRoot", "");
     public static readonly SettingDef<string> ProfileType = new(ProfileSection, "ProfileType", ProfileTypeEs);
 
     #endregion
 
-    #region Scraper Settings
-
-    public static readonly SettingDef<string> SelectedScraper = new(ScraperOptionsSection, "SelectedScraper", "");
-    public static readonly SettingDef<int> ScraperConfigSave = new(ScraperOptionsSection, "ScraperConfigSave", 0);
-    public static readonly SettingDef<bool> ScrapeAllMode = new(ScraperOptionsSection, "ScrapeAllMode", true);
-    public static readonly SettingDef<bool> OverwriteName = new(ScraperOptionsSection, "OverwriteName", true);
-    public static readonly SettingDef<bool> OverwriteMedia = new(ScraperOptionsSection, "OverwriteMedia", false);
-    public static readonly SettingDef<bool> ScrapeHiddenItems = new(ScraperOptionsSection, "ScrapeHiddenItems", false);
-    public static readonly SettingDef<bool> RemoveZZZNotGamePrefix = new(ScraperOptionsSection, "RemoveZZZNotGamePrefix", true);
-    public static readonly SettingDef<string> ScreenScraperLanguage = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_Language", "English (en)");
-    public static readonly SettingDef<string> ScreenScraperPrimaryRegion = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_PrimaryRegion", "USA (us)");
-    public static readonly SettingDef<bool> ScreenScraperGenreEnglish = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_GenreEnglish", false);
-    public static readonly SettingDef<bool> ScreenScraperAnyMedia = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_AnyMedia", true);
-    public static readonly SettingDef<bool> ScreenScraperNamesLanguageFirst = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_NamesLanguageFirst", false);
-    public static readonly SettingDef<bool> ScreenScraperMediaRegionFirst = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_MediaRegionFirst", false);
-    public static readonly SettingDef<string> ScreenScraperRegionFallback = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_RegionFallback", """["USA (us)", "Europe (eu)", "United Kingdom (uk)", "World (wor)", "Japan (jp)", "ScreenScraper (ss)", "Custom (cus)"]""");
-
-    #endregion
-
-
     #region All Definitions
+    // Used by BuildDefaultSections to auto-generate INI defaults.
+    // MediaPaths is handled separately due to its dynamic structure.
 
-    // Master list used by BuildDefaultSections to auto-generate INI defaults.
-    // MediaPaths and ES-DE are handled separately due to special logic.
-    public static readonly IReadOnlyList<object> AllDefinitions =
-    [
+    public static readonly IReadOnlyList<ISettingDef> AllDefinitions = new List<ISettingDef>
+    {
         // Appearance
         Theme, Color, AccentVariant, AlternatingRowColorIndex, GridLinesVisibilityIndex,
         GridLineVisibility, GlobalFontSize, GridFontSize,
@@ -150,9 +161,17 @@ public static class SettingKeys
         RememberColumns, RememberAutoSize, EnableDelete, IgnoreDuplicates,
         CheckForNewAndMissingGamesOnLoad, UseSimpleSystemPicker,
 
+        // Scraper Options
+        VerifyDownloadedImages, BatchProcessing, ShowLogTimestamp, LogToDisk,
+        OverrideConcurrency, ConcurrencyOverride,
+        SelectedScraper, ScraperConfigSave,
+        ScrapeAllMode, OverwriteName, OverwriteMedia, ScrapeHiddenItems, RemoveZZZNotGamePrefix,
+        ScreenScraperLanguage, ScreenScraperPrimaryRegion, ScreenScraperGenreEnglish,
+        ScreenScraperAnyMedia, ScreenScraperNamesLanguageFirst, ScreenScraperMediaRegionFirst,
+        ScreenScraperRegionFallback,
+
         // Advanced
-        MaxUndo, SearchDepth, RecentFilesCount, BatchProcessingMaximum,
-        LogVerbosity, Volume,
+        MaxUndo, SearchDepth, RecentFilesCount, BatchProcessingMaximum, LogVerbosity, Volume,
 
         // Connection
         HostName, UserID, Password,
@@ -165,39 +184,22 @@ public static class SettingKeys
 
         // ES-DE
         EsDeRoot, ProfileType,
-
-        // Scraper Options
-        SelectedScraper, ScraperConfigSave,
-        VerifyDownloadedImages, BatchProcessing, ShowLogTimestamp, LogToDisk,
-        OverrideConcurrency, ConcurrencyOverride,
-        ScrapeAllMode, OverwriteName, OverwriteMedia, ScrapeHiddenItems, RemoveZZZNotGamePrefix,
-        ScreenScraperLanguage, ScreenScraperPrimaryRegion, ScreenScraperGenreEnglish,
-        ScreenScraperAnyMedia, ScreenScraperNamesLanguageFirst, ScreenScraperMediaRegionFirst, ScreenScraperRegionFallback,
-
-    ];
+    };
 
     #endregion
 
     #region Media Path Defaults
 
-    // MediaPaths have their own structure — not driven by SettingDef
-    // Derived from the model definitions
     public static readonly IReadOnlyDictionary<string, string> DefaultMediaPaths =
-     GamelistMetaData.GetAllMediaFolderTypes()
-         .SelectMany(d => new[]
-         {
-            KeyValuePair.Create(d.Type,                       d.DefaultPath),
-            KeyValuePair.Create($"{d.Type}_enabled",          d.DefaultEnabled.ToString().ToLower()),
-            KeyValuePair.Create($"{d.Type}_suffix",           d.DefaultSuffix),
-            KeyValuePair.Create($"{d.Type}_sfx_enabled",      (!string.IsNullOrEmpty(d.DefaultSuffix)).ToString().ToLower()),
-         })
-         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        GamelistMetaData.GetAllMediaFolderTypes()
+            .SelectMany(d => new[]
+            {
+                KeyValuePair.Create(d.Type,                  d.DefaultPath),
+                KeyValuePair.Create($"{d.Type}_enabled",     d.DefaultEnabled.ToString().ToLower()),
+                KeyValuePair.Create($"{d.Type}_suffix",      d.DefaultSuffix),
+                KeyValuePair.Create($"{d.Type}_sfx_enabled", (!string.IsNullOrEmpty(d.DefaultSuffix)).ToString().ToLower()),
+            })
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
     #endregion
-
 }
-
-
-
-
-

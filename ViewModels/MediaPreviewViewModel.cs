@@ -19,15 +19,19 @@ namespace Gamelist_Manager.ViewModels;
 public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 {
     #region Private Fields
+
     private static readonly Lazy<Task<LibVLC?>> _libVlcInit = new(
         () => Task.Run(CreateLibVLC), LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private readonly SharedDataService _sharedData = SharedDataService.Instance;
+    private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsState _settingsState = SettingsState.Instance;
     private CancellationTokenSource _videoInitCts = new();
     private bool _disposed;
+
     #endregion
 
     #region Observable Properties
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ScrapeGameCommand))]
     private GameMetadataRow? _selectedGame;
@@ -46,31 +50,41 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _overwriteMedia;
     [ObservableProperty] private bool _overwriteMetadata;
     [ObservableProperty] private bool _showNoMediaLogo;
+
     #endregion
 
     #region Public Properties
-    public bool IsMediaPreviewEnabled => !_sharedData.IsScraping && !_sharedData.IsBusy;
-    public bool IsScraping => _sharedData.IsScraping;
-    public bool VideoAutoplay => _sharedData.VideoAutoplay;
-    private bool EffectiveAutoPlay => _sharedData.VideoAutoplay && !_sharedData.VideoUserPaused;
+
+    public bool IsMediaPreviewEnabled => !_sessionState.IsScraping && !_sessionState.IsBusy;
+    public bool IsScraping => _sessionState.IsScraping;
+    public bool VideoAutoplay => _settingsState.VideoAutoplay;
+
     public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
     public LibVLC? LibVLC { get; private set; }
     public static bool IsLibVLCInstalled { get; private set; } = true;
 
-    // Called from App startup when the native library probe fails, so the
-    // rest of the app knows not to attempt VLC before any native code runs.
     public static void MarkLibVLCUnavailable() => IsLibVLCInstalled = false;
+
+    #endregion
+
+    #region Private Properties
+
+    private bool EffectiveAutoPlay => _settingsState.VideoAutoplay && !_sessionState.VideoUserPaused;
+
     #endregion
 
     #region Constructor
+
     public MediaPreviewViewModel()
     {
-        _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
+        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
         InitializeMediaItems();
     }
+
     #endregion
 
     #region Property Change Callbacks
+
     partial void OnSelectedGameChanged(GameMetadataRow? value)
     {
         SetScraperStatus(string.Empty, null);
@@ -83,9 +97,11 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         _ = value;
         UpdateVisibility();
     }
+
     #endregion
 
     #region Commands
+
     [RelayCommand]
     private void ToggleScaleMode() => ScaledDisplay = !ScaledDisplay;
 
@@ -95,12 +111,11 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     #endregion
 
     #region Public Methods
+
     public void OnViewReady() => InitializeLibVLC();
 
     public static Task PreloadLibVLCAsync() => _libVlcInit.Value;
 
-    // Forces the image panel for the given media type to re-read its file from
-    // disk — used after an in-place file operation such as background removal.
     public void RefreshMedia(string mediaType)
     {
         if (SelectedGame == null) return;
@@ -111,18 +126,16 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         SelectedGame.SetValue(mediaItem.PathKey, currentPath);
     }
 
-    // Updates the game metadata path for a media item to a new full path.
-    // Used when an operation changes the file extension (e.g. JPEG background
-    // removal saves as PNG). Marks data as changed so the user is prompted to save.
     public void UpdateMediaPath(string mediaType, string fullPath)
     {
         if (SelectedGame == null) return;
         var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
         if (mediaItem == null) return;
-        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, _sharedData.CurrentRomFolder!);
+        var romFolder = FilePathHelper.CurrentRomFolder(_settingsState.RomsFolder, _sessionState.CurrentSystem);
+        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, romFolder!);
         SelectedGame.SetValue(mediaItem.PathKey, null);
         SelectedGame.SetValue(mediaItem.PathKey, relativePath);
-        _sharedData.IsDataChanged = true;
+        _sessionState.IsDataChanged = true;
     }
 
     public async void InitializeLibVLC()
@@ -134,7 +147,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         }
 
         var token = _videoInitCts.Token;
-
         var libVlc = await _libVlcInit.Value.ConfigureAwait(false);
 
         if (_disposed || token.IsCancellationRequested) return;
@@ -163,21 +175,20 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
         if (mediaItem == null) return;
 
-        // Clearing media
         if (newPath == null)
         {
             if (mediaItem.IsVideo)
                 mediaItem.DisposeVideoPlayer();
             SelectedGame.SetValue(mediaItem.PathKey, string.Empty);
-            _sharedData.IsDataChanged = true;
+            _sessionState.IsDataChanged = true;
             SetStatus($"Successfully cleared {mediaType}", "ok");
             return;
         }
 
-        var mediaFolder = _sharedData.AvailableMedia.FirstOrDefault(m => m.Type == mediaItem.MediaTypeKey);
-        var gamelistDir = _sharedData.CurrentRomFolder;
+        var mediaFolder = _sessionState.AvailableMedia.FirstOrDefault(m => m.Type == mediaItem.MediaTypeKey);
+        var romFolder = FilePathHelper.CurrentRomFolder(_settingsState.RomsFolder, _sessionState.CurrentSystem);
 
-        if (mediaFolder == null || string.IsNullOrEmpty(gamelistDir))
+        if (mediaFolder == null || string.IsNullOrEmpty(romFolder))
         {
             SetStatus($"Media path not configured for {mediaType}", "error");
             return;
@@ -185,12 +196,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
         try
         {
-            // Resolve destination folder
             var destFolder = mediaFolder.FolderPath;
             if (!Directory.Exists(destFolder))
                 Directory.CreateDirectory(destFolder);
 
-            // Build destination filename
             var romPath = SelectedGame.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             var romName = FilePathHelper.NormalizeRomName(romPath);
             var extension = Path.GetExtension(newPath);
@@ -199,23 +208,19 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
                 : string.Empty;
             var destFileName = $"{romName}{suffix}{extension}";
             var destFullPath = Path.Combine(destFolder, destFileName);
-
-            // Copy via temp to avoid corrupting existing file if copy fails
             var tempPath = destFullPath + ".tmp";
+
             await Task.Run(() =>
             {
                 File.Copy(newPath, tempPath, overwrite: true);
                 File.Move(tempPath, destFullPath, overwrite: true);
             });
 
-            // Convert to gamelist-relative path and store
-            var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(destFullPath, gamelistDir);
-
+            var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(destFullPath, romFolder);
             SelectedGame.SetValue(mediaItem.PathKey, null);
             SelectedGame.SetValue(mediaItem.PathKey, relativePath);
-            _sharedData.IsDataChanged = true;
+            _sessionState.IsDataChanged = true;
 
-            // Refresh video player if needed
             if (mediaItem.IsVideo)
             {
                 mediaItem.DisposeVideoPlayer();
@@ -236,7 +241,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         _disposed = true;
         _videoInitCts.Cancel();
         _videoInitCts.Dispose();
-        _sharedData.PropertyChanged -= OnSharedDataPropertyChanged;
+        _sessionState.PropertyChanged -= OnSessionStatePropertyChanged;
 
         foreach (var item in MediaItems)
         {
@@ -248,9 +253,11 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         LibVLC?.Dispose();
         LibVLC = null;
     }
+
     #endregion
 
     #region Private Methods
+
     private static LibVLC? CreateLibVLC()
     {
         try
@@ -322,14 +329,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     private void UpdateMediaItems(GameMetadataRow? game)
     {
-        // Cancel any in-flight video initialisation for the previous selection
-        // before touching players, so a background task cannot race with what
-        // we are about to do here.
         _videoInitCts.Cancel();
         _videoInitCts.Dispose();
         _videoInitCts = new CancellationTokenSource();
         var token = _videoInitCts.Token;
-
         var autoPlay = EffectiveAutoPlay;
 
         foreach (var item in MediaItems.Where(m => m.IsVideo))
@@ -338,15 +341,9 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             var hasNewPath = !string.IsNullOrEmpty(newPath);
 
             if (!hasNewPath)
-            {
-                // No video for this game — tear down, slot shows empty/drop icon.
                 item.DisposeVideoPlayer();
-            }
             else if (item.MediaPlayer != null && LibVLC != null)
-            {
-                // Change media
                 item.ChangeMedia(LibVLC, newPath!, autoPlay);
-            }
         }
 
         foreach (var item in MediaItems)
@@ -354,8 +351,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
         UpdateVisibility();
 
-        // InitializeVideosForCurrentGame only touches items where MediaPlayer == null,
-        // so it is a no-op for slots that just had ChangeMedia called on them.
         if (game != null && IsLibVLCInitialized && LibVLC != null)
             InitializeVideosForCurrentGame(token);
     }
@@ -364,33 +359,24 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     {
         foreach (var item in MediaItems)
         {
-            bool newVisible;
-            if (item.HasMedia)
-                newVisible = true;
-            else if (ShowAllMedia)
-            {
-                newVisible = _sharedData.AvailableMedia.Any(m => m.Type == item.MediaTypeKey);
-            }
-            else
-                newVisible = false;
-
-            item.IsVisible = newVisible;
+            item.IsVisible = item.HasMedia || (ShowAllMedia && _sessionState.AvailableMedia.Any(m => m.Type == item.MediaTypeKey));
         }
 
-        // Show the no-media logo when a game is selected, has no media at all, and
-        // Show All is off (Show All provides its own drop placeholders instead).
         ShowNoMediaLogo = SelectedGame != null
             && !ShowAllMedia
             && MediaItems.All(m => !m.HasMedia);
     }
 
-    private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnSessionStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
-            case nameof(SharedDataService.IsScraping):
-            case nameof(SharedDataService.IsBusy):
+            case nameof(SessionState.IsScraping):
                 OnPropertyChanged(nameof(IsScraping));
+                OnPropertyChanged(nameof(IsMediaPreviewEnabled));
+                ScrapeGameCommand.NotifyCanExecuteChanged();
+                break;
+            case nameof(SessionState.IsBusy):
                 OnPropertyChanged(nameof(IsMediaPreviewEnabled));
                 ScrapeGameCommand.NotifyCanExecuteChanged();
                 break;
@@ -410,8 +396,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         int missing = total - found;
 
         var gameName = game.GetValue(MetaDataKeys.name)?.ToString() ?? string.Empty;
-        string icon = missing > 0 ? "error" : "ok";
-        string text = missing > 0
+        var icon = missing > 0 ? "error" : "ok";
+        var text = missing > 0
             ? $"{gameName}  —  {found}/{total} media files found,  {missing} missing"
             : total > 0
                 ? $"{gameName}  —  {total} media files found"
@@ -435,5 +421,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         ScraperStatusIsOk = icon == "ok";
         ScraperStatusIsError = icon == "error";
     }
+
     #endregion
 }

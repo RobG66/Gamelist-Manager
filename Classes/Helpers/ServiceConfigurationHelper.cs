@@ -1,3 +1,4 @@
+using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -41,7 +42,8 @@ namespace Gamelist_Manager.Classes.Helpers
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
             });
 
-            services.AddSingleton(SharedDataService.Instance);
+            services.AddSingleton(SettingsState.Instance);
+            services.AddSingleton(SessionState.Instance);
             services.AddTransient<ScraperService>();
         }
     }

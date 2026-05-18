@@ -5,7 +5,6 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -36,7 +35,7 @@ public partial class MenuView : UserControl
     private void OnSystemsButtonClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;
-        if (SharedDataService.Instance.UseSimpleSystemPicker) return;
+        if (SettingsState.Instance.UseSimpleSystemPicker) return;
 
         // Suppress the flyout and open the picker dialog instead
         SystemsButton.Flyout?.Hide();
@@ -46,12 +45,12 @@ public partial class MenuView : UserControl
 
     private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
-        SharedDataService.Instance.RecentFiles.CollectionChanged += OnRecentFilesChanged;
+        SessionState.Instance.RecentFiles.CollectionChanged += OnRecentFilesChanged;
     }
 
     private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
-        SharedDataService.Instance.RecentFiles.CollectionChanged -= OnRecentFilesChanged;
+        SessionState.Instance.RecentFiles.CollectionChanged -= OnRecentFilesChanged;
 
         if (DataContext is MainWindowViewModel vm)
         {
@@ -126,14 +125,10 @@ public partial class MenuView : UserControl
 
     private void RefreshColumnMenuVisibility()
     {
-        var profileType = SharedDataService.Instance.ProfileType;
+        var available = SessionState.Instance.AvailableColumns;
         foreach (var (item, decl) in _columnMenuItems)
         {
-            item.IsVisible = profileType switch
-            {
-                SettingKeys.ProfileTypeEsDe => !decl.EsOnly,
-                _ => !decl.EsDeOnly
-            };
+            item.IsVisible = available.Contains(decl);
         }
     }
 
@@ -163,7 +158,7 @@ public partial class MenuView : UserControl
 
         var iconSize = this.TryFindResource("GlobalMenuIconSize", out var res) && res is double d ? d : 16.0;
 
-        var recentFiles = SharedDataService.Instance.RecentFiles;
+        var recentFiles = SessionState.Instance.RecentFiles;
 
         foreach (var file in recentFiles)
         {

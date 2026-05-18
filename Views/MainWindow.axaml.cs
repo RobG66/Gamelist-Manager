@@ -18,6 +18,8 @@ namespace Gamelist_Manager.Views;
 public partial class MainWindow : Window
 {
     private readonly List<DataGridColumn> _reportColumns = [];
+    private readonly SettingsState _settingsState = SettingsState.Instance;
+    private readonly SessionState _sessionState = SessionState.Instance;
 
     public MainWindow()
     {
@@ -28,13 +30,14 @@ public partial class MainWindow : Window
         var version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion.Split('+')[0] ?? string.Empty;
+
         Title = string.IsNullOrEmpty(version)
             ? "Gamelist Manager"
             : $"Gamelist Manager {version}";
 
-        Services.WindowService.Instance.SetOwner(this);  // SetOwner is now part of IWindowService
+        Services.WindowService.Instance.SetOwner(this);
 
-        SharedDataService.Instance.SettingsApplied += OnSettingsApplied;
+        _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
 
         Loaded += MainWindow_Loaded;
         DataContextChanged += MainWindow_DataContextChanged;
@@ -45,16 +48,7 @@ public partial class MainWindow : Window
         BuildDataGridColumns();
     }
 
-    private void MainWindow_DataContextChanged_ContextMenu(object? sender, EventArgs e)
-    {
-        if (GameDataGrid.ContextMenu is { } menu)
-        {
-            menu.DataContext = DataContext;
-            menu.Opening += ContextMenu_Opening;
-        }
-    }
-
-    private void ContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
+    private void ContextMenu_Opening(object? sender, CancelEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;
         GenreVisibleMenuItem.Header = vm.SetSelectedGenreVisibleMenuText;
@@ -72,7 +66,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (_currentViewModel?.IsBusy == true)
+        if (SessionState.Instance.IsBusy)
             e.Handled = true;
         else if (IsGridSelectionLocked && e.Key is Key.Up or Key.Down or Key.PageUp or Key.PageDown or Key.Home or Key.End)
             e.Handled = true;
@@ -87,10 +81,10 @@ public partial class MainWindow : Window
             if (DataContext is not MainWindowViewModel viewModel)
                 return;
 
-            if (viewModel.IsScraping)
+            if (SessionState.Instance.IsScraping)
             {
                 e.Cancel = true;
-                var scrapingDialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                await new ThreeButtonDialogView(new ThreeButtonDialogConfig
                 {
                     Title = "Scraping in Progress",
                     Message = "Scraping is currently in progress.",
@@ -99,15 +93,14 @@ public partial class MainWindow : Window
                     Button1Text = "",
                     Button2Text = "",
                     Button3Text = "OK"
-                });
-                await scrapingDialog.ShowDialog<ThreeButtonResult>(this);
+                }).ShowDialog<ThreeButtonResult>(this);
                 return;
             }
 
-            if (viewModel.IsBusy)
+            if (SessionState.Instance.IsBusy)
             {
                 e.Cancel = true;
-                var busyDialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                await new ThreeButtonDialogView(new ThreeButtonDialogConfig
                 {
                     Title = "Save in Progress",
                     Message = "The gamelist is currently being saved.",
@@ -116,18 +109,15 @@ public partial class MainWindow : Window
                     Button1Text = "",
                     Button2Text = "",
                     Button3Text = "OK"
-                });
-                await busyDialog.ShowDialog<ThreeButtonResult>(this);
+                }).ShowDialog<ThreeButtonResult>(this);
                 return;
             }
 
-            var sharedData = SharedDataService.Instance;
-
-            if (sharedData.IsDataChanged && sharedData.EnableSaveReminder)
+            if (_sessionState.IsDataChanged && _settingsState.EnableSaveReminder)
             {
                 e.Cancel = true;
 
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                var result = await new ThreeButtonDialogView(new ThreeButtonDialogConfig
                 {
                     Title = "Unsaved Changes",
                     Message = "You have unsaved changes to the current gamelist.",
@@ -136,17 +126,14 @@ public partial class MainWindow : Window
                     Button1Text = "Cancel",
                     Button2Text = "Don't Save",
                     Button3Text = "Save"
-                });
+                }).ShowDialog<ThreeButtonResult>(this);
 
-                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-
-                if (result == ThreeButtonResult.Button1)
-                    return;
-
+                if (result == ThreeButtonResult.Button1) return;
                 if (result == ThreeButtonResult.Button3)
                     await viewModel.SaveGamelistCommand.ExecuteAsync(null);
             }
 
+            _settingsState.PropertyChanged -= OnSettingsStatePropertyChanged;
             viewModel.DisposeMediaPreview();
             viewModel.ScraperPanelViewModel?.Dispose();
 
@@ -195,104 +182,53 @@ public partial class MainWindow : Window
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (sender is not MainWindowViewModel viewModel)
-            return;
+        if (sender is not MainWindowViewModel viewModel) return;
 
-        if (e.PropertyName == nameof(MainWindowViewModel.IsAlwaysOnTop))
+        switch (e.PropertyName)
         {
-            Topmost = viewModel.IsAlwaysOnTop;
-        }
-        else if (e.PropertyName == nameof(MainWindowViewModel.SizeToFit))
-        {
-            ApplySizeToFitToDataGrid(viewModel.SizeToFit);
-        }
-        else if (e.PropertyName == nameof(MainWindowViewModel.MediaPathsVisible))
-        {
-            ApplyColumnVisibility();
-        }
-        else if (e.PropertyName == nameof(MainWindowViewModel.IsGamelistLoaded))
-        {
-            BuildDataGridColumns();
-            ApplySizeToFitToDataGrid(viewModel.SizeToFit);
-            ApplyColumnVisibility();
-        }
-        else if (e.PropertyName == nameof(MainWindowViewModel.DatToolPanelViewModel))
-        {
-            // When the DatTool panel opens, subscribe to its column-add and dispose events.
-            // Closing the panel does NOT remove report columns — that is handled by
-            // ClearReportColumnsCommand or when a new gamelist loads.
-            if (viewModel.DatToolPanelViewModel is { } datTool)
-            {
-                datTool.ReportColumnAdded += OnDatReportColumnAdded;
-                datTool.PanelDisposing += OnDatToolPanelDisposing;
-            }
+            case nameof(MainWindowViewModel.IsAlwaysOnTop):
+                Topmost = viewModel.IsAlwaysOnTop;
+                break;
+            case nameof(MainWindowViewModel.SizeToFit):
+                ApplySizeToFitToDataGrid(viewModel.SizeToFit);
+                break;
+            case nameof(MainWindowViewModel.MediaPathsVisible):
+                ApplyColumnVisibility();
+                break;
+            case nameof(MainWindowViewModel.IsGamelistLoaded):
+                BuildDataGridColumns();
+                ApplySizeToFitToDataGrid(viewModel.SizeToFit);
+                ApplyColumnVisibility();
+                break;
+            case nameof(MainWindowViewModel.DatToolPanelViewModel):
+                if (viewModel.DatToolPanelViewModel is { } datTool)
+                {
+                    datTool.ReportColumnAdded += OnDatReportColumnAdded;
+                    datTool.PanelDisposing += OnDatToolPanelDisposing;
+                }
+                break;
         }
     }
 
-    private void ViewModel_RequestSelectFirstItem(object? sender, EventArgs e)
+    private void OnSettingsStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (GameDataGrid.ItemsSource is System.Collections.ICollection { Count: > 0 })
-            GameDataGrid.SelectedIndex = 0;
-    }
-
-    private void ViewModel_RequestNavigateToItem(object? sender, GameMetadataRow row)
-    {
-        if (GameDataGrid.ItemsSource is not IList<GameMetadataRow> items)
-            return;
-
-        var index = items.IndexOf(row);
-        if (index < 0) return;
-
-        GameDataGrid.SelectedIndex = index;
-        GameDataGrid.ScrollIntoView(row, null);
-    }
-
-    private void ViewModel_RequestClearSelection(object? sender, EventArgs e)
-    {
-        GameDataGrid.SelectedItems.Clear();
-    }
-
-    private void ViewModel_RequestRestoreSelection(object? sender, List<GameMetadataRow> items)
-    {
-        // Scroll to the very top first so the DataGrid anchors at row 0,
-        // then re-select and scroll to the first selected item
-        if (GameDataGrid.ItemsSource is System.Collections.ICollection { Count: > 0 } src)
-            GameDataGrid.ScrollIntoView(((System.Collections.IList)src)[0], null);
-
-        GameDataGrid.SelectedItems.Clear();
-        foreach (var item in items)
-            GameDataGrid.SelectedItems.Add(item);
-
-        if (items.Count > 0)
-            GameDataGrid.ScrollIntoView(items[0], null);
-    }
-
-    private void OnSettingsApplied(object? sender, EventArgs e)
-    {
-        var settings = SettingsService.Instance;
-        var sharedData = SharedDataService.Instance;
-
-        ThemeService.ApplyFontSizes(sharedData.AppFontSize, sharedData.GridFontSize);
-
-        var alternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
-        var gridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
-        ThemeService.ApplyDataGridAppearance(GameDataGrid, alternatingRowColorIndex, gridLinesVisibilityIndex);
-        ThemeService.ApplyDataGridColumnWidths(GameDataGrid, sharedData.GridFontSize);
+        switch (e.PropertyName)
+        {
+            case nameof(SettingsState.AppFontSize):
+            case nameof(SettingsState.GridFontSize):
+            case nameof(SettingsState.AlternatingRowColorIndex):
+            case nameof(SettingsState.GridLinesVisibilityIndex):
+                ThemeService.ApplyFontSizes(_settingsState.AppFontSize, _settingsState.GridFontSize);
+                ThemeService.ApplyDataGridAppearance(GameDataGrid, _settingsState.AlternatingRowColorIndex, _settingsState.GridLinesVisibilityIndex);
+                ThemeService.ApplyDataGridColumnWidths(GameDataGrid, _settingsState.GridFontSize);
+                break;
+        }
     }
 
     private async void MainWindow_Loaded(object? sender, EventArgs e)
     {
-        var settings = SettingsService.Instance;
-        var alternatingRowColorIndex = settings.GetInt(SettingKeys.AlternatingRowColorIndex);
-        var gridLinesVisibilityIndex = settings.GetInt(SettingKeys.GridLinesVisibilityIndex);
-
-        ThemeService.ApplyDataGridAppearance(
-            GameDataGrid,
-            alternatingRowColorIndex,
-            gridLinesVisibilityIndex);
-
-        var dataGridFontSize = settings.GetInt(SettingKeys.GridFontSize);
-        ThemeService.ApplyDataGridColumnWidths(GameDataGrid, dataGridFontSize);
+        ThemeService.ApplyDataGridAppearance(GameDataGrid, _settingsState.AlternatingRowColorIndex, _settingsState.GridLinesVisibilityIndex);
+        ThemeService.ApplyDataGridColumnWidths(GameDataGrid, _settingsState.GridFontSize);
 
         if (DataContext is MainWindowViewModel vm)
         {
@@ -304,14 +240,45 @@ public partial class MainWindow : Window
             column.PropertyChanged += DataGridColumn_PropertyChanged;
     }
 
+    private void ViewModel_RequestSelectFirstItem(object? sender, EventArgs e)
+    {
+        if (GameDataGrid.ItemsSource is System.Collections.ICollection { Count: > 0 })
+            GameDataGrid.SelectedIndex = 0;
+    }
+
+    private void ViewModel_RequestNavigateToItem(object? sender, GameMetadataRow row)
+    {
+        if (GameDataGrid.ItemsSource is not IList<GameMetadataRow> items) return;
+        var index = items.IndexOf(row);
+        if (index < 0) return;
+        GameDataGrid.SelectedIndex = index;
+        GameDataGrid.ScrollIntoView(row, null);
+    }
+
+    private void ViewModel_RequestClearSelection(object? sender, EventArgs e)
+    {
+        GameDataGrid.SelectedItems.Clear();
+    }
+
+    private void ViewModel_RequestRestoreSelection(object? sender, List<GameMetadataRow> items)
+    {
+        if (GameDataGrid.ItemsSource is System.Collections.ICollection { Count: > 0 } src)
+            GameDataGrid.ScrollIntoView(((System.Collections.IList)src)[0], null);
+
+        GameDataGrid.SelectedItems.Clear();
+        foreach (var item in items)
+            GameDataGrid.SelectedItems.Add(item);
+
+        if (items.Count > 0)
+            GameDataGrid.ScrollIntoView(items[0], null);
+    }
+
     private void OnDatReportColumnAdded(object? sender, string columnName)
     {
         if (sender is not DatToolViewModel datTool) return;
-
         if (_reportColumns.Any(c => c.Header?.ToString() == columnName)) return;
 
         var lookup = datTool.ReportLookup[columnName];
-
         var template = new FuncDataTemplate<object>((item, _) =>
         {
             if (item is not GameMetadataRow row) return null;
@@ -336,10 +303,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnReportColumnsCleared(object? sender, EventArgs e)
-    {
-        RemoveAllReportColumns();
-    }
+    private void OnReportColumnsCleared(object? sender, EventArgs e) => RemoveAllReportColumns();
 
     private void OnFindReportColumnAdded(object? sender, FindReportColumnEventArgs e)
     {
@@ -379,12 +343,10 @@ public partial class MainWindow : Window
     {
         foreach (var column in _reportColumns)
             GameDataGrid.Columns.Remove(column);
-
         _reportColumns.Clear();
     }
 }
 
-// Sorts DAT report column rows
 file sealed class ReportTextComparer(Dictionary<string, string> lookup) : System.Collections.IComparer
 {
     public int Compare(object? x, object? y)
@@ -400,7 +362,6 @@ file sealed class ReportTextComparer(Dictionary<string, string> lookup) : System
     }
 }
 
-// Sorts Find report column rows so checked (matched) rows appear first.
 file sealed class ReportCheckboxComparer(HashSet<string> pathSet) : System.Collections.IComparer
 {
     public int Compare(object? x, object? y)

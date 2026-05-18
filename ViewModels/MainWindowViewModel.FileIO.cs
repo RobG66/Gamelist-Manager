@@ -37,13 +37,15 @@ public partial class MainWindowViewModel
     private void EndNavigation() => _isNavigating = false;
 
     #region Properties & Events
-    public bool HasRecentFiles => _sharedData.RecentFiles.Count > 0;
+
+    public bool HasRecentFiles => _sessionState.RecentFiles.Count > 0;
     public event EventHandler? RequestSelectFirstItem;
     public event EventHandler? RequestClearSelection;
     public event EventHandler<List<GameMetadataRow>>? RequestRestoreSelection;
 
     [ObservableProperty] private string _fileStatusText = "No file loaded";
     [ObservableProperty] private string _lastModifiedText = string.Empty;
+
     #endregion
 
     #region Commands
@@ -66,7 +68,7 @@ public partial class MainWindowViewModel
             FileTypeChoices =
             [
                 new FilePickerFileType("CSV Files") { Patterns = ["*.csv"] },
-            new FilePickerFileType("All Files") { Patterns = ["*"] }
+                new FilePickerFileType("All Files") { Patterns = ["*"] }
             ]
         });
 
@@ -104,22 +106,22 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private void ClearRecentFiles()
     {
-        _sharedData.RecentFiles.Clear();
-        _settingsService.SaveRecentFiles(new List<string>());
+        _sessionState.RecentFiles.Clear();
+        SettingsService.Instance.SaveRecentFiles([]);
     }
 
     [RelayCommand]
     private async Task SaveGamelistAsync()
     {
-        if (string.IsNullOrEmpty(_sharedData.XmlFilename) || _sharedData.CurrentSystem == null)
+        if (string.IsNullOrEmpty(_sessionState.XmlFilename) || _sessionState.CurrentSystem == null)
             return;
 
-        _sharedData.IsBusy = true;
+        _sessionState.IsBusy = true;
         try
         {
             var allGames = new ObservableCollection<GameMetadataRow>(_sourceCache.Items);
-            var filename = _sharedData.XmlFilename;
-            var system = _sharedData.CurrentSystem;
+            var filename = _sessionState.XmlFilename;
+            var system = _sessionState.CurrentSystem;
 
             bool success = await Task.Run(() =>
             {
@@ -131,10 +133,10 @@ public partial class MainWindowViewModel
 
             if (success)
             {
-                _sharedData.IsDataChanged = false;
+                _sessionState.IsDataChanged = false;
                 IsSaveEnabled = false;
-                UpdateStatusBar(_sharedData.XmlFilename);
-                AddRecentFile(_sharedData.XmlFilename);
+                UpdateStatusBar(_sessionState.XmlFilename!);
+                AddRecentFile(_sessionState.XmlFilename!);
 
                 ShowSaveConfirmation = true;
                 _ = Task.Delay(2000).ContinueWith(_ =>
@@ -167,7 +169,7 @@ public partial class MainWindowViewModel
         }
         finally
         {
-            _sharedData.IsBusy = false;
+            _sessionState.IsBusy = false;
         }
     }
 
@@ -179,22 +181,18 @@ public partial class MainWindowViewModel
         {
             if (!await CheckUnsavedChangesAsync()) return;
 
-            var topLevel = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-                ? desktop.MainWindow
-                : null;
-
+            var topLevel = GetMainWindow();
             if (topLevel == null) return;
 
             IStorageFolder? suggestedStart = null;
             try
             {
-                var profileType = _sharedData.ProfileType;
-                var startPath = profileType switch
+                var startPath = _sessionState.ProfileType switch
                 {
-                    SettingKeys.ProfileTypeEsDe when !string.IsNullOrEmpty(_sharedData.EsDeRoot)
-                        => Path.Combine(_sharedData.EsDeRoot, "gamelists"),
-                    _ when !string.IsNullOrEmpty(_sharedData.RomsFolder)
-                        => _sharedData.RomsFolder,
+                    SettingKeys.ProfileTypeEsDe when !string.IsNullOrEmpty(_settingsState.EsDeRoot)
+                        => Path.Combine(_settingsState.EsDeRoot, "gamelists"),
+                    _ when !string.IsNullOrEmpty(_settingsState.RomsFolder)
+                        => _settingsState.RomsFolder,
                     _ => null
                 };
 
@@ -211,7 +209,7 @@ public partial class MainWindowViewModel
                 FileTypeFilter =
                 [
                     new FilePickerFileType("Gamelist XML") { Patterns = ["gamelist.xml"] },
-                    new FilePickerFileType("All Files") { Patterns = ["*.*"] }
+                    new FilePickerFileType("All Files")    { Patterns = ["*.*"] }
                 ]
             });
 
@@ -232,8 +230,8 @@ public partial class MainWindowViewModel
         try
         {
             if (!await CheckUnsavedChangesAsync()) return;
-            if (string.IsNullOrEmpty(_sharedData.XmlFilename)) return;
-            await LoadGamelistFromFileAsync(_sharedData.XmlFilename);
+            if (string.IsNullOrEmpty(_sessionState.XmlFilename)) return;
+            await LoadGamelistFromFileAsync(_sessionState.XmlFilename);
         }
         finally
         {
@@ -248,7 +246,7 @@ public partial class MainWindowViewModel
         try
         {
             if (string.IsNullOrEmpty(filePath)) return;
-            if (!System.IO.File.Exists(filePath)) return;
+            if (!File.Exists(filePath)) return;
             if (!await CheckUnsavedChangesAsync()) return;
             await LoadGamelistFromFileAsync(filePath);
         }
@@ -265,7 +263,7 @@ public partial class MainWindowViewModel
         try
         {
             if (string.IsNullOrEmpty(gamelistPath)) return;
-            if (string.Equals(gamelistPath, _sharedData.XmlFilename, FilePathHelper.PathComparison)) return;
+            if (string.Equals(gamelistPath, _sessionState.XmlFilename, FilePathHelper.PathComparison)) return;
             if (!await CheckUnsavedChangesAsync()) return;
             await LoadGamelistFromFileAsync(gamelistPath);
         }
@@ -327,11 +325,11 @@ public partial class MainWindowViewModel
             var systemName = selected.Name;
             var gamelistFolder = selected.FolderPath;
             var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
-            // TODO: This is probably wrong and needs to be fixed for ES-DE since gamelists are in a separate folder from ROMs. Need to rethink how we build the system list and picker.
+            // TODO: needs rethinking for ES-DE — gamelists are separate from ROMs folder
 
             Directory.CreateDirectory(gamelistFolder);
 
-            _sharedData.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
+            _sessionState.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
 
             ClearFilters();
             ClearReportColumns();
@@ -413,20 +411,12 @@ public partial class MainWindowViewModel
 
     private async Task<List<SystemPickerItem>> BuildSystemCandidatesAsync()
     {
-        bool isEsDe = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
-
-        // Always scan ROMs folder for system names.
-        // For ES-DE, gamelists live in a separate folder under EsDeRoot.
-        var scanFolder = Path.TrimEndingDirectorySeparator(_sharedData.RomsFolder);
-
-        var gamelistsFolder = isEsDe
-            ? Path.Combine(Path.TrimEndingDirectorySeparator(_sharedData.EsDeRoot), "gamelists")
-            : scanFolder;
+        var scanFolder = _sessionState.GamelistsRootFolder;
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
             return [];
 
-        var fileTypes = _sharedData.GetFileTypes();
+        var fileTypes = SettingsService.Instance.GetFileTypes();
 
         return await Task.Run(() =>
             Directory.EnumerateDirectories(scanFolder)
@@ -436,9 +426,9 @@ public partial class MainWindowViewModel
                 .Select(name => new SystemPickerItem
                 {
                     Name = name,
-                    FolderPath = Path.Combine(gamelistsFolder, name),
+                    FolderPath = Path.Combine(scanFolder, name),
                     Logo = TryLoadSystemLogo(name),
-                    HasGamelist = File.Exists(Path.Combine(gamelistsFolder, name, "gamelist.xml"))
+                    HasGamelist = File.Exists(Path.Combine(scanFolder, name, "gamelist.xml"))
                 })
                 .ToList());
     }
@@ -450,14 +440,15 @@ public partial class MainWindowViewModel
 
     private async Task LoadSystemsAsync()
     {
-        var profileType = _sharedData.ProfileType;
-        var scanFolder = _sharedData.GamelistsRootFolder;
+        var profileType = _sessionState.ProfileType;
+        var scanFolder = _sessionState.GamelistsRootFolder;
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
         {
             Systems.Clear();
-            StatusText = profileType == SettingKeys.ProfileTypeEsDe ? "Set ES-DE root folder in Settings" : "Set ROMs folder in Settings";
-            IsSystemsComboBoxEnabled = false;
+            StatusText = profileType == SettingKeys.ProfileTypeEsDe
+                ? "Set ES-DE root folder in Settings"
+                : "Set ROMs folder in Settings"; IsSystemsComboBoxEnabled = false;
             return;
         }
 
@@ -471,7 +462,6 @@ public partial class MainWindowViewModel
             {
                 var gamelistPath = Path.Combine(dir, "gamelist.xml");
                 if (!File.Exists(gamelistPath)) continue;
-
                 var systemName = Path.GetFileName(dir) ?? dir;
                 items.Add((systemName, gamelistPath));
             }
@@ -479,10 +469,7 @@ public partial class MainWindowViewModel
         });
 
         foreach (var (name, path) in found)
-        {
-            var logo = TryLoadSystemLogo(name);
-            Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = logo });
-        }
+            Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = TryLoadSystemLogo(name) });
 
         IsSystemsComboBoxEnabled = Systems.Count > 0;
         StatusText = Systems.Count == 0
@@ -492,37 +479,34 @@ public partial class MainWindowViewModel
 
     private void LoadRecentFilesFromSettings()
     {
-        _sharedData.RecentFiles.Clear();
+        _sessionState.RecentFiles.Clear();
         foreach (var file in _settingsService.GetRecentFiles())
-            _sharedData.RecentFiles.Add(new RecentFileItem(file));
+            _sessionState.RecentFiles.Add(new RecentFileItem(file));
     }
 
     private void AddRecentFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath)) return;
 
-        var existing = _sharedData.RecentFiles.FirstOrDefault(r => r.FilePath.Equals(filePath, FilePathHelper.PathComparison));
+        var existing = _sessionState.RecentFiles.FirstOrDefault(r => r.FilePath.Equals(filePath, FilePathHelper.PathComparison));
         if (existing != null)
-            _sharedData.RecentFiles.Remove(existing);
+            _sessionState.RecentFiles.Remove(existing);
 
-        _sharedData.RecentFiles.Insert(0, new RecentFileItem(filePath));
+        _sessionState.RecentFiles.Insert(0, new RecentFileItem(filePath));
 
-        var maxRecentFiles = _settingsService.GetInt(SettingKeys.RecentFilesCount);
-        while (_sharedData.RecentFiles.Count > maxRecentFiles)
-            _sharedData.RecentFiles.RemoveAt(_sharedData.RecentFiles.Count - 1);
+        var maxRecentFiles = _settingsState.RecentFilesCount;
+        while (_sessionState.RecentFiles.Count > maxRecentFiles)
+            _sessionState.RecentFiles.RemoveAt(_sessionState.RecentFiles.Count - 1);
 
-        _settingsService.SaveRecentFiles(_sharedData.RecentFiles.Select(r => r.FilePath).ToList());
+        _settingsService.SaveRecentFiles(_sessionState.RecentFiles.Select(r => r.FilePath).ToList());
     }
 
     internal async Task<bool> CheckUnsavedChangesAsync()
     {
-        if (!_sharedData.IsDataChanged || !_sharedData.EnableSaveReminder)
+        if (!_sessionState.IsDataChanged || !_settingsState.EnableSaveReminder)
             return true;
 
-        var mainWindow = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
-
+        var mainWindow = GetMainWindow();
         if (mainWindow == null) return true;
 
         var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
@@ -553,14 +537,14 @@ public partial class MainWindowViewModel
 
         if (!await EnsureMatchingProfileAsync(filePath)) return;
 
-        _sharedData.IsBusy = true;
+        _sessionState.IsBusy = true;
         try
         {
             ObservableCollection<GameMetadataRow> loadedGames;
             List<string> duplicates;
             try
             {
-                (loadedGames, duplicates) = await Task.Run(() => GamelistService.LoadGamelist(filePath, _sharedData.IgnoreDuplicates));
+                (loadedGames, duplicates) = await Task.Run(() => GamelistService.LoadGamelist(filePath, _settingsState.IgnoreDuplicates));
             }
             catch (Exception ex)
             {
@@ -575,6 +559,7 @@ public partial class MainWindowViewModel
                 var detail = string.Join("\n", duplicates.Take(10).Select(Path.GetFileName));
                 if (duplicates.Count > 10)
                     detail += $"\n...and {duplicates.Count - 10} more";
+
                 await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
                 {
                     Title = "Duplicate Entries Detected",
@@ -589,11 +574,13 @@ public partial class MainWindowViewModel
 
             var systemName = Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "unknown";
 
-            _sharedData.SetGamelist(filePath, systemName, loadedGames);
+            _sessionState.SetGamelist(filePath, systemName, loadedGames);
 
-            if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+            if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe)
             {
-                var mediaDir = SettingsService.Instance.EsDeMediaDirectory(_sharedData.EsDeMediaBase, _sharedData.CurrentSystem);
+                var mediaDir = FilePathHelper.EsDeMediaDirectory(
+                    EsDePathResolver.ReadPathsFromEsDeSettings(_settingsState.EsDeRoot).MediaDirectory ?? string.Empty,
+                    _sessionState.CurrentSystem);
                 await Task.Run(() => PopulateMediaPaths(loadedGames, mediaDir));
             }
 
@@ -627,7 +614,7 @@ public partial class MainWindowViewModel
             if (Games.Count > 0)
                 RequestSelectFirstItem?.Invoke(this, EventArgs.Empty);
 
-            if (_sharedData.CheckForNewAndMissingGamesOnLoad)
+            if (_settingsState.CheckForNewAndMissingGamesOnLoad)
             {
                 await FindNewItemsCore(silent: true);
                 await FindMissingItemsCore(silent: true);
@@ -635,7 +622,7 @@ public partial class MainWindowViewModel
         }
         finally
         {
-            _sharedData.IsBusy = false;
+            _sessionState.IsBusy = false;
         }
     }
 
@@ -727,6 +714,8 @@ public partial class MainWindowViewModel
         File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.UTF8);
     }
 
+    // Populates media paths for ES-DE gamelists by checking for files in the expected media folders based on ROM name and known extensions.
+    // Allows the UI to display media and statistics. These are not saved back to the gamelist XML and are only used at runtime.
     private static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
     {
         if (string.IsNullOrEmpty(mediaDirectory)) return;

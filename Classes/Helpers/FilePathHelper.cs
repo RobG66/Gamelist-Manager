@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -150,6 +150,59 @@ namespace Gamelist_Manager.Classes.Helpers
 
             // Remove extension and trim again
             return Path.GetFileNameWithoutExtension(fileName).Trim();
+        }
+
+        // Expands a leading ~ to the current user's home directory.
+        // Matches shell behaviour on Linux/macOS; safe to call on Windows too.
+        // Examples:
+        //   "~/roms"  → "/home/user/roms"  (Linux)
+        //   "~"       → "/home/user"
+        //   "C:/roms" → "C:/roms"  (unchanged)
+        public static string ExpandTilde(string path)
+        {
+            if (path.StartsWith("~/", StringComparison.Ordinal) || path == "~")
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                return home + path[1..];
+            }
+            return path;
+        }
+
+        // Returns the root folder where gamelists are stored.
+        // ES-DE: EsDeRoot/gamelists
+        // Standard: romsFolder
+        public static string GamelistsRootFolder(string profileType, string esDeRoot, string romsFolder)
+        {
+            return profileType == SettingKeys.ProfileTypeEsDe && !string.IsNullOrEmpty(esDeRoot)
+                ? Path.Combine(esDeRoot, "gamelists")
+                : romsFolder;
+        }
+
+        // Returns the full path to the current system's gamelist folder, or null if inputs are missing.
+        // Example: gamelistsRootFolder="C:/gamelists", currentSystem="snes" → "C:/gamelists/snes"
+        public static string? CurrentGamelistFolder(string gamelistsRootFolder, string? currentSystem)
+        {
+            return !string.IsNullOrEmpty(gamelistsRootFolder) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(gamelistsRootFolder, currentSystem)
+                : null;
+        }
+
+        // Returns the full path to the current system's ROM folder, or null if inputs are missing.
+        // Example: romsFolder="C:/roms", currentSystem="snes" → "C:/roms/snes"
+        public static string? CurrentRomFolder(string romsFolder, string? currentSystem)
+        {
+            return !string.IsNullOrEmpty(romsFolder) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(romsFolder, currentSystem)
+                : null;
+        }
+
+        // Returns the ES-DE media directory for the current system, or empty if inputs are missing.
+        // Example: esDeMediaBase="C:/media", currentSystem="snes" → "C:/media/snes"
+        public static string EsDeMediaDirectory(string esDeMediaBase, string? currentSystem)
+        {
+            return !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem)
+                ? Path.Combine(esDeMediaBase, currentSystem)
+                : string.Empty;
         }
     }
 }

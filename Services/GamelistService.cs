@@ -43,11 +43,9 @@ namespace Gamelist_Manager.Services
             {
                 var game = new GameMetadataRow();
 
-                // Pre-initialize all bool fields to false so missing XML elements default correctly
                 foreach (var metaDecl in metaDataDict.Values.Where(d => d.DataType == MetaDataType.Bool))
                     game.SetValue(metaDecl.Key, false);
 
-                // Parse all metadata fields
                 foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
                 {
                     var element = gameElement.Element(metaDecl.Type);
@@ -74,7 +72,6 @@ namespace Gamelist_Manager.Services
                     }
                 }
 
-                // id is an XML attribute on <game>, not a child element
                 var gameIdAttr = gameElement.Attribute("id")?.Value;
                 if (!string.IsNullOrEmpty(gameIdAttr))
                     game.SetValue(MetaDataKeys.id, gameIdAttr);
@@ -102,54 +99,42 @@ namespace Gamelist_Manager.Services
             try
             {
                 var originalExists = File.Exists(xmlFilePath);
-
                 var savedItems = new HashSet<string>(StringComparer.Ordinal);
                 var newFile = xmlFilePath + ".tmp";
-
                 var root = new XElement("gameList");
 
-                // If original exists, preserve order and update existing entries
                 if (originalExists)
                 {
                     var existingDoc = XDocument.Load(xmlFilePath);
                     var existingGames = existingDoc.Descendants("game").ToList();
-
                     var gameLookup = games.ToDictionary(g => g.Path, g => g, StringComparer.Ordinal);
 
                     foreach (var gameElement in existingGames)
                     {
                         var pathElement = gameElement.Element("path");
-                        if (pathElement == null)
-                            continue;
+                        if (pathElement == null) continue;
 
                         var pathValue = pathElement.Value;
-
-                        if (!savedItems.Add(pathValue))
-                            continue; // Duplicate, skip
+                        if (!savedItems.Add(pathValue)) continue;
 
                         if (gameLookup.TryGetValue(pathValue, out var game))
                         {
-                            // Update existing game node
                             UpdateGameElement(gameElement, game);
                             root.Add(gameElement);
                         }
                     }
                 }
 
-                // Add new games not in original file
                 foreach (var game in games)
                 {
                     if (!savedItems.Contains(game.Path))
                     {
-                        var gameElement = CreateGameElement(game);
-                        root.Add(gameElement);
+                        root.Add(CreateGameElement(game));
                     }
                 }
 
-                // Save to temp file then replace atomically
                 var doc = new XDocument(root);
                 doc.Save(newFile);
-
                 File.Move(newFile, xmlFilePath, overwrite: true);
 
                 return true;
@@ -163,80 +148,48 @@ namespace Gamelist_Manager.Services
 
         private static void UpdateGameElement(XElement gameElement, GameMetadataRow game)
         {
-            var metaDataDict = s_metaDataDict.Value;
-
-            // Update id attribute
             var gameId = game.GetValue(MetaDataKeys.id)?.ToString();
             if (string.IsNullOrEmpty(gameId))
-            {
                 gameElement.Attribute("id")?.Remove();
-            }
             else
-            {
                 gameElement.SetAttributeValue("id", gameId);
-            }
 
-            // Update elements — id is saved as an attribute above, not a child element.
-            // In ES-DE mode, skip media fields — they are populated at load time from the
-            // filesystem and must not be written back into the XML.
-            var isEsDe = SharedDataService.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
-            foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
+            foreach (var metaDecl in SessionState.Instance.XmlPersistedFields)
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
-                if (isEsDe && metaDecl.IsMedia) continue;
 
                 var elementName = metaDecl.Type;
                 var value = game.GetValue(metaDecl.Key);
                 var stringValue = GetStringValue(value, metaDecl);
-
                 var element = gameElement.Element(elementName);
 
                 if (element == null && !string.IsNullOrEmpty(stringValue))
-                {
-                    // Add new element
                     gameElement.Add(new XElement(elementName, stringValue));
-                }
                 else if (element != null && string.IsNullOrEmpty(stringValue))
-                {
-                    // Remove element
                     element.Remove();
-                }
                 else if (element != null && !string.IsNullOrEmpty(stringValue))
-                {
-                    // Update element
                     element.Value = stringValue;
-                }
             }
         }
 
         private static XElement CreateGameElement(GameMetadataRow game)
         {
             var gameElement = new XElement("game");
-            var metaDataDict = s_metaDataDict.Value;
 
-            // Add id attribute if exists
             var gameId = game.GetValue(MetaDataKeys.id)?.ToString();
             if (!string.IsNullOrEmpty(gameId))
-            {
                 gameElement.SetAttributeValue("id", gameId);
-            }
 
-            // Add all metadata elements — id is saved as an attribute above, not a child element.
-            // In ES-DE mode, skip media fields (runtime-only, resolved from filesystem at load time).
-            var isEsDe = SharedDataService.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
-            foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
+            foreach (var metaDecl in SessionState.Instance.XmlPersistedFields)
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
-                if (isEsDe && metaDecl.IsMedia) continue;
 
                 var elementName = metaDecl.Type;
                 var value = game.GetValue(metaDecl.Key);
                 var stringValue = GetStringValue(value, metaDecl);
 
                 if (!string.IsNullOrEmpty(stringValue))
-                {
                     gameElement.Add(new XElement(elementName, stringValue));
-                }
             }
 
             return gameElement;
@@ -244,21 +197,15 @@ namespace Gamelist_Manager.Services
 
         private static string? GetStringValue(object? value, MetaDataDecl metaDecl)
         {
-            if (value == null)
-                return null;
+            if (value == null) return null;
 
             if (metaDecl.DataType == MetaDataType.Bool)
-            {
                 return value is bool b && b ? "true" : null;
-            }
 
             var stringValue = value.ToString() ?? string.Empty;
 
-            // Date conversions
             if (metaDecl.Key == MetaDataKeys.releasedate || metaDecl.Key == MetaDataKeys.lastplayed)
-            {
                 stringValue = Iso8601Helper.ConvertToIso8601(stringValue);
-            }
 
             return string.IsNullOrWhiteSpace(stringValue) ? null : stringValue;
         }

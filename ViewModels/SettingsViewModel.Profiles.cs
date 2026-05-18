@@ -279,6 +279,7 @@ public partial class SettingsViewModel
         if (saveFirst) SaveSettings();
         LoadSettings();
         RefreshProfileList();
+        RefreshMediaFolderDisplayState();
         NotifyProfilesChanged?.Invoke();
         IsDirty = false;
     }

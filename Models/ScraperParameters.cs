@@ -94,36 +94,6 @@ namespace Gamelist_Manager.Models
             string currentSystem,
             List<string> elementsToScrape)
         {
-            var parameters = BuildCommonParameters(parentFolderPath, verifyImageDownloads, scraperName, currentSystem, elementsToScrape);
-
-            parameters.MediaPaths = availableMedia.ToDictionary(
-                m => m.Type,
-                m => m.FolderPath,
-                StringComparer.OrdinalIgnoreCase);
-
-            // Suffixes are not applicable in ES-DE mode — filenames follow the ROM name exactly.
-            if (profileType == SettingKeys.ProfileTypeEsDe)
-            {
-                parameters.MediaSuffixes = new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase);
-            }
-            else
-            {
-                parameters.MediaSuffixes = availableMedia.ToDictionary(
-                    m => m.Type,
-                    m => (m.Suffix, m.SfxEnabled),
-                    StringComparer.OrdinalIgnoreCase);
-            }
-
-            return parameters;
-        }
-
-        private static ScraperParameters BuildCommonParameters(
-            string parentFolderPath,
-            bool verifyImageDownloads,
-            string scraperName,
-            string currentSystem,
-            List<string> elementsToScrape)
-        {
             var scraperConfig = ScraperConfigService.Instance;
 
             string? primaryRegion = scraperConfig.GetScraperPrimaryRegionCode(scraperName);
@@ -133,6 +103,8 @@ namespace Gamelist_Manager.Models
                 regions.Remove(primaryRegion);
                 regions.Insert(0, primaryRegion);
             }
+
+            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
 
             return new ScraperParameters
             {
@@ -155,7 +127,20 @@ namespace Gamelist_Manager.Models
                 ScrapeMediaRegionFirst = scraperConfig.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
                 ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
                 ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
-                RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix")
+                RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix"),
+
+                MediaPaths = availableMedia.ToDictionary(
+                    m => m.Type,
+                    m => m.FolderPath,
+                    StringComparer.OrdinalIgnoreCase),
+
+                // Suffixes are not applicable in ES-DE mode — filenames follow the ROM name exactly.
+                MediaSuffixes = isEsDe
+                    ? new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
+                    : availableMedia.ToDictionary(
+                        m => m.Type,
+                        m => (m.Suffix, m.SfxEnabled),
+                        StringComparer.OrdinalIgnoreCase)
             };
         }
 

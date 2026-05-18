@@ -26,7 +26,7 @@ public partial class DatToolViewModel
         try
         {
             (Stream? xmlStream, System.Diagnostics.Process? mameProcess) =
-                await GetMameListXmlStreamAsync(_sharedData.MamePath, "-listxml");
+                await GetMameListXmlStreamAsync(_settingsState.MamePath, "-listxml");
 
             if (xmlStream == null)
             {

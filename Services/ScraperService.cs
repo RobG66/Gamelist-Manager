@@ -159,6 +159,9 @@ namespace Gamelist_Manager.Services
             if (parameters.ElementsToScrape == null || scrapedData?.Data == null)
                 return;
 
+            var profileType = SessionState.Instance.ProfileType;
+            var metaDataDict = GamelistMetaData.GetMetaDataDictionary();
+
             var updates = new Dictionary<MetaDataKeys, string>();
             foreach (string element in parameters.ElementsToScrape)
             {
@@ -166,6 +169,15 @@ namespace Gamelist_Manager.Services
                     continue;
                 if (!Enum.TryParse<MetaDataKeys>(element, true, out var key))
                     continue;
+
+                // Convert absolute paths to relative for non-ESDE profiles; ESDE paths are reference-only and not saved.
+                if (metaDataDict.TryGetValue(key, out var decl) && decl.IsMedia)
+                {
+                    if (profileType == SettingKeys.ProfileTypeEsDe)
+                        continue;
+                    value = FilePathHelper.PathToRelativePathWithDotSlashPrefix(value, parameters.ParentFolderPath!);
+                }
+
                 updates[key] = value.Trim();
             }
 

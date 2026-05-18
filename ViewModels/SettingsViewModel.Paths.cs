@@ -14,31 +14,16 @@ public partial class SettingsViewModel
 {
     #region Observable Properties
 
-    [ObservableProperty]
-    private string _mamePath = string.Empty;
-
-    [ObservableProperty]
-    private string _romsPath = string.Empty;
-
-    [ObservableProperty]
-    private string _esDeRoot = string.Empty;
-
-    [ObservableProperty]
-    private string _esDeMediaBase = string.Empty;
+    [ObservableProperty] private string _mamePath = string.Empty;
+    [ObservableProperty] private string _romsPath = string.Empty;
+    [ObservableProperty] private string _esDeRoot = string.Empty;
+    [ObservableProperty] private string _esDeMediaBase = string.Empty;
 
     #endregion
 
     #region Public Properties
 
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
-
-    public bool IsEsDeProfile => _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
-
-    // False when in ES-DE mode — suffixes have no meaning for ES-DE gamelists.
-    public bool SuffixesEnabled => _sharedData.ProfileType != SettingKeys.ProfileTypeEsDe;
-
-    // Controls visibility of the ES-DE Root row in the Paths tab.
-    public bool EsDePathsVisible => _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
 
     #endregion
 
@@ -57,10 +42,7 @@ public partial class SettingsViewModel
                 DefaultSuffix = decl.DefaultSuffix,
                 DefaultEnabled = decl.DefaultEnabled,
             };
-            item.Enabled = item.DefaultEnabled;
-            item.Path = item.DefaultPath;
-            item.Suffix = item.DefaultSuffix;
-            item.SfxEnabled = item.DefaultSfxEnabled;
+            item.ResetToDefaults();
             item.PropertyChanged += (_, e) =>
             {
                 if (!_isLoading && e.PropertyName != nameof(IsDirty))
@@ -69,13 +51,6 @@ public partial class SettingsViewModel
             MediaFolderItems.Add(item);
         }
     }
-
-    #endregion
-
-    #region Helpers
-
-    private static string LoadMediaPath(string raw, string defaultPath) =>
-        FilePathHelper.NormalizePathWithDotSlashPrefix(raw) ?? defaultPath;
 
     #endregion
 
@@ -93,10 +68,17 @@ public partial class SettingsViewModel
 
         EsDeRoot = chosen;
 
-        // Always re-detect — the user may have changed es_settings.xml outside this app.
-        var detected = SettingsService.ReadPathsFromEsDeSettings(chosen);
+        var detected = EsDePathResolver.ReadPathsFromEsDeSettings(chosen);
         RomsPath = detected.RomDirectory ?? string.Empty;
         EsDeMediaBase = detected.MediaDirectory ?? string.Empty;
+    }
+
+    [RelayCommand]
+    private void ToggleAllSfx()
+    {
+        bool newValue = !MediaFolderItems.All(i => i.SfxEnabled);
+        foreach (var item in MediaFolderItems)
+            item.SfxEnabled = newValue;
     }
 
     #endregion
@@ -109,17 +91,10 @@ public partial class SettingsViewModel
             item.ResetToDefaults();
     }
 
-    [RelayCommand]
-    private void ToggleAllSfx()
-    {
-        bool newValue = !MediaFolderItems.All(i => i.SfxEnabled);
-        foreach (var item in MediaFolderItems)
-            item.SfxEnabled = newValue;
-    }
-
     public List<string> ValidateAndTrimPaths()
     {
         var errors = new List<string>();
+        var isEsDe = SessionState.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
 
         foreach (var item in MediaFolderItems)
         {
@@ -155,21 +130,20 @@ public partial class SettingsViewModel
             var seen = new Dictionary<(string path, string suffix), string>();
             foreach (var item in MediaFolderItems)
             {
-                if (!item.EffectiveEnabled) continue;
+                if (!item.Enabled) continue;
 
-                // In ES-DE mode each type lives in its own named subfolder, so use that
-                // as the collision key rather than the generic relative path.
                 string effectivePath;
                 string effectiveSuffix;
-                if (_sharedData.ProfileType == SettingKeys.ProfileTypeEsDe)
+
+                if (isEsDe)
                 {
                     effectivePath = (GamelistMetaData.GetDeclByType(item.Key)?.EsDeFolderName ?? item.Key).ToLowerInvariant();
-                    effectiveSuffix = "";
+                    effectiveSuffix = string.Empty;
                 }
                 else
                 {
                     effectivePath = (FilePathHelper.NormalizePathWithDotSlashPrefix(item.Path) ?? item.Path).ToLowerInvariant();
-                    effectiveSuffix = item.SfxEnabled ? item.Suffix.ToLowerInvariant() : "";
+                    effectiveSuffix = item.SfxEnabled ? item.Suffix.ToLowerInvariant() : string.Empty;
                 }
 
                 var key = (effectivePath, effectiveSuffix);
@@ -182,6 +156,28 @@ public partial class SettingsViewModel
 
         return errors;
     }
+
+    private void RefreshMediaFolderDisplayState()
+    {
+        var isEsDe = SessionState.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
+        var esDeMediaBase = EsDeMediaBase;
+        var currentSystem = SessionState.Instance.CurrentSystem;
+
+        foreach (var item in MediaFolderItems)
+        {
+            var decl = GamelistMetaData.GetDeclByType(item.Key);
+            var isEsDeSupported = decl?.IsEsDeSupported ?? false;
+            var esDeFolderName = decl?.EsDeFolderName;
+            item.RefreshDisplayState(isEsDe, isEsDeSupported, esDeMediaBase, currentSystem, esDeFolderName);
+        }
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private static string LoadMediaPath(string raw, string defaultPath) =>
+        FilePathHelper.NormalizePathWithDotSlashPrefix(raw) ?? defaultPath;
 
     #endregion
 }

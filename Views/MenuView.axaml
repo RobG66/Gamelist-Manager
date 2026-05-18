@@ -359,7 +359,7 @@
 							<MenuItem Header="Clear Selected Media Paths"
 									  Command="{Binding ClearMediaPathsCommand}"
 									  CommandParameter="selected"
-									  IsVisible="{Binding !IsProfileTypeESDE}"
+									  IsVisible="{Binding ClearMediaPathsButtonEnabled}"
 									  IsEnabled="{Binding HasGameSelected}"
 									  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
 								<MenuItem.Icon>
@@ -369,14 +369,14 @@
 								<MenuItem Header="Clear All Media Paths"
 											  Command="{Binding ClearMediaPathsCommand}"
 											  CommandParameter="all"
-											  IsVisible="{Binding !IsProfileTypeESDE}"
+											  IsVisible="{Binding ClearMediaPathsButtonEnabled}"
 											  IsEnabled="{Binding IsGamelistLoaded}"
 											  ToolTip.Tip="Clear all media paths, media is not deleted">
 										<MenuItem.Icon>
 											<Image Source="/Assets/Icons/eraser.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 										</MenuItem.Icon>
 									</MenuItem>
-									<Separator IsVisible="{Binding !IsProfileTypeESDE}"/>
+									<Separator IsVisible="{Binding ClearMediaPathsButtonEnabled}"/>
 									<MenuItem Header="Set / Clear Column Data"
 											  Command="{Binding SetColumnValueCommand}"
 											  IsEnabled="{Binding IsGamelistLoaded}"

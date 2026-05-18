@@ -176,7 +176,7 @@
 													<MenuItem Header="Clear Selected Media Paths"
 															  Command="{Binding ClearMediaPathsCommand}"
 															  CommandParameter="selected"
-															  IsVisible="{Binding !IsProfileTypeESDE}"
+															  IsVisible="{Binding ClearMediaPathsButtonEnabled}"
 															  IsEnabled="{Binding HasGameSelected}"
 															  ToolTip.Tip="Clear media paths for selected items, media is not deleted">
 														<MenuItem.Icon>

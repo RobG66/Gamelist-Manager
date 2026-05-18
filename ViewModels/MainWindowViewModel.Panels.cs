@@ -32,12 +32,12 @@ public partial class MainWindowViewModel
     public Bitmap? SystemLogo => SelectedSystem?.Logo ?? _defaultLogo.Value;
     public bool IsLibVLCMissing => !MediaPreviewViewModel.IsLibVLCInstalled;
     public bool IsBottomPanelVisible => IsMediaPreviewVisible || IsScraperVisible || IsDatToolVisible;
-    public bool IsGridSelectionLocked => IsMediaPreviewVisible && IsScraping;
-    public bool IsStatsCardEnabled => IsGamelistLoaded && !IsScraping;
-    public bool IsEditingAllowed => IsEditModeEnabled && !IsScraping && !IsBusy;
-    public bool IsEditToggleEnabled => IsGamelistLoaded && !IsScraping && !IsBusy;
-    public bool IsMenuEnabled => !IsScraping && !IsBusy;
-    public bool IsPersistentSelectionToggleEnabled => IsGamelistLoaded && !IsEditModeEnabled && !IsScraping && !IsBusy;
+    public bool IsGridSelectionLocked => IsMediaPreviewVisible && _sessionState.IsScraping;
+    public bool IsStatsCardEnabled => IsGamelistLoaded && !_sessionState.IsScraping;
+    public bool IsEditingAllowed => IsEditModeEnabled && !_sessionState.IsScraping && !_sessionState.IsBusy;
+    public bool IsEditToggleEnabled => IsGamelistLoaded && !_sessionState.IsScraping && !_sessionState.IsBusy;
+    public bool IsMenuEnabled => !_sessionState.IsScraping && !_sessionState.IsBusy;
+    public bool IsPersistentSelectionToggleEnabled => IsGamelistLoaded && !IsEditModeEnabled && !_sessionState.IsScraping && !_sessionState.IsBusy;
     public GridLength BottomSplitterHeight => IsMediaPreviewVisible ? new GridLength(5) : new GridLength(0);
     public GridLength BottomPanelHeight =>
         IsScraperVisible ? GridLength.Auto :
@@ -160,7 +160,7 @@ public partial class MainWindowViewModel
     private double ScaleToFontSize(double baseValue)
     {
         const double baseFontSize = 12;
-        return Math.Round(baseValue * (_sharedData.AppFontSize / baseFontSize));
+        return Math.Round(baseValue * (_settingsState.AppFontSize / baseFontSize));
     }
 
     private void RaiseBottomPanelLayoutChanged()

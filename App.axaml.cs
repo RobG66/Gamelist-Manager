@@ -10,15 +10,10 @@ namespace Gamelist_Manager;
 
 public partial class App : Application
 {
-    public static HttpClient HttpClient { get; internal set; }
-
     public override void Initialize()
     {
         // Probe for the native libvlc library before calling any LibVLC API.
-        // Core.Initialize() triggers native code; if the library is missing or
-        // incompatible it causes a native crash (SIGSEGV/SIGABRT) that a
-        // try/catch cannot intercept.
-        if (IsLibVLCNativeLibraryPresent())
+       if (IsLibVLCNativeLibraryPresent())
         {
             try
             {

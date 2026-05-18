@@ -48,8 +48,8 @@ public partial class DatToolViewModel
                 UpdateDatSummaryCounts();
                 UpdateDatHeaderInfo();
 
-                var gamelistSnapshot = _sharedData.GamelistData?.ToList() ?? [];
-                string romDirectory = _sharedData.CurrentRomFolder!;
+                var gamelistSnapshot = _sessionState.GamelistData?.ToList() ?? [];
+                string romDirectory = _sessionState.CurrentRomFolder!;
 
                 _gamelistSummary.Clear();
                 _gamelistSummary.AddRange(
@@ -373,7 +373,7 @@ public partial class DatToolViewModel
         if (!includeHidden)
         {
             hiddenSet = new HashSet<string>(
-                (_sharedData.GamelistData ?? [])
+                (_sessionState.GamelistData ?? [])
                     .Where(r => r.Hidden)
                     .Select(r => FilePathHelper.NormalizeRomName(r.Path)),
                 FilePathHelper.PathComparer);

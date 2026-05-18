@@ -1,8 +1,10 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Messages;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
@@ -18,12 +20,16 @@ namespace Gamelist_Manager.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     #region Services
-    private readonly SharedDataService _sharedData = SharedDataService.Instance;
+
+    private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsState _settingsState = SettingsState.Instance;
     private readonly SettingsService _settingsService = SettingsService.Instance;
     private readonly IWindowService _windowService = WindowService.Instance;
+
     #endregion
 
     #region Private Fields
+
     private readonly MediaPreviewViewModel _mediaPreviewViewModel = new();
     private readonly SourceCache<GameMetadataRow, string> _sourceCache;
     private readonly IDisposable _filterSubscription;
@@ -33,9 +39,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private IList? _selectedGames;
     private bool _isLoadingData;
     private bool _isSaveEnabled;
+
     #endregion
 
     #region Observable Properties
+
     [ObservableProperty] private bool _isMenuOpen = true;
     [ObservableProperty] private bool _isGamelistLoaded;
     [ObservableProperty] private bool _isAlwaysOnTop;
@@ -48,15 +56,18 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private SystemItem? _selectedSystem;
     [ObservableProperty] private ViewModelBase? _currentBottomPanel;
     [ObservableProperty] private GameMetadataRow? _firstSelectedGame;
-    [ObservableProperty] private bool _isProfileTypeESDE;
+
+
     #endregion
 
     #region Public Properties
 
-    public bool IsDeleteEnabled => _sharedData.EnableDelete;
+    public bool IsDeleteEnabled => _settingsState.EnableDelete;
+    public bool IsBusy => _sessionState.IsBusy;
+
     public bool IsSaveEnabled
     {
-        get => _isSaveEnabled && !_sharedData.IsBusy && !_sharedData.IsScraping;
+        get => _isSaveEnabled && !_sessionState.IsBusy && !_sessionState.IsScraping;
         set
         {
             if (_isSaveEnabled == value) return;
@@ -64,18 +75,22 @@ public partial class MainWindowViewModel : ViewModelBase
             OnPropertyChanged();
         }
     }
+
+    public bool ClearMediaPathsButtonEnabled =>
+    _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe && HasGameSelected;
+
     public ReadOnlyObservableCollection<GameMetadataRow> Games => _games;
-    public bool IsScraping => _sharedData.IsScraping;
-    public bool IsBusy => _sharedData.IsBusy;
-    public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_sharedData.Hostname);
+    public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_settingsState.Hostname);
+
     public bool IsNewGamelistEnabled =>
-        !string.IsNullOrWhiteSpace(_sharedData.RomsFolder) && Directory.Exists(_sharedData.RomsFolder);
+        !string.IsNullOrWhiteSpace(_settingsState.RomsFolder) && Directory.Exists(_settingsState.RomsFolder);
+
     public bool IsEditModeEnabled
     {
-        get => _sharedData.EnableEdit;
+        get => _sessionState.EnableEdit;
         set
         {
-            _sharedData.EnableEdit = value;
+            _sessionState.EnableEdit = value;
             if (value)
                 IsPersistentSelectionEnabled = false;
             OnPropertyChanged();
@@ -88,30 +103,27 @@ public partial class MainWindowViewModel : ViewModelBase
     public string PersistentSelectionMenuHeader =>
         IsPersistentSelectionEnabled ? "Disable Persistent Selection" : "Enable Persistent Selection";
 
-
     public IList? SelectedGames
     {
         get => _selectedGames;
         set
         {
             _selectedGames = value;
-            _sharedData.SelectedItems = value;
+            _sessionState.SelectedItems = value;
             OnPropertyChanged();
             TriggerDebouncedSelectionChanged();
         }
     }
+
     #endregion
 
     #region Property Change Callbacks
-    private void OnSharedDataPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+
+    private void OnSessionStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
-            case nameof(SharedDataService.Hostname):
-                OnPropertyChanged(nameof(IsRemoteVisible));
-                break;
-            case nameof(SharedDataService.IsScraping):
-                OnPropertyChanged(nameof(IsScraping));
+            case nameof(SessionState.IsScraping):
                 OnPropertyChanged(nameof(IsSaveEnabled));
                 OnPropertyChanged(nameof(IsGridSelectionLocked));
                 OnPropertyChanged(nameof(IsStatsCardEnabled));
@@ -120,36 +132,51 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
-            case nameof(SharedDataService.IsBusy):
+            case nameof(SessionState.IsBusy):
                 OnPropertyChanged(nameof(IsBusy));
                 OnPropertyChanged(nameof(IsSaveEnabled));
                 OnPropertyChanged(nameof(IsEditToggleEnabled));
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
-            case nameof(SharedDataService.GamelistsRootFolder):
-                _ = LoadSystemsAsync();
-                break;
-            case nameof(SharedDataService.RomsFolder):
-                OnPropertyChanged(nameof(IsNewGamelistEnabled));
-                break;
-            case nameof(SharedDataService.EsDeRoot):
-                OnPropertyChanged(nameof(IsNewGamelistEnabled));
-                break;
-            case nameof(SharedDataService.EnableDelete):
-                OnPropertyChanged(nameof(IsDeleteEnabled));
-                break;
-            case nameof(SharedDataService.EnableEdit):
+            case nameof(SessionState.EnableEdit):
                 OnPropertyChanged(nameof(IsEditModeEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
                 break;
-            case nameof(SharedDataService.RememberColumns):
-                OnPropertyChanged(nameof(RememberColumns));
-                break;
-            case nameof(SharedDataService.ProfileType):
-                IsProfileTypeESDE = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
+            case nameof(SessionState.ProfileType):
+                OnPropertyChanged(nameof(ClearMediaPathsButtonEnabled));
+                _ = LoadSystemsAsync();
                 break;
         }
+    }
+
+    private void OnSettingsStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(SettingsState.Hostname):
+                OnPropertyChanged(nameof(IsRemoteVisible));
+                break;
+            case nameof(SettingsState.RomsFolder):
+                OnPropertyChanged(nameof(IsNewGamelistEnabled));
+                _ = LoadSystemsAsync();
+                break;
+            case nameof(SettingsState.EsDeRoot):
+                OnPropertyChanged(nameof(IsNewGamelistEnabled));
+                _ = LoadSystemsAsync();
+                break;
+            case nameof(SettingsState.EnableDelete):
+                OnPropertyChanged(nameof(IsDeleteEnabled));
+                break;
+            case nameof(SettingsState.RememberColumns):
+                OnPropertyChanged(nameof(RememberColumns));
+                break;
+        }
+    }
+
+    partial void OnHasGameSelectedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ClearMediaPathsButtonEnabled));
     }
 
     partial void OnIsGamelistLoadedChanged(bool value)
@@ -159,16 +186,18 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
     }
 
-    private void OnSettingsApplied(object? sender, EventArgs e)
+    private void OnSettingsApplied()
     {
         UpdateScaledLayoutWidths();
         _ = LoadSystemsAsync();
     }
+
     #endregion
 
     #region Constructor
+
     public MainWindowViewModel()
-    {        
+    {
         _sourceCache = new SourceCache<GameMetadataRow, string>(game => game.Path);
         _filterSubject = new BehaviorSubject<Func<GameMetadataRow, bool>>(BuildFilterPredicate());
 
@@ -178,15 +207,15 @@ public partial class MainWindowViewModel : ViewModelBase
             .Bind(out _games)
             .Subscribe(_ => OnGamesCollectionChanged());
 
-        _sharedData.FilteredGamelistData = _games;
+        _sessionState.FilteredGamelistData = _games;
 
-        _sharedData.PropertyChanged += OnSharedDataPropertyChanged;
-        _sharedData.SettingsApplied += OnSettingsApplied;
+        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
+        _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
 
-        IsProfileTypeESDE = _sharedData.ProfileType == SettingKeys.ProfileTypeEsDe;
+        WeakReferenceMessenger.Default.Register<SettingsAppliedMessage>(this, (_, __) => OnSettingsApplied());
 
         LoadColumnSettings();
-        _sharedData.RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));
+        _sessionState.RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));
         LoadRecentFilesFromSettings();
         OnPropertyChanged(nameof(HasRecentFiles));
         RefreshProfiles();
@@ -204,9 +233,11 @@ public partial class MainWindowViewModel : ViewModelBase
         InitializeStatisticsPipeline();
         InitializeFilterDebounce();
     }
+
     #endregion
 
     #region Collection & Selection Handlers
+
     private void OnGamesCollectionChanged()
     {
         if (_isLoadingData) return;
@@ -219,7 +250,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void GameItem_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (_isLoadingData) return;
-        _sharedData.IsDataChanged = true;
+        _sessionState.IsDataChanged = true;
         IsSaveEnabled = true;
 
         if (sender is GameMetadataRow changedGame)
@@ -232,10 +263,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (_selectionDebounceTimer == null)
         {
-            _selectionDebounceTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(500)
-            };
+            _selectionDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _selectionDebounceTimer.Tick += (_, _) =>
             {
                 _selectionDebounceTimer?.Stop();
@@ -270,9 +298,11 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(SetSelectedGenreVisibleMenuText));
         OnPropertyChanged(nameof(SetSelectedGenreHiddenMenuText));
     }
+
     #endregion
 
     #region Commands
+
     [RelayCommand]
     public void TriggerMenu() => IsMenuOpen = !IsMenuOpen;
 
@@ -287,10 +317,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ClearPersistentSelection()
-    {
-        SelectedGames?.Clear();
-    }
+    private void ClearPersistentSelection() => SelectedGames?.Clear();
 
     [RelayCommand]
     private void ToggleAlwaysOnTop() => IsAlwaysOnTop = !IsAlwaysOnTop;
@@ -323,6 +350,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch { }
     }
+
     #endregion
 
     #region Private Methods
@@ -333,7 +361,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _sourceCache.Clear();
         _isLoadingData = false;
 
-        _sharedData.Clear();
+        _sessionState.Clear();
 
         ClearFilters();
         ClearReportColumns();
@@ -349,10 +377,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         ApplyStatistics(new StatisticsSnapshot());
 
-        if (IsMediaPreviewVisible)
-            ToggleMediaPreview();
-        if (IsScraperVisible)
-            ToggleScraper();
+        if (IsMediaPreviewVisible) ToggleMediaPreview();
+        if (IsScraperVisible) ToggleScraper();
     }
+
     #endregion
 }
