@@ -25,13 +25,15 @@ namespace Gamelist_Manager.Services
                 {
                     var value = GetProperty(game, filterItem);
                     return value != null && value.Equals("true", StringComparison.OrdinalIgnoreCase);
-                },
+                }
+                ,
 
                 "Is False" => game =>
                 {
                     var value = GetProperty(game, filterItem);
                     return value == null || value.Equals("false", StringComparison.OrdinalIgnoreCase);
-                },
+                }
+                ,
 
                 "Is" => game => GetProperty(game, filterItem)?.Equals(filterText, StringComparison.OrdinalIgnoreCase) == true,
 

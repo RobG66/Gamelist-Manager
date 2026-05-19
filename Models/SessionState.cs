@@ -60,6 +60,7 @@ namespace Gamelist_Manager.Models
 
         partial void OnXmlFilenameChanged(string? value)
         {
+            OnPropertyChanged(nameof(CurrentRomFolder));
             OnPropertyChanged(nameof(MediaRootFolder));
             OnPropertyChanged(nameof(CurrentMediaFolder));
         }
@@ -132,7 +133,9 @@ namespace Gamelist_Manager.Models
 
         // --- Derived properties ---
 
-        public string? CurrentRomFolder => FilePathHelper.CurrentRomFolder(SettingsState.Instance.RomsFolder, CurrentSystem);
+        public string? CurrentRomFolder => _profileType == SettingKeys.ProfileTypeEsDe
+            ? FilePathHelper.CurrentRomFolder(SettingsState.Instance.RomsFolder, CurrentSystem)
+            : Path.GetDirectoryName(XmlFilename);
 
         public string? GamelistsRootFolder => _profileType == SettingKeys.ProfileTypeEsDe
             ? (string.IsNullOrEmpty(SettingsState.Instance.EsDeRoot)
@@ -164,6 +167,8 @@ namespace Gamelist_Manager.Models
             CurrentSystem = null;
             GamelistData = null;
             IsDataChanged = false;
+            AvailableMedia = [];
+            OnPropertyChanged(nameof(AvailableMedia));
         }
     }
 }

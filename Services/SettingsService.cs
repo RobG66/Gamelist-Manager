@@ -1,5 +1,4 @@
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -62,8 +61,8 @@ namespace Gamelist_Manager.Services
 
         // SettingDef overloads — preferred call style
         public string GetValue(SettingDef<string> def) => GetValue(def.Section, def.Key, def.Default);
-        public bool GetBool(SettingDef<bool> def)     => GetBool(def.Section, def.Key, def.Default);
-        public int GetInt(SettingDef<int> def)         => GetInt(def.Section, def.Key, def.Default);
+        public bool GetBool(SettingDef<bool> def) => GetBool(def.Section, def.Key, def.Default);
+        public int GetInt(SettingDef<int> def) => GetInt(def.Section, def.Key, def.Default);
 
         public Dictionary<string, string>? GetSection(string sectionName)
         {
@@ -86,18 +85,6 @@ namespace Gamelist_Manager.Services
 
         // --- Core write ---
 
-        public void SetValue(string section, string key, string value)
-        {
-            var sections = Cache();
-            if (!sections.ContainsKey(section))
-                sections[section] = [];
-            sections[section][key] = value;
-            IniFileService.WriteIniFile(_settingsFilePath, sections);
-        }
-
-        public void SetBool(string section, string key, bool value) =>
-            SetValue(section, key, value.ToString());
-
         // --- Recent files ---
 
         public List<string> GetRecentFiles()
@@ -114,35 +101,7 @@ namespace Gamelist_Manager.Services
                 .ToList();
         }
 
-        public void SaveRecentFiles(List<string> recentFiles)
-        {
-            var dict = recentFiles
-                .Where(f => !string.IsNullOrEmpty(f))
-                .Select((f, i) => (Key: $"file{i + 1}", Value: f))
-                .ToDictionary(x => x.Key, x => x.Value);
-
-            var all = Cache();
-            all[SettingKeys.RecentFilesSection] = dict;
-            IniFileService.WriteIniFile(_settingsFilePath, all);
-        }
-
-        // --- Bulk save ---
-
-        public void SaveAllSettings(Dictionary<string, Dictionary<string, string>> incoming)
-        {
-            var existing = Cache();
-            foreach (var (section, keys) in incoming)
-            {
-                if (!existing.ContainsKey(section))
-                    existing[section] = [];
-                foreach (var (k, v) in keys)
-                    existing[section][k] = v;
-            }
-
-            IniFileService.WriteIniFile(_settingsFilePath, existing);
-            ProfileService.MigrateProfile(_settingsFilePath);
-            InvalidateCache();
-        }
+        // --- Reset ---
 
         public void ResetToDefaults()
         {
@@ -177,7 +136,7 @@ namespace Gamelist_Manager.Services
         private Dictionary<string, Dictionary<string, string>> Cache() =>
             _cache ??= IniFileService.ReadIniFile(_settingsFilePath);
 
-        private void InvalidateCache() => _cache = null;
+        internal void InvalidateCache() => _cache = null;
 
         private void CreateDefaultSettings()
         {

@@ -18,7 +18,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
 
-    private bool _isLoading;
+    private bool _isProfileLoading;
 
     private static readonly string[] ThemeNames = ["Light", "Dark"];
     private static readonly string[] ColorNames =
@@ -91,7 +91,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     partial void OnSelectedThemeIndexChanged(int value)
     {
-        if (_isLoading) return;
+        if (_isProfileLoading) return;
         SelectedAlternatingRowColorIndex = 0;
     }
 
@@ -101,13 +101,17 @@ public partial class SettingsViewModel : ViewModelBase
 
     public SettingsViewModel()
     {
-        _isLoading = true;
-
-        InitializeMediaFolderItems();
-        LoadSettings();
-        RefreshMediaFolderDisplayState();
-
-        _isLoading = false;
+        _isProfileLoading = true;
+        try
+        {
+            InitializeMediaFolderItems();
+            LoadSettings();
+            RefreshMediaFolderDisplayState();
+        }
+        finally
+        {
+            _isProfileLoading = false;
+        }
 
         _sessionState.PropertyChanged += (_, e) =>
         {
@@ -124,7 +128,7 @@ public partial class SettingsViewModel : ViewModelBase
 
         PropertyChanged += (_, e) =>
         {
-            if (_isLoading) return;
+            if (_isProfileLoading) return;
 
             if (e.PropertyName is nameof(IsDirty)
                                or nameof(SelectedProfileName)
@@ -149,80 +153,72 @@ public partial class SettingsViewModel : ViewModelBase
 
     public void LoadSettings()
     {
-        _isLoading = true;
-        try
+        var s = SettingsState.Instance;
+        var isEsDe = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
+
+        // Appearance
+        SelectedThemeIndex = NameToIndex(ThemeNames, s.Theme);
+        SelectedColorIndex = NameToIndex(ColorNames, s.Color);
+        SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, s.AccentVariant);
+        SelectedAlternatingRowColorIndex = s.AlternatingRowColorIndex;
+        SelectedGridLinesVisibilityIndex = s.GridLinesVisibilityIndex;
+        AppFontSize = s.AppFontSize;
+        GridFontSize = s.GridFontSize;
+
+        // Behavior
+        ConfirmBulkChanges = s.ConfirmBulkChanges;
+        EnableSaveReminder = s.EnableSaveReminder;
+        VerifyImageDownloads = s.VerifyImageDownloads;
+        OverrideConcurrency = s.OverrideConcurrency;
+        ConcurrencyOverride = s.ConcurrencyOverride;
+        VideoAutoplay = s.VideoAutoplay;
+        RememberColumns = s.RememberColumns;
+        RememberAutosize = s.RememberAutosize;
+        EnableDelete = s.EnableDelete;
+        RemoveZZZNotGamePrefix = s.RemoveZZZNotGamePrefix;
+        IgnoreDuplicates = s.IgnoreDuplicates;
+        BatchProcessing = s.BatchProcessing;
+        ShowLogTimestamp = s.ShowLogTimestamp;
+        LogToDisk = s.LogToDisk;
+        CheckForNewAndMissingGamesOnLoad = s.CheckForNewAndMissingGamesOnLoad;
+        UseSimpleSystemPicker = s.UseSimpleSystemPicker;
+
+        ScraperConfigSaveIndex = s.ScraperConfigSave;
+        MaxUndo = s.MaxUndo;
+        SearchDepth = s.SearchDepth;
+        RecentFilesCount = s.RecentFilesCount;
+        MaxBatch = s.MaxBatch;
+        DefaultVolume = s.DefaultVolume;
+        LogVerbosityIndex = s.LogVerbosity;
+
+        // Connection
+        Hostname = s.Hostname;
+        UserId = s.UserId;
+        Password = s.Password;
+
+        // Paths
+        MamePath = s.MamePath;
+        RomsPath = s.RomsFolder;
+
+        foreach (var item in MediaFolderItems)
         {
-            var s = SettingsState.Instance;
-            var isEsDe = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
-
-            // Appearance
-            SelectedThemeIndex = NameToIndex(ThemeNames, s.Theme);
-            SelectedColorIndex = NameToIndex(ColorNames, s.Color);
-            SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, s.AccentVariant);
-            SelectedAlternatingRowColorIndex = s.AlternatingRowColorIndex;
-            SelectedGridLinesVisibilityIndex = s.GridLinesVisibilityIndex;
-            AppFontSize = s.AppFontSize;
-            GridFontSize = s.GridFontSize;
-
-            // Behavior
-            ConfirmBulkChanges = s.ConfirmBulkChanges;
-            EnableSaveReminder = s.EnableSaveReminder;
-            VerifyImageDownloads = s.VerifyImageDownloads;
-            OverrideConcurrency = s.OverrideConcurrency;
-            ConcurrencyOverride = s.ConcurrencyOverride;
-            VideoAutoplay = s.VideoAutoplay;
-            RememberColumns = s.RememberColumns;
-            RememberAutosize = s.RememberAutosize;
-            EnableDelete = s.EnableDelete;
-            RemoveZZZNotGamePrefix = s.RemoveZZZNotGamePrefix;
-            IgnoreDuplicates = s.IgnoreDuplicates;
-            BatchProcessing = s.BatchProcessing;
-            ShowLogTimestamp = s.ShowLogTimestamp;
-            LogToDisk = s.LogToDisk;
-            CheckForNewAndMissingGamesOnLoad = s.CheckForNewAndMissingGamesOnLoad;
-            UseSimpleSystemPicker = s.UseSimpleSystemPicker;
-
-            ScraperConfigSaveIndex = s.ScraperConfigSave;
-            MaxUndo = s.MaxUndo;
-            SearchDepth = s.SearchDepth;
-            RecentFilesCount = s.RecentFilesCount;
-            MaxBatch = s.MaxBatch;
-            DefaultVolume = s.DefaultVolume;
-            LogVerbosityIndex = s.LogVerbosity;
-
-            // Connection
-            Hostname = s.Hostname;
-            UserId = s.UserId;
-            Password = s.Password;
-
-            // Paths
-            MamePath = s.MamePath;
-            RomsPath = s.RomsFolder;
-
-            foreach (var item in MediaFolderItems)
-            {
-                item.Path = LoadMediaPath(s.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
-                item.Suffix = s.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix);
-                item.SfxEnabled = bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
-                item.Enabled = (!isEsDe || (GamelistMetaData.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
-                               (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
-            }
-
-            LoadScraperCredentials();
-            RefreshProfileList();
-
-            if (isEsDe)
-            {
-                EsDeRoot = s.EsDeRoot;
-                EsDeMediaBase = _sessionState.MediaRootFolder ?? string.Empty;
-            }
-
-            IsDirty = false;
+            item.Path = LoadMediaPath(s.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
+            item.Suffix = s.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix);
+            item.SfxEnabled = bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
+            item.Enabled = (!isEsDe || (GamelistMetaData.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
+                           (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
         }
-        finally
+
+        LoadScraperCredentials();
+        RefreshProfileList();
+
+        if (isEsDe)
         {
-            _isLoading = false;
+            EsDeRoot = s.EsDeRoot;
+            EsDeMediaBase = _sessionState.MediaRootFolder ?? string.Empty;
         }
+
+        IsDirty = false;
     }
 
     public void SaveSettings()
@@ -352,7 +348,7 @@ public partial class SettingsViewModel : ViewModelBase
             };
         }
 
-        SettingsService.Instance.SaveAllSettings(settings);
+        ProfileService.Instance.Save(settings);
         SettingsState.Instance.Reload();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
@@ -362,8 +358,16 @@ public partial class SettingsViewModel : ViewModelBase
     public void ResetAllSettings()
     {
         SettingsService.Instance.ResetToDefaults();
-        LoadSettings();
-        RefreshMediaFolderDisplayState();
+        _isProfileLoading = true;
+        try
+        {
+            LoadSettings();
+            RefreshMediaFolderDisplayState();
+        }
+        finally
+        {
+            _isProfileLoading = false;
+        }
     }
 
     public static void ApplyThemeOnStartup()

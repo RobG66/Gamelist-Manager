@@ -1,21 +1,24 @@
-﻿using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Services;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Gamelist_Manager.Models
 {
     public class ScraperParameters
     {
+        public ScraperParameters ShallowClone() => (ScraperParameters)MemberwiseClone();
+
+        public string ScraperName { get; set; } = "";
+        public int LogVerbosity { get; set; }
+        public int MaxConcurrency { get; set; } = 1;
+        public bool BatchProcessing { get; set; }
+        public Dictionary<string, List<string>> EmuMoviesMediaLists { get; set; } = new();
+
+        public string? RomFilePath { get; set; }
         public string? RomFileName { get; set; }
         public string? RomName { get; set; }
         public string? GameID { get; set; }
         public string? SystemID { get; set; }
         public string? UserID { get; set; }
         public string? UserPassword { get; set; }
-        public string? ParentFolderPath { get; set; }
         public string? SSLanguage { get; set; }
         public List<string>? SSRegions { get; set; }
         public string? ImageSource { get; set; }
@@ -35,175 +38,17 @@ namespace Gamelist_Manager.Models
         public bool OverwriteMetadata { get; set; }
         public bool VerifyImageDownloads { get; set; }
         public string? UserAccessToken { get; set; }
-        public string? ScraperPlatform { get; set; }
         public string? MameArcadeName { get; set; }
         public bool ScrapeByGameID { get; set; }
         public string? CacheFolder { get; set; }
         public bool ScrapeByCache { get; set; }
         public bool SkipNonCached { get; set; }
         public bool RemoveZzzNotGamePrefix { get; set; }
-        public List<string>? ElementsToScrape
-        {
-            get => _elementsToScrape;
-            set
-            {
-                _elementsToScrape = value;
-                _metaLookup = null;
-            }
-        }
-        private List<string>? _elementsToScrape;
 
+        public List<string>? ElementsToScrape { get; set; }
         public Dictionary<string, string>? MediaPaths { get; set; }
         public Dictionary<string, (string Suffix, bool SfxEnabled)>? MediaSuffixes { get; set; }
-
-        // Pre-built cache of filenames per media type, populated once before the scraping loop
-        // to avoid one File.Exists network round-trip per media item per game on remote paths.
         public Dictionary<string, HashSet<string>>? ExistingMediaFiles { get; set; }
-
-        // Cached once before the scraping loop; rebuilt lazily if ElementsToScrape changes.
-        private Dictionary<string, (string Type, string Column)>? _metaLookup;
-
-        public Dictionary<string, (string Type, string Column)> MetaLookup
-        {
-            get
-            {
-                if (_metaLookup == null)
-                {
-                    if (ElementsToScrape == null)
-                        throw new InvalidOperationException("ElementsToScrape must be set before accessing MetaLookup.");
-
-                    _metaLookup = ElementsToScrape.ToDictionary(
-                        item => item,
-                        item => (
-                            GamelistMetaData.GetMetadataDataTypeByType(item),
-                            GamelistMetaData.GetMetadataNameByType(item)
-                        )
-                    );
-                }
-
-                return _metaLookup;
-            }
-        }
-
-        public static ScraperParameters Create(
-            string parentFolderPath,
-            bool verifyImageDownloads,
-            string profileType,
-            IReadOnlyList<AvailableMediaFolder> availableMedia,
-            string scraperName,
-            string currentSystem,
-            List<string> elementsToScrape)
-        {
-            var scraperConfig = ScraperConfigService.Instance;
-
-            string? primaryRegion = scraperConfig.GetScraperPrimaryRegionCode(scraperName);
-            var regions = scraperConfig.GetScraperFallbackRegionCodes(scraperName).ToList();
-            if (!string.IsNullOrEmpty(primaryRegion))
-            {
-                regions.Remove(primaryRegion);
-                regions.Insert(0, primaryRegion);
-            }
-
-            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
-
-            return new ScraperParameters
-            {
-                ParentFolderPath = parentFolderPath,
-                VerifyImageDownloads = verifyImageDownloads,
-                ElementsToScrape = elementsToScrape,
-                SystemID = scraperConfig.GetScraperSystemId(scraperName, currentSystem),
-                SSLanguage = scraperConfig.GetScraperLanguageCode(scraperName),
-                SSRegions = regions,
-                ImageSource = ResolveSource(scraperConfig, scraperName, nameof(ImageSource)),
-                MarqueeSource = ResolveSource(scraperConfig, scraperName, nameof(MarqueeSource)),
-                ThumbnailSource = ResolveSource(scraperConfig, scraperName, nameof(ThumbnailSource)),
-                CartridgeSource = ResolveSource(scraperConfig, scraperName, nameof(CartridgeSource)),
-                VideoSource = ResolveSource(scraperConfig, scraperName, nameof(VideoSource)),
-                BoxArtSource = ResolveSource(scraperConfig, scraperName, nameof(BoxArtSource)),
-                MixSource = ResolveSource(scraperConfig, scraperName, nameof(MixSource)),
-                WheelSource = ResolveSource(scraperConfig, scraperName, nameof(WheelSource)),
-                CacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraperName, currentSystem),
-                ScrapeNamesLanguageFirst = scraperConfig.GetScraperBoolSetting(scraperName, "NamesLanguageFirst"),
-                ScrapeMediaRegionFirst = scraperConfig.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
-                ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
-                ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
-                RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix"),
-
-                MediaPaths = availableMedia.ToDictionary(
-                    m => m.Type,
-                    m => m.FolderPath,
-                    StringComparer.OrdinalIgnoreCase),
-
-                // Suffixes are not applicable in ES-DE mode — filenames follow the ROM name exactly.
-                MediaSuffixes = isEsDe
-                    ? new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
-                    : availableMedia.ToDictionary(
-                        m => m.Type,
-                        m => (m.Suffix, m.SfxEnabled),
-                        StringComparer.OrdinalIgnoreCase)
-            };
-        }
-
-        private static string ResolveSource(ScraperConfigService scraperConfig, string scraperName, string sectionName)
-        {
-            string savedDisplayName = scraperConfig.GetScraperSourceSetting(scraperName, sectionName);
-            if (!string.IsNullOrEmpty(savedDisplayName))
-            {
-                var sources = scraperConfig.GetScraperSources(scraperName, sectionName);
-                if (sources.TryGetValue(savedDisplayName, out var apiValue) && !string.IsNullOrEmpty(apiValue))
-                    return apiValue;
-            }
-            return scraperConfig.GetScraperDefaultSource(scraperName, sectionName);
-        }
-
-        // Collections are deep-copied so each scraper thread gets its own independent state.
-        // MetaLookup is not cloned — the clone rebuilds it lazily when needed.
-        public ScraperParameters Clone()
-        {
-            return new ScraperParameters
-            {
-                RomFileName = this.RomFileName,
-                RomName = this.RomName,
-                GameID = this.GameID,
-                SystemID = this.SystemID,
-                UserID = this.UserID,
-                UserPassword = this.UserPassword,
-                ParentFolderPath = this.ParentFolderPath,
-                SSLanguage = this.SSLanguage,
-
-                SSRegions = this.SSRegions != null ? new List<string>(this.SSRegions) : null,
-                ElementsToScrape = this.ElementsToScrape != null ? new List<string>(this.ElementsToScrape) : null,
-                MediaPaths = this.MediaPaths != null ? new Dictionary<string, string>(this.MediaPaths) : null,
-                MediaSuffixes = this.MediaSuffixes != null ? new Dictionary<string, (string, bool)>(this.MediaSuffixes) : null,
-
-                ImageSource = this.ImageSource,
-                ThumbnailSource = this.ThumbnailSource,
-                BoxArtSource = this.BoxArtSource,
-                MixSource = this.MixSource,
-                MarqueeSource = this.MarqueeSource,
-                WheelSource = this.WheelSource,
-                VideoSource = this.VideoSource,
-                CartridgeSource = this.CartridgeSource,
-                OverwriteName = this.OverwriteName,
-                ScrapeEnglishGenreOnly = this.ScrapeEnglishGenreOnly,
-                ScrapeAnyMedia = this.ScrapeAnyMedia,
-                ScrapeNamesLanguageFirst = this.ScrapeNamesLanguageFirst,
-                ScrapeMediaRegionFirst = this.ScrapeMediaRegionFirst,
-                OverwriteMedia = this.OverwriteMedia,
-                OverwriteMetadata = this.OverwriteMetadata,
-                VerifyImageDownloads = this.VerifyImageDownloads,
-                UserAccessToken = this.UserAccessToken,
-                ScraperPlatform = this.ScraperPlatform,
-                MameArcadeName = this.MameArcadeName,
-                ScrapeByGameID = this.ScrapeByGameID,
-                CacheFolder = this.CacheFolder,
-                ScrapeByCache = this.ScrapeByCache,
-                SkipNonCached = this.SkipNonCached,
-                RemoveZzzNotGamePrefix = this.RemoveZzzNotGamePrefix,
-                ExistingMediaFiles = this.ExistingMediaFiles?.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => new HashSet<string>(kvp.Value, kvp.Value.Comparer))
-            };
-        }
+        public Dictionary<string, (string Type, string Column)>? MetaLookup { get; set; }
     }
 }

@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Messages;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
@@ -18,16 +20,6 @@ public partial class SettingsViewModel
 
     private static readonly string _templatesPath =
         Path.Combine(AppContext.BaseDirectory, "ini", "templates.ini");
-
-    #endregion
-
-    #region Injected Delegates
-
-    public Func<Task<bool>>? CheckMainUnsavedChangesAsync { get; set; }
-    public Func<bool>? GetIsGamelistLoaded { get; set; }
-    public Func<string, Task>? ApplyMainProfileSwitch { get; set; }
-    public Action? UnloadMainGamelist { get; set; }
-    public Action? NotifyProfilesChanged { get; set; }
 
     #endregion
 
@@ -148,10 +140,16 @@ public partial class SettingsViewModel
 
         if (activate != ThreeButtonResult.Button3) return;
 
+        var gamelistLoaded = WeakReferenceMessenger.Default.Send(new GamelistLoadedRequestMessage()).Response;
+
+        if (gamelistLoaded && !await WeakReferenceMessenger.Default.Send(new CheckUnsavedGamelistChangesMessage()))
+            return;
+
+        WeakReferenceMessenger.Default.Send(new UnloadGamelistMessage());
+
         if (IsDirty) SaveSettings();
 
-        if (ApplyMainProfileSwitch != null)
-            await ApplyMainProfileSwitch(profileName);
+        await WeakReferenceMessenger.Default.Send(new ApplyProfileSwitchMessage(profileName));
 
         DoSwitchProfile(saveFirst: false);
     }
@@ -162,7 +160,7 @@ public partial class SettingsViewModel
         if (!ProfileService.Instance.CreateProfile(NewProfileName.Trim(), copyFromActive: true)) return;
         NewProfileName = string.Empty;
         RefreshProfileList();
-        NotifyProfilesChanged?.Invoke();
+        WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
     }
 
     [RelayCommand(CanExecute = nameof(CanRenameProfile))]
@@ -171,7 +169,7 @@ public partial class SettingsViewModel
         if (!ProfileService.Instance.RenameProfile(SelectedProfileName, NewProfileName.Trim())) return;
         NewProfileName = string.Empty;
         RefreshProfileList();
-        NotifyProfilesChanged?.Invoke();
+        WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteProfile))]
@@ -192,7 +190,7 @@ public partial class SettingsViewModel
 
         if (!ProfileService.Instance.DeleteProfile(SelectedProfileName)) return;
         RefreshProfileList();
-        NotifyProfilesChanged?.Invoke();
+        WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
     }
 
     [RelayCommand(CanExecute = nameof(CanSetActiveProfile))]
@@ -200,18 +198,14 @@ public partial class SettingsViewModel
     {
         var profileName = SelectedProfileName;
         var isDirty = IsDirty;
-        var gamelistLoaded = GetIsGamelistLoaded?.Invoke() ?? false;
+        var gamelistLoaded = WeakReferenceMessenger.Default.Send(new GamelistLoadedRequestMessage()).Response;
 
-        if (gamelistLoaded && CheckMainUnsavedChangesAsync != null)
-        {
-            if (!await CheckMainUnsavedChangesAsync())
-                return;
-        }
+        if (gamelistLoaded && !await WeakReferenceMessenger.Default.Send(new CheckUnsavedGamelistChangesMessage()))
+            return;
 
         if (!isDirty && !gamelistLoaded)
         {
-            if (ApplyMainProfileSwitch != null)
-                await ApplyMainProfileSwitch(profileName);
+            await WeakReferenceMessenger.Default.Send(new ApplyProfileSwitchMessage(profileName));
             DoSwitchProfile(saveFirst: false);
             return;
         }
@@ -238,9 +232,8 @@ public partial class SettingsViewModel
 
         if (switchResult == ThreeButtonResult.Button1) return;
 
-        UnloadMainGamelist?.Invoke();
-        if (ApplyMainProfileSwitch != null)
-            await ApplyMainProfileSwitch(profileName);
+        WeakReferenceMessenger.Default.Send(new UnloadGamelistMessage());
+        await WeakReferenceMessenger.Default.Send(new ApplyProfileSwitchMessage(profileName));
         DoSwitchProfile(saveFirst: isDirty && switchResult == ThreeButtonResult.Button3);
     }
 
@@ -277,10 +270,18 @@ public partial class SettingsViewModel
     private void DoSwitchProfile(bool saveFirst)
     {
         if (saveFirst) SaveSettings();
-        LoadSettings();
-        RefreshProfileList();
-        RefreshMediaFolderDisplayState();
-        NotifyProfilesChanged?.Invoke();
+        _isProfileLoading = true;
+        try
+        {
+            LoadSettings();
+            RefreshProfileList();
+            RefreshMediaFolderDisplayState();
+        }
+        finally
+        {
+            _isProfileLoading = false;
+        }
+        WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
         IsDirty = false;
     }
 
@@ -292,7 +293,7 @@ public partial class SettingsViewModel
         NewProfileName = string.Empty;
         SelectedTemplateName = null;
         RefreshProfileList();
-        NotifyProfilesChanged?.Invoke();
+        WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
     }
 
     private void LoadTemplates()

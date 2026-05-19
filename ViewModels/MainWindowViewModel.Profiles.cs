@@ -214,12 +214,13 @@ public partial class MainWindowViewModel
 
     private async Task ApplyEsDeRootAsync(string root)
     {
-        SettingsService.Instance.SetValue(SettingKeys.EsDeRoot.Section, SettingKeys.EsDeRoot.Key, root);
-
         var detected = EsDePathResolver.ReadPathsFromEsDeSettings(root);
 
-        SettingsService.Instance.SetValue(SettingKeys.RomsFolder.Section, SettingKeys.RomsFolder.Key,
-            detected.RomDirectory ?? string.Empty);
+        ProfileService.Instance.Save(new()
+        {
+            [SettingKeys.EsDeRoot.Section] = new() { [SettingKeys.EsDeRoot.Key] = root },
+            [SettingKeys.RomsFolder.Section] = new() { [SettingKeys.RomsFolder.Key] = detected.RomDirectory ?? string.Empty }
+        });
 
         SettingsState.Instance.Reload();
     }

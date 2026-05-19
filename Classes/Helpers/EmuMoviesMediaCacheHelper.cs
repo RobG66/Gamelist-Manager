@@ -1,4 +1,4 @@
-using Gamelist_Manager.Classes.Api;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace Gamelist_Manager.Classes.Helpers
             _bearerToken = bearerToken;
         }
 
-        public async Task PopulateMediaListsAsync(string systemId, ScraperProperties scraperProperties, Action<string>? log = null, CancellationToken cancellationToken = default)
+        public async Task PopulateMediaListsAsync(string systemId, ScraperParameters scraperParameters, Action<string>? log = null, CancellationToken cancellationToken = default)
         {
             bool hasListsForSystem = _mediaTypes.Count > 0 &&
                 _mediaTypes.TrueForAll(mt => _mediaListCache.ContainsKey((systemId, mt)));
@@ -37,18 +37,15 @@ namespace Gamelist_Manager.Classes.Helpers
                 foreach (string mediaType in _mediaTypes)
                 {
                     if (_mediaListCache.TryGetValue((systemId, mediaType), out var cachedList))
-                        scraperProperties.EmuMoviesMediaLists[mediaType] = cachedList;
+                        scraperParameters.EmuMoviesMediaLists[mediaType] = cachedList;
                 }
                 return;
             }
 
-            // If WaitAsync is cancelled before acquiring, the semaphore is not held and
-            // the finally block is not reached — so Release() is only called when acquired.
             await _fetchLock.WaitAsync(cancellationToken);
             bool downloading = false;
             try
             {
-                // Re-check inside lock in case another thread populated while we waited
                 bool stillNeeded = _mediaTypes.Count == 0 ||
                     !_mediaTypes.TrueForAll(mt => _mediaListCache.ContainsKey((systemId, mt)));
 
@@ -69,7 +66,7 @@ namespace Gamelist_Manager.Classes.Helpers
                     var key = (systemId, mediaType);
                     if (_mediaListCache.ContainsKey(key))
                     {
-                        scraperProperties.EmuMoviesMediaLists[mediaType] = _mediaListCache[key];
+                        scraperParameters.EmuMoviesMediaLists[mediaType] = _mediaListCache[key];
                         continue;
                     }
 
@@ -78,12 +75,11 @@ namespace Gamelist_Manager.Classes.Helpers
                         mediaList = new List<string>();
 
                     _mediaListCache[key] = mediaList;
-                    scraperProperties.EmuMoviesMediaLists[mediaType] = mediaList;
+                    scraperParameters.EmuMoviesMediaLists[mediaType] = mediaList;
                 }
             }
             catch (OperationCanceledException) when (downloading)
             {
-                // Discard any partially-built static state so the next attempt starts clean.
                 Clear();
                 throw;
             }
@@ -92,7 +88,7 @@ namespace Gamelist_Manager.Classes.Helpers
                 _fetchLock.Release();
             }
         }
-
+       
         private async Task<(bool Success, List<string> MediaTypes, string ErrorMessage)> GetMediaTypesAsync(string system, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(system))

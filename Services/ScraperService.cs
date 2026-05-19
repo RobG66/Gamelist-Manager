@@ -71,14 +71,13 @@ namespace Gamelist_Manager.Services
         public async Task<(bool Success, ScrapedGameData Data)> ScrapeGameAsync(
             GameMetadataRow row,
             ScraperParameters baseParameters,
-            ScraperProperties scraperProperties,
-            string currentScraper,
             Action<int, int>? limitCallback = null,
             Action? onQuotaExceeded = null,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            string currentScraper = baseParameters.ScraperName;
             string romPath = row.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             string romFileName = Path.GetFileName(romPath);
             string romFileNameNoExt = Path.GetFileNameWithoutExtension(romPath);
@@ -88,19 +87,18 @@ namespace Gamelist_Manager.Services
             var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, baseParameters);
             if (itemsToScrape.Count == 0)
             {
-                if (scraperProperties.LogVerbosity == 2)
+                if (baseParameters.LogVerbosity == 2)
                     Log($"Skipping '{romFileName}', nothing to scrape");
                 return (true, new ScrapedGameData());
             }
 
             string? mameArcadeName = MameNamesHelper.Names.TryGetValue(romFileNameNoExt, out string? arcadeName) ? arcadeName : null;
 
-            // Resolve region / language locally where possible, leaving region in the
-            // list only when ScreenScraper must resolve it from <noms>.
             var (romRegion, romLanguage) = ResolveRegionAndLanguage(
                 itemsToScrape, mameArcadeName, romFileNameNoExt, currentScraper);
 
             var scraperParameters = baseParameters.Clone();
+            scraperParameters.RomFilePath = Path.Combine(SessionState.Instance.CurrentRomFolder!, romFileName);
             scraperParameters.GameID = gameID;
             scraperParameters.RomName = romName;
             scraperParameters.RomFileName = romFileName;
@@ -115,12 +113,11 @@ namespace Gamelist_Manager.Services
                 scraperParameters.ElementsToScrape = itemsToScrape;
 
                 (success, scrapedGameData, messages) = await DispatchToScraperApiAsync(
-                    currentScraper, scraperParameters, scraperProperties,
-                    limitCallback, onQuotaExceeded, cancellationToken);
+                    scraperParameters, limitCallback, onQuotaExceeded, cancellationToken);
 
                 if (success)
                 {
-                    if (scraperProperties.LogVerbosity >= 1)
+                    if (baseParameters.LogVerbosity >= 1)
                         Log($"'{scraperParameters.RomName}'", LogLevel.Default, LogPrefix.Scrape, LogLevel.Success);
 
                     if (scrapedGameData.Media.Count > 0)
@@ -133,7 +130,6 @@ namespace Gamelist_Manager.Services
                 }
             }
 
-            // Merge locally resolved metadata regardless of API success.
             if (!string.IsNullOrEmpty(romRegion))
                 scrapedGameData.Data[nameof(MetaDataKeys.region)] = romRegion;
             if (!string.IsNullOrEmpty(romLanguage))
@@ -141,9 +137,9 @@ namespace Gamelist_Manager.Services
 
             if (!success && !scraperParameters.SkipNonCached)
             {
-                if (scraperProperties.LogVerbosity >= 1)
+                if (baseParameters.LogVerbosity >= 1)
                     Log($"'{scraperParameters.RomName}'", LogLevel.Default, LogPrefix.Scrape, LogLevel.Error);
-                if (scraperProperties.LogVerbosity == 2)
+                if (baseParameters.LogVerbosity == 2)
                     foreach (var msg in messages)
                         Log(msg);
             }
@@ -170,12 +166,12 @@ namespace Gamelist_Manager.Services
                 if (!Enum.TryParse<MetaDataKeys>(element, true, out var key))
                     continue;
 
-                // Convert absolute paths to relative for non-ESDE profiles; ESDE paths are reference-only and not saved.
                 if (metaDataDict.TryGetValue(key, out var decl) && decl.IsMedia)
                 {
-                    if (profileType == SettingKeys.ProfileTypeEsDe)
-                        continue;
-                    value = FilePathHelper.PathToRelativePathWithDotSlashPrefix(value, parameters.ParentFolderPath!);
+                    if (profileType == SettingKeys.ProfileTypeEs)
+                    {
+                        // ParentFolderPath removal — to be fixed later
+                    }
                 }
 
                 updates[key] = value.Trim();
@@ -227,8 +223,6 @@ namespace Gamelist_Manager.Services
                 _downloadStats[mediaType] = _downloadStats.GetValueOrDefault(mediaType) + 1;
         }
 
-        // Strips region and language from itemsToScrape where they can be resolved locally.
-        // Region is left in the list only when ScreenScraper must resolve it from <noms>.
         private static (string Region, string Language) ResolveRegionAndLanguage(
             List<string> itemsToScrape,
             string? mameArcadeName,
@@ -243,8 +237,6 @@ namespace Gamelist_Manager.Services
                 string regionName = mameArcadeName ?? romFileNameNoExt;
                 romRegion = RegionLanguageHelper.GetRegion(regionName) ?? string.Empty;
 
-                // Leave region in the list for ScreenScraper when it could not be resolved
-                // locally — ScreenScraper can derive it from <noms>.
                 if (!string.IsNullOrEmpty(romRegion) || currentScraper != ScraperRegistry.ScreenScraper.Name)
                     itemsToScrape.Remove(nameof(MetaDataKeys.region));
             }
@@ -259,15 +251,14 @@ namespace Gamelist_Manager.Services
             return (romRegion, romLanguage);
         }
 
-        // Dispatches to the correct scraper API and normalises the result tuple.
         private async Task<(bool Success, ScrapedGameData Data, List<string> Messages)> DispatchToScraperApiAsync(
-            string currentScraper,
             ScraperParameters scraperParameters,
-            ScraperProperties scraperProperties,
             Action<int, int>? limitCallback,
             Action? onQuotaExceeded,
             CancellationToken cancellationToken)
         {
+            string currentScraper = scraperParameters.ScraperName;
+
             if (currentScraper == ScraperRegistry.ArcadeDB.Name)
             {
                 var (success, data, messages) = await CreateArcadeDb().ScrapeArcadeDBAsync(scraperParameters, cancellationToken);
@@ -276,7 +267,7 @@ namespace Gamelist_Manager.Services
 
             if (currentScraper == ScraperRegistry.EmuMovies.Name)
             {
-                var (success, data, messages) = await CreateEmuMovies().ScrapeEmuMoviesAsync(scraperParameters, scraperProperties.EmuMoviesMediaLists);
+                var (success, data, messages) = await CreateEmuMovies().ScrapeEmuMoviesAsync(scraperParameters, scraperParameters.EmuMoviesMediaLists);
                 return (success, data, messages);
             }
 

@@ -107,7 +107,7 @@ public partial class MainWindowViewModel
     private void ClearRecentFiles()
     {
         _sessionState.RecentFiles.Clear();
-        SettingsService.Instance.SaveRecentFiles([]);
+        ProfileService.Instance.SaveRecentFiles([]);
     }
 
     [RelayCommand]
@@ -498,7 +498,7 @@ public partial class MainWindowViewModel
         while (_sessionState.RecentFiles.Count > maxRecentFiles)
             _sessionState.RecentFiles.RemoveAt(_sessionState.RecentFiles.Count - 1);
 
-        _settingsService.SaveRecentFiles(_sessionState.RecentFiles.Select(r => r.FilePath).ToList());
+        ProfileService.Instance.SaveRecentFiles(_sessionState.RecentFiles.Select(r => r.FilePath).ToList());
     }
 
     internal async Task<bool> CheckUnsavedChangesAsync()
@@ -563,7 +563,7 @@ public partial class MainWindowViewModel
                 await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
                 {
                     Title = "Duplicate Entries Detected",
-                    Message = "Duplicate entries were found in the gamelist. ROM path must be unique.",
+                    Message = "Duplicate entries were found in the gamelist. ROM paths should be unique.",
                     DetailMessage = detail,
                     IconTheme = DialogIconTheme.Warning,
                     Button1Text = "",
@@ -575,6 +575,12 @@ public partial class MainWindowViewModel
             var systemName = Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "unknown";
 
             _sessionState.SetGamelist(filePath, systemName, loadedGames);
+
+            _sessionState.RefreshAvailableMedia(
+                _sessionState.ProfileType,
+                _sessionState.CurrentMediaFolder,
+                _settingsState.MediaPaths
+            );
 
             if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe)
             {

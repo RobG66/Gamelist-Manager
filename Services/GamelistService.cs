@@ -35,9 +35,8 @@ namespace Gamelist_Manager.Services
                 return (games, duplicates);
 
             var metaDataDict = s_metaDataDict.Value;
-            var parentFolderPath = Path.GetDirectoryName(xmlFilePath);
 
-            var uniqueRomPaths = new HashSet<string>(FilePathHelper.PathComparer);
+            var uniqueRomPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var gameElement in gameElements)
             {
@@ -76,13 +75,13 @@ namespace Gamelist_Manager.Services
                 if (!string.IsNullOrEmpty(gameIdAttr))
                     game.SetValue(MetaDataKeys.id, gameIdAttr);
 
-                var normalizedFilePath = FilePathHelper.GamelistPathToFullPath(game.Path, parentFolderPath!);
+                var gamePath = game.Path;
 
-                if (!string.IsNullOrEmpty(normalizedFilePath))
+                if (!string.IsNullOrEmpty(gamePath))
                 {
-                    if (!uniqueRomPaths.Add(normalizedFilePath))
+                    if (!uniqueRomPaths.Add(gamePath))
                     {
-                        duplicates.Add(normalizedFilePath);
+                        duplicates.Add(gamePath);
                         if (ignoreDuplicates)
                             continue;
                     }

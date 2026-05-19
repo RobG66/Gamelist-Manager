@@ -118,7 +118,7 @@ namespace Gamelist_Manager.Services
 
             // Variant offsets match Avalonia FluentTheme source (value / 255).
             // Positive = lighter, negative = darker.
-            float[] variantDeltas = [0f, 39/255f, -(28.5f/255f)];
+            float[] variantDeltas = [0f, 39 / 255f, -(28.5f / 255f)];
             var variantDelta = (uint)variantIndex < (uint)variantDeltas.Length ? variantDeltas[variantIndex] : 0f;
 
             // The chosen variant becomes the new accent origin.
@@ -140,13 +140,13 @@ namespace Gamelist_Manager.Services
 
             // Update SystemAccentColor* resources used by ThemeResources.axaml custom brushes.
             // All 6 derived shades are relative to the chosen variant origin.
-            app.Resources["SystemAccentColor"]       = accentColor;
-            app.Resources["SystemAccentColorLight1"] = ShiftLightness(accentColor,  39 / 255f);
-            app.Resources["SystemAccentColorLight2"] = ShiftLightness(accentColor,  70 / 255f);
+            app.Resources["SystemAccentColor"] = accentColor;
+            app.Resources["SystemAccentColorLight1"] = ShiftLightness(accentColor, 39 / 255f);
+            app.Resources["SystemAccentColorLight2"] = ShiftLightness(accentColor, 70 / 255f);
             app.Resources["SystemAccentColorLight3"] = ShiftLightness(accentColor, 103 / 255f);
-            app.Resources["SystemAccentColorDark1"]  = ShiftLightness(accentColor, -(28.5f / 255f));
-            app.Resources["SystemAccentColorDark2"]  = ShiftLightness(accentColor, -(49   / 255f));
-            app.Resources["SystemAccentColorDark3"]  = ShiftLightness(accentColor, -(74.5f / 255f));
+            app.Resources["SystemAccentColorDark1"] = ShiftLightness(accentColor, -(28.5f / 255f));
+            app.Resources["SystemAccentColorDark2"] = ShiftLightness(accentColor, -(49 / 255f));
+            app.Resources["SystemAccentColorDark3"] = ShiftLightness(accentColor, -(74.5f / 255f));
         }
 
         #region Private Methods
@@ -236,10 +236,10 @@ namespace Gamelist_Manager.Services
         {
             return variantName?.ToLower() switch
             {
-                "base"  => 0,
+                "base" => 0,
                 "lighter" => 1,
-                "darker"  => 2,
-                _       => 0
+                "darker" => 2,
+                _ => 0
             };
         }
 

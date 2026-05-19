@@ -91,23 +91,23 @@ namespace Gamelist_Manager.Models
             MediaPaths = s.GetSection(SettingKeys.MediaPathsSection) ?? [];
         }
 
-        // --- Save helpers (keeps SettingsService out of ViewModels) ---
+        // --- Save helpers (keeps save logic out of ViewModels) ---
 
         public void Save(SettingDef<bool> key, bool value)
         {
-            SettingsService.Instance.SetBool(key.Section, key.Key, value);
+            ProfileService.Instance.Save(new() { [key.Section] = new() { [key.Key] = value.ToString() } });
             Reload();
         }
 
         public void Save(SettingDef<string> key, string value)
         {
-            SettingsService.Instance.SetValue(key.Section, key.Key, value);
+            ProfileService.Instance.Save(new() { [key.Section] = new() { [key.Key] = value } });
             Reload();
         }
 
         public void Save(SettingDef<int> key, int value)
         {
-            SettingsService.Instance.SetValue(key.Section, key.Key, value.ToString());
+            ProfileService.Instance.Save(new() { [key.Section] = new() { [key.Key] = value.ToString() } });
             Reload();
         }
 
@@ -118,10 +118,7 @@ namespace Gamelist_Manager.Models
 
         public void SaveColumnVisibility(Dictionary<string, string> values)
         {
-            SettingsService.Instance.SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
-            {
-                ["ColumnVisibility"] = values
-            });
+            ProfileService.Instance.Save(new() { ["ColumnVisibility"] = values });
             Reload();
         }
 

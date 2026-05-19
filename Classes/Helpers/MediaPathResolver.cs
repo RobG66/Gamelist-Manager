@@ -28,7 +28,7 @@ namespace Gamelist_Manager.Services
                     continue;
 
                 var folderPath = ResolveFolderPath(isEsDe, mediaBaseFolder, decl, mediaPaths);
-                var suffix     = isEsDe ? string.Empty : ResolveSuffix(decl, mediaPaths);
+                var suffix = isEsDe ? string.Empty : ResolveSuffix(decl, mediaPaths);
                 var sfxEnabled = !isEsDe && ResolveSfxEnabled(decl, mediaPaths);
 
                 result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, sfxEnabled));
@@ -42,7 +42,7 @@ namespace Gamelist_Manager.Services
             if (isEsDe)
                 return Path.Combine(mediaBaseFolder, decl.EsDeFolderName);
 
-            var relativePath  = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;
+            var relativePath = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;
             // Strip leading "./" or ".\" before combining
             var cleanRelative = relativePath.TrimStart('.').TrimStart('/').TrimStart('\\');
             return Path.Combine(mediaBaseFolder, cleanRelative);

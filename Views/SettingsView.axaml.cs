@@ -2,9 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
 using System.ComponentModel;
@@ -46,13 +44,7 @@ namespace Gamelist_Manager.Views
 
         private void OnOpened(object? sender, EventArgs e)
         {
-            if (Owner is not MainWindow { DataContext: MainWindowViewModel mainVm }) return;
-
-            ViewModel.CheckMainUnsavedChangesAsync = mainVm.CheckUnsavedChangesAsync;
-            ViewModel.GetIsGamelistLoaded = () => mainVm.IsGamelistLoaded;
-            ViewModel.ApplyMainProfileSwitch = mainVm.ApplyProfileSwitchAsync;
-            ViewModel.UnloadMainGamelist = mainVm.UnloadGamelist;
-            ViewModel.NotifyProfilesChanged = mainVm.RefreshProfiles;
+            if (Owner is not MainWindow { DataContext: MainWindowViewModel }) return;
         }
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)

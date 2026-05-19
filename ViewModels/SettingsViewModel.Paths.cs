@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -45,7 +44,7 @@ public partial class SettingsViewModel
             item.ResetToDefaults();
             item.PropertyChanged += (_, e) =>
             {
-                if (!_isLoading && e.PropertyName != nameof(IsDirty))
+                if (!_isProfileLoading && e.PropertyName != nameof(IsDirty))
                     IsDirty = true;
             };
             MediaFolderItems.Add(item);

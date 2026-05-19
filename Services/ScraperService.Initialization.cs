@@ -4,6 +4,7 @@ using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,11 +17,10 @@ namespace Gamelist_Manager.Services
 
         public async Task<bool> InitializeScraperAsync(
             ScraperParameters baseParameters,
-            ScraperProperties scraperProperties,
             string currentSystem,
             CancellationToken cancellationToken = default)
         {
-            string scraperName = scraperProperties.ScraperName;
+            string scraperName = baseParameters.ScraperName;
 
             if (scraperName == ScraperRegistry.ArcadeDB.Name)
             {
@@ -43,7 +43,7 @@ namespace Gamelist_Manager.Services
                 var (success, maxThreads) = await AuthenticateScreenScraperAsync();
                 if (!success) return false;
 
-                scraperProperties.MaxConcurrency = maxThreads;
+                baseParameters.MaxConcurrency = maxThreads;
 
                 var creds = CredentialHelper.GetCredentials(ScraperRegistry.ScreenScraper.Name);
                 baseParameters.UserID = creds.UserName;
@@ -56,18 +56,87 @@ namespace Gamelist_Manager.Services
                 var (success, accessToken) = await AuthenticateEmuMoviesAsync();
                 if (!success) return false;
 
-                scraperProperties.MaxConcurrency = ScraperRegistry.EmuMovies.DefaultThreads;
+                baseParameters.MaxConcurrency = ScraperRegistry.EmuMovies.DefaultThreads;
                 baseParameters.UserAccessToken = accessToken;
 
-                await GetEmuMoviesMediaListsAsync(baseParameters.SystemID ?? string.Empty, scraperProperties, cancellationToken);
+                await GetEmuMoviesMediaListsAsync(baseParameters.SystemID ?? string.Empty, baseParameters, cancellationToken);
             }
 
             return true;
         }
 
+        public static ScraperParameters CreateScraperParameters(
+            bool verifyImageDownloads,
+            string profileType,
+            IReadOnlyList<AvailableMediaFolder> availableMedia,
+            string scraperName,
+            string currentSystem,
+            List<string> elementsToScrape)
+        {
+            var scraperConfig = ScraperConfigService.Instance;
+
+            string? primaryRegion = scraperConfig.GetScraperPrimaryRegionCode(scraperName);
+            var regions = scraperConfig.GetScraperFallbackRegionCodes(scraperName).ToList();
+            if (!string.IsNullOrEmpty(primaryRegion))
+            {
+                regions.Remove(primaryRegion);
+                regions.Insert(0, primaryRegion);
+            }
+
+            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
+
+            return new ScraperParameters
+            {
+                ScraperName = scraperName,
+                VerifyImageDownloads = verifyImageDownloads,
+                ElementsToScrape = elementsToScrape,
+                SystemID = scraperConfig.GetScraperSystemId(scraperName, currentSystem),
+                SSLanguage = scraperConfig.GetScraperLanguageCode(scraperName),
+                SSRegions = regions,
+                ImageSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.ImageSource)),
+                MarqueeSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.MarqueeSource)),
+                ThumbnailSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.ThumbnailSource)),
+                CartridgeSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.CartridgeSource)),
+                VideoSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.VideoSource)),
+                BoxArtSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.BoxArtSource)),
+                MixSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.MixSource)),
+                WheelSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.WheelSource)),
+                CacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraperName, currentSystem),
+                ScrapeNamesLanguageFirst = scraperConfig.GetScraperBoolSetting(scraperName, "NamesLanguageFirst"),
+                ScrapeMediaRegionFirst = scraperConfig.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
+                ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
+                ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
+                RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix"),
+
+                MediaPaths = availableMedia.ToDictionary(
+                    m => m.Type,
+                    m => m.FolderPath,
+                    StringComparer.OrdinalIgnoreCase),
+
+                MediaSuffixes = isEsDe
+                    ? new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
+                    : availableMedia.ToDictionary(
+                        m => m.Type,
+                        m => (m.Suffix, m.SfxEnabled),
+                        StringComparer.OrdinalIgnoreCase)
+            };
+        }
+
         #endregion
 
         #region Private Methods
+
+        private static string ResolveSource(ScraperConfigService scraperConfig, string scraperName, string sectionName)
+        {
+            string savedDisplayName = scraperConfig.GetScraperSourceSetting(scraperName, sectionName);
+            if (!string.IsNullOrEmpty(savedDisplayName))
+            {
+                var sources = scraperConfig.GetScraperSources(scraperName, sectionName);
+                if (sources.TryGetValue(savedDisplayName, out var apiValue) && !string.IsNullOrEmpty(apiValue))
+                    return apiValue;
+            }
+            return scraperConfig.GetScraperDefaultSource(scraperName, sectionName);
+        }
 
         private async Task<(bool Success, string? AccessToken)> AuthenticateEmuMoviesAsync()
         {

@@ -72,39 +72,57 @@ public partial class SettingsViewModel
 
     partial void OnSelectedSetupScraperIndexChanged(int value)
     {
-        if (!_isLoading)
-            _ = HandleScraperIndexChangedAsync();
-    }
+        if (_isProfileLoading) return;
 
-    private async Task HandleScraperIndexChangedAsync()
-    {
-        ShowScraperPassword = false;
         if (_credentialsDirty)
         {
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Unsaved Credentials",
-                Message = "You have unsaved credentials. Save them before switching scrapers?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "",
-                Button2Text = "Discard",
-                Button3Text = "Save"
-            });
-
-            if (result == ThreeButtonResult.Button3)
-                CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
+            ShowScraperPassword = false;
+            _ = PromptToSaveScraperCredentials();
+            // Always false after prompt because it was either saved or discarded.
+            _credentialsDirty = false;
         }
-        LoadScraperCredentials();
+
+        _isProfileLoading = true;
+
+        try { 
+            LoadScraperCredentials();
+            if (IsSetupScreenScraper)
+                LoadRegionsAndLanguages();
+        }
+
+        finally { _isProfileLoading = false; }
+    }
+
+    private async Task PromptToSaveScraperCredentials()
+    {
+        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        {
+            Title = "Unsaved Credentials",
+            Message = "You have unsaved credentials. Save them before switching scrapers?",
+            IconTheme = DialogIconTheme.Question,
+            Button1Text = "",
+            Button2Text = "Discard",
+            Button3Text = "Save"
+        });
+
+        if (result == ThreeButtonResult.Button3)
+        {
+            CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
+            _isProfileLoading = true;
+            LoadScraperCredentials();
+            _isProfileLoading = false;
+        }
     }
 
     partial void OnScraperUsernameChanged(string value)
     {
-        if (!_isLoading) _credentialsDirty = true;
+        if (!_isProfileLoading)
+            _credentialsDirty = true;
     }
 
     partial void OnScraperPasswordChanged(string value)
     {
-        if (!_isLoading) _credentialsDirty = true;
+        if (!_isProfileLoading) _credentialsDirty = true;
     }
 
     partial void OnSelectedScraperAvailableRegionChanged(string? value) =>
@@ -123,23 +141,13 @@ public partial class SettingsViewModel
 
     private void LoadScraperCredentials()
     {
-        _isLoading = true;
-        try
-        {
-            var scraperName = SetupScraperName;
-            var (userName, password) = CredentialHelper.GetCredentials(scraperName);
-            ScraperUsername = userName ?? string.Empty;
-            ScraperPassword = password ?? string.Empty;
+        var scraperName = SetupScraperName;
+        var (userName, password) = CredentialHelper.GetCredentials(scraperName);
+        ScraperUsername = userName ?? string.Empty;
+        ScraperPassword = password ?? string.Empty;
 
-            if (scraperName == ScraperRegistry.ScreenScraper.Name)
-                LoadRegionsAndLanguages();
-        }
-        finally
-        {
-            _isLoading = false;
-            _credentialsDirty = false;
-            SaveCredentialsCommand.NotifyCanExecuteChanged();
-        }
+        _credentialsDirty = false;
+        SaveCredentialsCommand.NotifyCanExecuteChanged();
     }
 
     private void LoadRegionsAndLanguages()
@@ -277,7 +285,10 @@ public partial class SettingsViewModel
     [RelayCommand]
     private void ResetScraperFallback()
     {
-        SettingsService.Instance.SetValue(SettingKeys.ScraperOptionsSection, SettingKeys.ScreenScraperRegionFallback.Key, DefaultFallbackJson);
+        ProfileService.Instance.Save(new()
+        {
+            [SettingKeys.ScraperOptionsSection] = new() { [SettingKeys.ScreenScraperRegionFallback.Key] = DefaultFallbackJson }
+        });
         LoadScraperFallbackRegions();
     }
 

@@ -190,6 +190,15 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         UpdateScaledLayoutWidths();
         _ = LoadSystemsAsync();
+
+        _sessionState.RefreshAvailableMedia(
+            _sessionState.ProfileType,
+            _sessionState.CurrentMediaFolder,
+            _settingsState.MediaPaths
+        );
+
+        if (IsScraperVisible)
+            RefreshScraper();
     }
 
     #endregion
@@ -213,6 +222,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
 
         WeakReferenceMessenger.Default.Register<SettingsAppliedMessage>(this, (_, __) => OnSettingsApplied());
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, GamelistLoadedRequestMessage>(this, (r, m) => m.Reply(r.IsGamelistLoaded));
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, CheckUnsavedGamelistChangesMessage>(this, (r, m) => m.Reply(r.CheckUnsavedChangesAsync()));
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, UnloadGamelistMessage>(this, (r, _) => r.UnloadGamelist());
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, ApplyProfileSwitchMessage>(this, (r, m) => m.Reply(r.ApplyProfileSwitchAsync(m.ProfileName).ContinueWith(_ => true)));
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, ProfilesChangedMessage>(this, (r, _) => r.RefreshProfiles());
 
         LoadColumnSettings();
         _sessionState.RecentFiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasRecentFiles));

@@ -1,4 +1,3 @@
-using Gamelist_Manager.Classes.Api;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
@@ -13,11 +12,14 @@ namespace Gamelist_Manager.Services
     {
         #region Public Methods
 
-        public async Task GetEmuMoviesMediaListsAsync(string systemId, ScraperProperties scraperProperties, CancellationToken cancellationToken = default)
+        public async Task GetEmuMoviesMediaListsAsync(
+            string systemId,
+            ScraperParameters baseParameters,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                await CreateMediaCache().PopulateMediaListsAsync(systemId, scraperProperties, msg => Log(msg), cancellationToken);
+                await CreateMediaCache().PopulateMediaListsAsync(systemId, baseParameters, msg => Log(msg), cancellationToken);
             }
             catch (InvalidOperationException ex)
             {
@@ -31,37 +33,33 @@ namespace Gamelist_Manager.Services
 
         private void BuildExistingMediaCache(ScraperParameters parameters, CancellationToken cancellationToken)
         {
-            if (parameters.MediaPaths == null || string.IsNullOrEmpty(parameters.ParentFolderPath))
+            if (parameters.MediaPaths == null)
                 return;
 
             try
             {
-                // Build a per-folder file set, deduplicating folders that appear multiple times.
                 var folderCache = new Dictionary<string, HashSet<string>>(FilePathHelper.PathComparer);
                 foreach (var (_, folder) in parameters.MediaPaths)
                 {
                     if (string.IsNullOrEmpty(folder)) continue;
-                    string absolute = FilePathHelper.GamelistPathToFullPath(folder, parameters.ParentFolderPath);
-                    if (folderCache.ContainsKey(absolute)) continue;
+                    if (folderCache.ContainsKey(folder)) continue;
 
                     var fileSet = new HashSet<string>(FilePathHelper.PathComparer);
-                    if (Directory.Exists(absolute))
-                        foreach (var file in Directory.EnumerateFiles(absolute))
+                    if (Directory.Exists(folder))
+                        foreach (var file in Directory.EnumerateFiles(folder))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             fileSet.Add(Path.GetFileName(file));
                         }
 
-                    folderCache[absolute] = fileSet;
+                    folderCache[folder] = fileSet;
                 }
 
-                // Map each media type to its folder's file set.
                 var mediaCache = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
                 foreach (var (mediaType, folder) in parameters.MediaPaths)
                 {
                     if (string.IsNullOrEmpty(folder)) continue;
-                    string absolute = FilePathHelper.GamelistPathToFullPath(folder, parameters.ParentFolderPath);
-                    if (folderCache.TryGetValue(absolute, out var fileSet))
+                    if (folderCache.TryGetValue(folder, out var fileSet))
                         mediaCache[mediaType] = fileSet;
                 }
 

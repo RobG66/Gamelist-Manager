@@ -215,6 +215,36 @@ namespace Gamelist_Manager.Services
             NoProfilesExist = false;
         }
 
+        // Reads the active profile, merges the supplied updates, and writes it back.
+        // This is the single authoritative way to persist any profile data.
+        public void Save(Dictionary<string, Dictionary<string, string>> updates)
+        {
+            var existing = IniFileService.ReadIniFile(ActiveProfilePath);
+            foreach (var (section, keys) in updates)
+            {
+                if (!existing.ContainsKey(section))
+                    existing[section] = [];
+                foreach (var (k, v) in keys)
+                    existing[section][k] = v;
+            }
+            IniFileService.WriteIniFile(ActiveProfilePath, existing);
+            MigrateProfile(ActiveProfilePath);
+            SettingsService.Instance.InvalidateCache();
+        }
+
+        public void SaveRecentFiles(List<string> recentFiles)
+        {
+            var dict = recentFiles
+                .Where(f => !string.IsNullOrEmpty(f))
+                .Select((f, i) => (Key: $"file{i + 1}", Value: f))
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            Save(new Dictionary<string, Dictionary<string, string>>
+            {
+                [SettingKeys.RecentFilesSection] = dict
+            });
+        }
+
         #region Private Methods
 
         // ES-DE profiles don't use batocera connection defaults or media paths.

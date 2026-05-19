@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
 using System.Collections.Concurrent;

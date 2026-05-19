@@ -232,29 +232,21 @@ namespace Gamelist_Manager.Classes.Api
 
             string scrapInfo = $"&romtype=rom&romnom={Uri.EscapeDataString(romName)}";
 
-            if (string.IsNullOrEmpty(parameters.ParentFolderPath) || string.IsNullOrEmpty(parameters.RomFileName))
+            if (string.IsNullOrEmpty(parameters.RomFilePath) || !File.Exists(parameters.RomFilePath))
                 return baseUrl + scrapInfo;
 
-            string romFullPath = Path.Combine(parameters.ParentFolderPath, parameters.RomFileName);
+            long fileSize = new FileInfo(parameters.RomFilePath).Length;
 
-            if (!File.Exists(romFullPath))
-                return baseUrl + scrapInfo;
-
-            long fileSize = new FileInfo(romFullPath).Length;
-
-            // Use MD5 for files <= 128MB
             if (fileSize > 0 && fileSize <= 131072 * 1024)
             {
-                string md5 = ChecksumHelper.CalculateMd5(romFullPath);
+                string md5 = ChecksumHelper.CalculateMd5(parameters.RomFilePath);
                 if (!string.IsNullOrEmpty(md5))
                 {
                     scrapInfo += $"&md5={md5}";
 
-                    string crc32 = ChecksumHelper.CalculateCrc32(romFullPath);
+                    string crc32 = ChecksumHelper.CalculateCrc32(parameters.RomFilePath);
                     if (!string.IsNullOrEmpty(crc32))
-                    {
                         scrapInfo += $"&crc={crc32}";
-                    }
                 }
             }
 

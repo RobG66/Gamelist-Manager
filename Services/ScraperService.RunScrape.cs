@@ -1,5 +1,3 @@
-using Gamelist_Manager.Classes.Api;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
@@ -15,14 +13,13 @@ namespace Gamelist_Manager.Services
 
         public async Task<bool> RunScrapeAsync(
             ScraperParameters baseParameters,
-            ScraperProperties scraperProperties,
             IReadOnlyList<GameMetadataRow> rows,
             int maxBatch,
             ScrapingCallbacks callbacks,
             CancellationToken cancellationToken)
         {
-            if (ScraperRegistry.Find(scraperProperties.ScraperName)?.SupportsBatchProcessing == true
-                && scraperProperties.BatchProcessing && rows.Count >= BatchProcessingMinimum)
+            if (ScraperRegistry.Find(baseParameters.ScraperName)?.SupportsBatchProcessing == true
+                && baseParameters.BatchProcessing && rows.Count >= BatchProcessingMinimum)
             {
                 baseParameters.ScrapeByCache = true;
                 await GetItemsInBatchModeAsync(
@@ -32,7 +29,7 @@ namespace Gamelist_Manager.Services
 
             BuildExistingMediaCache(baseParameters, cancellationToken);
 
-            int maxConcurrency = scraperProperties.MaxConcurrency;
+            int maxConcurrency = baseParameters.MaxConcurrency;
             if (maxConcurrency == 0)
             {
                 Log("Max concurrency is 0, aborting.", LogLevel.Error);
@@ -50,19 +47,17 @@ namespace Gamelist_Manager.Services
             {
                 foreach (var row in rows)
                 {
-                    // Stagger task starts to avoid hitting rate limits immediately and to give UI time to update progress
                     if (doneCount < maxConcurrency)
                         await Task.Delay(100, cancellationToken);
 
                     await semaphore.WaitAsync(cancellationToken);
-                    
+
                     int current = Interlocked.Increment(ref doneCount);
                     string romPath = row.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
                     callbacks.OnProgress(current, totalCount, Path.GetFileName(romPath));
 
-                  
                     tasks.Add(Task.Run(() => ProcessRowAsync(
-                        row, baseParameters, scraperProperties, callbacks, semaphore, cancellationToken), cancellationToken));
+                        row, baseParameters, callbacks, semaphore, cancellationToken), cancellationToken));
                 }
 
                 completed = true;
@@ -88,7 +83,6 @@ namespace Gamelist_Manager.Services
         private async Task ProcessRowAsync(
             GameMetadataRow row,
             ScraperParameters baseParameters,
-            ScraperProperties scraperProperties,
             ScrapingCallbacks callbacks,
             SemaphoreSlim semaphore,
             CancellationToken cancellationToken)
@@ -99,13 +93,13 @@ namespace Gamelist_Manager.Services
 
                 string romName = Path.GetFileNameWithoutExtension(
                     row.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty);
-                
+
                 for (int attempt = 0; attempt <= TimeoutRetryCount; attempt++)
                 {
                     try
                     {
                         var (success, data) = await ScrapeGameAsync(
-                            row, baseParameters, scraperProperties, scraperProperties.ScraperName,
+                            row, baseParameters,
                             callbacks.OnLimitUpdate, callbacks.OnQuotaExceeded, cancellationToken);
 
                         if (success || data.Data.ContainsKey(nameof(MetaDataKeys.region)) || data.Data.ContainsKey(nameof(MetaDataKeys.lang)))

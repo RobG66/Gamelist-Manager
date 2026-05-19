@@ -45,7 +45,7 @@ public partial class MediaPreviewViewModel
         }
 
         var currentSystem = _sessionState.CurrentSystem;
-        var gamelistDirectory = _sessionState.CurrentRomFolder;
+        var currentRomFolder = _sessionState.CurrentRomFolder;
         var availableMedia = _sessionState.AvailableMedia;
 
         _sessionState.IsScraping = true;
@@ -88,7 +88,7 @@ public partial class MediaPreviewViewModel
             if (scrapingVideo) SuspendVideo();
 
             var baseParameters = ScraperParameters.Create(
-                gamelistDirectory,
+                currentRomFolder, 
                 _settingsState.VerifyImageDownloads,
                 _sessionState.ProfileType,
                 availableMedia,
@@ -112,7 +112,7 @@ public partial class MediaPreviewViewModel
                 return;
 
             var (success, data) = await scraperService.ScrapeGameAsync(
-                SelectedGame, baseParameters, scraperProperties, scraperName);
+                SelectedGame, baseParameters, scraperProperties);
 
             if (success && data.Data.Count > 0)
             {

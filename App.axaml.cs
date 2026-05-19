@@ -4,7 +4,6 @@ using Avalonia.Markup.Xaml;
 using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
 using LibVLCSharp.Shared;
-using System.Net.Http;
 
 namespace Gamelist_Manager;
 
@@ -13,7 +12,7 @@ public partial class App : Application
     public override void Initialize()
     {
         // Probe for the native libvlc library before calling any LibVLC API.
-       if (IsLibVLCNativeLibraryPresent())
+        if (IsLibVLCNativeLibraryPresent())
         {
             try
             {

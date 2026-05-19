@@ -25,7 +25,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     #region Private Fields
 
-    private bool _isLoading;
+    private bool _isProfileLoading;
     private bool _isDisposed;
     private CancellationTokenSource? _cts;
     private DateTime _startTime;
@@ -197,9 +197,9 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
         _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
 
-        _isLoading = true;
+        _isProfileLoading = true;
         LoadScraperSettings();
-        _isLoading = false;
+        _isProfileLoading = false;
         _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
         RefreshCacheCount();
         Log("Ready to scrape...", LogLevel.Info);
@@ -255,13 +255,13 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     partial void OnCurrentScraperChanging(string value)
     {
-        if (_isLoading) return;
+        if (_isProfileLoading) return;
         SaveScraperSettings();
     }
 
     partial void OnCurrentScraperChanged(string value)
     {
-        if (_isLoading) return;
+        if (_isProfileLoading) return;
         LoadScraperSettings();
         RefreshCacheCount();
         Log($"Scraper changed to: {value}", LogLevel.Status);
@@ -269,7 +269,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     partial void OnScrapeFromCacheChanged(bool value)
     {
-        if (_isLoading || !ScrapeFromCacheEnabled) return;
+        if (_isProfileLoading || !ScrapeFromCacheEnabled) return;
         SkipNonCachedItemsEnabled = value;
         if (!value) SkipNonCachedItems = false;
     }
@@ -313,7 +313,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     {
         var key = ScraperSettingsKey;
 
-        if (_isLoading)
+        if (_isProfileLoading)
         {
             var savedScraper = _settingsState.SelectedScraper;
             CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
@@ -442,7 +442,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             panelValues[$"{key}_{s.Name}"] = idx >= 0 && idx < s.Sources.Count ? s.Sources[idx] : "";
         }
 
-        _settingsService.SaveAllSettings(new Dictionary<string, Dictionary<string, string>>
+        ProfileService.Instance.Save(new Dictionary<string, Dictionary<string, string>>
         {
             [SettingKeys.ScraperOptionsSection] = new() { [SettingKeys.SelectedScraper.Key] = CurrentScraper },
             [SettingKeys.ScrapersSection] = panelValues
