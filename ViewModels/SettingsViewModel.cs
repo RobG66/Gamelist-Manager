@@ -205,7 +205,8 @@ public partial class SettingsViewModel : ViewModelBase
             item.Path = LoadMediaPath(s.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
             item.Suffix = s.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix);
             item.SfxEnabled = bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
-            item.Enabled = (!isEsDe || (GamelistMetaData.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
+            // TODO : This logic is a bit convoluted - consider refactoring to be clearer
+            item.Enabled = (!isEsDe || (MetadataService.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
                            (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
         }
 

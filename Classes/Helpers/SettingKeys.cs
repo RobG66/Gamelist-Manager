@@ -191,7 +191,8 @@ public static class SettingKeys
     #region Media Path Defaults
 
     public static readonly IReadOnlyDictionary<string, string> DefaultMediaPaths =
-        GamelistMetaData.GetAllMediaFolderTypes()
+        MetaDataDecl.AllDeclarations
+            .Where(d => d.IsMedia)
             .SelectMany(d => new[]
             {
                 KeyValuePair.Create(d.Type,                  d.DefaultPath),

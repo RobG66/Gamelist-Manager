@@ -1,4 +1,5 @@
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,7 +17,6 @@ namespace Gamelist_Manager.Services
 
         private readonly SettingsService _settings;
 
-        // Cached per scraper name to avoid re-reading INI files on every access.
         private readonly ConcurrentDictionary<string, Dictionary<string, Dictionary<string, string>>> _scraperSectionsCache = new(StringComparer.OrdinalIgnoreCase);
 
         #endregion
@@ -134,7 +134,19 @@ namespace Gamelist_Manager.Services
         }
 
         public string GetScraperSourceSetting(string scraperName, string sectionName)
-            => _settings.GetValue(SettingKeys.ScraperOptionsSection, $"{scraperName}_{sectionName}", "");
+        {
+            int configSave = _settings.GetInt(SettingKeys.ScraperOptionsSection, "ScraperConfigSave", 0);
+
+            if (configSave == 1)
+            {
+                string? systemName = SessionState.Instance.CurrentSystem;
+                if (!string.IsNullOrEmpty(systemName))
+                    return _settings.GetValue(SettingKeys.ScrapersSection, $"{scraperName}_{systemName}_{sectionName}", "");
+                return "";
+            }
+
+            return _settings.GetValue(SettingKeys.ScrapersSection, $"{scraperName}_{sectionName}", "");
+        }
 
         public bool GetScraperBoolSetting(string scraperName, string settingName, bool defaultValue = false)
             => _settings.GetBool(SettingKeys.ScraperOptionsSection, $"{scraperName}_{settingName}", defaultValue);

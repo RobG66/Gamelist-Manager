@@ -4,6 +4,7 @@ using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ public partial class MainWindow
         columns.Clear();
         _columnsByType.Clear();
 
-        foreach (var decl in GamelistMetaData.GetColumnDeclarations())
+        foreach (var decl in MetadataService.GetColumnDeclarations())
         {
             if (decl.Key == MetaDataKeys.music)
                 continue;
@@ -97,7 +98,7 @@ public partial class MainWindow
     {
         if (DataContext is not MainWindowViewModel vm) return;
 
-        foreach (var decl in GamelistMetaData.GetColumnDeclarations())
+        foreach (var decl in MetadataService.GetColumnDeclarations())
         {
             if (!_columnsByType.TryGetValue(decl.Type, out var column)) continue;
 
@@ -115,13 +116,14 @@ public partial class MainWindow
         }
 
         vm.UpdateSearchableColumns(GetVisibleColumnNames());
+        GameDataGrid.UpdateLayout();
     }
 
     private void ApplySizeToFitToDataGrid(bool sizeToFit)
     {
         if (GameDataGrid?.Columns == null) return;
 
-        foreach (var decl in GamelistMetaData.GetColumnDeclarations())
+        foreach (var decl in MetadataService.GetColumnDeclarations())
         {
             if (!_columnsByType.TryGetValue(decl.Type, out var column)) continue;
             if (column is not DataGridTextColumn textColumn) continue;

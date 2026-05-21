@@ -351,7 +351,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     private void ApplyScraperCapabilities()
     {
-        var scraperElements = GamelistMetaData.GetScraperElements(CurrentScraper);
+        var scraperElements = MetadataService.GetScraperElements(CurrentScraper);
         var availableMedia = _sessionState.AvailableMedia;
         bool HasMedia(string type) => availableMedia.Any(m => m.Type == type);
 

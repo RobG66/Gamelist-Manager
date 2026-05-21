@@ -11,9 +11,6 @@ namespace Gamelist_Manager.Services
 {
     public class GamelistService
     {
-        private static readonly Lazy<IReadOnlyDictionary<MetaDataKeys, MetaDataDecl>> s_metaDataDict =
-            new(() => GamelistMetaData.GetMetaDataDictionary());
-
         public static (ObservableCollection<GameMetadataRow> Games, List<string> Duplicates) LoadGamelist(string xmlFilePath, bool ignoreDuplicates = false)
         {
             var games = new ObservableCollection<GameMetadataRow>();
@@ -34,18 +31,18 @@ namespace Gamelist_Manager.Services
             if (!gameElements.Any())
                 return (games, duplicates);
 
-            var metaDataDict = s_metaDataDict.Value;
-
             var uniqueRomPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var boolFields = MetadataService.GetAllBoolMetadata();
+            var viewableFields = MetadataService.GetAllViewableFields();
 
             foreach (var gameElement in gameElements)
             {
                 var game = new GameMetadataRow();
 
-                foreach (var metaDecl in metaDataDict.Values.Where(d => d.DataType == MetaDataType.Bool))
+                foreach (var metaDecl in boolFields)
                     game.SetValue(metaDecl.Key, false);
 
-                foreach (var metaDecl in metaDataDict.Values.Where(d => d.Viewable))
+                foreach (var metaDecl in viewableFields)
                 {
                     var element = gameElement.Element(metaDecl.Type);
                     if (element == null || string.IsNullOrEmpty(element.Value))

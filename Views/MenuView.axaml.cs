@@ -4,6 +4,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -95,7 +96,7 @@ public partial class MenuView : UserControl
         var insertPoint = flyout.Items.OfType<Separator>().Skip(1).FirstOrDefault();
         var insertIndex = insertPoint != null ? flyout.Items.IndexOf(insertPoint) : flyout.Items.Count;
 
-        foreach (var decl in GamelistMetaData.GetAllToggleableColumns())
+        foreach (var decl in MetadataService.GetToggleableColumns())
         {
             var checkBox = new CheckBox
             {

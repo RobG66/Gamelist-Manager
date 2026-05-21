@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System.Collections.Generic;
 
 namespace Gamelist_Manager.ViewModels;
@@ -90,7 +91,7 @@ public partial class MainWindowViewModel
         MediaPathsVisible = false;
         SizeToFit = true;
 
-        foreach (var column in GamelistMetaData.GetToggleableColumns())
+        foreach (var column in MetadataService.GetToggleableColumns())
             SetColumnVisible(column.Type, column.DefaultVisible);
 
         ColumnVisibilityChanged?.Invoke();
@@ -102,11 +103,12 @@ public partial class MainWindowViewModel
     private void LoadColumnSettings()
     {
         var saved = _settingsState.GetColumnVisibility();
+        var toggleableColumns = MetadataService.GetToggleableColumns();
 
         if (_settingsState.RememberAutosize || _settingsState.RememberColumns)
             SizeToFit = saved != null && bool.TryParse(saved.GetValueOrDefault("SizeToFit", "true"), out var v) ? v : true;
 
-        foreach (var column in GamelistMetaData.GetToggleableColumns())
+        foreach (var column in toggleableColumns)
             _columnVisibility[column.Type] = column.DefaultVisible;
 
         if (!_settingsState.RememberColumns || saved == null)
@@ -115,7 +117,7 @@ public partial class MainWindowViewModel
         DescriptionPanelVisible = bool.TryParse(saved.GetValueOrDefault("DescriptionPanel", "true"), out var dp) ? dp : true;
         MediaPathsVisible = bool.TryParse(saved.GetValueOrDefault("MediaPaths", "false"), out var mp) ? mp : false;
 
-        foreach (var column in GamelistMetaData.GetToggleableColumns())
+        foreach (var column in toggleableColumns)
             _columnVisibility[column.Type] = bool.TryParse(saved.GetValueOrDefault(column.Type, column.DefaultVisible.ToString()), out var cv) ? cv : column.DefaultVisible;
     }
 
@@ -134,7 +136,7 @@ public partial class MainWindowViewModel
             values["DescriptionPanel"] = DescriptionPanelVisible.ToString();
             values["MediaPaths"] = MediaPathsVisible.ToString();
 
-            foreach (var column in GamelistMetaData.GetToggleableColumns())
+            foreach (var column in MetadataService.GetToggleableColumns())
                 values[column.Type] = GetColumnVisible(column.Type).ToString();
         }
 

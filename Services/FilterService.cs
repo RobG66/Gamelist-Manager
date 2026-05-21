@@ -75,7 +75,7 @@ namespace Gamelist_Manager.Services
 
         private static string? GetProperty(GameMetadataRow game, string propertyName)
         {
-            var type = GamelistMetaData.GetMetadataTypeByName(propertyName);
+            var type = MetadataService.GetMetadataTypeByName(propertyName);
             if (!string.IsNullOrEmpty(type) && Enum.TryParse<MetaDataKeys>(type, true, out var key))
                 return game.GetValue(key)?.ToString();
             return null;

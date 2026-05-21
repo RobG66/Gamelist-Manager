@@ -9,11 +9,11 @@ namespace Gamelist_Manager.Classes.Helpers
     // file writes are skipped for data the user already has or has chosen not to overwrite.
     public static class ScrapeFilterHelper
     {
-        public static List<string> FilterElementsToScrape(GameMetadataRow row, ScraperParameters baseParameters)
+        public static List<string> FilterElementsToScrape(GameMetadataRow row, ScraperParameters parameters)
         {
             var itemsToScrape = new List<string>();
 
-            foreach (var item in baseParameters.ElementsToScrape!)
+            foreach (var item in parameters.ElementsToScrape!)
             {
                 // Non-metadata items (region, lang, etc.) — always include
                 if (!Enum.TryParse<MetaDataKeys>(item, true, out var key))
@@ -22,10 +22,13 @@ namespace Gamelist_Manager.Classes.Helpers
                     continue;
                 }
 
-                var (type, _) = baseParameters.MetaLookup.TryGetValue(item, out var meta) ? meta : ("String", string.Empty);
+                var (type, _) = parameters.MetaLookup != null && parameters.MetaLookup.TryGetValue(item, out var meta)
+                    ? meta
+                    : ("String", string.Empty);
+
                 string? value = row.GetValue(key)?.ToString();
 
-                // No existing value — always scrape (covers Music, which is never stored in the gamelist)
+                // No existing value — always scrape
                 if (string.IsNullOrEmpty(value))
                 {
                     itemsToScrape.Add(item);
@@ -34,11 +37,11 @@ namespace Gamelist_Manager.Classes.Helpers
 
                 // Media with an existing gamelist path — skip if the file is on disk and not overwriting
                 if (type is "Image" or "Document" or "Video" &&
-                    baseParameters.MediaPaths != null &&
-                    baseParameters.MediaPaths.TryGetValue(item, out string? folder) &&
+                    parameters.MediaPaths != null &&
+                    parameters.MediaPaths.TryGetValue(item, out string? folder) &&
                     !string.IsNullOrEmpty(folder))
                 {
-                    if (baseParameters.OverwriteMedia)
+                    if (parameters.OverwriteMedia)
                     {
                         itemsToScrape.Add(item);
                     }
@@ -47,15 +50,14 @@ namespace Gamelist_Manager.Classes.Helpers
                         string fileName = Path.GetFileName(value);
                         bool fileExists;
 
-                        if (baseParameters.ExistingMediaFiles != null &&
-                            baseParameters.ExistingMediaFiles.TryGetValue(item, out var fileSet))
+                        if (parameters.ExistingMediaFiles != null &&
+                            parameters.ExistingMediaFiles.TryGetValue(item, out var fileSet))
                         {
                             fileExists = fileSet.Contains(fileName);
                         }
                         else
                         {
-                            string absoluteFolder = FilePathHelper.GamelistPathToFullPath(folder, baseParameters.ParentFolderPath!);
-                            fileExists = File.Exists(Path.Combine(absoluteFolder, fileName));
+                            fileExists = File.Exists(Path.Combine(folder, fileName));
                         }
 
                         if (!fileExists)
@@ -68,13 +70,13 @@ namespace Gamelist_Manager.Classes.Helpers
                 // Name — only scrape if overwrite name is enabled
                 if (item == "name")
                 {
-                    if (baseParameters.OverwriteName)
+                    if (parameters.OverwriteName)
                         itemsToScrape.Add(item);
                     continue;
                 }
 
                 // Remaining string metadata — only scrape if overwrite metadata is enabled
-                if (type == "String" && baseParameters.OverwriteMetadata)
+                if (type == "String" && parameters.OverwriteMetadata)
                     itemsToScrape.Add(item);
             }
 

@@ -65,7 +65,7 @@ public partial class MainWindowViewModel
 
     public bool IsReplaceAllowed =>
         !string.IsNullOrEmpty(SelectedFindColumn) &&
-        GamelistMetaData.GetColumnDeclarations().Any(d => d.Name == SelectedFindColumn && d.Editable);
+        (MetadataService.GetDeclByName(SelectedFindColumn)?.Editable ?? false);
 
     #endregion
 
@@ -110,11 +110,7 @@ public partial class MainWindowViewModel
     {
         SearchableColumns.Clear();
 
-        var searchableNames = new HashSet<string>(
-            GamelistMetaData.GetColumnDeclarations()
-                .Select(d => d.Name));
-
-        foreach (var name in visibleColumnNames.Where(h => searchableNames.Contains(h)))
+        foreach (var name in visibleColumnNames.Where(n => MetadataService.GetDeclByName(n) != null))
             SearchableColumns.Add(name);
 
         if (DescriptionPanelVisible)

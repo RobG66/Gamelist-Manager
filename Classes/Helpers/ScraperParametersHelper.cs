@@ -1,4 +1,5 @@
 ﻿using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,8 +33,8 @@ namespace Gamelist_Manager.Classes.Helpers
             parameters.MetaLookup = parameters.ElementsToScrape.ToDictionary(
                 item => item,
                 item => (
-                    GamelistMetaData.GetMetadataDataTypeByType(item),
-                    GamelistMetaData.GetMetadataNameByType(item)
+                    MetadataService.GetMetadataDataTypeByType(item),
+                    MetadataService.GetMetadataNameByType(item)
                 )
             );
         }

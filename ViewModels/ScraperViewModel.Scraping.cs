@@ -1,5 +1,4 @@
 ﻿using Avalonia.Threading;
-using Gamelist_Manager.Classes.Api;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
@@ -46,7 +45,6 @@ public partial class ScraperViewModel
         }
 
         var currentSystem = _sessionState.CurrentSystem;
-        var gamelistDirectory = _sessionState.CurrentRomFolder;
         var currentScraper = CurrentScraper;
         var maxBatch = _settingsState.MaxBatch;
         var removeZzzNotGamePrefix = _settingsState.RemoveZZZNotGamePrefix;
@@ -70,15 +68,16 @@ public partial class ScraperViewModel
 
         try
         {
-            var baseParameters = ScraperParameters.Create(
-                gamelistDirectory,
+            var baseParameters = ScraperService.CreateScraperParameters(
                 verifyImageDownloads,
                 profileType,
                 availableMedia,
                 currentScraper,
-                currentSystem,
+                currentSystem!,
                 elementsToScrape);
 
+            baseParameters.LogVerbosity = logVerbosity;
+            baseParameters.BatchProcessing = batchProcessing;
             baseParameters.OverwriteName = OverwriteName;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
             baseParameters.OverwriteMedia = OverwriteMedia;
@@ -86,24 +85,16 @@ public partial class ScraperViewModel
             baseParameters.SkipNonCached = SkipNonCachedItems;
             baseParameters.RemoveZzzNotGamePrefix = removeZzzNotGamePrefix;
 
-            var scraperProperties = new ScraperProperties
-            {
-                ScraperName = currentScraper,
-                LogVerbosity = logVerbosity,
-                BatchProcessing = batchProcessing,
-            };
-
             if (!await scraperService.InitializeScraperAsync(
-                baseParameters, scraperProperties,
-                currentSystem, _cts.Token))
+                baseParameters, currentSystem!, _cts.Token))
             {
                 return;
             }
 
             if (overrideConcurrency && concurrencyOverride >= 1)
             {
-                int naturalMax = scraperProperties.MaxConcurrency;
-                scraperProperties.MaxConcurrency = Math.Min(naturalMax, concurrencyOverride);
+                int naturalMax = baseParameters.MaxConcurrency;
+                baseParameters.MaxConcurrency = Math.Min(naturalMax, concurrencyOverride);
 
                 if (concurrencyOverride >= naturalMax)
                     Log($"Concurrency override ({concurrencyOverride}) ignored — scraper max is {naturalMax}.", LogLevel.Info);
@@ -119,14 +110,14 @@ public partial class ScraperViewModel
             }
 
             ProgressMaximum = rowsToScrape.Count;
-            ThreadCountText = scraperProperties.MaxConcurrency.ToString();
+            ThreadCountText = baseParameters.MaxConcurrency.ToString();
             _startTime = DateTime.Now;
 
             string modeLabel = ScrapeSelectedMode ? "selected" : "visible";
-            Log($"Scraping {rowsToScrape.Count} {modeLabel} item(s) with {scraperProperties.MaxConcurrency} thread(s)...", LogLevel.Status);
+            Log($"Scraping {rowsToScrape.Count} {modeLabel} item(s) with {baseParameters.MaxConcurrency} thread(s)...", LogLevel.Status);
 
             bool completed = await scraperService.RunScrapeAsync(
-                baseParameters, scraperProperties, rowsToScrape,
+                baseParameters, rowsToScrape,
                 maxBatch,
                 new ScrapingCallbacks(
                     OnProgress: (current, total, item) =>

@@ -2,6 +2,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -56,7 +57,7 @@ public partial class MainWindowViewModel
     // are always reflected in the audit panel.
     private static IReadOnlyList<(MetaDataDecl MediaType, SolidColorBrush Brush)> GetMediaTypeInfo()
     {
-        var mediaDecls = GamelistMetaData.GetColumnDeclarations()
+        var mediaDecls = MetadataService.GetColumnDeclarations()
             .Where(d => d.IsMedia)
             .ToList();
 

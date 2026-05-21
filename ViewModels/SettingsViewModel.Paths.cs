@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -31,7 +32,7 @@ public partial class SettingsViewModel
     private void InitializeMediaFolderItems()
     {
         MediaFolderItems.Clear();
-        foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
+        foreach (var decl in MetadataService.GetAllMediaFolderTypes())
         {
             var item = new MediaFolderItem
             {
@@ -136,7 +137,7 @@ public partial class SettingsViewModel
 
                 if (isEsDe)
                 {
-                    effectivePath = (GamelistMetaData.GetDeclByType(item.Key)?.EsDeFolderName ?? item.Key).ToLowerInvariant();
+                    effectivePath = (MetadataService.GetDeclByType(item.Key)?.EsDeFolderName ?? item.Key).ToLowerInvariant();
                     effectiveSuffix = string.Empty;
                 }
                 else
@@ -164,7 +165,7 @@ public partial class SettingsViewModel
 
         foreach (var item in MediaFolderItems)
         {
-            var decl = GamelistMetaData.GetDeclByType(item.Key);
+            var decl = MetadataService.GetDeclByType(item.Key);
             var isEsDeSupported = decl?.IsEsDeSupported ?? false;
             var esDeFolderName = decl?.EsDeFolderName;
             item.RefreshDisplayState(isEsDe, isEsDeSupported, esDeMediaBase, currentSystem, esDeFolderName);

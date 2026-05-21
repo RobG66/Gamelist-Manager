@@ -93,7 +93,7 @@ public partial class MainWindowViewModel
     partial void OnSelectedCustomFilterColumnChanged(string? value)
     {
         var decl = value == null ? null
-            : GamelistMetaData.GetColumnDeclarations().FirstOrDefault(d => d.Name == value);
+            : MetadataService.GetColumnDeclarations().FirstOrDefault(d => d.Name == value);
         IsSelectedColumnBool = decl?.DataType == MetaDataType.Bool;
         OnPropertyChanged(nameof(CurrentFilterModes));
         SelectedCustomFilterMode = IsSelectedColumnBool ? "Is Anything" : "Is Like";

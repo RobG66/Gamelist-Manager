@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ public partial class MainWindowViewModel
         if (_settingsState.ConfirmBulkChanges && games.Count > 1)
         {
             var label = options.UseAllItems ? $"all {games.Count} visible" : $"{games.Count} selected";
-            var decl = GamelistMetaData.GetMetaDataDictionary()[options.Key];
+            var decl = MetadataService.GetMetaDataDictionary()[options.Key];
             var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
             {
                 Title = "Confirm Bulk Operation",
@@ -372,18 +373,17 @@ public partial class MainWindowViewModel
     private static void ClearGameData(GameMetadataRow game)
     {
         var nameFromPath = System.IO.Path.GetFileNameWithoutExtension(game.Path);
-        var metaDataDict = GamelistMetaData.GetMetaDataDictionary();
 
-        foreach (var entry in metaDataDict.Values)
+        foreach (var decl in MetadataService.GetMetaDataDictionary().Values)
         {
-            if (entry.Key == MetaDataKeys.path) continue;
+            if (decl.Key == MetaDataKeys.path) continue;
 
-            if (entry.Key == MetaDataKeys.name)
-                game.SetValue(entry.Key, nameFromPath);
-            else if (entry.DataType == MetaDataType.Bool)
-                game.SetValue(entry.Key, false);
+            if (decl.Key == MetaDataKeys.name)
+                game.SetValue(decl.Key, nameFromPath);
+            else if (decl.DataType == MetaDataType.Bool)
+                game.SetValue(decl.Key, false);
             else
-                game.SetValue(entry.Key, null);
+                game.SetValue(decl.Key, null);
         }
 
         game.NotifyDataChanged();
@@ -391,7 +391,7 @@ public partial class MainWindowViewModel
 
     private static void ClearMediaPathData(GameMetadataRow game)
     {
-        foreach (var decl in GamelistMetaData.GetColumnDeclarations().Where(d => d.IsMedia))
+        foreach (var decl in MetadataService.GetMediaDeclarations())
             game.SetValue(decl.Key, null);
 
         game.NotifyDataChanged();
@@ -401,7 +401,7 @@ public partial class MainWindowViewModel
     // SetValue triggers GameItem_PropertyChanged which handles dirty flags and per-row cache refresh.
     internal int PerformReplaceInRows(IList<GameMetadataRow> rows, string columnName, string findText, string replaceText)
     {
-        if (!Enum.TryParse<MetaDataKeys>(GamelistMetaData.GetMetadataTypeByName(columnName), true, out var metaKey))
+        if (!Enum.TryParse<MetaDataKeys>(MetadataService.GetMetadataTypeByName(columnName), true, out var metaKey))
             return 0;
 
         int total = 0;
@@ -421,7 +421,7 @@ public partial class MainWindowViewModel
 
     internal int CountReplacementOccurrences(IList<GameMetadataRow> rows, string columnName, string findText)
     {
-        if (!Enum.TryParse<MetaDataKeys>(GamelistMetaData.GetMetadataTypeByName(columnName), true, out var metaKey))
+        if (!Enum.TryParse<MetaDataKeys>(MetadataService.GetMetadataTypeByName(columnName), true, out var metaKey))
             return 0;
 
         return rows.Sum(row => CountOccurrences(row.GetValue(metaKey)?.ToString() ?? string.Empty, findText));

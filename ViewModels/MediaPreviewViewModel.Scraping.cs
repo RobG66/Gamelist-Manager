@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Api;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
@@ -15,7 +14,6 @@ public partial class MediaPreviewViewModel
 {
     public IReadOnlyList<ScraperConfig> Scrapers => ScraperRegistry.All;
 
-    // Returns false for arcade-only scrapers when the current system is not an arcade system.
     public bool IsScraperAvailable(ScraperConfig scraper)
     {
         if (!scraper.ArcadeOnly) return true;
@@ -45,7 +43,6 @@ public partial class MediaPreviewViewModel
         }
 
         var currentSystem = _sessionState.CurrentSystem;
-        var currentRomFolder = _sessionState.CurrentRomFolder;
         var availableMedia = _sessionState.AvailableMedia;
 
         _sessionState.IsScraping = true;
@@ -53,7 +50,7 @@ public partial class MediaPreviewViewModel
         try
         {
             string? itemLabel = specificElements?.Count == 1
-                ? GamelistMetaData.GetMetadataNameByType(specificElements[0])
+                ? MetadataService.GetMetadataNameByType(specificElements[0])
                 : null;
 
             SetScraperStatus(
@@ -63,9 +60,9 @@ public partial class MediaPreviewViewModel
                 null);
 
             var elementsToScrape = specificElements != null
-                ? specificElements.Where(e => availableMedia.Any(m => m.Type == e) || GamelistMetaData.GetDeclByType(e) is { IsMedia: false }).ToList()
-                : GamelistMetaData.GetScraperElements(scraperName)
-                    .Where(e => availableMedia.Any(m => m.Type == e) || GamelistMetaData.GetDeclByType(e) is { IsMedia: false })
+                ? specificElements.Where(e => availableMedia.Any(m => m.Type == e) || MetadataService.GetDeclByType(e) is { IsMedia: false }).ToList()
+                : MetadataService.GetScraperElements(scraperName)
+                    .Where(e => availableMedia.Any(m => m.Type == e) || MetadataService.GetDeclByType(e) is { IsMedia: false })
                     .ToList();
 
             if (elementsToScrape.Count == 0)
@@ -78,17 +75,10 @@ public partial class MediaPreviewViewModel
                 return;
             }
 
-            var scraperProperties = new ScraperProperties
-            {
-                ScraperName = scraperName,
-                LogVerbosity = 0
-            };
-
             if (elementsToScrape.Contains("video")) scrapingVideo = true;
             if (scrapingVideo) SuspendVideo();
 
-            var baseParameters = ScraperParameters.Create(
-                currentRomFolder, 
+            var baseParameters = ScraperService.CreateScraperParameters(
                 _settingsState.VerifyImageDownloads,
                 _sessionState.ProfileType,
                 availableMedia,
@@ -96,7 +86,7 @@ public partial class MediaPreviewViewModel
                 currentSystem,
                 elementsToScrape);
 
-            // Always overwrite single media item scrapes
+            baseParameters.LogVerbosity = 0;
             baseParameters.OverwriteMedia = specificElements?.Count == 1 || OverwriteMedia;
             baseParameters.OverwriteMetadata = OverwriteMetadata;
 
@@ -107,12 +97,10 @@ public partial class MediaPreviewViewModel
                     SetScraperStatus(message, "error");
             };
 
-            if (!await scraperService.InitializeScraperAsync(
-                baseParameters, scraperProperties, currentSystem))
+            if (!await scraperService.InitializeScraperAsync(baseParameters, currentSystem))
                 return;
 
-            var (success, data) = await scraperService.ScrapeGameAsync(
-                SelectedGame, baseParameters, scraperProperties);
+            var (success, data) = await scraperService.ScrapeGameAsync(SelectedGame, baseParameters);
 
             if (success && data.Data.Count > 0)
             {

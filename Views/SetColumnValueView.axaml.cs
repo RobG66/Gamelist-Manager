@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,7 +31,7 @@ namespace Gamelist_Manager.Views
             RadioSelectedItems.IsEnabled = hasSelection;
 
             // Populate the column combobox — everything except path, using display names
-            var columns = GamelistMetaData.GetColumnDeclarations()
+            var columns = MetadataService.GetColumnDeclarations()
                 .Where(d => d.Key != MetaDataKeys.path)
                 .ToList();
 

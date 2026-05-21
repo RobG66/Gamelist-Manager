@@ -26,6 +26,10 @@
                                FontSize="{DynamicResource GlobalHeaderFontSize}"
                                FontWeight="Bold"
                                Foreground="{DynamicResource AccentTextBrush}"/>
+                    <TextBlock Text="{Binding RomFolder}"
+                               FontSize="{DynamicResource GlobalSmallFontSize}"
+                               Opacity="0.6"/>
+                                        
                     <TextBlock Text="{Binding SubtitleText}"
                                FontSize="{DynamicResource GlobalSmallFontSize}"
                                Opacity="0.6"/>

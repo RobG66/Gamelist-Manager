@@ -325,11 +325,16 @@ public partial class MainWindowViewModel
             var systemName = selected.Name;
             var gamelistFolder = selected.FolderPath;
             var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
-            // TODO: needs rethinking for ES-DE — gamelists are separate from ROMs folder
-
+           
             Directory.CreateDirectory(gamelistFolder);
 
             _sessionState.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
+
+            _sessionState.RefreshAvailableMedia(
+                _sessionState.ProfileType,
+                _sessionState.CurrentMediaFolder,
+                _settingsState.MediaPaths
+            );
 
             ClearFilters();
             ClearReportColumns();
@@ -695,7 +700,7 @@ public partial class MainWindowViewModel
             ? filteredRows
             : _sourceCache.Items.ToList();
 
-        var columns = GamelistMetaData.GetColumnDeclarations()
+        var columns = MetadataService.GetColumnDeclarations()
             .Where(d => d.Key != MetaDataKeys.music && d.Key != MetaDataKeys.desc)
             .Where(d =>
             {
@@ -726,7 +731,7 @@ public partial class MainWindowViewModel
     {
         if (string.IsNullOrEmpty(mediaDirectory)) return;
 
-        var mediaDecls = GamelistMetaData.GetAllMediaFolderTypes();
+        var mediaDecls = MetadataService.GetAllMediaFolderTypes();
 
         foreach (var game in games)
         {

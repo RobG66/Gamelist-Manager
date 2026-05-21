@@ -2,6 +2,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -79,6 +80,7 @@ public partial class GamelistPickerViewModel : ObservableObject
     public string ConfirmButtonText { get; }
     public string SubtitleText { get; }
     public bool ShowGamelistBadge { get; }
+    public string RomFolder => SettingsState.Instance.RomsFolder;
 
     #endregion
 

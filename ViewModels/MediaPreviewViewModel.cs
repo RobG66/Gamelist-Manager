@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
@@ -303,7 +304,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     private void InitializeMediaItems()
     {
         MediaItems.Clear();
-        foreach (var metadata in GamelistMetaData.GetMediaMetadata())
+        foreach (var metadata in MetadataService.GetMediaMetadata())
         {
             var isVideo = metadata.DataType == MetaDataType.Video;
             var isManual = metadata.DataType == MetaDataType.Document;

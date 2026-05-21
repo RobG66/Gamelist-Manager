@@ -84,7 +84,10 @@ namespace Gamelist_Manager.Services
             string romName = row.GetValue(MetaDataKeys.name)?.ToString() ?? romFileNameNoExt;
             string gameID = row.GetValue(MetaDataKeys.id)?.ToString() ?? string.Empty;
 
-            var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, baseParameters);
+            var scraperParameters = baseParameters.Clone();
+            scraperParameters.RomFilePath = Path.Combine(SessionState.Instance.CurrentRomFolder!, romFileName);
+
+            var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, scraperParameters);
             if (itemsToScrape.Count == 0)
             {
                 if (baseParameters.LogVerbosity == 2)
@@ -97,8 +100,6 @@ namespace Gamelist_Manager.Services
             var (romRegion, romLanguage) = ResolveRegionAndLanguage(
                 itemsToScrape, mameArcadeName, romFileNameNoExt, currentScraper);
 
-            var scraperParameters = baseParameters.Clone();
-            scraperParameters.RomFilePath = Path.Combine(SessionState.Instance.CurrentRomFolder!, romFileName);
             scraperParameters.GameID = gameID;
             scraperParameters.RomName = romName;
             scraperParameters.RomFileName = romFileName;
@@ -156,7 +157,7 @@ namespace Gamelist_Manager.Services
                 return;
 
             var profileType = SessionState.Instance.ProfileType;
-            var metaDataDict = GamelistMetaData.GetMetaDataDictionary();
+            var metaDataDict = MetadataService.GetMetaDataDictionary();
 
             var updates = new Dictionary<MetaDataKeys, string>();
             foreach (string element in parameters.ElementsToScrape)

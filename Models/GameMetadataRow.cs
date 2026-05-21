@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Gamelist_Manager.Services;
 using System.Collections.Generic;
 
 namespace Gamelist_Manager.Models
@@ -20,7 +21,7 @@ namespace Gamelist_Manager.Models
 
             _values[key] = value;
             OnPropertyChanged($"Item[{key}]");
-            var propName = GamelistMetaData.GetPropertyName(key);
+            var propName = MetadataService.GetPropertyName(key);
             if (propName != null)
                 OnPropertyChanged(propName);
         }

@@ -19,7 +19,7 @@ namespace Gamelist_Manager.Services
 
             bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
 
-            foreach (var decl in GamelistMetaData.GetAllMediaFolderTypes())
+            foreach (var decl in MetadataService.GetAllMediaFolderTypes())
             {
                 if (isEsDe && !decl.IsEsDeSupported)
                     continue;

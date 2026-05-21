@@ -124,26 +124,24 @@ namespace Gamelist_Manager.Models
 
         // --- Profile-filtered metadata ---
 
-        public IReadOnlyList<MetaDataDecl> AvailableColumns => GamelistMetaData.GetColumnDeclarations();
-        public IReadOnlyList<MetaDataDecl> AvailableToggleableColumns => GamelistMetaData.GetToggleableColumns();
+        public IReadOnlyList<MetaDataDecl> AvailableColumns => MetadataService.GetColumnDeclarations();
+        public IReadOnlyList<MetaDataDecl> AvailableToggleableColumns => MetadataService.GetToggleableColumns();
 
-        public IEnumerable<MetaDataDecl> XmlPersistedFields =>
-            GamelistMetaData.GetMetaDataDictionary().Values
-                .Where(d => d.Viewable && (_profileType != SettingKeys.ProfileTypeEsDe || !d.IsMedia));
+        public IEnumerable<MetaDataDecl> XmlPersistedFields => MetadataService.GetXmlPersistedFields();
 
         // --- Derived properties ---
 
-        public string? CurrentRomFolder => _profileType == SettingKeys.ProfileTypeEsDe
+        public string? CurrentRomFolder => ProfileType == SettingKeys.ProfileTypeEsDe
             ? FilePathHelper.CurrentRomFolder(SettingsState.Instance.RomsFolder, CurrentSystem)
             : Path.GetDirectoryName(XmlFilename);
 
-        public string? GamelistsRootFolder => _profileType == SettingKeys.ProfileTypeEsDe
+        public string? GamelistsRootFolder => ProfileType == SettingKeys.ProfileTypeEsDe
             ? (string.IsNullOrEmpty(SettingsState.Instance.EsDeRoot)
                 ? null
                 : Path.Combine(SettingsState.Instance.EsDeRoot, "gamelists"))
             : SettingsState.Instance.RomsFolder;
 
-        public string? MediaRootFolder => _profileType == SettingKeys.ProfileTypeEsDe
+        public string? MediaRootFolder => ProfileType == SettingKeys.ProfileTypeEsDe
             ? _esDeDetectedMediaRoot
             : Path.GetDirectoryName(Path.GetDirectoryName(XmlFilename));
 
