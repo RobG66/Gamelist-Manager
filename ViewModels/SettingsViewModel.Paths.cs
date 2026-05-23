@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Services;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
+using Gamelist_Manager.Views;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -18,10 +20,25 @@ public partial class SettingsViewModel
     [ObservableProperty] private string _romsPath = string.Empty;
     [ObservableProperty] private string _esDeRoot = string.Empty;
     [ObservableProperty] private string _esDeMediaBase = string.Empty;
+    [ObservableProperty] private bool _systemOverrideActive; 
+    [ObservableProperty] private ObservableCollection<string> _systemsWithOverrides = new();
+    [ObservableProperty] private string? _selectedOverrideSystem;
+
+    private bool SystemHasOverrides =>
+     !string.IsNullOrEmpty(_sessionState.CurrentSystem) &&
+     (SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection)
+         ?.Keys.Any(k => k.StartsWith($"{_sessionState.CurrentSystem}_", StringComparison.OrdinalIgnoreCase))
+     ?? false);
 
     #endregion
 
     #region Public Properties
+
+    public bool CanOverrideSystem => !string.IsNullOrEmpty(_sessionState.CurrentSystem);
+
+    public string SystemOverrideLabel => string.IsNullOrEmpty(_sessionState.CurrentSystem)
+        ? "Override enabled state for current system (no system loaded)"
+        : $"Override enabled state for: {_sessionState.CurrentSystem}";
 
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
 
@@ -45,8 +62,14 @@ public partial class SettingsViewModel
             item.ResetToDefaults();
             item.PropertyChanged += (_, e) =>
             {
-                if (!_isProfileLoading && e.PropertyName != nameof(IsDirty))
-                    IsDirty = true;
+                if (_isProfileLoading) return;
+                if (e.PropertyName is nameof(MediaFolderItem.IsNotEsDeMode)
+                                   or nameof(MediaFolderItem.IsPathReadOnly)
+                                   or nameof(MediaFolderItem.IsMediaEnabled)
+                                   or nameof(MediaFolderItem.IsSuffixEnabled)
+                                   or nameof(MediaFolderItem.DisplayPath))
+                    return;
+                IsDirty = true;
             };
             MediaFolderItems.Add(item);
         }
@@ -55,6 +78,25 @@ public partial class SettingsViewModel
     #endregion
 
     #region Commands
+
+    [RelayCommand]
+    private void CopyOverride()
+    {
+        if (string.IsNullOrEmpty(SelectedOverrideSystem)) return;
+
+        var overrides = SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection);
+        if (overrides == null) return;
+
+        foreach (var item in MediaFolderItems)
+        {
+            var key = $"{SelectedOverrideSystem}_{item.Key}_enabled";
+            if (overrides.TryGetValue(key, out var raw) && bool.TryParse(raw, out var value))
+                item.Enabled = value;
+        }
+
+        SelectedOverrideSystem = null;
+        IsDirty = true;
+    }
 
     [RelayCommand]
     private async Task BrowseEsDeRootAsync()
@@ -176,8 +218,110 @@ public partial class SettingsViewModel
 
     #region Helpers
 
+    private void RefreshSystemsWithOverrides()
+    {
+        SystemsWithOverrides.Clear();
+        var overrides = SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection);
+        if (overrides == null) return;
+
+        var systems = overrides.Keys
+            .Select(k => k.Split('_')[0])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(s => !string.Equals(s, _sessionState.CurrentSystem, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(s => s, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var system in systems)
+            SystemsWithOverrides.Add(system);
+    }
+
     private static string LoadMediaPath(string raw, string defaultPath) =>
         FilePathHelper.NormalizePathWithDotSlashPrefix(raw) ?? defaultPath;
+
+    private void LoadSystemOverrides()
+    {
+        var system = _sessionState.CurrentSystem;
+        if (string.IsNullOrEmpty(system)) return;
+
+        var overrides = SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection);
+        if (overrides == null) return;
+
+        foreach (var item in MediaFolderItems)
+        {
+            var key = $"{system}_{item.Key}_enabled";
+            if (overrides.TryGetValue(key, out var raw) && bool.TryParse(raw, out var value))
+                item.Enabled = value;
+        }
+        RefreshMediaFolderDisplayState();
+    }
+    private void SaveSystemOverrides()
+    {
+        var system = _sessionState.CurrentSystem;
+        if (string.IsNullOrEmpty(system)) return;
+        // blah
+        var overrides = MediaFolderItems
+            .ToDictionary(
+                item => $"{system}_{item.Key}_enabled",
+                item => item.Enabled.ToString());
+
+        ProfileService.Instance.Save(new Dictionary<string, Dictionary<string, string>>
+        {
+            [SettingKeys.MediaPathOverridesSection] = overrides
+        });
+
+        SettingsService.Instance.InvalidateCache();
+    }
+
+    partial void OnSystemOverrideActiveChanged(bool value)
+    {
+        if (_isProfileLoading) return;
+        _ = HandleSystemOverrideToggleAsync(value);
+    }
+
+    private async Task HandleSystemOverrideToggleAsync(bool enabling)
+    {
+        var system = _sessionState.CurrentSystem!;
+        var message = enabling
+            ? $"Enabling overrides will save current enabled states for '{system}'. Continue?"
+            : $"Disabling overrides will permanently remove them for '{system}'. Continue?";
+
+        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        {
+            Title = "System Media Overrides",
+            Message = message,
+            IconTheme = DialogIconTheme.Warning,
+            Button1Text = "Cancel",
+            Button2Text = "",
+            Button3Text = enabling ? "Enable" : "Disable"
+        });
+
+        if (result != ThreeButtonResult.Button3)
+        {
+            _isProfileLoading = true;
+            try { SystemOverrideActive = !enabling; }
+            finally { _isProfileLoading = false; }
+            return;
+        }
+
+        if (enabling)
+        {
+            LoadSystemOverrides();
+        }
+        else
+        {
+            SettingsService.Instance.ClearSystemMediaOverrides(system);
+            var s = SettingsState.Instance;
+            var isEsDe = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
+            foreach (var item in MediaFolderItems)
+            {
+                item.Enabled = (!isEsDe || (MetadataService.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
+                               (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
+            }
+        }
+
+        RefreshSystemsWithOverrides();
+
+        // No need to set IsDirty here since the override state is saved immediately and not part of the main profile save flow
+    }
 
     #endregion
 }

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Gamelist_Manager.Services
@@ -78,6 +80,23 @@ namespace Gamelist_Manager.Services
             }
 
             File.WriteAllText(filePath, sb.ToString());
+        }
+
+        public static void DeleteKeysWithPrefix(string filePath, string sectionName, string prefix)
+        {
+            var sections = ReadIniFile(filePath);
+            if (!sections.TryGetValue(sectionName, out var section)) return;
+
+            var keysToRemove = section.Keys
+                .Where(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (keysToRemove.Count == 0) return;
+
+            foreach (var key in keysToRemove)
+                section.Remove(key);
+
+            WriteIniFile(filePath, sections);
         }
     }
 }

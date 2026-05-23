@@ -143,5 +143,14 @@ namespace Gamelist_Manager.Services
             IniFileService.WriteIniFile(_settingsFilePath, BuildDefaultSections());
             InvalidateCache();
         }
+
+        public void ClearSystemMediaOverrides(string system)
+        {
+            IniFileService.DeleteKeysWithPrefix(
+                _settingsFilePath,
+                SettingKeys.MediaPathOverridesSection,
+                $"{system}_");
+            InvalidateCache();
+        }
     }
 }

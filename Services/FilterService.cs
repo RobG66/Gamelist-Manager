@@ -1,5 +1,6 @@
 using Gamelist_Manager.Models;
 using System;
+using System.Linq;
 
 namespace Gamelist_Manager.Services
 {
@@ -78,6 +79,19 @@ namespace Gamelist_Manager.Services
             var type = MetadataService.GetMetadataTypeByName(propertyName);
             if (!string.IsNullOrEmpty(type) && Enum.TryParse<MetaDataKeys>(type, true, out var key))
                 return game.GetValue(key)?.ToString();
+
+            var custom = CustomColumnDecl.AllDeclarations.FirstOrDefault(c => c.Name == propertyName);
+            if (custom != null)
+            {
+                return custom.PropertyName switch
+                {
+                    nameof(GameMetadataRow.RomFileSize) => game.RomFileSize,
+                    nameof(GameMetadataRow.RomExtension) => game.RomExtension,
+                    nameof(GameMetadataRow.MissingMedia) => game.MissingMedia,
+                    _ => null
+                };
+            }
+
             return null;
         }
     }

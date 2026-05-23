@@ -359,7 +359,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     {
         foreach (var item in MediaItems)
         {
-            item.IsVisible = item.HasMedia || (ShowAllMedia && _sessionState.AvailableMedia.Any(m => m.Type == item.MediaTypeKey));
+            item.IsVisible = item.HasMedia || (ShowAllMedia && _sessionState.AvailableMedia.Any(m => m.Type == item.MediaTypeKey && m.MediaEnabled));
         }
 
         ShowNoMediaLogo = SelectedGame != null

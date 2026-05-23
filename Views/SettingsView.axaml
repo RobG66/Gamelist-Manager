@@ -198,8 +198,8 @@
 											  ToolTip.Tip="Automatically check for new and missing items when loading a gamelist."/>
 									<CheckBox IsChecked="{Binding UseSimpleSystemPicker}" Content="Use Flyout System Picker" Margin="0,4,4,2"
 											  ToolTip.Tip="When checked, a simple menu is used for selecting systems."/>
-						
-								</UniformGrid>	
+
+								</UniformGrid>
 							</StackPanel>
 						</Border>
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
@@ -273,7 +273,7 @@
 											 ToolTip.Tip="Root folder where your ROM files are stored. Used as the base path when resolving relative media folder locations.&#10;&#10;Batocera / Recalbox / Knulli: \\hostname\share\roms&#10;RetroPie: \\retropie\share\roms&#10;RetroBat: local path to RetroBat roms folder"/>
 									<Button Grid.Row="1" Grid.Column="2" Content="Browse..." Padding="8,4" Classes="rounded green"
 											IsVisible="{Binding RomsPathVisible}"
-																							Click="BrowseRomsFolder_Click"
+											Click="BrowseRomsFolder_Click"
 											ToolTip.Tip="Open a folder browser to locate your ROMs root directory."/>
 								</Grid>
 							</StackPanel>
@@ -335,7 +335,13 @@
 												ToolTip.Tip="Restore all media folder paths and suffixes to their factory default values."/>
 									</Grid>
 								</Border>
-								<StackPanel Grid.IsSharedSizeScope="True" Spacing="0">
+								<DockPanel Margin="0,4,0,4">
+									<StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+										<ComboBox ItemsSource="{Binding SystemsWithOverrides}" IsEnabled="{Binding SystemOverrideActive}" SelectedItem="{Binding SelectedOverrideSystem}" PlaceholderText="Copy from system..." MinWidth="160"/>
+										<Button Content="Copy" Classes="rounded green" Command="{Binding CopyOverrideCommand}" IsEnabled="{Binding SelectedOverrideSystem, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Copy enabled state overrides from the selected system into the current system."/>
+									</StackPanel>
+									<CheckBox IsChecked="{Binding SystemOverrideActive}" IsEnabled="{Binding CanOverrideSystem}" Content="{Binding SystemOverrideLabel}" ToolTip.Tip="When enabled, the media enabled states below apply only to the current system and override the global settings."/>
+								</DockPanel>	<StackPanel Grid.IsSharedSizeScope="True" Spacing="0">
 									<!-- Headers -->
 									<Grid>
 										<Grid.ColumnDefinitions>
@@ -391,11 +397,11 @@
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
-										<TextBlock Text="Disabled media is removed from scraping and media preview"
-										 FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,4,0,0"/>
-				
-										<TextBlock Text="Media folder paths are relative to the selected system rom path and must begin with ./"
-										 Margin="0,4,0,0" IsVisible="{Binding RomsPathVisible}"/>
+									<TextBlock Text="Disabled media is removed from scraping and media preview"
+											   FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,4,0,0"/>
+
+									<TextBlock Text="Media folder paths are relative to the selected system rom path and must begin with ./"
+											   Margin="0,4,0,0" IsVisible="{Binding RomsPathVisible}"/>
 								</StackPanel>
 							</StackPanel>
 						</Border>
@@ -458,69 +464,69 @@
 									<TextBlock Text="Options" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}" Foreground="{DynamicResource AccentTextBrush}"/>
 								</Border>
 								<StackPanel Orientation="Horizontal" Spacing="5">
-								<TextBlock Text="Selected Scraper" VerticalAlignment="Center" />
-								<ComboBox SelectedIndex="{Binding SelectedSetupScraperIndex}" Width="180" HorizontalAlignment="Left"
-										  ToolTip.Tip="Choose which scraping service to use when fetching game metadata and media.&#10;ArcadeDB: free arcade-focused database.&#10;EmuMovies: media-rich service (account required).&#10;ScreenScraper: comprehensive multi-system database (account required).">
-									<ComboBoxItem Content="ArcadeDB"/>
-									<ComboBoxItem Content="EmuMovies"/>
-									<ComboBoxItem Content="ScreenScraper"/>
-								</ComboBox>
-									</StackPanel>
-									<UniformGrid Rows="2" Columns="2" RowSpacing="4" ColumnSpacing="8">
-										<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads"
-												  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
-										<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Show Log Timestamps"
-												  ToolTip.Tip="Show the time of each entry in the scraper log."/>
-										<CheckBox IsChecked="{Binding OverrideConcurrency}" Content="Override Max Concurrency"
-												  ToolTip.Tip="When checked, limits concurrent scraping threads to the value on the right, even if the service allows more.  This does not allow more threads than you are entitled to by the scraper service."/>
-										<CheckBox IsChecked="{Binding LogToDisk}" Content="Log to Disk"
-												  ToolTip.Tip="Save all scraper log output to a file in the logs folder. Off by default."/>
-									</UniformGrid>
+									<TextBlock Text="Selected Scraper" VerticalAlignment="Center" />
+									<ComboBox SelectedIndex="{Binding SelectedSetupScraperIndex}" Width="180" HorizontalAlignment="Left"
+											  ToolTip.Tip="Choose which scraping service to use when fetching game metadata and media.&#10;ArcadeDB: free arcade-focused database.&#10;EmuMovies: media-rich service (account required).&#10;ScreenScraper: comprehensive multi-system database (account required).">
+										<ComboBoxItem Content="ArcadeDB"/>
+										<ComboBoxItem Content="EmuMovies"/>
+										<ComboBoxItem Content="ScreenScraper"/>
+									</ComboBox>
+								</StackPanel>
+								<UniformGrid Rows="2" Columns="2" RowSpacing="4" ColumnSpacing="8">
+									<CheckBox IsChecked="{Binding VerifyImageDownloads}" Content="Verify Image Downloads"
+											  ToolTip.Tip="Check that downloaded image files are valid (non-corrupt, correct format) before saving them to disk."/>
+									<CheckBox IsChecked="{Binding ShowLogTimestamp}" Content="Show Log Timestamps"
+											  ToolTip.Tip="Show the time of each entry in the scraper log."/>
+									<CheckBox IsChecked="{Binding OverrideConcurrency}" Content="Override Max Concurrency"
+											  ToolTip.Tip="When checked, limits concurrent scraping threads to the value on the right, even if the service allows more.  This does not allow more threads than you are entitled to by the scraper service."/>
+									<CheckBox IsChecked="{Binding LogToDisk}" Content="Log to Disk"
+											  ToolTip.Tip="Save all scraper log output to a file in the logs folder. Off by default."/>
+								</UniformGrid>
 
-									<Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto" Margin="0,4,0,0">
+								<Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto" Margin="0,4,0,0">
 
-										<!-- Row 0: Concurrency value (checkbox moved to options row above) -->
-											<TextBlock Grid.Row="0" Grid.Column="0"
-													   Text="Max Concurrency Override:"
-													   VerticalAlignment="Center"
-													   IsEnabled="{Binding OverrideConcurrency}"
-													   ToolTip.Tip="Maximum concurrent scrape threads (1-30). Active only when Override Max Concurrency is checked."/>
-											<NumericUpDown Grid.Row="0" Grid.Column="2"
-													   Value="{Binding ConcurrencyOverride}"
-													   Minimum="1" Maximum="30" Increment="1"
-													   FormatString="0" Width="70"
-													   IsEnabled="{Binding OverrideConcurrency}"
-													   ToolTip.Tip="Maximum concurrent scrape threads (1-30). Active only when Override Max Concurrency is checked."/>
+									<!-- Row 0: Concurrency value (checkbox moved to options row above) -->
+									<TextBlock Grid.Row="0" Grid.Column="0"
+											   Text="Max Concurrency Override:"
+											   VerticalAlignment="Center"
+											   IsEnabled="{Binding OverrideConcurrency}"
+											   ToolTip.Tip="Maximum concurrent scrape threads (1-30). Active only when Override Max Concurrency is checked."/>
+									<NumericUpDown Grid.Row="0" Grid.Column="2"
+												   Value="{Binding ConcurrencyOverride}"
+												   Minimum="1" Maximum="30" Increment="1"
+												   FormatString="0" Width="70"
+												   IsEnabled="{Binding OverrideConcurrency}"
+												   ToolTip.Tip="Maximum concurrent scrape threads (1-30). Active only when Override Max Concurrency is checked."/>
 
-										<!-- Row 2: Log Verbosity -->
-										<TextBlock Grid.Row="2" Grid.Column="0"
-												   Text="Log Verbosity:"
-												   VerticalAlignment="Center"
-												   ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call"/>
-										<ComboBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3"
-												  SelectedIndex="{Binding LogVerbosityIndex}" Width="100"
-												  ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call">
-											<ComboBoxItem Content="Minimal"/>
-											<ComboBoxItem Content="Normal"/>
-											<ComboBoxItem Content="Verbose"/>
-										</ComboBox>
+									<!-- Row 2: Log Verbosity -->
+									<TextBlock Grid.Row="2" Grid.Column="0"
+											   Text="Log Verbosity:"
+											   VerticalAlignment="Center"
+											   ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call"/>
+									<ComboBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3"
+											  SelectedIndex="{Binding LogVerbosityIndex}" Width="100"
+											  ToolTip.Tip="Controls how much detail appears in the scraper log.&#10;Minimal: errors only&#10;Normal: key events and results&#10;Verbose: full detail including every API call">
+										<ComboBoxItem Content="Minimal"/>
+										<ComboBoxItem Content="Normal"/>
+										<ComboBoxItem Content="Verbose"/>
+									</ComboBox>
 
-										<!-- Row 4: Save Scraper Configuration -->
-										<TextBlock Grid.Row="4" Grid.Column="0"
-												   Text="Save Scraper Configuration:"
-												   VerticalAlignment="Center"/>
-										<ComboBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3"
-												  SelectedIndex="{Binding ScraperConfigSaveIndex}" MinWidth="160"
-												  ToolTip.Tip="Controls whether scraper settings are persisted between sessions.&#10;Save Per Scraper: one set of settings per scraper.&#10;Save Per System: separate settings for each system per scraper.">
-											<ComboBoxItem Content="Save Per Scraper"/>
-											<ComboBoxItem Content="Save Per System"/>
-										</ComboBox>
+									<!-- Row 4: Save Scraper Configuration -->
+									<TextBlock Grid.Row="4" Grid.Column="0"
+											   Text="Save Scraper Configuration:"
+											   VerticalAlignment="Center"/>
+									<ComboBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3"
+											  SelectedIndex="{Binding ScraperConfigSaveIndex}" MinWidth="160"
+											  ToolTip.Tip="Controls whether scraper settings are persisted between sessions.&#10;Save Per Scraper: one set of settings per scraper.&#10;Save Per System: separate settings for each system per scraper.">
+										<ComboBoxItem Content="Save Per Scraper"/>
+										<ComboBoxItem Content="Save Per System"/>
+									</ComboBox>
 
-									</Grid>
+								</Grid>
 							</StackPanel>
 						</Border>
 
-				
+
 						<!-- ArcadeDB Options -->
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
 								Background="{DynamicResource CardBackground}"
@@ -614,9 +620,9 @@
 									<CheckBox Content="Scrape names by language first" IsChecked="{Binding ScraperNamesLanguageFirst}"
 											  ToolTip.Tip="When enabled, the selected language is always checked first when retrieving game names, overriding the ROM filename's detected region. When disabled, the ROM region takes priority."/>
 									<CheckBox Content="Scrape media by user region first" IsChecked="{Binding ScraperMediaRegionFirst}"
-											    ToolTip.Tip="When enabled, searches for media using your configured regions first, then the ROM filename region. When disabled, the ROM filename region takes priority first."/>
+											  ToolTip.Tip="When enabled, searches for media using your configured regions first, then the ROM filename region. When disabled, the ROM filename region takes priority first."/>
 									<CheckBox Content="Remove ZZZ(notgame): from names" IsChecked="{Binding RemoveZZZNotGamePrefix}"
-											    ToolTip.Tip="When enabled, the ZZZ(notgame): prefix is always removed from names"/>
+											  ToolTip.Tip="When enabled, the ZZZ(notgame): prefix is always removed from names"/>
 
 								</UniformGrid>
 								<Grid ColumnDefinitions="*,Auto,*">

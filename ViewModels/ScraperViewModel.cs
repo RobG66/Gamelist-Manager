@@ -353,7 +353,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     {
         var scraperElements = MetadataService.GetScraperElements(CurrentScraper);
         var availableMedia = _sessionState.AvailableMedia;
-        bool HasMedia(string type) => availableMedia.Any(m => m.Type == type);
+        bool HasMedia(string type) => availableMedia.Any(m => m.Type == type && m.MediaEnabled);
 
         foreach (var t in GetBoolToggles())
         {

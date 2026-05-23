@@ -101,9 +101,9 @@ namespace Gamelist_Manager.Models
 
         public IReadOnlyList<AvailableMediaFolder> AvailableMedia { get; private set; } = [];
 
-        public void RefreshAvailableMedia(string profileType, string? mediaBaseFolder, Dictionary<string, string> mediaPaths)
+        public void RefreshAvailableMedia(string profileType, string? currentSystem, string? mediaBaseFolder, Dictionary<string, string> mediaPaths)
         {
-            AvailableMedia = MediaPathResolver.BuildAvailableMedia(profileType, mediaBaseFolder, mediaPaths);
+            AvailableMedia = MediaPathResolver.BuildAvailableMedia(profileType, currentSystem, mediaBaseFolder, mediaPaths);
             OnPropertyChanged(nameof(AvailableMedia));
         }
 

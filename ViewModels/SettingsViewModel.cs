@@ -124,6 +124,11 @@ public partial class SettingsViewModel : ViewModelBase
                 OnPropertyChanged(nameof(MediaPathsReadOnly));
                 OnPropertyChanged(nameof(ResetToDefaultsVisible));
             }
+            else if (e.PropertyName == nameof(SessionState.CurrentSystem))
+            {
+                OnPropertyChanged(nameof(CanOverrideSystem));
+                OnPropertyChanged(nameof(SystemOverrideLabel));
+            }
         };
 
         PropertyChanged += (_, e) =>
@@ -131,6 +136,7 @@ public partial class SettingsViewModel : ViewModelBase
             if (_isProfileLoading) return;
 
             if (e.PropertyName is nameof(IsDirty)
+                               or nameof(SystemOverrideActive)
                                or nameof(SelectedProfileName)
                                or nameof(SelectedProfileIsEsDe)
                                or nameof(SelectedProfileEsDeMediaRoot)
@@ -145,6 +151,8 @@ public partial class SettingsViewModel : ViewModelBase
 
             IsDirty = true;
         };
+
+        IsDirty = false;
     }
 
     #endregion
@@ -210,6 +218,19 @@ public partial class SettingsViewModel : ViewModelBase
                            (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
         }
 
+        _isProfileLoading = true;
+        try
+        {
+            SystemOverrideActive = SystemHasOverrides;
+            if (SystemOverrideActive)
+                LoadSystemOverrides();
+        }
+        finally
+        {
+            _isProfileLoading = false;
+        }
+
+        RefreshSystemsWithOverrides();
         LoadScraperCredentials();
         RefreshProfileList();
 
@@ -218,6 +239,7 @@ public partial class SettingsViewModel : ViewModelBase
             EsDeRoot = s.EsDeRoot;
             EsDeMediaBase = _sessionState.MediaRootFolder ?? string.Empty;
         }
+
 
         IsDirty = false;
     }
@@ -279,19 +301,21 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.RomsFolder.Key] = RomsPath
             },
             [SettingKeys.MediaPathsSection] = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe
-                ? MediaFolderItems
-                    .Select(item => new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString()))
-                    .ToDictionary(kv => kv.Key, kv => kv.Value)
-                : MediaFolderItems
-                    .SelectMany(item => new[]
-                    {
-                        new KeyValuePair<string, string>(item.Key,                  item.Path),
-                        new KeyValuePair<string, string>($"{item.Key}_enabled",     item.Enabled.ToString()),
-                        new KeyValuePair<string, string>($"{item.Key}_suffix",      item.Suffix),
-                        new KeyValuePair<string, string>($"{item.Key}_sfx_enabled", item.SfxEnabled.ToString()),
-                    })
-                    .ToDictionary(kv => kv.Key, kv => kv.Value)
-        };
+            ? MediaFolderItems
+                .Where(_ => !SystemOverrideActive)  // don't overwrite global enabled when override is active
+                .Select(item => new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString()))
+                .ToDictionary(kv => kv.Key, kv => kv.Value)
+            : MediaFolderItems
+                .SelectMany(item => new[]
+                {
+                    new KeyValuePair<string, string>(item.Key, item.Path),
+                    new KeyValuePair<string, string>($"{item.Key}_suffix", item.Suffix),
+                    new KeyValuePair<string, string>($"{item.Key}_sfx_enabled", item.SfxEnabled.ToString()),
+                }
+                .Concat(SystemOverrideActive
+                    ? []
+                    : [new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString())]))
+                .ToDictionary(kv => kv.Key, kv => kv.Value)};
 
         if (IsSetupRequiresCredentials &&
             !string.IsNullOrWhiteSpace(ScraperUsername) &&
@@ -350,12 +374,15 @@ public partial class SettingsViewModel : ViewModelBase
         }
 
         ProfileService.Instance.Save(settings);
+        if (SystemOverrideActive && !string.IsNullOrEmpty(_sessionState.CurrentSystem))
+            SaveSystemOverrides();
+
         SettingsState.Instance.Reload();
         _sessionState.RefreshAvailableMedia(
             _sessionState.ProfileType,
+            _sessionState.CurrentSystem,
             _sessionState.CurrentMediaFolder,
-            SettingsState.Instance.MediaPaths
-        );
+            _settingsState.MediaPaths);
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
         IsDirty = false;

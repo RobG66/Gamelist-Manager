@@ -37,6 +37,7 @@ public static class SettingKeys
     public const string ScrapersSection = "Scrapers";
     public const string EsDeSection = "EsDe";
     public const string ProfileSection = "Profile";
+    public const string MediaPathOverridesSection = "MediaPathOverrides";
 
     #endregion
 

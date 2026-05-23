@@ -325,16 +325,16 @@ public partial class MainWindowViewModel
             var systemName = selected.Name;
             var gamelistFolder = selected.FolderPath;
             var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
-           
+
             Directory.CreateDirectory(gamelistFolder);
 
             _sessionState.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
 
             _sessionState.RefreshAvailableMedia(
                 _sessionState.ProfileType,
+                _sessionState.CurrentSystem,
                 _sessionState.CurrentMediaFolder,
-                _settingsState.MediaPaths
-            );
+                _settingsState.MediaPaths);
 
             ClearFilters();
             ClearReportColumns();
@@ -364,7 +364,7 @@ public partial class MainWindowViewModel
             await PopulateCustomColumnsAsync(_sessionState.CurrentRomFolder);
         }
         finally
-        {            
+        {
             EndNavigation();
         }
     }
@@ -583,10 +583,10 @@ public partial class MainWindowViewModel
             _sessionState.SetGamelist(filePath, systemName, loadedGames);
 
             _sessionState.RefreshAvailableMedia(
-                _sessionState.ProfileType,
-                _sessionState.CurrentMediaFolder,
-                _settingsState.MediaPaths
-            );
+                  _sessionState.ProfileType,
+                  _sessionState.CurrentSystem,
+                  _sessionState.CurrentMediaFolder,
+                  _settingsState.MediaPaths);
 
             if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe)
             {
@@ -600,7 +600,7 @@ public partial class MainWindowViewModel
             _sourceCache.Clear();
             _sourceCache.AddOrUpdate(loadedGames);
             PopulateAvailableGenres();
-                       
+
             IsSaveEnabled = false;
             IsGamelistLoaded = true;
             IsPersistentSelectionEnabled = false;
@@ -628,10 +628,10 @@ public partial class MainWindowViewModel
                 await FindMissingItemsCore(silent: true);
             }
 
-            await PopulateCustomColumnsAsync(_sessionState.CurrentRomFolder);
-
             foreach (var game in loadedGames)
                 game.PropertyChanged += GameItem_PropertyChanged;
+
+            await PopulateCustomColumnsAsync(_sessionState.CurrentRomFolder);
 
             _isLoadingData = false;
         }
@@ -692,7 +692,7 @@ public partial class MainWindowViewModel
 
     #endregion
 
-    
+
     #region ES-DE Media Helpers
 
     private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];

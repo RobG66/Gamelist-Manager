@@ -186,7 +186,7 @@ public partial class MainWindowViewModel
     private void PopulateMissingMedia()
     {
         var enabledMedia = _sessionState.AvailableMedia
-            .Where(m => !string.IsNullOrEmpty(m.FolderPath))
+            .Where(m => m.MediaEnabled)
             .ToList();
 
         foreach (var game in _sourceCache.Items)

@@ -8,9 +8,10 @@ namespace Gamelist_Manager.Services
     public static class MediaPathResolver
     {
         public static IReadOnlyList<AvailableMediaFolder> BuildAvailableMedia(
-            string profileType,
-            string? mediaBaseFolder,
-            Dictionary<string, string> mediaPaths)
+        string profileType,
+        string? currentSystem,
+        string? mediaBaseFolder,
+        Dictionary<string, string> mediaPaths)
         {
             var result = new List<AvailableMediaFolder>();
 
@@ -18,13 +19,16 @@ namespace Gamelist_Manager.Services
                 return result;
 
             bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
+            var overrides = !string.IsNullOrEmpty(currentSystem)
+                ? SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection)
+                : null;
 
             foreach (var decl in MetadataService.GetAllMediaFolderTypes())
             {
                 if (isEsDe && !decl.IsEsDeSupported)
                     continue;
 
-                var mediaEnabled = ResolveBoolSetting($"{decl.Type}_enabled", decl.DefaultEnabled, mediaPaths);
+                var mediaEnabled = ResolveMediaEnabled(decl, currentSystem, mediaPaths, overrides);
                 var folderPath = ResolveFolderPath(isEsDe, mediaBaseFolder, decl, mediaPaths);
                 var suffix = isEsDe ? string.Empty : ResolveSuffix(decl, mediaPaths);
                 var sfxEnabled = !isEsDe && ResolveSfxEnabled(decl, mediaPaths);
@@ -33,6 +37,22 @@ namespace Gamelist_Manager.Services
             }
 
             return result;
+        }
+
+        private static bool ResolveMediaEnabled(
+            MetaDataDecl decl,
+            string? currentSystem,
+            Dictionary<string, string> mediaPaths,
+            Dictionary<string, string>? overrides)
+        {
+            if (overrides != null && !string.IsNullOrEmpty(currentSystem))
+            {
+                var overrideKey = $"{currentSystem}_{decl.Type}_enabled";
+                if (overrides.TryGetValue(overrideKey, out var raw) && bool.TryParse(raw, out var overrideValue))
+                    return overrideValue;
+            }
+
+            return ResolveBoolSetting($"{decl.Type}_enabled", decl.DefaultEnabled, mediaPaths);
         }
 
         private static string ResolveFolderPath(bool isEsDe, string mediaBaseFolder, MetaDataDecl decl, Dictionary<string, string> mediaPaths)

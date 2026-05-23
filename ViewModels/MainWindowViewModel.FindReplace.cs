@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -110,8 +111,10 @@ public partial class MainWindowViewModel
     {
         SearchableColumns.Clear();
 
-        foreach (var name in visibleColumnNames.Where(n => MetadataService.GetDeclByName(n) != null))
-            SearchableColumns.Add(name);
+        foreach (var col in visibleColumnNames.Where(col =>
+            MetadataService.GetDeclByName(col) != null ||
+            CustomColumnDecl.AllDeclarations.Any(c => c.Name == col)))
+            SearchableColumns.Add(col);
 
         if (DescriptionPanelVisible)
             SearchableColumns.Add("Description");
