@@ -93,6 +93,7 @@ public partial class MenuView : UserControl
     {
         if (ColumnsButton.Flyout is not MenuFlyout flyout) return;
 
+        // Standard columns
         var insertPoint = flyout.Items.OfType<Separator>().Skip(1).FirstOrDefault();
         var insertIndex = insertPoint != null ? flyout.Items.IndexOf(insertPoint) : flyout.Items.Count;
 
@@ -117,6 +118,30 @@ public partial class MenuView : UserControl
 
             flyout.Items.Insert(insertIndex, menuItem);
             _columnMenuItems.Add((menuItem, decl));
+            insertIndex++;
+        }
+
+        // Custom columns
+        foreach (var decl in CustomColumnDecl.AllDeclarations)
+        {
+            var checkBox = new CheckBox
+            {
+                Padding = new Avalonia.Thickness(0),
+                BorderThickness = new Avalonia.Thickness(0),
+                IsHitTestVisible = false,
+            };
+            _columnCheckBoxes[decl.Type] = checkBox;
+
+            var menuItem = new MenuItem
+            {
+                Header = decl.Name,
+                StaysOpenOnClick = true,
+                Icon = checkBox,
+                Tag = decl.Type,
+            };
+            menuItem.Click += ColumnMenuItem_Click;
+
+            flyout.Items.Insert(insertIndex, menuItem);
             insertIndex++;
         }
 

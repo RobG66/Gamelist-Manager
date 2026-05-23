@@ -24,14 +24,12 @@ namespace Gamelist_Manager.Services
                 if (isEsDe && !decl.IsEsDeSupported)
                     continue;
 
-                if (!ResolveBoolSetting($"{decl.Type}_enabled", decl.DefaultEnabled, mediaPaths))
-                    continue;
-
+                var mediaEnabled = ResolveBoolSetting($"{decl.Type}_enabled", decl.DefaultEnabled, mediaPaths);
                 var folderPath = ResolveFolderPath(isEsDe, mediaBaseFolder, decl, mediaPaths);
                 var suffix = isEsDe ? string.Empty : ResolveSuffix(decl, mediaPaths);
                 var sfxEnabled = !isEsDe && ResolveSfxEnabled(decl, mediaPaths);
 
-                result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, sfxEnabled));
+                result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, mediaEnabled, sfxEnabled));
             }
 
             return result;

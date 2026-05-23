@@ -361,9 +361,10 @@ public partial class MainWindowViewModel
             CalculateStatistics();
 
             await FindNewItems();
+            await PopulateCustomColumnsAsync(_sessionState.CurrentRomFolder);
         }
         finally
-        {
+        {            
             EndNavigation();
         }
     }
@@ -599,11 +600,7 @@ public partial class MainWindowViewModel
             _sourceCache.Clear();
             _sourceCache.AddOrUpdate(loadedGames);
             PopulateAvailableGenres();
-            _isLoadingData = false;
-
-            foreach (var game in loadedGames)
-                game.PropertyChanged += GameItem_PropertyChanged;
-
+                       
             IsSaveEnabled = false;
             IsGamelistLoaded = true;
             IsPersistentSelectionEnabled = false;
@@ -630,6 +627,13 @@ public partial class MainWindowViewModel
                 await FindNewItemsCore(silent: true);
                 await FindMissingItemsCore(silent: true);
             }
+
+            await PopulateCustomColumnsAsync(_sessionState.CurrentRomFolder);
+
+            foreach (var game in loadedGames)
+                game.PropertyChanged += GameItem_PropertyChanged;
+
+            _isLoadingData = false;
         }
         finally
         {
@@ -688,6 +692,7 @@ public partial class MainWindowViewModel
 
     #endregion
 
+    
     #region ES-DE Media Helpers
 
     private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];

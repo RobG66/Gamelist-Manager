@@ -190,15 +190,13 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         UpdateScaledLayoutWidths();
         _ = LoadSystemsAsync();
-
-        _sessionState.RefreshAvailableMedia(
-            _sessionState.ProfileType,
-            _sessionState.CurrentMediaFolder,
-            _settingsState.MediaPaths
-        );
-
+        
         if (IsScraperVisible)
             RefreshScraper();
+
+        // Refresh custom column values as needed
+        PopulateMissingMedia();
+
     }
 
     #endregion

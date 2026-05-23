@@ -99,6 +99,9 @@ namespace Gamelist_Manager.Services
         public static MetaDataDecl? GetDeclByName(string name) =>
             nameToDecl.TryGetValue(name, out var decl) ? decl : null;
 
+        public static MetaDataDecl? GetDeclByKey(MetaDataKeys key) =>
+            metaDataDictionary.TryGetValue(key, out var decl) ? decl : null;
+
         #endregion
     }
 }

@@ -92,12 +92,34 @@ public partial class MainWindow
             columns.Add(column);
             _columnsByType[decl.Type] = column;
         }
+
+        BuildCustomColumns();
+
+    }
+
+    private void BuildCustomColumns()
+    {
+        foreach (var decl in CustomColumnDecl.AllDeclarations)
+        {
+            var column = new DataGridTextColumn
+            {
+                Header = decl.Name,
+                Binding = new Binding(decl.PropertyName),
+                SortMemberPath = string.IsNullOrEmpty(decl.SortPropertyName) ? decl.PropertyName : decl.SortPropertyName,
+                Width = DataGridLength.SizeToHeader,
+                IsReadOnly = true,
+            };
+
+            GameDataGrid.Columns.Insert(1, column);
+            _columnsByType[decl.Type] = column;
+        }
     }
 
     private void ApplyColumnVisibility()
     {
         if (DataContext is not MainWindowViewModel vm) return;
 
+        // Standard columns
         foreach (var decl in MetadataService.GetColumnDeclarations())
         {
             if (!_columnsByType.TryGetValue(decl.Type, out var column)) continue;
@@ -113,6 +135,13 @@ public partial class MainWindow
             {
                 column.IsVisible = vm.GetColumnVisible(decl.Type);
             }
+        }
+
+        // Custom columns
+        foreach (var decl in CustomColumnDecl.AllDeclarations)
+        {
+            if (!_columnsByType.TryGetValue(decl.Type, out var column)) continue;
+            column.IsVisible = vm.GetColumnVisible(decl.Type);
         }
 
         vm.UpdateSearchableColumns(GetVisibleColumnNames());

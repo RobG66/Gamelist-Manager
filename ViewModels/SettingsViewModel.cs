@@ -351,6 +351,11 @@ public partial class SettingsViewModel : ViewModelBase
 
         ProfileService.Instance.Save(settings);
         SettingsState.Instance.Reload();
+        _sessionState.RefreshAvailableMedia(
+            _sessionState.ProfileType,
+            _sessionState.CurrentMediaFolder,
+            SettingsState.Instance.MediaPaths
+        );
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
         IsDirty = false;

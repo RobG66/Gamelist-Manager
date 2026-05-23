@@ -108,17 +108,21 @@ namespace Gamelist_Manager.Services
                 ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
                 RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix"),
 
-                MediaPaths = availableMedia.ToDictionary(
-                    m => m.Type,
-                    m => m.FolderPath,
-                    StringComparer.OrdinalIgnoreCase),
+                MediaPaths = availableMedia
+                    .Where(m => m.MediaEnabled)
+                    .ToDictionary(
+                        m => m.Type,
+                        m => m.FolderPath,
+                        StringComparer.OrdinalIgnoreCase),
 
                 MediaSuffixes = isEsDe
                     ? new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
-                    : availableMedia.ToDictionary(
-                        m => m.Type,
-                        m => (m.Suffix, m.SfxEnabled),
-                        StringComparer.OrdinalIgnoreCase)
+                    : availableMedia
+                        .Where(m => m.MediaEnabled)
+                        .ToDictionary(
+                            m => m.Type,
+                            m => (m.Suffix, m.SfxEnabled),
+                            StringComparer.OrdinalIgnoreCase)
             };
         }
 

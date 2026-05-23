@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Services;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Gamelist_Manager.Models
 {
@@ -24,6 +25,9 @@ namespace Gamelist_Manager.Models
             var propName = MetadataService.GetPropertyName(key);
             if (propName != null)
                 OnPropertyChanged(propName);
+
+            if (MetadataService.GetDeclByKey(key)?.IsMedia == true)
+                OnPropertyChanged(nameof(MissingMedia));
         }
 
         public void NotifyDataChanged() => OnPropertyChanged(string.Empty);
@@ -80,6 +84,50 @@ namespace Gamelist_Manager.Models
         public string Controller { get => GetString(MetaDataKeys.controller); set => SetValue(MetaDataKeys.controller, value); }
         public string Altemulator { get => GetString(MetaDataKeys.altemulator); set => SetValue(MetaDataKeys.altemulator, value); }
         public string Folderlink { get => GetString(MetaDataKeys.folderlink); set => SetValue(MetaDataKeys.folderlink, value); }
+
+
+        // Custom properties not directly backed by metadata keys:
+        private string _romFileSize = string.Empty;
+        public string RomFileSize
+        {
+            get => _romFileSize;
+            set => SetProperty(ref _romFileSize, value);
+        }
+
+        private long _romFileSizeBytes;
+        public long RomFileSizeBytes
+        {
+            get => _romFileSizeBytes;
+            set => SetProperty(ref _romFileSizeBytes, value);
+        }
+
+        private string _romExtension = string.Empty;
+        public string RomExtension
+        {
+            get => _romExtension;
+            set => SetProperty(ref _romExtension, value);
+        }
+
+        private IReadOnlyList<AvailableMediaFolder> _enabledMedia = [];
+        public IReadOnlyList<AvailableMediaFolder> EnabledMedia
+        {
+            get => _enabledMedia;
+            set
+            {
+                _enabledMedia = value;
+                OnPropertyChanged(nameof(MissingMedia));
+            }
+        }
+
+        public string MissingMedia =>
+            string.Join(", ", EnabledMedia
+        .Where(m =>
+        {
+            if (!m.MediaEnabled) return false;
+            var decl = MetadataService.GetDeclByType(m.Type);
+            return decl != null && string.IsNullOrEmpty(GetValue(decl.Key)?.ToString());
+        })
+        .Select(m => m.Name));
         #endregion
     }
 }
