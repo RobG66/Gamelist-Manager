@@ -37,8 +37,8 @@ public partial class SettingsViewModel
     public bool CanOverrideSystem => !string.IsNullOrEmpty(_sessionState.CurrentSystem);
 
     public string SystemOverrideLabel => string.IsNullOrEmpty(_sessionState.CurrentSystem)
-        ? "Override enabled state for current system (no system loaded)"
-        : $"Override enabled state for: {_sessionState.CurrentSystem}";
+        ? "Cannot enable media override, no system loaded"
+        : $"Enable media selection override";
 
     public ObservableCollection<MediaFolderItem> MediaFolderItems { get; } = new();
 
@@ -69,7 +69,7 @@ public partial class SettingsViewModel
                                    or nameof(MediaFolderItem.IsSuffixEnabled)
                                    or nameof(MediaFolderItem.DisplayPath))
                     return;
-                IsDirty = true;
+                SettingsChanged = true;
             };
             MediaFolderItems.Add(item);
         }
@@ -95,7 +95,7 @@ public partial class SettingsViewModel
         }
 
         SelectedOverrideSystem = null;
-        IsDirty = true;
+        SettingsChanged = true;
     }
 
     [RelayCommand]
@@ -320,7 +320,7 @@ public partial class SettingsViewModel
 
         RefreshSystemsWithOverrides();
 
-        // No need to set IsDirty here since the override state is saved immediately and not part of the main profile save flow
+        // No need to set SettingsChanged here since the override state is saved immediately and not part of the main profile save flow
     }
 
     #endregion

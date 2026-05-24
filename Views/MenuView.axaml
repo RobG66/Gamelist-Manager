@@ -69,7 +69,10 @@
 									<Image Source="/Assets/Icons/save.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>
 							</MenuItem>
-							<MenuItem Header="Restore Gamelist" IsEnabled="False" ToolTip.Tip="Restore gamelist from backup">
+							<MenuItem Header="Load Gamelist Backup"
+									  IsEnabled="True"
+									  Command="{Binding LoadGamelistBackupCommand}"
+									  ToolTip.Tip="Load gamelist from backup">
 								<MenuItem.Icon>
 									<Image Source="/Assets/Icons/restore.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>

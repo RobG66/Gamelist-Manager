@@ -832,7 +832,7 @@
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
 					<Button Content="Close" Classes="rounded yellow" Click="ButtonClose_Click"
 							ToolTip.Tip="Close the Settings window."/>
-					<Button Content="Save" Classes="rounded green" IsEnabled="{Binding IsDirty}" Click="ButtonSave_Click"
+					<Button Content="Save" Classes="rounded green" IsEnabled="{Binding SettingsChanged}" Click="ButtonSave_Click"
 							ToolTip.Tip="Save all changes made in this session and apply them to the application."/>
 				</StackPanel>
 			</Grid>

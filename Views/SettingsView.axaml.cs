@@ -49,7 +49,7 @@ namespace Gamelist_Manager.Views
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)
         {
-            if (!ViewModel.IsDirty)
+            if (!ViewModel.SettingsChanged)
             {
                 KeyDown -= SettingsWindow_KeyDown;
                 Closing -= SettingsWindow_Closing;
@@ -158,7 +158,7 @@ namespace Gamelist_Manager.Views
             if (result == ThreeButtonResult.Button3)
             {
                 ViewModel.ResetAllSettings();
-                ViewModel.IsDirty = true;
+                ViewModel.SettingsChanged = true;
             }
         }
 

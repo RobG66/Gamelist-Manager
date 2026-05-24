@@ -72,7 +72,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private string _userId = string.Empty;
     [ObservableProperty] private string _password = string.Empty;
 
-    [ObservableProperty] private bool _isDirty;
+    [ObservableProperty] private bool _settingsChanged;
 
     #endregion
 
@@ -135,7 +135,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             if (_isProfileLoading) return;
 
-            if (e.PropertyName is nameof(IsDirty)
+            if (e.PropertyName is nameof(SettingsChanged)
                                or nameof(SystemOverrideActive)
                                or nameof(SelectedProfileName)
                                or nameof(SelectedProfileIsEsDe)
@@ -149,10 +149,10 @@ public partial class SettingsViewModel : ViewModelBase
                                or nameof(ShowScraperPassword))
                 return;
 
-            IsDirty = true;
+            SettingsChanged = true;
         };
 
-        IsDirty = false;
+        SettingsChanged = false;
     }
 
     #endregion
@@ -241,7 +241,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
 
 
-        IsDirty = false;
+        SettingsChanged = false;
     }
 
     public void SaveSettings()
@@ -385,7 +385,7 @@ public partial class SettingsViewModel : ViewModelBase
             _settingsState.MediaPaths);
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
-        IsDirty = false;
+        SettingsChanged = false;
     }
 
     public void ResetAllSettings()

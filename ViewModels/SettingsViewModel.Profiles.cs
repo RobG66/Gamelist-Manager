@@ -147,7 +147,7 @@ public partial class SettingsViewModel
 
         WeakReferenceMessenger.Default.Send(new UnloadGamelistMessage());
 
-        if (IsDirty) SaveSettings();
+        if (SettingsChanged) SaveSettings();
 
         await WeakReferenceMessenger.Default.Send(new ApplyProfileSwitchMessage(profileName));
 
@@ -197,7 +197,7 @@ public partial class SettingsViewModel
     private async Task SetActiveProfile()
     {
         var profileName = SelectedProfileName;
-        var isDirty = IsDirty;
+        var isDirty = SettingsChanged;
         var gamelistLoaded = WeakReferenceMessenger.Default.Send(new GamelistLoadedRequestMessage()).Response;
 
         if (gamelistLoaded && !await WeakReferenceMessenger.Default.Send(new CheckUnsavedGamelistChangesMessage()))
@@ -282,7 +282,7 @@ public partial class SettingsViewModel
             _isProfileLoading = false;
         }
         WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
-        IsDirty = false;
+        SettingsChanged = false;
     }
 
     private void DoCreateFromTemplate(bool overwrite = false)
