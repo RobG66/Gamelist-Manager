@@ -172,8 +172,11 @@ public partial class MainWindowViewModel
                 });
                 return;
             }
-
+                        
             if (!await LoadGamelistFromFileAsync(backupPath)) return;
+
+            // Null guard
+            if (string.IsNullOrEmpty(_sessionState.GamelistsRootFolder)) return;
 
             // Point session at the real gamelist destination, show no path (treated as unsaved new gamelist)
             var realGamelistPath = Path.Combine(_sessionState.GamelistsRootFolder, systemName, "gamelist.xml");
@@ -626,8 +629,7 @@ public partial class MainWindowViewModel
     
     private async Task<bool> LoadGamelistFromFileAsync(string filePath)
     {
-        UnloadGamelist();
-
+        
         if (!await EnsureMatchingProfileAsync(filePath)) return false;
 
         _sessionState.IsBusy = true;

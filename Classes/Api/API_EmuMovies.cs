@@ -1,4 +1,4 @@
-﻿using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
@@ -17,15 +17,12 @@ namespace Gamelist_Manager.Classes.Api
     {
         private const string ApiUrl = "https://api3.emumovies.com/api";
 
-        // Developer bearer token for EmuMovies API
         private string _bearerToken;
-
         private readonly HttpClient _httpClient;
 
         public API_EmuMovies(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            // Get bearer token from configuration service (with environment variable fallback)
             _bearerToken = Gamelist_Manager.Services.Secrets.EmuMoviesBearerToken;
         }
 
@@ -50,12 +47,7 @@ namespace Gamelist_Manager.Classes.Api
                     }
                 }
 
-                if (!string.IsNullOrEmpty(filename))
-                {
-                    return Path.GetExtension(filename);
-                }
-
-                return string.Empty;
+                return !string.IsNullOrEmpty(filename) ? Path.GetExtension(filename) : string.Empty;
             }
             catch
             {
@@ -66,9 +58,7 @@ namespace Gamelist_Manager.Classes.Api
         private static void AddMedia(ScrapedGameData data, ScrapedGameData.MediaResult? media)
         {
             if (media != null)
-            {
                 data.Media.Add(media);
-            }
         }
 
         private static ScrapedGameData.MediaResult? GetMediaResult(string url, string mediaType)
@@ -98,6 +88,11 @@ namespace Gamelist_Manager.Classes.Api
                 return (false, result, messages);
             }
 
+            // Pre-normalize search terms once for the entire scrape operation
+            // rather than re-normalizing on every element lookup
+            string romFileNameWithoutExtension = Path.GetFileNameWithoutExtension(parameters.RomFileName ?? string.Empty);
+            var normalizedSearchTerms = new NormalizedSearchTerms(romFileNameWithoutExtension, parameters.RomName ?? string.Empty);
+
             foreach (string element in parameters.ElementsToScrape)
             {
                 string url = string.Empty;
@@ -105,67 +100,67 @@ namespace Gamelist_Manager.Classes.Api
                 switch (element)
                 {
                     case "fanart":
-                        url = await GetMediaUrl("Background", parameters, mediaLists);
+                        url = await GetMediaUrl("Background", parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "fanart"));
                         break;
 
                     case "boxback":
-                        url = await GetMediaUrl("BoxBack", parameters, mediaLists);
+                        url = await GetMediaUrl("BoxBack", parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "boxback"));
                         break;
 
                     case "boxart":
-                        url = await GetMediaUrl(parameters.BoxArtSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.BoxArtSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "boxart"));
                         break;
 
                     case "mix":
-                        url = await GetMediaUrl(parameters.MixSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.MixSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "mix"));
                         break;
 
                     case "wheel":
-                        url = await GetMediaUrl(parameters.WheelSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.WheelSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "wheel"));
                         break;
 
                     case "manual":
-                        url = await GetMediaUrl("Manual", parameters, mediaLists);
+                        url = await GetMediaUrl("Manual", parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "manual"));
                         break;
 
                     case "music":
-                        url = await GetMediaUrl("Music", parameters, mediaLists);
+                        url = await GetMediaUrl("Music", parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "music"));
                         break;
 
                     case "image":
-                        url = await GetMediaUrl(parameters.ImageSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.ImageSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "image"));
                         break;
 
                     case "titleshot":
-                        url = await GetMediaUrl("Title", parameters, mediaLists);
+                        url = await GetMediaUrl("Title", parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "titleshot"));
                         break;
 
                     case "thumbnail":
-                        url = await GetMediaUrl(parameters.ThumbnailSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.ThumbnailSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "thumbnail"));
                         break;
 
                     case "marquee":
-                        url = await GetMediaUrl(parameters.MarqueeSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.MarqueeSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "marquee"));
                         break;
 
                     case "cartridge":
-                        url = await GetMediaUrl(parameters.CartridgeSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.CartridgeSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "cartridge"));
                         break;
 
                     case "video":
-                        url = await GetMediaUrl(parameters.VideoSource, parameters, mediaLists);
+                        url = await GetMediaUrl(parameters.VideoSource, parameters, mediaLists, normalizedSearchTerms);
                         AddMedia(result, GetMediaResult(url, "video"));
                         break;
                 }
@@ -177,7 +172,8 @@ namespace Gamelist_Manager.Classes.Api
         private async Task<string> GetMediaUrl(
             string? remoteMediaType,
             ScraperParameters parameters,
-            Dictionary<string, List<string>> mediaLists)
+            Dictionary<string, List<string>> mediaLists,
+            NormalizedSearchTerms normalizedSearchTerms)
         {
             if (string.IsNullOrEmpty(remoteMediaType))
                 return string.Empty;
@@ -188,10 +184,7 @@ namespace Gamelist_Manager.Classes.Api
             if (!mediaLists.TryGetValue(remoteMediaType, out List<string>? mediaList) || mediaList == null)
                 return string.Empty;
 
-            string romFileNameWithoutExtension = Path.GetFileNameWithoutExtension(parameters.RomFileName);
-            List<string> searchItems = new List<string> { romFileNameWithoutExtension, parameters.RomName, };
-
-            string remoteFileName = FindString(searchItems, mediaList);
+            string remoteFileName = FindString(normalizedSearchTerms, mediaList);
 
             if (string.IsNullOrEmpty(remoteFileName))
                 return string.Empty;
@@ -201,28 +194,27 @@ namespace Gamelist_Manager.Classes.Api
                 return string.Empty;
 
             string encodedURL = WebUtility.UrlEncode(remoteFileName);
-            string downloadURL = $"{ApiUrl}/Media/Download?accessToken={parameters.UserAccessToken}&systemName={parameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={encodedURL}";
-
-            return downloadURL;
+            return $"{ApiUrl}/Media/Download?accessToken={parameters.UserAccessToken}&systemName={parameters.SystemID}&mediaType={remoteMediaType}&mediaSet=default&filename={encodedURL}";
         }
 
-        private static string FindString(List<string> searchText, List<string> mediaList)
+        private static string FindString(NormalizedSearchTerms terms, List<string> mediaList)
         {
-            // First pass: exact filename match (case-insensitive, extension stripped)
-            foreach (string item in searchText)
-            {
-                string? exactMatch = EmuMoviesTextSearchHelper.FindExactMatch(item, mediaList);
-                if (!string.IsNullOrEmpty(exactMatch))
-                    return exactMatch;
-            }
+            // Ensure cache built once for this media list
+            EmuMoviesTextSearchHelper.EnsureCached(mediaList);
 
-            // Second pass: normalized fuzzy match
-            foreach (string item in searchText)
-            {
-                string? result = EmuMoviesTextSearchHelper.FindTextMatch(item, mediaList);
-                if (!string.IsNullOrEmpty(result))
-                    return result;
-            }
+            // First pass: exact filename match (case-insensitive, extension stripped)
+            string? match = EmuMoviesTextSearchHelper.FindExactMatch(terms.RomFileName, mediaList);
+            if (!string.IsNullOrEmpty(match)) return match;
+
+            match = EmuMoviesTextSearchHelper.FindExactMatch(terms.RomName, mediaList);
+            if (!string.IsNullOrEmpty(match)) return match;
+
+            // Second pass: normalized fuzzy match — use pre-normalized terms, no NormalizeText call here
+            match = EmuMoviesTextSearchHelper.FindTextMatchNormalized(terms.NormalizedRomFileName, mediaList);
+            if (!string.IsNullOrEmpty(match)) return match;
+
+            match = EmuMoviesTextSearchHelper.FindTextMatchNormalized(terms.NormalizedRomName, mediaList);
+            if (!string.IsNullOrEmpty(match)) return match;
 
             return string.Empty;
         }
@@ -230,16 +222,9 @@ namespace Gamelist_Manager.Classes.Api
         public async Task<(bool Success, string AccessToken, string ErrorMessage)> AuthenticateAsync(string username, string password)
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
                 return (false, string.Empty, "Username and password are required");
-            }
 
-            var credentials = new
-            {
-                username,
-                password
-            };
-
+            var credentials = new { username, password };
             string url = $"{ApiUrl}/User/authenticate";
 
             var options = new JsonSerializerOptions
@@ -260,9 +245,7 @@ namespace Gamelist_Manager.Classes.Api
                 using var httpResponse = await _httpClient.SendAsync(request);
 
                 if (!httpResponse.IsSuccessStatusCode)
-                {
                     return (false, string.Empty, $"Authentication failed: {httpResponse.StatusCode}");
-                }
 
                 string responseBody = await httpResponse.Content.ReadAsStringAsync();
 
@@ -274,9 +257,7 @@ namespace Gamelist_Manager.Classes.Api
                 {
                     string? token = accessTokenElement.GetString();
                     if (!string.IsNullOrEmpty(token))
-                    {
                         return (true, token, string.Empty);
-                    }
                 }
 
                 return (false, string.Empty, "Access token not found in response");
@@ -295,6 +276,26 @@ namespace Gamelist_Manager.Classes.Api
             {
                 return (false, string.Empty, $"Authentication error: {ex.Message}");
             }
+        }
+    }
+
+    /// <summary>
+    /// Holds pre-normalized search terms for a single ROM so NormalizeText
+    /// is called once per game rather than once per media element per game.
+    /// </summary>
+    internal readonly struct NormalizedSearchTerms
+    {
+        public readonly string RomFileName;
+        public readonly string RomName;
+        public readonly string NormalizedRomFileName;
+        public readonly string NormalizedRomName;
+
+        public NormalizedSearchTerms(string romFileName, string romName)
+        {
+            RomFileName = romFileName;
+            RomName = romName;
+            NormalizedRomFileName = EmuMoviesTextSearchHelper.GetNormalizedCached(romFileName);
+            NormalizedRomName = EmuMoviesTextSearchHelper.GetNormalizedCached(romName);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -24,6 +24,10 @@ namespace Gamelist_Manager.Classes.Helpers
         private static readonly LinkedList<List<string>> CacheUsageOrder = new LinkedList<List<string>>();
         private static readonly Lock CacheLock = new Lock();
 
+        // Cache for normalized search terms — pays NormalizeText cost once per unique input
+        private static readonly ConcurrentDictionary<string, string> NormalizedSearchCache
+            = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         private static readonly HashSet<string> StopWordsSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         { "the", "a", "an", "and", "in", "of", "on", "at", "for", "by", "to", "is", "it" };
 
@@ -32,6 +36,13 @@ namespace Gamelist_Manager.Classes.Helpers
 
         private static readonly (Regex Pattern, string Replacement)[] RomanNumeralRules =
         {
+            (new Regex(@"\bXIV\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "14"),
+            (new Regex(@"\bXIII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "13"),
+            (new Regex(@"\bXII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "12"),
+            (new Regex(@"\bXI\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "11"),
+            (new Regex(@"\bX\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "10"),
+            (new Regex(@"\bIX\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "9"),
+            (new Regex(@"\bVIII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "8"),
             (new Regex(@"\bVII\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "7"),
             (new Regex(@"\bVI\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "6"),
             (new Regex(@"\bV\b", RegexOptions.IgnoreCase | RegexOptions.Compiled), "5"),
@@ -51,7 +62,7 @@ namespace Gamelist_Manager.Classes.Helpers
             int underscoreIndex = text.IndexOf('_');
             if (underscoreIndex > 0)
             {
-                if (Path.HasExtension(text) || text.Any(char.IsDigit))
+                if (Path.HasExtension(text) || text.AsSpan().IndexOfAnyInRange('0', '9') >= 0)
                     text = text[..underscoreIndex];
             }
 
@@ -73,6 +84,13 @@ namespace Gamelist_Manager.Classes.Helpers
 
             return text.Replace(" ", string.Empty).Trim().ToLowerInvariant();
         }
+
+        /// <summary>
+        /// Returns a cached normalized form of the input — use this instead of calling
+        /// NormalizeText directly when the same search term may appear multiple times.
+        /// </summary>
+        public static string GetNormalizedCached(string text)
+            => NormalizedSearchCache.GetOrAdd(text, static t => NormalizeText(t));
 
         private static string RemoveDiacritics(string text)
         {
@@ -111,7 +129,7 @@ namespace Gamelist_Manager.Classes.Helpers
             return text;
         }
 
-        private static void EnsureCached(List<string> names)
+        public static void EnsureCached(List<string> names)
         {
             lock (CacheLock)
             {
@@ -130,7 +148,6 @@ namespace Gamelist_Manager.Classes.Helpers
                     CachedExactLists.Remove(oldest);
                 }
 
-                // Exact match dict: filename-without-extension (case-insensitive) → original
                 var exactNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var m in names)
                 {
@@ -138,7 +155,6 @@ namespace Gamelist_Manager.Classes.Helpers
                     exactNames.TryAdd(key, m);
                 }
 
-                // Normalized fuzzy dict: NormalizeText(filename) → original
                 Dictionary<string, string> normalizedNames;
                 if (names.Count > 2000)
                 {
@@ -175,14 +191,33 @@ namespace Gamelist_Manager.Classes.Helpers
             }
         }
 
+        /// <summary>
+        /// Standard overload — normalizes searchName internally (cached).
+        /// </summary>
         public static string? FindTextMatch(string searchName, List<string> names)
         {
             EnsureCached(names);
-            string normalized = NormalizeText(searchName);
+            string normalized = GetNormalizedCached(searchName);
 
             lock (CacheLock)
             {
                 return CachedNormalizedLists.TryGetValue(names, out var dict) && dict.TryGetValue(normalized, out var original)
+                    ? original
+                    : null;
+            }
+        }
+
+        /// <summary>
+        /// Fast overload — accepts an already-normalized search term, skipping NormalizeText entirely.
+        /// Use when the caller pre-normalizes search terms (e.g. batch scraping).
+        /// </summary>
+        public static string? FindTextMatchNormalized(string normalizedSearchName, List<string> names)
+        {
+            EnsureCached(names);
+
+            lock (CacheLock)
+            {
+                return CachedNormalizedLists.TryGetValue(names, out var dict) && dict.TryGetValue(normalizedSearchName, out var original)
                     ? original
                     : null;
             }
@@ -193,8 +228,8 @@ namespace Gamelist_Manager.Classes.Helpers
             if (string.IsNullOrEmpty(fileName))
                 return null;
 
-            string normalizedSearch = NormalizeText(searchName);
-            string normalizedFile = NormalizeText(fileName);
+            string normalizedSearch = GetNormalizedCached(searchName);
+            string normalizedFile = GetNormalizedCached(fileName);
 
             return string.Equals(normalizedSearch, normalizedFile, StringComparison.OrdinalIgnoreCase)
                 ? fileName
@@ -209,6 +244,7 @@ namespace Gamelist_Manager.Classes.Helpers
                 CachedExactLists.Clear();
                 CacheUsageOrder.Clear();
             }
+            NormalizedSearchCache.Clear();
         }
 
         public static void ClearCache(List<string> names)
@@ -233,48 +269,47 @@ namespace Gamelist_Manager.Classes.Helpers
             if (string.IsNullOrEmpty(folderToScan) || !Directory.Exists(folderToScan))
                 throw new DirectoryNotFoundException($"Folder not found: {folderToScan}");
 
-            // Precompute normalized media dictionary in parallel
             var mediaFiles = Directory.GetFiles(folderToScan, "*.*", SearchOption.TopDirectoryOnly)
                 .Select(f => new { FileName = Path.GetFileName(f), FullPath = f })
                 .ToList();
 
+            // Build normalized media dict — collision-safe
             var normalizedMediaDict = mediaFiles
                 .AsParallel()
                 .WithCancellation(cancellationToken)
-                .ToDictionary(
-                    m => EmuMoviesTextSearchHelper.NormalizeText(m.FileName),
-                    m => m.FullPath,
-                    StringComparer.OrdinalIgnoreCase
-                );
+                .GroupBy(m => EmuMoviesTextSearchHelper.NormalizeText(m.FileName), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First().FullPath, StringComparer.OrdinalIgnoreCase);
+
+            // Pre-normalize all ROM names once before the parallel loop
+            var normalizedRomList = romList
+                .AsParallel()
+                .WithCancellation(cancellationToken)
+                .Select(r => new
+                {
+                    r.RomPath,
+                    NormalizedPath = FilePathHelper.NormalizeRomName(r.RomPath),
+                    NormalizedName = EmuMoviesTextSearchHelper.GetNormalizedCached(r.Name)
+                })
+                .ToList();
 
             var foundMedia = new ConcurrentBag<MediaSearchItem>();
 
-            // Process ROMs in parallel
             await Task.Run(() =>
             {
-                Parallel.ForEach(romList, new ParallelOptions { CancellationToken = cancellationToken }, romTuple =>
+                Parallel.ForEach(normalizedRomList, new ParallelOptions { CancellationToken = cancellationToken }, rom =>
                 {
-                    var romPath = romTuple.RomPath;
-                    var romName = romTuple.Name;
-                    var normalizedRomName = FilePathHelper.NormalizeRomName(romPath);
-
                     string? matchedFile;
 
-                    // Try normalized ROM path first
-                    if (normalizedMediaDict.TryGetValue(normalizedRomName, out var match))
+                    if (normalizedMediaDict.TryGetValue(rom.NormalizedPath, out var match))
                         matchedFile = match;
                     else
-                    {
-                        // Try ROM display name
-                        string normalizedDisplayName = EmuMoviesTextSearchHelper.NormalizeText(romName);
-                        normalizedMediaDict.TryGetValue(normalizedDisplayName, out matchedFile);
-                    }
+                        normalizedMediaDict.TryGetValue(rom.NormalizedName, out matchedFile);
 
                     if (!string.IsNullOrEmpty(matchedFile))
                     {
                         foundMedia.Add(new MediaSearchItem
                         {
-                            RomPath = romPath,
+                            RomPath = rom.RomPath,
                             MediaType = mediaType,
                             MatchedFile = matchedFile
                         });

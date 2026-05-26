@@ -15,16 +15,10 @@ namespace Gamelist_Manager.Classes.Helpers
 
             foreach (var item in parameters.ElementsToScrape!)
             {
-                // Non-metadata items (region, lang, etc.) — always include
                 if (!Enum.TryParse<MetaDataKeys>(item, true, out var key))
                 {
-                    itemsToScrape.Add(item);
                     continue;
                 }
-
-                var (type, _) = parameters.MetaLookup != null && parameters.MetaLookup.TryGetValue(item, out var meta)
-                    ? meta
-                    : ("String", string.Empty);
 
                 string? value = row.GetValue(key)?.ToString();
 
@@ -34,6 +28,11 @@ namespace Gamelist_Manager.Classes.Helpers
                     itemsToScrape.Add(item);
                     continue;
                 }
+
+                if (!parameters.MetaLookup!.TryGetValue(item, out var meta))
+                    continue;
+
+                var (type, _) = meta;
 
                 // Media with an existing gamelist path — skip if the file is on disk and not overwriting
                 if (type is "Image" or "Document" or "Video" &&

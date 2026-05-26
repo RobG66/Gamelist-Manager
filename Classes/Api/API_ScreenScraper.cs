@@ -34,7 +34,7 @@ namespace Gamelist_Manager.Classes.Api
         {
             _httpClient = httpClient;
 
-            // Get dev credentials from configuration service (with environment variable fallback)
+            // Get dev credentials from configuration service
             _devId = Gamelist_Manager.Services.Secrets.ScreenScraperDevId;
             _devPassword = Gamelist_Manager.Services.Secrets.ScreenScraperDevPassword;
         }

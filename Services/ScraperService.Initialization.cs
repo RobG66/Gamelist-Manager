@@ -85,7 +85,7 @@ namespace Gamelist_Manager.Services
 
             bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
 
-            return new ScraperParameters
+            var parameters = new ScraperParameters
             {
                 ScraperName = scraperName,
                 VerifyImageDownloads = verifyImageDownloads,
@@ -124,6 +124,9 @@ namespace Gamelist_Manager.Services
                             m => (m.Suffix, m.SfxEnabled),
                             StringComparer.OrdinalIgnoreCase)
             };
+
+            parameters.BuildMetaLookup();
+            return parameters;
         }
 
         #endregion
