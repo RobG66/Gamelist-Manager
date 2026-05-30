@@ -171,7 +171,9 @@ namespace Gamelist_Manager.Services
                 {
                     if (profileType == SettingKeys.ProfileTypeEs)
                     {
-                        // ParentFolderPath removal — to be fixed later
+                        var romFolder = SessionState.Instance.CurrentRomFolder;
+                        if (!string.IsNullOrEmpty(romFolder))
+                            value = FilePathHelper.PathToRelativePathWithDotSlashPrefix(value, romFolder);
                     }
                 }
 

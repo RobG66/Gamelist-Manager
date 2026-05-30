@@ -55,6 +55,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _batchProcessing;
     [ObservableProperty] private bool _removeZZZNotGamePrefix;
     [ObservableProperty] private bool _useSimpleSystemPicker;
+    [ObservableProperty] private bool _saveWindowState;
     [ObservableProperty] private bool _showLogTimestamp;
     [ObservableProperty] private bool _logToDisk;
     [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
@@ -190,6 +191,7 @@ public partial class SettingsViewModel : ViewModelBase
         LogToDisk = s.LogToDisk;
         CheckForNewAndMissingGamesOnLoad = s.CheckForNewAndMissingGamesOnLoad;
         UseSimpleSystemPicker = s.UseSimpleSystemPicker;
+        SaveWindowState = s.SaveWindowState;
 
         ScraperConfigSaveIndex = s.ScraperConfigSave;
         MaxUndo = s.MaxUndo;
@@ -278,7 +280,8 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.EnableDelete.Key] = EnableDelete.ToString(),
                 [SettingKeys.IgnoreDuplicates.Key] = IgnoreDuplicates.ToString(),
                 [SettingKeys.CheckForNewAndMissingGamesOnLoad.Key] = CheckForNewAndMissingGamesOnLoad.ToString(),
-                [SettingKeys.UseSimpleSystemPicker.Key] = UseSimpleSystemPicker.ToString()
+                [SettingKeys.UseSimpleSystemPicker.Key] = UseSimpleSystemPicker.ToString(),
+                [SettingKeys.SaveWindowState.Key] = SaveWindowState.ToString()
             },
             [SettingKeys.AdvancedSection] = new()
             {

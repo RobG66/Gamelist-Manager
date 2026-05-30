@@ -1,0 +1,35 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="Slider /template/ Thumb">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Width="16" Height="12"
+                        CornerRadius="2"
+                        Background="{DynamicResource SliderThumbBrush}"/>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="Slider:pointerover /template/ Thumb">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Width="16" Height="12"
+                        CornerRadius="2"
+                        Background="{DynamicResource SliderThumbHoverBrush}"/>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="Slider:pressed /template/ Thumb">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Width="16" Height="12"
+                        CornerRadius="2"
+                        Background="{DynamicResource SliderThumbHoverBrush}"/>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+</Styles>
+

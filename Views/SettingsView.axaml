@@ -198,6 +198,8 @@
 											  ToolTip.Tip="Automatically check for new and missing items when loading a gamelist."/>
 									<CheckBox IsChecked="{Binding UseSimpleSystemPicker}" Content="Use Flyout System Picker" Margin="0,4,4,2"
 											  ToolTip.Tip="When checked, a simple menu is used for selecting systems."/>
+									<CheckBox IsChecked="{Binding SaveWindowState}" Content="Save Window State" Margin="0,4,4,2"
+											  ToolTip.Tip="Save and restore the main window position, size, and maximized state between sessions."/>
 
 								</UniformGrid>
 							</StackPanel>

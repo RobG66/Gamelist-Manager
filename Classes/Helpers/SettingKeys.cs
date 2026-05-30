@@ -38,6 +38,7 @@ public static class SettingKeys
     public const string EsDeSection = "EsDe";
     public const string ProfileSection = "Profile";
     public const string MediaPathOverridesSection = "MediaPathOverrides";
+    public const string WindowStateSection = "WindowState";
 
     #endregion
 
@@ -78,6 +79,7 @@ public static class SettingKeys
     public static readonly SettingDef<bool> IgnoreDuplicates = new(BehaviorSection, "IgnoreDuplicates", false);
     public static readonly SettingDef<bool> CheckForNewAndMissingGamesOnLoad = new(BehaviorSection, "CheckForNewAndMissingGamesOnLoad", false);
     public static readonly SettingDef<bool> UseSimpleSystemPicker = new(BehaviorSection, "UseSimpleSystemPicker", false);
+    public static readonly SettingDef<bool> SaveWindowState = new(BehaviorSection, "SaveWindowState", false);
 
     #endregion
 
@@ -140,6 +142,16 @@ public static class SettingKeys
 
     #endregion
 
+    #region Window State
+
+    public static readonly SettingDef<int> WindowLeft = new(WindowStateSection, "WindowLeft", -1);
+    public static readonly SettingDef<int> WindowTop = new(WindowStateSection, "WindowTop", -1);
+    public static readonly SettingDef<int> WindowWidth = new(WindowStateSection, "WindowWidth", 1200);
+    public static readonly SettingDef<int> WindowHeight = new(WindowStateSection, "WindowHeight", 700);
+    public static readonly SettingDef<string> WindowStateValue = new(WindowStateSection, "WindowStateValue", "Normal");
+
+    #endregion
+
     #region ES-DE
 
     public static readonly SettingDef<string> EsDeRoot = new(EsDeSection, "EsDeRoot", "");
@@ -160,7 +172,7 @@ public static class SettingKeys
         // Behavior
         ConfirmBulkChange, SaveReminder, VideoAutoplay,
         RememberColumns, RememberAutoSize, EnableDelete, IgnoreDuplicates,
-        CheckForNewAndMissingGamesOnLoad, UseSimpleSystemPicker,
+        CheckForNewAndMissingGamesOnLoad, UseSimpleSystemPicker, SaveWindowState,
 
         // Scraper Options
         VerifyDownloadedImages, BatchProcessing, ShowLogTimestamp, LogToDisk,

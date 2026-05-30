@@ -3,319 +3,400 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Gamelist_Manager.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="580"
+        mc:Ignorable="d" d:DesignWidth="780" d:DesignHeight="620"
         x:Class="Gamelist_Manager.Views.ImageEditView"
         x:DataType="vm:ImageEditViewModel"
         x:CompileBindings="True"
         Title="Edit Image"
-        Width="760"
-        Height="580"
+        Width="780"
+        Height="620"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         FontSize="{DynamicResource GlobalFontSize}">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}"/>
+        <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}"/>
+    </Window.KeyBindings>
+
 
     <Border Background="{DynamicResource CardBackground}"
             BorderBrush="{DynamicResource CardBorder}"
             BorderThickness="1"
             CornerRadius="0,0,8,8">
 
-        <Grid RowDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
 
-            <!-- Side-by-side image panels -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,10,*" Margin="14,14,14,0">
+            <!-- ══════════════════════════════════════════
+                 Row 0 — Tool toolbar
+                 ══════════════════════════════════════════ -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource PanelBackground}"
+                    BorderBrush="{DynamicResource PanelBorder}"
+                    BorderThickness="0,0,0,1"
+                    Padding="10,8">
+                <DockPanel>
 
-                <!-- Original image -->
-                <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Row="0"
-                               Text="Original"
+                    <TextBlock DockPanel.Dock="Left"
+                               Text="{Binding ImageSizeText}"
                                FontSize="{DynamicResource GlobalHeaderFontSize}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource AccentTextBrush}"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,4"/>
-                    <!-- Viewbox scales the border+image as a unit so the border always hugs the image edges exactly -->
-                    <Viewbox Grid.Row="1"
-                             Stretch="Uniform"
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center">
-                        <Border x:Name="OriginalImageBorder"
-                                BorderBrush="{DynamicResource CardBorder}"
-                                BorderThickness="2">
-                            <Image x:Name="OriginalImageControl"
-                                   Source="{Binding OriginalImage}"
-                                   Stretch="None"/>
-                        </Border>
-                    </Viewbox>
-                    <TextBlock Grid.Row="2"
-                               Text="{Binding OriginalSizeText}"
-                               FontSize="{DynamicResource GlobalHeaderFontSize}"
-                               Foreground="{DynamicResource SubtleTextBrush}"
-                               HorizontalAlignment="Center"
-                               Margin="0,4,0,0"/>
-                </Grid>
+                               VerticalAlignment="Center"
+                               Margin="0,0,16,0"/>
 
-                <!-- Preview image -->
-                <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Row="0"
-                               Text="Preview"
-                               FontSize="{DynamicResource GlobalHeaderFontSize}"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource AccentTextBrush}"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,4"/>
-                    <Grid Grid.Row="1">
-                        <!-- Viewbox scales the border+image as a unit so the border always hugs the image edges exactly -->
-                        <Viewbox Stretch="Uniform"
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="6">
+
+                        <Button x:Name="BtnRemoveBg"
+                                Classes="rounded grey"
+                                Content="Remove Background"
+                                Click="OnToolButtonClicked"
+                                Tag="RemoveBackground"
+                                ToolTip.Tip="Remove the background from the image"/>
+
+                        <Button x:Name="BtnCrop"
+                                Classes="rounded grey"
+                                Content="Crop"
+                                Click="OnToolButtonClicked"
+                                Tag="Crop"
+                                ToolTip.Tip="Crop the image to a selected region"/>
+
+                        <Button x:Name="BtnResize"
+                                Classes="rounded grey"
+                                Content="Resize"
+                                Click="OnToolButtonClicked"
+                                Tag="Resize"
+                                ToolTip.Tip="Resize the image to specific dimensions"/>
+
+                    </StackPanel>
+
+                    <Border DockPanel.Dock="Right" Width="1"/>
+
+                </DockPanel>
+            </Border>
+
+            <!-- ══════════════════════════════════════════
+                 Row 1 — Image area
+                 ══════════════════════════════════════════ -->
+            <Grid Grid.Row="1" Margin="14,12,14,0">
+
+                <Viewbox x:Name="ImageViewbox"
+                         Stretch="Uniform"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center">
+                    <Border x:Name="ImageBorder"
+                            BorderBrush="{DynamicResource CardBorder}"
+                            BorderThickness="1">
+                        <Image x:Name="MainImageControl"
+                               Source="{Binding DisplayImage}"
+                               Stretch="None"/>
+                    </Border>
+                </Viewbox>
+
+                <!-- Crop overlay -->
+                <Canvas x:Name="CropOverlayCanvas"
+                        IsVisible="{Binding IsCropTool}"
+                        ClipToBounds="True"
+                        IsHitTestVisible="{Binding IsCropTool}">
+
+                    <Rectangle x:Name="DimTop"    Fill="#88000000"/>
+                    <Rectangle x:Name="DimBottom" Fill="#88000000"/>
+                    <Rectangle x:Name="DimLeft"   Fill="#88000000"/>
+                    <Rectangle x:Name="DimRight"  Fill="#88000000"/>
+
+                    <Rectangle x:Name="CropBorderRect"
+                               Stroke="White"
+                               StrokeThickness="1"
+                               StrokeDashArray="4,3"
+                               Fill="Transparent"/>
+
+                    <Line x:Name="GridH1" Stroke="#55FFFFFF" StrokeThickness="0.5"/>
+                    <Line x:Name="GridH2" Stroke="#55FFFFFF" StrokeThickness="0.5"/>
+                    <Line x:Name="GridV1" Stroke="#55FFFFFF" StrokeThickness="0.5"/>
+                    <Line x:Name="GridV2" Stroke="#55FFFFFF" StrokeThickness="0.5"/>
+
+                    <Ellipse x:Name="HandleTL" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeAll"/>
+                    <Ellipse x:Name="HandleTC" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeNorthSouth"/>
+                    <Ellipse x:Name="HandleTR" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeAll"/>
+                    <Ellipse x:Name="HandleML" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeWestEast"/>
+                    <Ellipse x:Name="HandleMR" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeWestEast"/>
+                    <Ellipse x:Name="HandleBL" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeAll"/>
+                    <Ellipse x:Name="HandleBC" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeNorthSouth"/>
+                    <Ellipse x:Name="HandleBR" Width="10" Height="10" Fill="White" Stroke="#444" StrokeThickness="1" Cursor="SizeAll"/>
+
+                </Canvas>
+
+                <Border Background="#88000000" IsVisible="{Binding IsBusy}">
+                    <ProgressBar IsIndeterminate="True"
+                                 Width="160"
                                  HorizontalAlignment="Center"
-                                 VerticalAlignment="Center">
-                            <Border x:Name="PreviewImageBorder"
-                                    BorderBrush="{DynamicResource AccentBlueBorder}"
-                                    BorderThickness="2">
-                                <Image Source="{Binding PreviewImage}"
-                                       Stretch="None"/>
-                            </Border>
-                        </Viewbox>
-                        <Border Background="#88000000"
-                                IsVisible="{Binding IsBusy}">
-                            <ProgressBar IsIndeterminate="True"
-                                         Width="160"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"/>
-                        </Border>
-                    </Grid>
-                    <TextBlock Grid.Row="2"
-                               Text="{Binding PreviewSizeText}"
-                               FontSize="{DynamicResource GlobalHeaderFontSize}"
-                               Foreground="{DynamicResource SubtleTextBrush}"
-                               HorizontalAlignment="Center"
-                               Margin="0,4,0,0"/>
-                </Grid>
+                                 VerticalAlignment="Center"/>
+                </Border>
 
             </Grid>
 
-            <!-- Remove Background controls panel -->
-            <Border Grid.Row="1"
-                    Background="{DynamicResource PanelBackground}"
-                    BorderBrush="{DynamicResource PanelBorder}"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Padding="10,8"
-                    Margin="14,10,14,0">
-                <Grid RowDefinitions="Auto,Auto">
-
-                    <WrapPanel Grid.Row="0" Orientation="Horizontal">
-                        <CheckBox Content="Remove Background"
-                                  IsChecked="{Binding RemoveBackground}"
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,20,0"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <ComboBox SelectedIndex="{Binding SelectedModeIndex}"
-                                  PlaceholderText="Select a shape..."
-                                  FontSize="{DynamicResource GlobalFontSize}"
-                                  IsEnabled="{Binding RemoveBackground}"
-                                  MinWidth="150"
-                                  Margin="0,0,16,0">
-                            <ComboBoxItem>Circle - Automatic</ComboBoxItem>
-                            <ComboBoxItem>Circle - Edge Detection</ComboBoxItem>
-                            <ComboBoxItem>Freeform</ComboBoxItem>
-                            <ComboBoxItem>Outline</ComboBoxItem>
-                            <!-- Circle 2 disabled
-                            <ComboBoxItem ToolTip.Tip="Click on the disc in the original image to detect the circle. Uses flood fill and ray-casting for accurate circle detection.">Circle 2</ComboBoxItem>
-                            -->
-                        </ComboBox>
-                        <CheckBox Content="Remove enclosed regions"
-                                  IsChecked="{Binding RemoveEnclosed}"
-                                  IsEnabled="{Binding IsFreeformMode}"
-                                  Margin="0,0,16,0"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <CheckBox Content="Invert colors"
-                                  IsChecked="{Binding InvertColors}"
-                                  IsEnabled="{Binding IsFreeformMode}"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                    </WrapPanel>
-
-                    <Grid Grid.Row="1" ColumnDefinitions="72,*,32,16,Auto,80" Margin="0,8,0,0"
-                          IsEnabled="{Binding RemoveBackground}">
-                        <TextBlock Grid.Column="0"
-                                   Text="Tolerance"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <Slider Grid.Column="1"
-                                Minimum="0"
-                                Maximum="50"
-                                Value="{Binding Tolerance}"
-                                IsSnapToTickEnabled="True"
-                                TickFrequency="1"
-                                VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="2"
-                                   Text="{Binding Tolerance, StringFormat='{}{0:0}'}"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Right"
-                                   Margin="6,0,0,0"
-                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <TextBlock Grid.Column="4"
-                                   Text="Edge Detection"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"
-                                   IsEnabled="{Binding IsCircleMode}"
-                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <NumericUpDown Grid.Column="5"
-                                       Value="{Binding EdgeThreshold}"
-                                       Minimum="0.05"
-                                       Maximum="5.00"
-                                       Increment="0.05"
-                                       FormatString="0.00"
-                                       IsEnabled="{Binding IsCircleMode}"
-                                       VerticalAlignment="Center"/>
-                    </Grid>
-
-                </Grid>
-            </Border>
-
-            <!-- Crop controls panel -->
+            <!-- ══════════════════════════════════════════
+                 Row 2 — Tool options panel (fixed height so image never shifts)
+                 ══════════════════════════════════════════ -->
             <Border Grid.Row="2"
                     Background="{DynamicResource PanelBackground}"
                     BorderBrush="{DynamicResource PanelBorder}"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Padding="10,8"
-                    Margin="14,6,14,0">
-                <Grid RowDefinitions="Auto,Auto">
+                    BorderThickness="0,1,0,0"
+                    Height="60"
+                    Padding="10,0"
+                    Margin="0,10,0,0">
 
-                    <WrapPanel Grid.Row="0" Orientation="Horizontal">
-                        <CheckBox Content="Crop Image"
-                                  IsChecked="{Binding CropImage}"
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,20,0"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <CheckBox Content="Crop Vertical"
-                                  IsChecked="{Binding CropVertical}"
-                                  IsEnabled="{Binding CanCropVertical}"
-                                  Margin="0,0,16,0"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <CheckBox Content="Crop Horizontal"
-                                  IsChecked="{Binding CropHorizontal}"
-                                  IsEnabled="{Binding CanCropHorizontal}"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                    </WrapPanel>
+                <Grid>
 
-                    <Grid Grid.Row="1" ColumnDefinitions="72,*,38" Margin="0,8,0,0"
-                          IsEnabled="{Binding CropImage}">
-                        <TextBlock Grid.Column="0"
-                                   Text="Padding"
-                                   VerticalAlignment="Center"
-                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <Slider Grid.Column="1"
-                                Minimum="0"
-                                Maximum="50"
-                                Value="{Binding Padding}"
-                                IsSnapToTickEnabled="True"
-                                TickFrequency="1"
-                                VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="2"
-                                   Text="{Binding Padding, StringFormat='{}{0:0}%'}"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Right"
-                                   Margin="6,0,0,0"
-                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    <!-- ── REMOVE BACKGROUND ── -->
+                    <StackPanel IsVisible="{Binding IsRemoveBackgroundTool}" Spacing="8">
+
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                            <TextBlock Text="Shape"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+
+                            <ComboBox SelectedIndex="{Binding SelectedModeIndex}"
+                                      PlaceholderText="Select a shape…"
+                                      FontSize="{DynamicResource GlobalFontSize}"
+                                      MinWidth="170"
+                                      Margin="0,0,20,0">
+                                <ComboBoxItem>Circle — Automatic</ComboBoxItem>
+                                <ComboBoxItem>Circle — Edge Detection</ComboBoxItem>
+                                <ComboBoxItem>Freeform</ComboBoxItem>
+                                <ComboBoxItem>Outline</ComboBoxItem>
+                            </ComboBox>
+
+                            <CheckBox Content="Remove enclosed regions"
+                                      IsChecked="{Binding RemoveEnclosed}"
+                                      IsEnabled="{Binding IsFreeformMode}"
+                                      Margin="0,0,16,0"
+                                      VerticalAlignment="Center"
+                                      Foreground="{DynamicResource PrimaryTextBrush}"/>
+
+                            <CheckBox Content="Invert colors"
+                                      IsChecked="{Binding InvertColors}"
+                                      IsEnabled="{Binding IsFreeformMode}"
+                                      VerticalAlignment="Center"
+                                      Foreground="{DynamicResource PrimaryTextBrush}"/>
+                        </WrapPanel>
+
+                        <Grid ColumnDefinitions="60,*,36,24,Auto,84">
+
+                            <TextBlock Grid.Column="0"
+                                       Text="Tolerance"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+
+                            <Slider Grid.Column="1"
+                                    Minimum="0" Maximum="50"
+                                    Value="{Binding Tolerance}"
+                                    IsSnapToTickEnabled="True"
+                                    TickFrequency="1"
+                                    VerticalAlignment="Center"/>
+
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding Tolerance, StringFormat='{}{0:0}'}"
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Right"
+                                       Margin="4,0,0,0"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+
+                            <TextBlock Grid.Column="4"
+                                       Text="Edge threshold"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"
+                                       IsEnabled="{Binding IsCircleMode}"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+
+                            <NumericUpDown Grid.Column="5"
+                                           Value="{Binding EdgeThreshold}"
+                                           Minimum="0.05" Maximum="5.00"
+                                           Increment="0.05"
+                                           FormatString="0.00"
+                                           IsEnabled="{Binding IsCircleMode}"
+                                           VerticalAlignment="Center"/>
+                        </Grid>
+
+                    </StackPanel>
+
+                    <!-- ── CROP ── -->
+                    <Grid IsVisible="{Binding IsCropTool}"
+                          ColumnDefinitions="*,Auto">
+
+                        <StackPanel Grid.Column="0"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Center">
+
+                            <Button Classes="rounded yellow"
+                                    Command="{Binding AutoCropCommand}"
+                                    Content="Auto-crop"
+                                    ToolTip.Tip="Detect content bounds and crop to fit"/>
+
+                            <TextBlock Text="Padding"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource SubtleTextBrush}"/>
+
+                            <NumericUpDown Value="{Binding AutoCropPadding}"
+                                           Minimum="0" Maximum="64"
+                                           Increment="1" FormatString="0"
+                                           Width="76"
+                                           ToolTip.Tip="Pixels of padding around detected content"/>
+
+                            <TextBlock Text="px"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource SubtleTextBrush}"/>
+
+                            <Border Width="1" Background="{DynamicResource CardBorder}" Margin="4,0"/>
+
+                            <TextBlock VerticalAlignment="Center"
+                                       Foreground="{DynamicResource SubtleTextBrush}">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="W {0}  H {1}  at {2}, {3}">
+                                        <Binding Path="CropW"/>
+                                        <Binding Path="CropH"/>
+                                        <Binding Path="CropX"/>
+                                        <Binding Path="CropY"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+
+                        </StackPanel>
+
+                        <!-- Undo / Redo / Reset as transparentbutton icon buttons -->
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="2"
+                                    VerticalAlignment="Center">
+
+                            <Button Classes="transparentbutton"
+                                    Width="22" Height="22"
+                                    Padding="0"
+                                    Command="{Binding UndoCommand}"
+                                    ToolTip.Tip="Undo  (Ctrl+Z)">
+                                <Image Source="/Assets/Buttons/undo-button.png" Stretch="Fill"/>
+                            </Button>
+
+                            <Button Classes="transparentbutton"
+                                    Width="22" Height="22"
+                                    Padding="0"
+                                    Command="{Binding RedoCommand}"
+                                    ToolTip.Tip="Redo  (Ctrl+Y)">
+                                <Image Source="/Assets/Buttons/redo-button.png" Stretch="Fill"/>
+                            </Button>
+
+                            <Button Classes="transparentbutton"
+                                    Width="22" Height="22"
+                                    Padding="0"
+                                    Click="OnResetCropClicked"
+                                    ToolTip.Tip="Reset crop to full image">
+                                <Image Source="/Assets/Buttons/reset.png" Stretch="Fill"/>
+                            </Button>
+
+                        </StackPanel>
+
                     </Grid>
 
-                </Grid>
-            </Border>
+                    <!-- ── RESIZE ── -->
+                    <WrapPanel Orientation="Horizontal"
+                               IsVisible="{Binding IsResizeTool}"
+                               VerticalAlignment="Center">
 
-            <!-- Resize controls panel -->
-            <Border Grid.Row="3"
-                    Background="{DynamicResource PanelBackground}"
-                    BorderBrush="{DynamicResource PanelBorder}"
-                    BorderThickness="1"
-                    CornerRadius="6"
-                    Padding="10,8"
-                    Margin="14,6,14,0">
-                <Grid RowDefinitions="Auto">
-                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox Content="Resize Image"
-                                  IsChecked="{Binding ResizeImage}"
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,20,0"
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource PrimaryTextBrush}"/>
-                        <TextBlock Text="W"
+                        <TextBlock Text="Width"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,4,0"
-                                   IsEnabled="{Binding ResizeImage}"
+                                   Margin="0,0,6,0"
                                    Foreground="{DynamicResource PrimaryTextBrush}"/>
+
                         <NumericUpDown Value="{Binding ResizeWidth}"
-                                       Minimum="100"
-                                       Maximum="2000"
-                                       Increment="1"
-                                       FormatString="0"
-                                       IsEnabled="{Binding ResizeImage}"
+                                       Minimum="1" Maximum="2000"
+                                       Increment="1" FormatString="0"
                                        Width="90"
-                                       Margin="0,0,12,0"/>
-                        <TextBlock Text="H"
+                                       Margin="0,0,14,0"/>
+
+                        <TextBlock Text="Height"
                                    VerticalAlignment="Center"
-                                   Margin="0,0,4,0"
-                                   IsEnabled="{Binding ResizeImage}"
+                                   Margin="0,0,6,0"
                                    Foreground="{DynamicResource PrimaryTextBrush}"/>
+
                         <NumericUpDown Value="{Binding ResizeHeight}"
-                                       Minimum="100"
-                                       Maximum="2000"
-                                       Increment="1"
-                                       FormatString="0"
-                                       IsEnabled="{Binding ResizeImage}"
+                                       Minimum="1" Maximum="2000"
+                                       Increment="1" FormatString="0"
                                        Width="90"
                                        Margin="0,0,16,0"/>
-                        <CheckBox Content="Keep aspect ratio"
+
+                        <CheckBox Content="Lock aspect ratio"
                                   IsChecked="{Binding MaintainAspectRatio}"
-                                  IsEnabled="{Binding ResizeImage}"
                                   VerticalAlignment="Center"
                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+
                     </WrapPanel>
+
                 </Grid>
+
             </Border>
 
-            <!-- Action buttons -->
-            <StackPanel Grid.Row="4"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Spacing="8"
-                        Margin="14,10,14,0">
-                <Button Content="Discard"
-                        Classes="rounded grey"
-                        FontSize="{DynamicResource GlobalFontSize}"
-                        Command="{Binding DiscardCommand}"/>
-                <Button Content="Keep"
-                        Classes="rounded green"
-                        FontSize="{DynamicResource GlobalFontSize}"
-                        Command="{Binding KeepCommand}"/>
-            </StackPanel>
-
-            <!-- Status bar -->
-            <Border Grid.Row="5"
+            <!-- ══════════════════════════════════════════
+                 Row 3 — Status bar + action buttons
+                 ══════════════════════════════════════════ -->
+            <Border Grid.Row="3"
                     Background="{DynamicResource StatusBarBackground}"
                     CornerRadius="0,0,8,8"
-                    Margin="0,8,0,0"
-                    Padding="10,4">
+                    Padding="10,8">
+
                 <Grid ColumnDefinitions="*,Auto">
+
                     <TextBlock Grid.Column="0"
                                Text="{Binding StatusText}"
-                               Foreground="{DynamicResource StatusBarForeground}"
-                               FontSize="{DynamicResource GlobalSmallFontSize}"
+                               FontSize="{DynamicResource GlobalFontSize}"
+                               Foreground="{DynamicResource SubtleTextBrush}"
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis"/>
-                    <ProgressBar Grid.Column="1"
-                                 IsIndeterminate="True"
-                                 IsVisible="{Binding IsBusy}"
-                                 Width="80"
-                                 Height="4"
-                                 VerticalAlignment="Center"
-                                 Margin="8,0,0,0"/>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="6">
+
+                        <Button Classes="rounded red"
+                                Content="Cancel"
+                                Command="{Binding CancelCommand}"
+                                IsEnabled="{Binding CanCancel}"
+                                ToolTip.Tip="Discard changes and exit the current tool"/>
+
+                        <Button Classes="rounded green"
+                                Content="Apply"
+                                Command="{Binding ApplyCommand}"
+                                IsEnabled="{Binding CanApply}"
+                                ToolTip.Tip="Apply this change and continue editing"/>
+
+                        <Border Width="1"
+                                Background="{DynamicResource CardBorder}"
+                                Margin="2,0"/>
+
+                        <Button Classes="rounded grey"
+                                Content="Close"
+                                Command="{Binding CloseWindowCommand}"
+                                ToolTip.Tip="Close without saving"/>
+
+                        <Button Classes="rounded orange"
+                                Content="Reload"
+                                Command="{Binding ReloadCommand}"
+                                IsEnabled="{Binding CanReload}"
+                                ToolTip.Tip="Revert all changes back to the original image"/>
+
+                        <Button Classes="rounded green"
+                                Content="Save"
+                                Command="{Binding SaveCommand}"
+                                IsEnabled="{Binding CanSave}"
+                                ToolTip.Tip="Save the image to disk"/>
+
+                    </StackPanel>
+
                 </Grid>
             </Border>
 

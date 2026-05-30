@@ -19,6 +19,11 @@
         <Setter Property="Padding" Value="4,2"/>
     </Style>
 
+    <!-- Prevent the default theme from changing button text color on pointer-over -->
+    <Style Selector="Button.rounded:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{Binding $parent[Button].Foreground}"/>
+    </Style>
+
     <!-- Green Button -->
     <Style Selector="Button.rounded.green">
         <Setter Property="Background">

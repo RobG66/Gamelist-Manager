@@ -3,6 +3,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
@@ -19,6 +20,7 @@ public partial class MainWindow : Window
     private readonly List<DataGridColumn> _reportColumns = [];
     private readonly SettingsState _settingsState = SettingsState.Instance;
     private readonly SessionState _sessionState = SessionState.Instance;
+    private (int Left, int Top, int Width, int Height) _restoredBounds;
 
     public MainWindow()
     {
@@ -45,6 +47,10 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, MainWindow_KeyDown, RoutingStrategies.Tunnel);
 
         BuildDataGridColumns();
+        RestoreWindowStateFromSettings();
+
+        PositionChanged += (_, _) => TrackRestoredBounds();
+        Resized         += (_, _) => TrackRestoredBounds();
     }
 
     private void ContextMenu_Opening(object? sender, CancelEventArgs e)
@@ -136,6 +142,7 @@ public partial class MainWindow : Window
             viewModel.DisposeMediaPreview();
             viewModel.ScraperPanelViewModel?.Dispose();
 
+            SaveWindowStateToSettings();
             Closing -= MainWindow_Closing;
             Close();
         }
@@ -237,6 +244,62 @@ public partial class MainWindow : Window
 
         foreach (var column in GameDataGrid.Columns)
             column.PropertyChanged += DataGridColumn_PropertyChanged;
+    }
+
+    private void TrackRestoredBounds()
+    {
+        if (WindowState == WindowState.Normal)
+            _restoredBounds = (Position.X, Position.Y, (int)Width, (int)Height);
+    }
+
+    private void SaveWindowStateToSettings()
+    {
+        if (!_settingsState.SaveWindowState) return;
+
+        // When maximized, persist the pre-maximized bounds so restore works correctly.
+        var (left, top, width, height) = WindowState == WindowState.Normal
+            ? (Position.X, Position.Y, (int)Width, (int)Height)
+            : _restoredBounds;
+
+        var settings = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>
+        {
+            [SettingKeys.WindowStateSection] = new()
+            {
+                [SettingKeys.WindowStateValue.Key] = WindowState.ToString(),
+                [SettingKeys.WindowLeft.Key]       = left.ToString(),
+                [SettingKeys.WindowTop.Key]        = top.ToString(),
+                [SettingKeys.WindowWidth.Key]      = width.ToString(),
+                [SettingKeys.WindowHeight.Key]     = height.ToString(),
+            }
+        };
+        ProfileService.Instance.Save(settings);
+    }
+
+    private void RestoreWindowStateFromSettings()
+    {
+        if (!_settingsState.SaveWindowState) return;
+
+        var s      = SettingsService.Instance;
+        var left   = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowLeft.Key,   SettingKeys.WindowLeft.Default);
+        var top    = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowTop.Key,    SettingKeys.WindowTop.Default);
+        var width  = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowWidth.Key,  SettingKeys.WindowWidth.Default);
+        var height = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowHeight.Key, SettingKeys.WindowHeight.Default);
+        var state  = s.GetValue(SettingKeys.WindowStateSection, SettingKeys.WindowStateValue.Key, SettingKeys.WindowStateValue.Default);
+
+        if (width > 0 && height > 0)
+        {
+            Width  = width;
+            Height = height;
+        }
+
+        if (left >= 0 && top >= 0)
+        {
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Position = new Avalonia.PixelPoint(left, top);
+        }
+
+        if (System.Enum.TryParse<WindowState>(state, out var windowState))
+            WindowState = windowState;
     }
 
     private void ViewModel_RequestSelectFirstItem(object? sender, EventArgs e)

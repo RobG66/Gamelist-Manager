@@ -41,6 +41,7 @@ namespace Gamelist_Manager.Models
             IgnoreDuplicates = s.GetBool(SettingKeys.IgnoreDuplicates);
             CheckForNewAndMissingGamesOnLoad = s.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
             UseSimpleSystemPicker = s.GetBool(SettingKeys.UseSimpleSystemPicker);
+            SaveWindowState = s.GetBool(SettingKeys.SaveWindowState);
 
             // Scraper Options
             VerifyImageDownloads = s.GetBool(SettingKeys.VerifyDownloadedImages);
@@ -145,6 +146,7 @@ namespace Gamelist_Manager.Models
         [ObservableProperty] private bool _ignoreDuplicates = false;
         [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad = false;
         [ObservableProperty] private bool _useSimpleSystemPicker = false;
+        [ObservableProperty] private bool _saveWindowState = false;
 
         #endregion
 

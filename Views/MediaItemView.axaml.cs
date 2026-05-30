@@ -15,7 +15,7 @@ public partial class MediaItemView : UserControl
 {
     private const int VIDEOWIDTH = 400;
     private const int VIDEOHEIGHT = 300;
-    private const int VIDEOASPECTRATIO = VIDEOWIDTH / VIDEOHEIGHT;
+    private const double VIDEOASPECTRATIO = (double)VIDEOWIDTH / VIDEOHEIGHT;
     public static readonly StyledProperty<bool> IsScaledProperty =
         AvaloniaProperty.Register<MediaItemView, bool>(nameof(IsScaled));
 
