@@ -84,7 +84,8 @@ public partial class SettingsViewModel
 
         _isProfileLoading = true;
 
-        try { 
+        try
+        {
             LoadScraperCredentials();
             if (IsSetupScreenScraper)
                 LoadRegionsAndLanguages();

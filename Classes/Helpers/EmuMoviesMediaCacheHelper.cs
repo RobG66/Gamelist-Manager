@@ -88,7 +88,7 @@ namespace Gamelist_Manager.Classes.Helpers
                 _fetchLock.Release();
             }
         }
-       
+
         private async Task<(bool Success, List<string> MediaTypes, string ErrorMessage)> GetMediaTypesAsync(string system, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(system))

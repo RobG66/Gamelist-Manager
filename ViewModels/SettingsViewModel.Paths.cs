@@ -20,7 +20,7 @@ public partial class SettingsViewModel
     [ObservableProperty] private string _romsPath = string.Empty;
     [ObservableProperty] private string _esDeRoot = string.Empty;
     [ObservableProperty] private string _esDeMediaBase = string.Empty;
-    [ObservableProperty] private bool _systemOverrideActive; 
+    [ObservableProperty] private bool _systemOverrideActive;
     [ObservableProperty] private ObservableCollection<string> _systemsWithOverrides = new();
     [ObservableProperty] private string? _selectedOverrideSystem;
 

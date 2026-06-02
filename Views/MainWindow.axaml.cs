@@ -50,7 +50,7 @@ public partial class MainWindow : Window
         RestoreWindowStateFromSettings();
 
         PositionChanged += (_, _) => TrackRestoredBounds();
-        Resized         += (_, _) => TrackRestoredBounds();
+        Resized += (_, _) => TrackRestoredBounds();
     }
 
     private void ContextMenu_Opening(object? sender, CancelEventArgs e)
@@ -166,6 +166,7 @@ public partial class MainWindow : Window
             _currentViewModel.RequestNavigateToItem -= ViewModel_RequestNavigateToItem;
             _currentViewModel.RequestClearSelection -= ViewModel_RequestClearSelection;
             _currentViewModel.RequestRestoreSelection -= ViewModel_RequestRestoreSelection;
+            _currentViewModel.GetFindRows = null;
         }
 
         if (DataContext is MainWindowViewModel viewModel)
@@ -179,6 +180,9 @@ public partial class MainWindow : Window
             viewModel.RequestNavigateToItem += ViewModel_RequestNavigateToItem;
             viewModel.RequestClearSelection += ViewModel_RequestClearSelection;
             viewModel.RequestRestoreSelection += ViewModel_RequestRestoreSelection;
+
+            viewModel.GetFindRows = () =>
+                GameDataGrid.CollectionView?.OfType<GameMetadataRow>() ?? viewModel.Games;
 
             Topmost = viewModel.IsAlwaysOnTop;
             ApplySizeToFitToDataGrid(viewModel.SizeToFit);
@@ -266,10 +270,10 @@ public partial class MainWindow : Window
             [SettingKeys.WindowStateSection] = new()
             {
                 [SettingKeys.WindowStateValue.Key] = WindowState.ToString(),
-                [SettingKeys.WindowLeft.Key]       = left.ToString(),
-                [SettingKeys.WindowTop.Key]        = top.ToString(),
-                [SettingKeys.WindowWidth.Key]      = width.ToString(),
-                [SettingKeys.WindowHeight.Key]     = height.ToString(),
+                [SettingKeys.WindowLeft.Key] = left.ToString(),
+                [SettingKeys.WindowTop.Key] = top.ToString(),
+                [SettingKeys.WindowWidth.Key] = width.ToString(),
+                [SettingKeys.WindowHeight.Key] = height.ToString(),
             }
         };
         ProfileService.Instance.Save(settings);
@@ -279,16 +283,16 @@ public partial class MainWindow : Window
     {
         if (!_settingsState.SaveWindowState) return;
 
-        var s      = SettingsService.Instance;
-        var left   = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowLeft.Key,   SettingKeys.WindowLeft.Default);
-        var top    = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowTop.Key,    SettingKeys.WindowTop.Default);
-        var width  = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowWidth.Key,  SettingKeys.WindowWidth.Default);
+        var s = SettingsService.Instance;
+        var left = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowLeft.Key, SettingKeys.WindowLeft.Default);
+        var top = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowTop.Key, SettingKeys.WindowTop.Default);
+        var width = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowWidth.Key, SettingKeys.WindowWidth.Default);
         var height = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowHeight.Key, SettingKeys.WindowHeight.Default);
-        var state  = s.GetValue(SettingKeys.WindowStateSection, SettingKeys.WindowStateValue.Key, SettingKeys.WindowStateValue.Default);
+        var state = s.GetValue(SettingKeys.WindowStateSection, SettingKeys.WindowStateValue.Key, SettingKeys.WindowStateValue.Default);
 
         if (width > 0 && height > 0)
         {
-            Width  = width;
+            Width = width;
             Height = height;
         }
 
@@ -310,10 +314,12 @@ public partial class MainWindow : Window
 
     private void ViewModel_RequestNavigateToItem(object? sender, GameMetadataRow row)
     {
-        if (GameDataGrid.ItemsSource is not IList<GameMetadataRow> items) return;
-        var index = items.IndexOf(row);
-        if (index < 0) return;
-        GameDataGrid.SelectedIndex = index;
+        if (GameDataGrid.ItemsSource is not IList<GameMetadataRow> items ||
+        !items.Contains(row))
+            return;
+
+        GameDataGrid.SelectedItems.Clear();
+        GameDataGrid.SelectedItems.Add(row);
         GameDataGrid.ScrollIntoView(row, null);
     }
 

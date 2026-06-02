@@ -1,10 +1,8 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Transparent/chrome-free button - shows only its content (e.g. an image) -->
-    <!-- Transitions live on the Button itself so pseudo-class changes animate reliably -->
-    <Style Selector="Button.transparentbutton">
-        <Setter Property="Padding" Value="0"/>
+    <Style Selector="Button.iconbutton">
+        <Setter Property="Padding" Value="6"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Opacity" Value="0.90"/>
         <Setter Property="ToolTip.Placement" Value="Bottom"/>
@@ -19,25 +17,30 @@
         </Setter>
         <Setter Property="Template">
             <ControlTemplate>
-                <ContentPresenter Content="{TemplateBinding Content}"
-                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                  Padding="{TemplateBinding Padding}"/>
+                <Border Background="{DynamicResource IconButtonBackground}"
+                        BorderBrush="{DynamicResource IconButtonBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                </Border>
             </ControlTemplate>
         </Setter>
     </Style>
 
-    <Style Selector="Button.transparentbutton:not(:disabled):pointerover">
+    <Style Selector="Button.iconbutton:not(:disabled):pointerover">
         <Setter Property="Opacity" Value="1"/>
         <Setter Property="RenderTransform" Value="scale(1.05)"/>
     </Style>
 
-    <Style Selector="Button.transparentbutton:not(:disabled):pressed">
+    <Style Selector="Button.iconbutton:not(:disabled):pressed">
         <Setter Property="Opacity" Value="1"/>
         <Setter Property="RenderTransform" Value="scale(0.95)"/>
     </Style>
 
-    <Style Selector="Button.transparentbutton:disabled"> 
+    <Style Selector="Button.iconbutton:disabled">
         <Setter Property="Opacity" Value="0.3"/>
         <Setter Property="Cursor" Value="Arrow"/>
     </Style>

@@ -244,12 +244,21 @@
 												Padding="8,0">
 											<Grid>
 												<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-													<Button Grid.Column="0"
+		              							    <Button Grid.Column="0" Classes="iconbutton"
+															  Command="{Binding SaveGamelistCommand}"
+															  Margin="0,0,8,0"
+															  Width="{DynamicResource GlobalIconButtonSize}"
+															  Height="{DynamicResource GlobalIconButtonSize}"
+															  IsEnabled="{Binding IsSaveEnabled}" ToolTip.Tip="Save Gamelist">
+														<Image Source="/Assets/Icons/save.png" Width="12" Height="12" VerticalAlignment="Center"/>
+													</Button>
+		
+													<Button Grid.Column="1"
 															Classes="pill"
+															Margin="0,0,8,0"
 															Command="{Binding ClearReportColumnsCommand}"
 															IsVisible="{Binding HasReportColumns}"
 															ToolTip.Tip="Clear report columns"
-															Margin="0,0,8,0"
 															VerticalAlignment="Center">
 														<StackPanel Orientation="Horizontal" Spacing="4">
 															<Image Source="/Assets/Icons/eraser.png" Width="10" Height="10" VerticalAlignment="Center"/>
@@ -258,9 +267,6 @@
 																	   Foreground="{DynamicResource StatusBarForeground}"
 																	   VerticalAlignment="Center"/>
 														</StackPanel>
-													</Button>
-													<Button Classes="transparentbutton" Command="{Binding SaveGamelistCommand}" IsEnabled="{Binding IsSaveEnabled}" ToolTip.Tip="Save Gamelist">
-														<Image Grid.Column="1" Source="/Assets/Icons/save.png" Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
 													</Button>
 													<TextBlock Grid.Column="2" Text="{Binding FileStatusText}" Foreground="{DynamicResource StatusBarForeground}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
 															   FontSize="{DynamicResource GlobalSmallFontSize}" ToolTip.Tip="{Binding FileStatusText, FallbackValue='No Gamelist Loaded'}"/>

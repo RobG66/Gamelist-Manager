@@ -107,6 +107,7 @@
         <StyleInclude Source="avares://Gamelist_Manager/Styles/NumericUpDownStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/TileButtonStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/ContextMenuStyle.axaml"/>
+        <StyleInclude Source="avares://Gamelist_Manager/Styles/IconButtonStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/SliderStyle.axaml"/>
     </Application.Styles>
 </Application>

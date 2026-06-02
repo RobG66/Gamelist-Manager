@@ -139,21 +139,21 @@
 								<Grid ColumnDefinitions="*,12,*">
 									<StackPanel Grid.Column="0" Spacing="3">
 										<TextBlock Text="Global Font Size"
-												   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–20."/>
+												   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–26."/>
 										<NumericUpDown Value="{Binding AppFontSize}"
-													   Minimum="8" Maximum="20" Increment="1"
+													   Minimum="8" Maximum="26" Increment="1"
 													   FormatString="0"
-													   Width="100" HorizontalAlignment="Left"
-													   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–20."/>
+													   Width="60" HorizontalAlignment="Left"
+													   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–26."/>
 									</StackPanel>
 									<StackPanel Grid.Column="2" Spacing="3">
 										<TextBlock Text="Data Grid Font Size"
-												   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–18."/>
+												   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–26."/>
 										<NumericUpDown Value="{Binding GridFontSize}"
-													   Minimum="8" Maximum="18" Increment="1"
+													   Minimum="8" Maximum="26" Increment="1"
 													   FormatString="0"
-													   Width="100" HorizontalAlignment="Left"
-													   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–18."/>
+													   Width="60" HorizontalAlignment="Left"
+													   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–26."/>
 									</StackPanel>
 								</Grid>
 							</StackPanel>
@@ -362,7 +362,7 @@
 										<TextBlock Grid.Column="4" Text="Suffix" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="2,0,0,4"
 												   IsVisible="{Binding SuffixesEnabled}"
 												   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
-										<Button    Grid.Column="5" Classes="transparentbutton" Command="{Binding ToggleAllSfxCommand}"
+										<Button    Grid.Column="5" Classes="iconbutton" Command="{Binding ToggleAllSfxCommand}"
 												   Width="14" Height="14" HorizontalAlignment="Center" Margin="0,0,0,0"
 												   IsVisible="{Binding SuffixesEnabled}"
 												   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
@@ -571,7 +571,7 @@
 									<TextBox Grid.Column="4" Text="{Binding ScraperPassword}"
 											 IsVisible="{Binding ShowScraperPassword}"
 											 ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
-									<Button Grid.Column="5" Classes="transparentbutton" Command="{Binding ToggleShowScraperPasswordCommand}"
+									<Button Grid.Column="5" Classes="iconbutton" Command="{Binding ToggleShowScraperPasswordCommand}"
 											Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"
 											VerticalAlignment="Center" Margin="4,0,0,0"
 											ToolTip.Tip="Toggle password visibility">
@@ -639,11 +639,11 @@
 										</Border>
 									</StackPanel>
 									<StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5,0">
-										<Button Classes="transparentbutton" Command="{Binding AddScraperRegionCommand}" Width="26" Margin="0,0,0,4"
+										<Button Classes="iconbutton" Command="{Binding AddScraperRegionCommand}" Width="26" Margin="0,0,0,4"
 												ToolTip.Tip="Add the selected region from the Available list to the Fallback Regions list.">
 											<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueright.png" Width="18" Height="18"/>
 										</Button>
-										<Button Classes="transparentbutton" Command="{Binding RemoveScraperRegionCommand}" Width="26"
+										<Button Classes="iconbutton" Command="{Binding RemoveScraperRegionCommand}" Width="26"
 												ToolTip.Tip="Remove the selected region from the Fallback Regions list and return it to the Available list.">
 											<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueleft.png" Width="18" Height="18"/>
 										</Button>
@@ -657,11 +657,11 @@
 													 ToolTip.Tip="Regions tried in order when media is not available for the primary region. Use the arrows to reorder the priority."/>
 										</Border>
 										<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
-											<Button Classes="transparentbutton" Command="{Binding MoveScraperRegionUpCommand}" Width="26" Margin="0,0,6,0"
+											<Button Classes="iconbutton" Command="{Binding MoveScraperRegionUpCommand}" Width="26" Margin="0,0,6,0"
 													ToolTip.Tip="Move the selected fallback region higher in priority (checked earlier during scraping).">
 												<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueup.png" Width="18" Height="18"/>
 											</Button>
-											<Button Classes="transparentbutton" Command="{Binding MoveScraperRegionDownCommand}" Width="26" Margin="0,0,6,0"
+											<Button Classes="iconbutton" Command="{Binding MoveScraperRegionDownCommand}" Width="26" Margin="0,0,6,0"
 													ToolTip.Tip="Move the selected fallback region lower in priority (checked later during scraping).">
 												<Image Source="avares://Gamelist_Manager/Assets/Buttons/bluedown.png" Width="18" Height="18"/>
 											</Button>
@@ -748,10 +748,10 @@
 								<StackPanel IsVisible="{Binding SelectedProfileIsEsDe}" Spacing="4">
 									<StackPanel Orientation="Horizontal" Spacing="6">
 										<TextBlock Text="ES-DE Root:" VerticalAlignment="Center"/>
-										<TextBlock Text="{Binding SelectedProfileEsDeMediaRoot}" FontStyle="Italic" VerticalAlignment="Center" TextWrapping="Wrap"/>
+										<TextBlock Text="{Binding SelectedProfileEsDeMediaRoot}" VerticalAlignment="Center" TextWrapping="Wrap"/>
 									</StackPanel>
 									<TextBlock Text="To edit the ES-DE Root path, set this profile as active and go to the Paths tab."
-											   FontSize="{DynamicResource GlobalSmallFontSize}" FontStyle="Italic" Opacity="0.7" TextWrapping="Wrap"/>
+											   FontSize="{DynamicResource GlobalSmallFontSize}" Opacity="0.7" TextWrapping="Wrap"/>
 								</StackPanel>
 							</StackPanel>
 						</Border>

@@ -113,10 +113,11 @@ public partial class MainWindowViewModel
 
         var auditItems = GetMediaTypeInfo()
                  .Where(kvp => _sessionState.AvailableMedia.Any(m => m.Type == kvp.MediaType.Type && m.MediaEnabled))
-                 .Select(kvp => {
-                var count = filteredGames.Count(g => !string.IsNullOrWhiteSpace(g.GetValue(kvp.MediaType.Key)?.ToString()));
-                return new MediaAuditItem { Name = kvp.MediaType.Name, Count = count, Total = total, BarBrush = kvp.Brush, DataType = kvp.MediaType.DataType };
-            })
+                 .Select(kvp =>
+                 {
+                     var count = filteredGames.Count(g => !string.IsNullOrWhiteSpace(g.GetValue(kvp.MediaType.Key)?.ToString()));
+                     return new MediaAuditItem { Name = kvp.MediaType.Name, Count = count, Total = total, BarBrush = kvp.Brush, DataType = kvp.MediaType.DataType };
+                 })
             .ToList();
 
         return new StatisticsSnapshot

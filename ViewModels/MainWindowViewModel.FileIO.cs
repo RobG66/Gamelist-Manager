@@ -172,7 +172,7 @@ public partial class MainWindowViewModel
                 });
                 return;
             }
-                        
+
             if (!await LoadGamelistFromFileAsync(backupPath)) return;
 
             // Null guard
@@ -626,10 +626,10 @@ public partial class MainWindowViewModel
             _ => true
         };
     }
-    
+
     private async Task<bool> LoadGamelistFromFileAsync(string filePath)
     {
-        
+
         if (!await EnsureMatchingProfileAsync(filePath)) return false;
 
         _sessionState.IsBusy = true;

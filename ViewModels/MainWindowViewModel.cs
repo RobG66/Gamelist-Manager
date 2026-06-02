@@ -190,7 +190,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         UpdateScaledLayoutWidths();
         _ = LoadSystemsAsync();
-        
+
         if (IsScraperVisible)
             RefreshScraper();
 

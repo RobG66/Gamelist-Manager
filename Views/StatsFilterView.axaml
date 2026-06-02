@@ -34,7 +34,7 @@
             <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="0,2" VerticalAlignment="Stretch"/>
 
             <!-- Right side: Stats + Filters | Separator | Media Audit -->
-            <Grid Grid.Column="2" ColumnDefinitions="Auto,Auto,*" Margin="5,0,0,0">
+            <Grid Grid.Column="2" VerticalAlignment="Center" ColumnDefinitions="Auto,Auto,*" Margin="5,0,0,0">
 
                 <!-- Stats + Filters stacked vertically -->
                 <Grid Grid.Column="0" RowDefinitions="Auto,Auto" RowSpacing="3">
@@ -73,6 +73,17 @@
 
                     <!-- Row 1: Show radios + Filter toggle + Genre/Custom filter -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                        
+                        <Button Command="{Binding ResetViewCommand}"
+                                Margin="0,0,5,0"
+                                ToolTip.Tip="Reset view to default"
+                                Classes="iconbutton"
+                                IsEnabled="{Binding IsGamelistLoaded}"
+                                Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
+                            <Image Source="/Assets/Buttons/greenreset.png" Height="{DynamicResource GlobalIconSize}"/>
+                        </Button>
+
+                        
                         <!-- Show filter -->
                         <TextBlock Text="Show:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,0,6,0"/>
                         <RadioButton Content="All" Classes="compact" IsChecked="{Binding ShowAllItems}" Command="{Binding SetShowAllItemsCommand}" GroupName="FilterCardViewFilter" VerticalAlignment="Center" Margin="0,0,5,0"/>
@@ -84,7 +95,8 @@
                         <!-- Toggle button: swaps between Genre and Custom filter -->
                         <Button Command="{Binding ToggleFilterModeCommand}"
                                 ToolTip.Tip="Switch between Genre and Custom filter"
-                                Classes="transparentbutton"
+                                Margin="0,0,5,0"
+                                Classes="iconbutton"
                                 Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
                             <Image Source="/Assets/Buttons/filter1.png" Height="{DynamicResource GlobalIconSize}"/>
                         </Button>
@@ -94,7 +106,7 @@
                                     IsVisible="{Binding IsGenreFilterMode}">
                             <TextBlock Text="Genre:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
                             <ComboBox x:Name="GenreComboBox" ItemsSource="{Binding AvailableGenres}" SelectedItem="{Binding GenreFilterSelection}" Width="230" VerticalAlignment="Center"/>
-                            <Button Classes="transparentbutton" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
+                            <Button Classes="iconbutton" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
                         </StackPanel>
@@ -105,7 +117,7 @@
                             <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
                             <ComboBox ItemsSource="{Binding CurrentFilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
-                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="transparentbutton" Padding="0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
+                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="iconbutton" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
                         </StackPanel>

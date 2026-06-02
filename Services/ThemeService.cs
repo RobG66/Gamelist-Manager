@@ -74,7 +74,7 @@ namespace Gamelist_Manager.Services
             app.Resources["GlobalMenuFontSize"] = globalFontSize + 1;
             app.Resources["GlobalMenuIconSize"] = globalFontSize + 8;
             app.Resources["GlobalIconSize"] = globalFontSize + 2;
-            app.Resources["GlobalIconButtonSize"] = globalFontSize + 10;
+            app.Resources["GlobalIconButtonSize"] = globalFontSize + 6;
             app.Resources["ComboBoxMinHeight"] = globalFontSize + 6;
             app.Resources["NumericUpDownMinHeight"] = globalFontSize + 6;
             app.Resources["ButtonSpinnerButtonHeight"] = Math.Round((globalFontSize + 6) / 2);

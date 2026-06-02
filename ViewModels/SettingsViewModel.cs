@@ -318,7 +318,8 @@ public partial class SettingsViewModel : ViewModelBase
                 .Concat(SystemOverrideActive
                     ? []
                     : [new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString())]))
-                .ToDictionary(kv => kv.Key, kv => kv.Value)};
+                .ToDictionary(kv => kv.Key, kv => kv.Value)
+        };
 
         if (IsSetupRequiresCredentials &&
             !string.IsNullOrWhiteSpace(ScraperUsername) &&

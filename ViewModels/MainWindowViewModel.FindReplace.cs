@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -63,6 +62,7 @@ public partial class MainWindowViewModel
 
     public ObservableCollection<string> SearchableColumns { get; } = new();
     public event EventHandler<GameMetadataRow>? RequestNavigateToItem;
+    public Func<IEnumerable<GameMetadataRow>>? GetFindRows;
 
     public bool IsReplaceAllowed =>
         !string.IsNullOrEmpty(SelectedFindColumn) &&
@@ -153,9 +153,17 @@ public partial class MainWindowViewModel
     private async Task ExecuteFind()
     {
         var predicate = FilterService.MakeFilter(SelectedFindColumn!, FindText, "Is Like");
-        var matches = _games.Where(predicate).ToList();
+        var rows = (GetFindRows?.Invoke() ?? _games).ToList();
 
-        if (matches.Count == 0)
+        var selectedRow = SelectedGames?.OfType<GameMetadataRow>().FirstOrDefault();
+        var startIndex = selectedRow == null ? -1 : rows.IndexOf(selectedRow);
+
+        var match = rows
+            .Skip(startIndex + 1)
+            .Concat(rows.Take(startIndex + 1))
+            .FirstOrDefault(predicate);
+
+        if (match == null)
         {
             _findMatchIndex = -1;
             await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
@@ -170,15 +178,15 @@ public partial class MainWindowViewModel
             return;
         }
 
-        _findMatchIndex = (_findMatchIndex + 1) % matches.Count;
-        RequestNavigateToItem?.Invoke(this, matches[_findMatchIndex]);
+        RequestNavigateToItem?.Invoke(this, match);
     }
 
     [RelayCommand(CanExecute = nameof(CanExecuteReplace))]
     private async Task ExecuteReplace()
     {
         var predicate = FilterService.MakeFilter(SelectedFindColumn!, FindText, "Is Like");
-        var matches = _games.Where(predicate).ToList();
+        var rows = GetFindRows?.Invoke() ?? _games;
+        var matches = rows.Where(predicate).ToList();
 
         if (matches.Count == 0)
         {
