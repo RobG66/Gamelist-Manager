@@ -194,7 +194,6 @@ public partial class MainWindowViewModel
         ScraperPanelViewModel = null;
     }
 
-    // Report columns are not removed here — that is managed by ClearReportColumnsCommand.
     private void CloseDatTool()
     {
         IsDatToolVisible = false;

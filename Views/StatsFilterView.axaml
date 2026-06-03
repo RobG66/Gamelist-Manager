@@ -47,7 +47,7 @@
                         </StackPanel>
                         <Border Grid.Column="1" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <Image Source="/Assets/Icons/magnifying-glass.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <Image Source="/Assets/Icons/find.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
                             <TextBlock Text="Showing:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
                             <TextBlock Text="{Binding FilteredGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource InfoTextBrush}"/>
                         </StackPanel>
@@ -59,7 +59,7 @@
                         </StackPanel>
                         <Border Grid.Column="5" Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
                         <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <Image Source="/Assets/Icons/invisible.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
+                            <Image Source="/Assets/Icons/hidden.png" Height="{DynamicResource GlobalIconSize}" VerticalAlignment="Center"/>
                             <TextBlock Text="Hidden:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
                             <TextBlock Text="{Binding HiddenGamesCount, StringFormat=&apos;{}{0:N0}&apos;}" FontSize="{DynamicResource GlobalFontSize}" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource WarningTextBrush}"/>
                         </StackPanel>
@@ -77,7 +77,7 @@
                         <Button Command="{Binding ResetViewCommand}"
                                 Margin="0,0,5,0"
                                 ToolTip.Tip="Reset view to default"
-                                Classes="iconbutton"
+                                Classes="transparentbutton"
                                 IsEnabled="{Binding IsGamelistLoaded}"
                                 Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
                             <Image Source="/Assets/Buttons/greenreset.png" Height="{DynamicResource GlobalIconSize}"/>
@@ -96,7 +96,7 @@
                         <Button Command="{Binding ToggleFilterModeCommand}"
                                 ToolTip.Tip="Switch between Genre and Custom filter"
                                 Margin="0,0,5,0"
-                                Classes="iconbutton"
+                                Classes="transparentbutton"
                                 Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
                             <Image Source="/Assets/Buttons/filter1.png" Height="{DynamicResource GlobalIconSize}"/>
                         </Button>
@@ -106,7 +106,7 @@
                                     IsVisible="{Binding IsGenreFilterMode}">
                             <TextBlock Text="Genre:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/>
                             <ComboBox x:Name="GenreComboBox" ItemsSource="{Binding AvailableGenres}" SelectedItem="{Binding GenreFilterSelection}" Width="230" VerticalAlignment="Center"/>
-                            <Button Classes="iconbutton" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
+                            <Button Classes="transparentbutton" Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Genre Filter" Command="{Binding ClearGenreFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
                         </StackPanel>
@@ -117,7 +117,7 @@
                             <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
                             <ComboBox ItemsSource="{Binding CurrentFilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
-                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="iconbutton" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
+                            <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="transparentbutton" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
                         </StackPanel>

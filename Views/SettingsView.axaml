@@ -29,7 +29,7 @@
 			<TabItem>
 				<TabItem.Header>
 					<StackPanel Orientation="Horizontal" Spacing="4">
-						<Image Source="/Assets/Icons/settings2.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<Image Source="/Assets/Icons/appearance.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
 						<TextBlock Text="Appearance" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
 					</StackPanel>
 				</TabItem.Header>
@@ -362,7 +362,7 @@
 										<TextBlock Grid.Column="4" Text="Suffix" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="2,0,0,4"
 												   IsVisible="{Binding SuffixesEnabled}"
 												   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
-										<Button    Grid.Column="5" Classes="iconbutton" Command="{Binding ToggleAllSfxCommand}"
+										<Button    Grid.Column="5" Classes="transparentbutton" Command="{Binding ToggleAllSfxCommand}"
 												   Width="14" Height="14" HorizontalAlignment="Center" Margin="0,0,0,0"
 												   IsVisible="{Binding SuffixesEnabled}"
 												   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
@@ -416,7 +416,7 @@
 			<TabItem IsVisible="{Binding RemoteTabVisible}">
 				<TabItem.Header>
 					<StackPanel Orientation="Horizontal" Spacing="4">
-						<Image Source="/Assets/Icons/services.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
+						<Image Source="/Assets/Icons/remote.png" Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
 						<TextBlock Text="Remote" FontSize="{DynamicResource GlobalHeaderFontSize}"/>
 					</StackPanel>
 				</TabItem.Header>
@@ -571,7 +571,7 @@
 									<TextBox Grid.Column="4" Text="{Binding ScraperPassword}"
 											 IsVisible="{Binding ShowScraperPassword}"
 											 ToolTip.Tip="Your account password for the selected scraping service. Stored locally and never transmitted except to the scraper API."/>
-									<Button Grid.Column="5" Classes="iconbutton" Command="{Binding ToggleShowScraperPasswordCommand}"
+									<Button Grid.Column="5" Classes="transparentbutton" Command="{Binding ToggleShowScraperPasswordCommand}"
 											Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"
 											VerticalAlignment="Center" Margin="4,0,0,0"
 											ToolTip.Tip="Toggle password visibility">
@@ -579,7 +579,7 @@
 											<Image Source="avares://Gamelist_Manager/Assets/Icons/visible.png"
 												   IsVisible="{Binding ShowScraperPassword}"
 												   Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
-											<Image Source="avares://Gamelist_Manager/Assets/Icons/invisible.png"
+											<Image Source="avares://Gamelist_Manager/Assets/Icons/hidden.png"
 												   IsVisible="{Binding !ShowScraperPassword}"
 												   Width="{DynamicResource GlobalIconSize}" Height="{DynamicResource GlobalIconSize}"/>
 										</Panel>
@@ -639,11 +639,11 @@
 										</Border>
 									</StackPanel>
 									<StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5,0">
-										<Button Classes="iconbutton" Command="{Binding AddScraperRegionCommand}" Width="26" Margin="0,0,0,4"
+										<Button Classes="transparentbutton" Command="{Binding AddScraperRegionCommand}" Width="26" Margin="0,0,0,4"
 												ToolTip.Tip="Add the selected region from the Available list to the Fallback Regions list.">
 											<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueright.png" Width="18" Height="18"/>
 										</Button>
-										<Button Classes="iconbutton" Command="{Binding RemoveScraperRegionCommand}" Width="26"
+										<Button Classes="transparentbutton" Command="{Binding RemoveScraperRegionCommand}" Width="26"
 												ToolTip.Tip="Remove the selected region from the Fallback Regions list and return it to the Available list.">
 											<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueleft.png" Width="18" Height="18"/>
 										</Button>
@@ -657,11 +657,11 @@
 													 ToolTip.Tip="Regions tried in order when media is not available for the primary region. Use the arrows to reorder the priority."/>
 										</Border>
 										<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
-											<Button Classes="iconbutton" Command="{Binding MoveScraperRegionUpCommand}" Width="26" Margin="0,0,6,0"
+											<Button Classes="transparentbutton" Command="{Binding MoveScraperRegionUpCommand}" Width="26" Margin="0,0,6,0"
 													ToolTip.Tip="Move the selected fallback region higher in priority (checked earlier during scraping).">
 												<Image Source="avares://Gamelist_Manager/Assets/Buttons/blueup.png" Width="18" Height="18"/>
 											</Button>
-											<Button Classes="iconbutton" Command="{Binding MoveScraperRegionDownCommand}" Width="26" Margin="0,0,6,0"
+											<Button Classes="transparentbutton" Command="{Binding MoveScraperRegionDownCommand}" Width="26" Margin="0,0,6,0"
 													ToolTip.Tip="Move the selected fallback region lower in priority (checked later during scraping).">
 												<Image Source="avares://Gamelist_Manager/Assets/Buttons/bluedown.png" Width="18" Height="18"/>
 											</Button>

@@ -440,7 +440,7 @@ public partial class MainWindowViewModel
             var matchedSystem = Systems.FirstOrDefault(s => string.Equals(s.Name, systemName, FilePathHelper.PathComparison));
             if (matchedSystem == null)
             {
-                var logo = TryLoadSystemLogo(systemName);
+                var logo = TryLoadSystemLogo(systemName, 130);
                 matchedSystem = new SystemItem { Name = systemName, GamelistPath = gamelistPath, Logo = logo };
             }
 
@@ -523,7 +523,7 @@ public partial class MainWindowViewModel
                 {
                     Name = name,
                     FolderPath = Path.Combine(scanFolder, name),
-                    Logo = TryLoadSystemLogo(name),
+                    Logo = TryLoadSystemLogo(name, 90),
                     HasGamelist = File.Exists(Path.Combine(scanFolder, name, "gamelist.xml"))
                 })
                 .ToList());
@@ -566,7 +566,7 @@ public partial class MainWindowViewModel
         });
 
         foreach (var (name, path) in found)
-            Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = TryLoadSystemLogo(name) });
+            Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = TryLoadSystemLogo(name, 90) });
 
         IsSystemsComboBoxEnabled = Systems.Count > 0;
         StatusText = Systems.Count == 0
@@ -697,7 +697,7 @@ public partial class MainWindowViewModel
             var matchedSystem = Systems.FirstOrDefault(s => string.Equals(s.GamelistPath, filePath, FilePathHelper.PathComparison));
             if (matchedSystem == null)
             {
-                var logo = TryLoadSystemLogo(systemName);
+                var logo = TryLoadSystemLogo(systemName, 130);
                 matchedSystem = new SystemItem { Name = systemName, GamelistPath = filePath, Logo = logo };
             }
 
@@ -748,13 +748,13 @@ public partial class MainWindowViewModel
         }
     }
 
-    private static Bitmap? TryLoadSystemLogo(string systemName)
+    private static Bitmap? TryLoadSystemLogo(string systemName, int width)
     {
         try
         {
             var uri = new Uri($"avares://Gamelist_Manager/Assets/Systems/{systemName}.png");
             using var stream = AssetLoader.Open(uri);
-            return new Bitmap(stream);
+            return Bitmap.DecodeToWidth(stream, width);
         }
         catch { return null; }
     }

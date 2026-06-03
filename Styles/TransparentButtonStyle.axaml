@@ -38,7 +38,7 @@
     </Style>
 
     <Style Selector="Button.transparentbutton:disabled"> 
-        <Setter Property="Opacity" Value="0.3"/>
+        <Setter Property="Opacity" Value="0.5"/>
         <Setter Property="Cursor" Value="Arrow"/>
     </Style>
 

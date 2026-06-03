@@ -31,7 +31,54 @@ public partial class MainWindowViewModel
     private Task ClearMediaPaths(string scope) => ClearItems(scope, ClearMediaPathData, "Clear media paths");
 
     [RelayCommand]
-    private Task ResetNames(string scope) => ClearItems(scope, ResetGameName, "Reset names");
+    private async Task ResetNames(string scope)
+    {
+        // Determine scope and get games first, before any async work
+        var games = scope == "all" ? Games.ToList() : SelectedGames?.OfType<GameMetadataRow>().ToList();
+        if (games == null || games.Count == 0) return;
+
+        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
+        {
+            var label = ScopeLabel(scope, games.Count);
+            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "Confirm Bulk Operation",
+                Message = $"Reset names for {label} items?",
+                IconTheme = DialogIconTheme.Question,
+                Button1Text = "No",
+                Button2Text = "",
+                Button3Text = "Yes"
+            });
+            if (result != ThreeButtonResult.Button3) return;
+        }
+
+        IReadOnlyDictionary<string, string>? mameNames = null;
+
+        if (UseMameInternalNames && CanUseMameInternalNames)
+        {
+            try
+            {
+                _sessionState.IsBusy = true;
+
+                if (MameNamesHelper.Names.Count == 0)
+                    await MameNamesHelper.GenerateAsync(_settingsState.MamePath);
+
+                if (MameNamesHelper.Names.Count > 0)
+                    mameNames = MameNamesHelper.Names;
+            }
+            finally
+            {
+                _sessionState.IsBusy = false;
+            }
+        }
+
+        foreach (var game in games)
+            ResetGameName(game, mameNames);
+
+        _sourceCache.Refresh();
+        _sessionState.IsDataChanged = true;
+        IsSaveEnabled = true;
+    }
 
     [RelayCommand]
     private async Task SetColumnValue()
@@ -364,9 +411,22 @@ public partial class MainWindowViewModel
         }
     }
 
-    private static void ResetGameName(GameMetadataRow game)
+    private static void ResetGameName(
+    GameMetadataRow game,
+    IReadOnlyDictionary<string, string>? mameNames = null)
     {
-        game.SetValue(MetaDataKeys.name, System.IO.Path.GetFileNameWithoutExtension(game.Path));
+        var romName = Path.GetFileNameWithoutExtension(game.Path);
+        var displayName = romName;
+
+        if (mameNames != null &&
+            !string.IsNullOrWhiteSpace(romName) &&
+            mameNames.TryGetValue(romName, out var mameName) &&
+            !string.IsNullOrWhiteSpace(mameName))
+        {
+            displayName = mameName;
+        }
+
+        game.SetValue(MetaDataKeys.name, displayName);
         game.NotifyDataChanged();
     }
 

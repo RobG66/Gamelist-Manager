@@ -115,7 +115,7 @@
 															  IsEnabled="{Binding HasGameSelected}"
 															  ToolTip.Tip="Hide selected item(s)">
 														<MenuItem.Icon>
-															<Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+															<Image Source="/Assets/Icons/hidden.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 														</MenuItem.Icon>
 													</MenuItem>
 													<Separator/>
@@ -134,7 +134,7 @@
 															  IsEnabled="{Binding HasGameSelected}"
 															  ToolTip.Tip="Hide all items for the selected genre">
 														<MenuItem.Icon>
-															<Image Source="/Assets/Icons/invisible.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+															<Image Source="/Assets/Icons/hidden.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 														</MenuItem.Icon>
 													</MenuItem>
 													<Separator/>
@@ -244,7 +244,7 @@
 												Padding="8,0">
 											<Grid>
 												<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-		              							    <Button Grid.Column="0" Classes="iconbutton"
+		              							    <Button Grid.Column="0" Classes="transparentbutton"
 															  Command="{Binding SaveGamelistCommand}"
 															  Margin="0,0,8,0"
 															  Width="{DynamicResource GlobalIconButtonSize}"

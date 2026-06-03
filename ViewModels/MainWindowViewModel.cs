@@ -44,6 +44,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Observable Properties
 
+    [ObservableProperty] private bool _useMameInternalNames;
     [ObservableProperty] private bool _isMenuOpen = true;
     [ObservableProperty] private bool _isGamelistLoaded;
     [ObservableProperty] private bool _isAlwaysOnTop;
@@ -83,7 +84,15 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_settingsState.Hostname);
 
     public bool IsNewGamelistEnabled =>
-        !string.IsNullOrWhiteSpace(_settingsState.RomsFolder) && Directory.Exists(_settingsState.RomsFolder);
+    !string.IsNullOrWhiteSpace(_settingsState.RomsFolder) && Directory.Exists(_settingsState.RomsFolder);
+
+    private bool CanUseMameInternalNames =>
+        string.Equals(_sessionState.CurrentSystem, "mame", StringComparison.OrdinalIgnoreCase) &&
+        !string.IsNullOrWhiteSpace(_settingsState.MamePath) &&
+        File.Exists(_settingsState.MamePath);
+
+    public bool IsMameInternalNamesOptionVisible =>
+        IsGamelistLoaded && CanUseMameInternalNames;
 
     public bool IsEditModeEnabled
     {
@@ -114,7 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
             TriggerDebouncedSelectionChanged();
         }
     }
-
+        
     #endregion
 
     #region Property Change Callbacks
@@ -147,6 +156,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(ClearMediaPathsButtonEnabled));
                 _ = LoadSystemsAsync();
                 break;
+            case nameof(SessionState.CurrentSystem):
+                OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
+                if (!IsMameInternalNamesOptionVisible)
+                    UseMameInternalNames = false;
+                break;
         }
     }
 
@@ -171,6 +185,11 @@ public partial class MainWindowViewModel : ViewModelBase
             case nameof(SettingsState.RememberColumns):
                 OnPropertyChanged(nameof(RememberColumns));
                 break;
+            case nameof(SettingsState.MamePath):
+                OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
+                if (!IsMameInternalNamesOptionVisible)
+                    UseMameInternalNames = false;
+                break;
         }
     }
 
@@ -184,6 +203,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsStatsCardEnabled));
         OnPropertyChanged(nameof(IsEditToggleEnabled));
         OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
+        OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
     }
 
     private void OnSettingsApplied()
@@ -314,6 +334,9 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Commands
+
+    [RelayCommand]
+    private void ToggleUseMameInternalNames() => UseMameInternalNames = !UseMameInternalNames;
 
     [RelayCommand]
     public void TriggerMenu() => IsMenuOpen = !IsMenuOpen;

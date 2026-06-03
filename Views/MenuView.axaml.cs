@@ -179,7 +179,7 @@ public partial class MenuView : UserControl
         _recentFilesFlyout.Items.Clear();
 
         _loadIconBitmap ??= new Bitmap(AssetLoader.Open(
-            new Uri("avares://Gamelist_Manager/Assets/Icons/load.png")));
+            new Uri("avares://Gamelist_Manager/Assets/Icons/folder.png")));
 
         var iconSize = this.TryFindResource("GlobalMenuIconSize", out var res) && res is double d ? d : 16.0;
 
