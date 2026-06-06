@@ -86,26 +86,29 @@ namespace Gamelist_Manager.Services
 
             var parameters = new ScraperParameters
             {
+                SkipMD5 = ArcadeSystemIDHelper.HasArcadeSystemName(currentSystem),
                 ScraperName = scraperName,
                 VerifyImageDownloads = verifyImageDownloads,
                 ElementsToScrape = elementsToScrape,
                 SystemID = scraperConfig.GetScraperSystemId(scraperName, currentSystem),
                 SSLanguage = scraperConfig.GetScraperLanguageCode(scraperName),
                 SSRegions = regions,
-                ImageSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.ImageSource)),
-                MarqueeSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.MarqueeSource)),
-                ThumbnailSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.ThumbnailSource)),
-                CartridgeSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.CartridgeSource)),
-                VideoSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.VideoSource)),
-                BoxArtSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.BoxArtSource)),
-                MixSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.MixSource)),
-                WheelSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.WheelSource)),
+                ImageSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.ImageSource), currentSystem),
+                MarqueeSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.MarqueeSource), currentSystem),
+                ThumbnailSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.ThumbnailSource), currentSystem),
+                CartridgeSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.CartridgeSource), currentSystem),
+                VideoSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.VideoSource), currentSystem),
+                BoxArtSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.BoxArtSource), currentSystem),
+                MixSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.MixSource), currentSystem),
+                WheelSource = ResolveSource(scraperConfig, scraperName, nameof(ScraperParameters.WheelSource), currentSystem),
                 CacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", scraperName, currentSystem),
                 ScrapeNamesLanguageFirst = scraperConfig.GetScraperBoolSetting(scraperName, "NamesLanguageFirst"),
                 ScrapeMediaRegionFirst = scraperConfig.GetScraperBoolSetting(scraperName, "MediaRegionFirst"),
                 ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
                 ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
                 RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix"),
+
+
 
                 MediaPaths = availableMedia
                     .Where(m => m.MediaEnabled)
@@ -132,9 +135,9 @@ namespace Gamelist_Manager.Services
 
         #region Private Methods
 
-        private static string ResolveSource(ScraperConfigService scraperConfig, string scraperName, string sectionName)
+        private static string ResolveSource(ScraperConfigService scraperConfig, string scraperName, string sectionName, string currentSystem)
         {
-            string savedDisplayName = scraperConfig.GetScraperSourceSetting(scraperName, sectionName);
+            string savedDisplayName = scraperConfig.GetScraperSourceSetting(scraperName, sectionName, currentSystem);
             if (!string.IsNullOrEmpty(savedDisplayName))
             {
                 var sources = scraperConfig.GetScraperSources(scraperName, sectionName);
@@ -177,9 +180,9 @@ namespace Gamelist_Manager.Services
         private void LogScreenScraperConfiguration(string scraperName)
         {
             var scraperConfig = ScraperConfigService.Instance;
-            var language = scraperConfig.GetScraperSourceSetting(scraperName, "Language");
-            var primaryRegion = scraperConfig.GetScraperSourceSetting(scraperName, "PrimaryRegion");
-            var fallbackJson = scraperConfig.GetScraperSourceSetting(scraperName, "RegionFallback");
+            var language = scraperConfig.GetScraperOptionSetting(scraperName, "Language");
+            var primaryRegion = scraperConfig.GetScraperOptionSetting(scraperName, "PrimaryRegion");
+            var fallbackJson = scraperConfig.GetScraperOptionSetting(scraperName, "RegionFallback");
 
             if (!string.IsNullOrEmpty(language))
                 Log($"Language: {language}");

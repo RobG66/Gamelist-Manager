@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using IniData = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
 
 namespace Gamelist_Manager.Services
@@ -22,14 +23,10 @@ namespace Gamelist_Manager.Services
 
         public string ActiveProfile { get; private set; }
 
-        // True when no profile INI files exist at startup.
-        // The UI should prompt the user to pick a profile type before continuing.
         public bool NoProfilesExist { get; private set; }
 
         private ProfileService()
         {
-            //_instance = this; an old band aid, I can't remember?  for informational reference
-
             _iniFolder = Path.Combine(AppContext.BaseDirectory, "ini");
             _profilesFolder = Path.Combine(_iniFolder, "Profiles");
             _appIniPath = Path.Combine(_iniFolder, "app.ini");
@@ -204,9 +201,6 @@ namespace Gamelist_Manager.Services
 
             IniFileService.WriteIniFile(path, sections);
 
-            // The file was written directly — force SettingsService to drop any
-            // stale cache so subsequent reads (e.g. SaveEsDeRoot during the
-            // ES-DE root prompt) pick up the correct ProfileType.
             SettingsService.Instance.SwitchProfile(path);
         }
 
@@ -216,7 +210,6 @@ namespace Gamelist_Manager.Services
         }
 
         // Reads the active profile, merges the supplied updates, and writes it back.
-        // This is the single authoritative way to persist any profile data.
         public void Save(Dictionary<string, Dictionary<string, string>> updates)
         {
             var existing = IniFileService.ReadIniFile(ActiveProfilePath);
@@ -324,9 +317,17 @@ namespace Gamelist_Manager.Services
                 // Add any key that is missing.
                 foreach (var (key, defaultValue) in expectedKeys)
                 {
-                    if (!existing.ContainsKey(key))
+                    var existingKey = existing.Keys.FirstOrDefault(k => string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
+                    if (existingKey == null)
                     {
                         existing[key] = defaultValue;
+                        changed = true;
+                    }
+                    else if (existingKey != key)
+                    {
+                        var value = existing[existingKey];
+                        existing.Remove(existingKey);
+                        existing[key] = value;
                         changed = true;
                     }
                 }

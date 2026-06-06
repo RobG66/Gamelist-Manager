@@ -73,17 +73,7 @@
 
                     <!-- Row 1: Show radios + Filter toggle + Genre/Custom filter -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
-                        
-                        <Button Command="{Binding ResetViewCommand}"
-                                Margin="0,0,5,0"
-                                ToolTip.Tip="Reset view to default"
-                                Classes="transparentbutton"
-                                IsEnabled="{Binding IsGamelistLoaded}"
-                                Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
-                            <Image Source="/Assets/Buttons/greenreset.png" Height="{DynamicResource GlobalIconSize}"/>
-                        </Button>
-
-                        
+                                                
                         <!-- Show filter -->
                         <TextBlock Text="Show:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,0,6,0"/>
                         <RadioButton Content="All" Classes="compact" IsChecked="{Binding ShowAllItems}" Command="{Binding SetShowAllItemsCommand}" GroupName="FilterCardViewFilter" VerticalAlignment="Center" Margin="0,0,5,0"/>
@@ -91,6 +81,16 @@
                         <RadioButton Content="Hidden" Classes="compact" IsChecked="{Binding ShowHiddenOnly}" Command="{Binding SetShowHiddenOnlyCommand}" GroupName="FilterCardViewFilter" VerticalAlignment="Center"/>
 
                         <Border Width="1" Background="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" Opacity="0.4" Margin="8,2"/>
+
+                        
+                        <Button Command="{Binding ResetViewCommand}"
+                                ToolTip.Tip="Reset view to default"
+                                Margin="0,0,5,0"
+                                Classes="transparentbutton"
+                                IsEnabled="{Binding IsGamelistLoaded}"
+                                Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Padding="0" VerticalAlignment="Center">
+                            <Image Source="/Assets/Buttons/greenreset.png" Height="{DynamicResource GlobalIconSize}"/>
+                        </Button>
 
                         <!-- Toggle button: swaps between Genre and Custom filter -->
                         <Button Command="{Binding ToggleFilterModeCommand}"

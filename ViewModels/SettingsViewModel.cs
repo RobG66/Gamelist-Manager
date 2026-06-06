@@ -53,7 +53,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _enableDelete;
     [ObservableProperty] private bool _ignoreDuplicates;
     [ObservableProperty] private bool _batchProcessing;
-    [ObservableProperty] private bool _removeZZZNotGamePrefix;
+    [ObservableProperty] private bool _removeZzzNotGamePrefix;
     [ObservableProperty] private bool _useSimpleSystemPicker;
     [ObservableProperty] private bool _saveWindowState;
     [ObservableProperty] private bool _showLogTimestamp;
@@ -184,7 +184,7 @@ public partial class SettingsViewModel : ViewModelBase
         RememberColumns = s.RememberColumns;
         RememberAutosize = s.RememberAutosize;
         EnableDelete = s.EnableDelete;
-        RemoveZZZNotGamePrefix = s.RemoveZZZNotGamePrefix;
+        RemoveZzzNotGamePrefix = s.RemoveZzzNotGamePrefix;
         IgnoreDuplicates = s.IgnoreDuplicates;
         BatchProcessing = s.BatchProcessing;
         ShowLogTimestamp = s.ShowLogTimestamp;
@@ -339,7 +339,7 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.ScreenScraperNamesLanguageFirst.Key] = ScraperNamesLanguageFirst.ToString(),
                 [SettingKeys.ScreenScraperMediaRegionFirst.Key] = ScraperMediaRegionFirst.ToString(),
                 [SettingKeys.ScreenScraperRegionFallback.Key] = JsonSerializer.Serialize(ScraperFallbackRegions.ToList()),
-                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),
+                [SettingKeys.RemoveZzzNotGamePrefix.Key] = RemoveZzzNotGamePrefix.ToString(),
                 [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
                 [SettingKeys.VerifyDownloadedImages.Key] = VerifyImageDownloads.ToString(),
                 [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
@@ -353,7 +353,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             settings[SettingKeys.ScraperOptionsSection] = new()
             {
-                [SettingKeys.RemoveZZZNotGamePrefix.Key] = RemoveZZZNotGamePrefix.ToString(),
+                [SettingKeys.RemoveZzzNotGamePrefix.Key] = RemoveZzzNotGamePrefix.ToString(),
                 [SettingKeys.ScraperConfigSave.Key] = ScraperConfigSaveIndex.ToString(),
                 [SettingKeys.VerifyDownloadedImages.Key] = VerifyImageDownloads.ToString(),
                 [SettingKeys.BatchProcessing.Key] = BatchProcessing.ToString(),
@@ -382,11 +382,7 @@ public partial class SettingsViewModel : ViewModelBase
             SaveSystemOverrides();
 
         SettingsState.Instance.Reload();
-        _sessionState.RefreshAvailableMedia(
-            _sessionState.ProfileType,
-            _sessionState.CurrentSystem,
-            _sessionState.CurrentMediaFolder,
-            _settingsState.MediaPaths);
+        _sessionState.RefreshAvailableMedia();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
         SettingsChanged = false;

@@ -112,6 +112,8 @@ public partial class DatToolViewModel
                         Description = datItem.Description,
                         NonPlayable = datItem.NonPlayable,
                         CHDRequired = chdStatus,
+                        ControlTypes = datItem.ControlTypes,
+                        ButtonCount = datItem.ButtonCount,
                     };
                 }
 
@@ -199,6 +201,7 @@ public partial class DatToolViewModel
 
         var nonPlayable = new List<string>();
         var diskStatus = new List<string>();
+        var controls = new List<(string Type, int Player, int Buttons)>();
         string description = string.Empty;
         bool needsCHD = false;
         bool hasSoftwareList = false;
@@ -215,6 +218,13 @@ public partial class DatToolViewModel
 
             switch (reader.Name.ToLowerInvariant())
             {
+                case "control":
+                    var ctrlType = reader.GetAttribute("type");
+                    if (string.IsNullOrEmpty(ctrlType)) break;
+                    int.TryParse(reader.GetAttribute("player"), out var player);
+                    int.TryParse(reader.GetAttribute("buttons"), out var buttons);
+                    controls.Add((ctrlType, player, buttons));
+                    break;
                 case "disk":
                     {
                         var (diskStatusText, nonPlayableReason, requiresCHD) = ResolveDiskStatus(reader);
@@ -252,6 +262,8 @@ public partial class DatToolViewModel
             Description = description,
             CHDRequired = needsCHD ? string.Join(", ", diskStatus) : string.Empty,
             NonPlayable = nonPlayable.Count > 0 ? string.Join(", ", nonPlayable) : string.Empty,
+            ControlTypes = BuildControlTypeSummary(controls),
+            ButtonCount = controls.Count > 0 ? controls.Max(c => c.Buttons) : 0,
         };
     }
 

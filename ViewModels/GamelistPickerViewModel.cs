@@ -209,6 +209,12 @@ public partial class GamelistPickerViewModel : ObservableObject
         _countCts = null;
     }
 
+    public void Cleanup()
+    {
+        foreach (var item in _allSystems)
+            item.Logo?.Dispose();
+    }
+
     private static int CountGamesInGamelist(string path)
     {
         if (!File.Exists(path)) return 0;

@@ -38,6 +38,8 @@ namespace Gamelist_Manager.Services
 
         #region Public Methods
 
+        public string GetScraperOptionSetting(string scraperName, string settingName) => _settings.GetValue(SettingKeys.ScraperOptionsSection, $"{scraperName}_{settingName}", string.Empty);
+
         public IReadOnlyDictionary<string, string> GetScraperSources(string scraperName, string sectionName)
         {
             var sections = GetScraperIniSections(scraperName);
@@ -133,20 +135,16 @@ namespace Gamelist_Manager.Services
             return FirstSectionValue(sections, sectionName);
         }
 
-        public string GetScraperSourceSetting(string scraperName, string sectionName)
+        public string GetScraperSourceSetting(string scraperName, string sectionName, string systemName)
         {
             int configSave = _settings.GetInt(SettingKeys.ScraperOptionsSection, "ScraperConfigSave", 0);
 
-            if (configSave == 1)
-            {
-                string? systemName = SessionState.Instance.CurrentSystem;
-                if (!string.IsNullOrEmpty(systemName))
-                    return _settings.GetValue(SettingKeys.ScrapersSection, $"{scraperName}_{systemName}_{sectionName}", "");
-                return "";
-            }
+            if (configSave == 1 && !string.IsNullOrEmpty(systemName))
+                return _settings.GetValue(SettingKeys.ScrapersSection, $"{scraperName}_{systemName}_{sectionName}", "");
 
             return _settings.GetValue(SettingKeys.ScrapersSection, $"{scraperName}_{sectionName}", "");
         }
+
 
         public bool GetScraperBoolSetting(string scraperName, string settingName, bool defaultValue = false)
             => _settings.GetBool(SettingKeys.ScraperOptionsSection, $"{scraperName}_{settingName}", defaultValue);

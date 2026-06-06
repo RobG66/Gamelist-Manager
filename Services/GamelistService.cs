@@ -11,6 +11,10 @@ namespace Gamelist_Manager.Services
 {
     public class GamelistService
     {
+        private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];
+        private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
+        private static readonly string[] ManualExtensions = [".pdf"];
+
         public static (ObservableCollection<GameMetadataRow> Games, List<string> Duplicates) LoadGamelist(string xmlFilePath, bool ignoreDuplicates = false)
         {
             var games = new ObservableCollection<GameMetadataRow>();
@@ -88,6 +92,49 @@ namespace Gamelist_Manager.Services
             }
 
             return (games, duplicates);
+        }
+
+        public static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
+        {
+            if (string.IsNullOrEmpty(mediaDirectory)) return;
+
+            var mediaDecls = MetadataService.GetAllMediaFolderTypes();
+
+            foreach (var game in games)
+            {
+                var romPath = game.Path;
+                if (string.IsNullOrEmpty(romPath)) continue;
+
+                var romName = FilePathHelper.NormalizeRomName(romPath);
+                if (string.IsNullOrEmpty(romName)) continue;
+
+                foreach (var decl in mediaDecls)
+                {
+                    if (!decl.IsEsDeSupported) continue;
+
+                    var folder = Path.Combine(mediaDirectory, decl.EsDeFolderName);
+
+                    var extensions = decl.DataType switch
+                    {
+                        MetaDataType.Video => VideoExtensions,
+                        MetaDataType.Document => ManualExtensions,
+                        _ => ImageExtensions
+                    };
+
+                    string? resolved = null;
+                    foreach (var ext in extensions)
+                    {
+                        var candidate = Path.Combine(folder, romName + ext);
+                        if (File.Exists(candidate))
+                        {
+                            resolved = candidate;
+                            break;
+                        }
+                    }
+
+                    game.SetValue(decl.Key, resolved ?? string.Empty);
+                }
+            }
         }
 
         public static bool SaveGamelist(string xmlFilePath, ObservableCollection<GameMetadataRow> games)

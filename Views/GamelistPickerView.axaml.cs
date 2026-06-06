@@ -33,6 +33,7 @@ public partial class GamelistPickerView : Window
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         _vm?.CancelCounting();
+        _vm?.Cleanup();
         base.OnClosing(e);
     }
 

@@ -6,11 +6,10 @@ using System.Collections.Generic;
 
 namespace Gamelist_Manager.Models
 {
-    /// <summary>
-    /// Observable snapshot of all persisted settings.
-    /// Call Reload() on startup and after any profile switch or settings save.
-    /// View models bind to these properties directly.
-    /// </summary>
+   
+    // Observable snapshot of all persisted settings.
+    // Call Reload() on startup and after any profile switch or settings save.
+    // View models bind to these properties directly.
     public partial class SettingsState : ObservableObject
     {
         private static readonly Lazy<SettingsState> _instance = new(() => new SettingsState());
@@ -46,17 +45,14 @@ namespace Gamelist_Manager.Models
             // Scraper Options
             VerifyImageDownloads = s.GetBool(SettingKeys.VerifyDownloadedImages);
             BatchProcessing = s.GetBool(SettingKeys.BatchProcessing);
+            MaxBatch = s.GetInt(SettingKeys.BatchProcessingMaximum);
             ShowLogTimestamp = s.GetBool(SettingKeys.ShowLogTimestamp);
             OverrideConcurrency = s.GetBool(SettingKeys.OverrideConcurrency);
             ConcurrencyOverride = s.GetInt(SettingKeys.ConcurrencyOverride);
             LogToDisk = s.GetBool(SettingKeys.LogToDisk);
             SelectedScraper = s.GetValue(SettingKeys.SelectedScraper);
             ScraperConfigSave = s.GetInt(SettingKeys.ScraperConfigSave);
-            ScrapeAllMode = s.GetBool(SettingKeys.ScrapeAllMode);
-            OverwriteName = s.GetBool(SettingKeys.OverwriteName);
-            OverwriteMedia = s.GetBool(SettingKeys.OverwriteMedia);
-            ScrapeHiddenItems = s.GetBool(SettingKeys.ScrapeHiddenItems);
-            RemoveZZZNotGamePrefix = s.GetBool(SettingKeys.RemoveZZZNotGamePrefix);
+            RemoveZzzNotGamePrefix = s.GetBool(SettingKeys.RemoveZzzNotGamePrefix);
             ScreenScraperLanguage = s.GetValue(SettingKeys.ScreenScraperLanguage);
             ScreenScraperPrimaryRegion = s.GetValue(SettingKeys.ScreenScraperPrimaryRegion);
             ScreenScraperGenreEnglish = s.GetBool(SettingKeys.ScreenScraperGenreEnglish);
@@ -69,7 +65,6 @@ namespace Gamelist_Manager.Models
             MaxUndo = s.GetInt(SettingKeys.MaxUndo);
             SearchDepth = s.GetInt(SettingKeys.SearchDepth);
             RecentFilesCount = s.GetInt(SettingKeys.RecentFilesCount);
-            MaxBatch = s.GetInt(SettingKeys.BatchProcessingMaximum);
             LogVerbosity = s.GetInt(SettingKeys.LogVerbosity);
             DefaultVolume = s.GetInt(SettingKeys.Volume);
 
@@ -160,11 +155,7 @@ namespace Gamelist_Manager.Models
         [ObservableProperty] private bool _logToDisk = false;
         [ObservableProperty] private string _selectedScraper = "";
         [ObservableProperty] private int _scraperConfigSave = 0;
-        [ObservableProperty] private bool _scrapeAllMode = true;
-        [ObservableProperty] private bool _overwriteName = true;
-        [ObservableProperty] private bool _overwriteMedia = false;
-        [ObservableProperty] private bool _scrapeHiddenItems = false;
-        [ObservableProperty] private bool _removeZZZNotGamePrefix = true;
+        [ObservableProperty] private bool _removeZzzNotGamePrefix = true;
         [ObservableProperty] private string _screenScraperLanguage = "English (en)";
         [ObservableProperty] private string _screenScraperPrimaryRegion = "USA (us)";
         [ObservableProperty] private bool _screenScraperGenreEnglish = false;

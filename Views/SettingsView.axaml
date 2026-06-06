@@ -623,7 +623,7 @@
 											  ToolTip.Tip="When enabled, the selected language is always checked first when retrieving game names, overriding the ROM filename's detected region. When disabled, the ROM region takes priority."/>
 									<CheckBox Content="Scrape media by user region first" IsChecked="{Binding ScraperMediaRegionFirst}"
 											  ToolTip.Tip="When enabled, searches for media using your configured regions first, then the ROM filename region. When disabled, the ROM filename region takes priority first."/>
-									<CheckBox Content="Remove ZZZ(notgame): from names" IsChecked="{Binding RemoveZZZNotGamePrefix}"
+									<CheckBox Content="Remove ZZZ(notgame): from names" IsChecked="{Binding RemoveZzzNotGamePrefix}"
 											  ToolTip.Tip="When enabled, the ZZZ(notgame): prefix is always removed from names"/>
 
 								</UniformGrid>

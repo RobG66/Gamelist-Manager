@@ -85,26 +85,22 @@ public static class SettingKeys
 
     #region Scraper Options
 
+    public static readonly SettingDef<int> ScraperConfigSave = new(ScraperOptionsSection, "ScraperConfigSave", 0);
+    public static readonly SettingDef<int> BatchProcessingMaximum = new(ScraperOptionsSection, "BatchProcessingMaximum", 300);
+    public static readonly SettingDef<int> ConcurrencyOverride = new(ScraperOptionsSection, "ConcurrencyOverride", 1);
     public static readonly SettingDef<bool> VerifyDownloadedImages = new(ScraperOptionsSection, "VerifyDownloadedImages", true);
     public static readonly SettingDef<bool> BatchProcessing = new(ScraperOptionsSection, "BatchProcessing", true);
     public static readonly SettingDef<bool> ShowLogTimestamp = new(ScraperOptionsSection, "ShowLogTimestamp", false);
     public static readonly SettingDef<bool> OverrideConcurrency = new(ScraperOptionsSection, "OverrideConcurrency", false);
-    public static readonly SettingDef<int> ConcurrencyOverride = new(ScraperOptionsSection, "ConcurrencyOverride", 1);
+    public static readonly SettingDef<bool> RemoveZzzNotGamePrefix = new(ScraperOptionsSection, "RemoveZzzNotGamePrefix", true);
     public static readonly SettingDef<bool> LogToDisk = new(ScraperOptionsSection, "LogToDisk", false);
-    public static readonly SettingDef<string> SelectedScraper = new(ScraperOptionsSection, "SelectedScraper", "");
-    public static readonly SettingDef<int> ScraperConfigSave = new(ScraperOptionsSection, "ScraperConfigSave", 0);
-    public static readonly SettingDef<bool> ScrapeAllMode = new(ScraperOptionsSection, "ScrapeAllMode", true);
-    public static readonly SettingDef<bool> OverwriteName = new(ScraperOptionsSection, "OverwriteName", true);
-    public static readonly SettingDef<bool> OverwriteMedia = new(ScraperOptionsSection, "OverwriteMedia", false);
-    public static readonly SettingDef<bool> ScrapeHiddenItems = new(ScraperOptionsSection, "ScrapeHiddenItems", false);
-    public static readonly SettingDef<bool> RemoveZZZNotGamePrefix = new(ScraperOptionsSection, "RemoveZZZNotGamePrefix", true);
-
-    public static readonly SettingDef<string> ScreenScraperLanguage = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_Language", "English (en)");
-    public static readonly SettingDef<string> ScreenScraperPrimaryRegion = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_PrimaryRegion", "USA (us)");
     public static readonly SettingDef<bool> ScreenScraperGenreEnglish = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_GenreEnglish", false);
     public static readonly SettingDef<bool> ScreenScraperAnyMedia = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_AnyMedia", true);
     public static readonly SettingDef<bool> ScreenScraperNamesLanguageFirst = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_NamesLanguageFirst", false);
     public static readonly SettingDef<bool> ScreenScraperMediaRegionFirst = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_MediaRegionFirst", false);
+    public static readonly SettingDef<string> SelectedScraper = new(ScraperOptionsSection, "SelectedScraper", "");
+    public static readonly SettingDef<string> ScreenScraperLanguage = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_Language", "English (en)");
+    public static readonly SettingDef<string> ScreenScraperPrimaryRegion = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_PrimaryRegion", "USA (us)");
     public static readonly SettingDef<string> ScreenScraperRegionFallback = new(ScraperOptionsSection, $"{ScraperRegistry.ScreenScraper.Name}_RegionFallback",
         """["USA (us)", "Europe (eu)", "United Kingdom (uk)", "World (wor)", "Japan (jp)", "ScreenScraper (ss)", "Custom (cus)"]""");
 
@@ -115,7 +111,6 @@ public static class SettingKeys
     public static readonly SettingDef<int> MaxUndo = new(AdvancedSection, "MaxUndo", 5);
     public static readonly SettingDef<int> SearchDepth = new(AdvancedSection, "SearchDepth", 2);
     public static readonly SettingDef<int> RecentFilesCount = new(AdvancedSection, "RecentFilesCount", 15);
-    public static readonly SettingDef<int> BatchProcessingMaximum = new(AdvancedSection, "BatchProcessingMaximum", 300);
     public static readonly SettingDef<int> LogVerbosity = new(AdvancedSection, "LogVerbosity", 1);
     public static readonly SettingDef<int> Volume = new(AdvancedSection, "Volume", 75);
 
@@ -177,14 +172,13 @@ public static class SettingKeys
         // Scraper Options
         VerifyDownloadedImages, BatchProcessing, ShowLogTimestamp, LogToDisk,
         OverrideConcurrency, ConcurrencyOverride,
-        SelectedScraper, ScraperConfigSave,
-        ScrapeAllMode, OverwriteName, OverwriteMedia, ScrapeHiddenItems, RemoveZZZNotGamePrefix,
+        SelectedScraper, ScraperConfigSave, RemoveZzzNotGamePrefix,
         ScreenScraperLanguage, ScreenScraperPrimaryRegion, ScreenScraperGenreEnglish,
         ScreenScraperAnyMedia, ScreenScraperNamesLanguageFirst, ScreenScraperMediaRegionFirst,
-        ScreenScraperRegionFallback,
+        ScreenScraperRegionFallback, BatchProcessingMaximum,
 
         // Advanced
-        MaxUndo, SearchDepth, RecentFilesCount, BatchProcessingMaximum, LogVerbosity, Volume,
+        MaxUndo, SearchDepth, RecentFilesCount, LogVerbosity, Volume,
 
         // Connection
         HostName, UserID, Password,

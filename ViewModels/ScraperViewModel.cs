@@ -44,6 +44,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsLimitVisible))]
     private string _currentScraper = ScraperRegistry.All[0].Name;
+
     [ObservableProperty] private bool _scrapeAllMode = true;
     [ObservableProperty] private bool _scrapeSelectedMode;
     [ObservableProperty] private bool _overwriteName = true;
@@ -55,10 +56,12 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _skipNonCachedItems;
     [ObservableProperty] private bool _skipNonCachedItemsEnabled = true;
     [ObservableProperty] private bool _overwriteMetadataEnabled = true;
+    
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
     private bool _isScraping;
+
     [ObservableProperty] private bool _isClearCacheEnabled;
     [ObservableProperty] private string _cacheCountText = "0 items cached";
     [ObservableProperty] private bool _showLogTimestamp;
@@ -326,12 +329,14 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     }
 
     private void LoadGeneralSettings(string key)
-    {
-        ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeAllMode", SettingKeys.ScrapeAllMode.Default);
+    { 
+        ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeAllMode", true);
+        OverwriteName = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteName", true);
+        OverwriteMedia = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMedia", false);
+        ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeHiddenItems", false);
+        OverwriteMetadata = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMetadata", false);
         ScrapeSelectedMode = !ScrapeAllMode;
-        OverwriteName = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteName", SettingKeys.OverwriteName.Default);
-        OverwriteMedia = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMedia", SettingKeys.OverwriteMedia.Default);
-        ScrapeHiddenItems = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeHiddenItems", SettingKeys.ScrapeHiddenItems.Default);
+
         ShowLogTimestamp = _settingsState.ShowLogTimestamp;
 
         ScrapeFromCacheEnabled = true;
@@ -577,6 +582,21 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             .i;
 
         await WindowService.Instance.ShowSettingsAsync(4, scraperIndex);
+    }
+
+    [RelayCommand]
+    private async Task ResetScraperSettings()
+    {
+        ScrapeHiddenItems = false;
+        ScrapeAllMode = true;
+        OverwriteMedia = false;
+        OverwriteName = true;
+        SkipNonCachedItems = false;
+        OverwriteMetadata = false;
+
+        if (ScrapeFromCacheEnabled)
+            ScrapeFromCache = true;
+        
     }
 
     [RelayCommand]

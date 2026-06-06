@@ -270,14 +270,7 @@ public partial class MainWindowViewModel
             IStorageFolder? suggestedStart = null;
             try
             {
-                var startPath = _sessionState.ProfileType switch
-                {
-                    SettingKeys.ProfileTypeEsDe when !string.IsNullOrEmpty(_settingsState.EsDeRoot)
-                        => Path.Combine(_settingsState.EsDeRoot, "gamelists"),
-                    _ when !string.IsNullOrEmpty(_settingsState.RomsFolder)
-                        => _settingsState.RomsFolder,
-                    _ => null
-                };
+                var startPath = _sessionState.GamelistsRootFolder;
 
                 if (startPath != null && Directory.Exists(startPath))
                     suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
@@ -421,11 +414,7 @@ public partial class MainWindowViewModel
 
             _sessionState.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
 
-            _sessionState.RefreshAvailableMedia(
-                _sessionState.ProfileType,
-                _sessionState.CurrentSystem,
-                _sessionState.CurrentMediaFolder,
-                _settingsState.MediaPaths);
+            _sessionState.RefreshAvailableMedia();
 
             _isLoadingData = true;
             _sourceCache.Clear();
@@ -545,12 +534,12 @@ public partial class MainWindowViewModel
             StatusText = profileType == SettingKeys.ProfileTypeEsDe
                 ? "Set ES-DE root folder in Settings"
                 : "Set ROMs folder in Settings";
-            IsSystemsComboBoxEnabled = false;
+            IsSystemsMenuEnabled = false;
             return;
         }
 
         Systems.Clear();
-        IsSystemsComboBoxEnabled = false;
+        IsSystemsMenuEnabled = false;
 
         var found = await Task.Run(() =>
         {
@@ -568,7 +557,7 @@ public partial class MainWindowViewModel
         foreach (var (name, path) in found)
             Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = TryLoadSystemLogo(name, 90) });
 
-        IsSystemsComboBoxEnabled = Systems.Count > 0;
+        IsSystemsMenuEnabled = Systems.Count > 0;
         StatusText = Systems.Count == 0
             ? (profileType == SettingKeys.ProfileTypeEsDe ? "No systems found in ES-DE gamelists folder" : "No systems found in ROMs folder")
             : string.Empty;
@@ -671,19 +660,11 @@ public partial class MainWindowViewModel
 
             _sessionState.SetGamelist(filePath, systemName, loadedGames);
 
-            _sessionState.RefreshAvailableMedia(
-                _sessionState.ProfileType,
-                _sessionState.CurrentSystem,
-                _sessionState.CurrentMediaFolder,
-                _settingsState.MediaPaths);
+            _sessionState.RefreshAvailableMedia();
 
-            if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe)
-            {
-                var mediaDir = FilePathHelper.EsDeMediaDirectory(
-                    EsDePathResolver.ReadPathsFromEsDeSettings(_settingsState.EsDeRoot).MediaDirectory ?? string.Empty,
-                    _sessionState.CurrentSystem);
-                await Task.Run(() => PopulateMediaPaths(loadedGames, mediaDir));
-            }
+            if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe &&
+                _sessionState.CurrentMediaFolder is { } mediaDir)
+                await Task.Run(() => GamelistService.PopulateMediaPaths(loadedGames, mediaDir));
 
             _isLoadingData = true;
             _sourceCache.Clear();
@@ -786,10 +767,7 @@ public partial class MainWindowViewModel
 
     #region ES-DE Media Helpers
 
-    private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];
-    private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
-    private static readonly string[] ManualExtensions = [".pdf"];
-
+    
     private void ExportDataToCsv(string filePath, IList<GameMetadataRow> filteredRows, ExportCsvOptions options)
     {
         var rows = options.UseFilteredRows
@@ -819,49 +797,6 @@ public partial class MainWindowViewModel
         }
 
         File.WriteAllText(filePath, sb.ToString(), System.Text.Encoding.UTF8);
-    }
-
-    private static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
-    {
-        if (string.IsNullOrEmpty(mediaDirectory)) return;
-
-        var mediaDecls = MetadataService.GetAllMediaFolderTypes();
-
-        foreach (var game in games)
-        {
-            var romPath = game.Path;
-            if (string.IsNullOrEmpty(romPath)) continue;
-
-            var romName = FilePathHelper.NormalizeRomName(romPath);
-            if (string.IsNullOrEmpty(romName)) continue;
-
-            foreach (var decl in mediaDecls)
-            {
-                if (!decl.IsEsDeSupported) continue;
-
-                var folder = Path.Combine(mediaDirectory, decl.EsDeFolderName);
-
-                var extensions = decl.DataType switch
-                {
-                    MetaDataType.Video => VideoExtensions,
-                    MetaDataType.Document => ManualExtensions,
-                    _ => ImageExtensions
-                };
-
-                string? resolved = null;
-                foreach (var ext in extensions)
-                {
-                    var candidate = Path.Combine(folder, romName + ext);
-                    if (File.Exists(candidate))
-                    {
-                        resolved = candidate;
-                        break;
-                    }
-                }
-
-                game.SetValue(decl.Key, resolved ?? string.Empty);
-            }
-        }
     }
 
     #endregion

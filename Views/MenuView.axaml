@@ -18,23 +18,23 @@
 					  HorizontalScrollBarVisibility="Disabled">
 			<StackPanel Margin="0">
 				<!-- Hamburger Button to toggle pane -->
-				<Button Classes="NavButton" Command="{Binding TriggerMenu}" ToolTip.Tip="Toggle menu">
-					<StackPanel Orientation="Horizontal" Spacing="10">
+				<StackPanel Orientation="Horizontal" Spacing="10" Margin="8,6">
+					<Button Classes="transparentbutton" Command="{Binding TriggerMenu}" ToolTip.Tip="Toggle menu">
 						<Image Source="/Assets/Buttons/menu.png"
 							   Width="{DynamicResource GlobalMenuIconSize}"
 							   Height="{DynamicResource GlobalMenuIconSize}"/>
-						<TextBlock Text="Menu"
-								   VerticalAlignment="Center"
-								   IsVisible="{Binding IsMenuOpen}"
-								   FontSize="{DynamicResource GlobalHeaderFontSize}"
-								   FontWeight="SemiBold"
-								   Foreground="{DynamicResource HeaderTextBrush}"/>
-					</StackPanel>
-				</Button>
+					</Button>
+					<TextBlock Text="Menu"
+							   VerticalAlignment="Center"
+							   IsVisible="{Binding IsMenuOpen}"
+							   FontSize="{DynamicResource GlobalHeaderFontSize}"
+							   FontWeight="SemiBold"
+							   Foreground="{DynamicResource HeaderTextBrush}"/>
+				</StackPanel>
 
-				<Separator Height="1"
-						   Background="{DynamicResource SeparatorBrush}"
-						   Margin="0,8,0,8"/>
+				<Border Height="1"
+						Background="{DynamicResource SeparatorBrush}"
+						Margin="0,2"/>
 
 				<!-- FILE Menu -->
 				<Button Classes="NavButton" x:Name="FileButton" ToolTip.Tip="File operations">
@@ -108,7 +108,7 @@
 					<Button Classes="NavButton"
 							x:Name="SystemsButton"
 							ToolTip.Tip="Select system"
-							IsEnabled="{Binding IsSystemsComboBoxEnabled}">
+							IsEnabled="{Binding IsSystemsMenuEnabled}">
 						<Button.Flyout>
 							<Flyout Placement="Right" ShowMode="Standard">
 								<Border Background="{DynamicResource FlyoutBackground}"
@@ -135,7 +135,7 @@
 							   TextWrapping="Wrap"
 							   Opacity="0.7"
 							   Margin="18,4,12,0"
-							   IsVisible="{Binding !IsSystemsComboBoxEnabled}"/>
+							   IsVisible="{Binding !IsSystemsMenuEnabled}"/>
 				</StackPanel>
 
 				<!-- VIEW Menu -->
@@ -617,7 +617,7 @@
 				<!-- Separator before bottom items -->
 				<Border Height="1"
 						Background="{DynamicResource SeparatorBrush}"
-						Margin="0,8"/>
+						Margin="0,2"/>
 
 				<!-- Edit Mode Toggle -->
 				<Button Classes="NavButton"
@@ -644,7 +644,7 @@
 
 				<Border Height="1"
 						Background="{DynamicResource SeparatorBrush}"
-						Margin="0,8"/>
+						Margin="0,2"/>
 
 
 				<!-- Media Preview Toggle -->

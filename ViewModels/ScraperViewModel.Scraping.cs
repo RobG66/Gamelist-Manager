@@ -47,7 +47,7 @@ public partial class ScraperViewModel
         var currentSystem = _sessionState.CurrentSystem;
         var currentScraper = CurrentScraper;
         var maxBatch = _settingsState.MaxBatch;
-        var removeZzzNotGamePrefix = _settingsState.RemoveZZZNotGamePrefix;
+        var removeZzzNotGamePrefix = _settingsState.RemoveZzzNotGamePrefix;
         var logVerbosity = _settingsState.LogVerbosity;
         var batchProcessing = _settingsState.BatchProcessing;
         var verifyImageDownloads = _settingsState.VerifyImageDownloads;

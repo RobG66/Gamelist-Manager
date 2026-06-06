@@ -9,27 +9,12 @@ namespace Gamelist_Manager.Classes.Helpers
 {
     public static class RegionLanguageHelper
     {
-        private static readonly HashSet<string> ArcadeSystems;
         private static readonly HashSet<string> JapanDefaults;
         private static readonly Dictionary<string, LanguageData> LanguageLookup;
 
         static RegionLanguageHelper()
         {
-            // Load ArcadeSystems
-            ArcadeSystems = new HashSet<string>();
-            var arcadeIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "arcadesystems.ini");
-            if (File.Exists(arcadeIniPath))
-            {
-                foreach (var line in File.ReadAllLines(arcadeIniPath))
-                {
-                    var trimmed = line.Trim();
-                    if (trimmed.StartsWith('[') || string.IsNullOrWhiteSpace(trimmed)) continue;
-                    var parts = trimmed.Split('=');
-                    if (parts.Length == 2)
-                        ArcadeSystems.Add(parts[1].Trim().ToLowerInvariant());
-                }
-            }
-
+   
             // Load JapanDefaults
             JapanDefaults = new HashSet<string>();
             var japanIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "japan_systems.ini");
@@ -140,10 +125,6 @@ namespace Gamelist_Manager.Classes.Helpers
                 }
             }
 
-            // Stupid Arcade system fallback
-            // if (ArcadeSystems.Contains(currentSystem))
-            //    return lowerFileName.EndsWith("j.zip") ? "jp" : "us";
-
             return fallback;
         }
 
@@ -181,7 +162,7 @@ namespace Gamelist_Manager.Classes.Helpers
             }
 
             // Arcade fallback
-            if (ArcadeSystems.Contains(currentSystem) && matchedLanguages.Count == 0)
+            if (ArcadeSystemIDHelper.HasArcadeSystemName(currentSystem) && matchedLanguages.Count == 0)
                 return fileName.ToLowerInvariant().EndsWith("j.zip") ? "jp" : "en";
 
             return matchedLanguages.Count > 0 ? string.Join(",", matchedLanguages) : "en";

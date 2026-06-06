@@ -7,7 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Assets\Icons\icon.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <Version>9.7.0</Version>
+        <Version>9.7.1</Version>
         <AssemblyVersion>9.0.0.0</AssemblyVersion>
         <FileVersion>9.0.0.0</FileVersion>
     </PropertyGroup>
@@ -53,11 +53,11 @@
     </Target>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.0.3" />
-        <PackageReference Include="Avalonia.Desktop" Version="12.0.3" />
+        <PackageReference Include="Avalonia" Version="12.0.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
         <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.3" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
         <PackageReference Include="DynamicData" Version="9.4.31" />
@@ -69,7 +69,7 @@
         <PackageReference Include="System.Threading.RateLimiting" Version="10.0.8" />
         <!-- Condition targets win-* RIDs explicitly so cross-compiling for Linux from Windows is excluded. -->
         <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" Condition="$([System.String]::Copy('$(RuntimeIdentifier)').Contains('win')) Or ('$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows')))" />
-        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.0" />
+        <PackageReference Include="Xaml.Behaviors.Avalonia" Version="12.0.0.1" />
     </ItemGroup>
 
     <ItemGroup>

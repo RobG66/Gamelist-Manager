@@ -8,4 +8,6 @@ public class GameReportItem
     public string NonPlayable { get; set; } = string.Empty;
     public string CHDRequired { get; set; } = string.Empty;
     public string NotInDat { get; set; } = string.Empty;
+    public string ControlTypes { get; set; } = string.Empty;
+    public int ButtonCount { get; set; }
 }

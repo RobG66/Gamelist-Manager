@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 
 namespace Gamelist_Manager.ViewModels;
 
@@ -72,7 +73,6 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _missingFilterParents = true;
     [ObservableProperty] private bool _missingFilterClones;
     [ObservableProperty] private bool _missingFilterAll;
-    [ObservableProperty] private bool _isClearReportEnabled;
 
     #endregion
 
@@ -150,6 +150,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
             3 => "Requires CHD",
             4 => "Non-Playable",
             5 => "Not In DAT",
+            6 => "Controls",
             _ => string.Empty
         };
 
@@ -166,6 +167,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
                 3 => item.CHDRequired,
                 4 => item.NonPlayable,
                 5 => item.NotInDat,
+                6 => BuildControlsDisplay(item),
                 _ => string.Empty
             };
 
@@ -187,9 +189,24 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
         }
 
         ReportLookup[columnName] = lookup;
-        IsClearReportEnabled = true;
         ReportColumnAdded?.Invoke(this, columnName);
     }
+
+    private static string BuildControlTypeSummary(List<(string Type, int Player, int Buttons)> controls)
+    {
+        if (controls.Count == 0) return string.Empty;
+        return string.Join(" + ", controls
+            .OrderBy(c => c.Player)
+            .Select(c =>
+            {
+                var label = $"{c.Type}{(c.Player != 0 ? c.Player.ToString() : "")}";
+                return c.Buttons > 0
+                    ? $"{label} ({c.Buttons} {(c.Buttons == 1 ? "button" : "buttons")})"
+                    : label;
+            }));
+    }
+
+    private static string BuildControlsDisplay(GameReportItem item) => item.ControlTypes;
 
     #endregion
 
@@ -210,7 +227,6 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
         IsReportComboEnabled = false;
         ReportViewIndex = 0;
         IsFindMissingEnabled = false;
-        IsClearReportEnabled = false;
 
         _datSummary.Clear();
         _gamelistSummary.Clear();

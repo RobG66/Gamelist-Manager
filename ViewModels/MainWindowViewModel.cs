@@ -50,7 +50,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isAlwaysOnTop;
     [ObservableProperty] private bool _hasGameSelected;
     [ObservableProperty] private bool _showSaveConfirmation;
-    [ObservableProperty] private bool _isSystemsComboBoxEnabled;
+    [ObservableProperty] private bool _IsSystemsMenuEnabled;
     [ObservableProperty] private bool _isPersistentSelectionEnabled;
     [ObservableProperty] private string _statusText = string.Empty;
     [ObservableProperty] private ObservableCollection<SystemItem> _systems = [];

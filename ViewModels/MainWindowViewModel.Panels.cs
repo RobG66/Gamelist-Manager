@@ -74,7 +74,6 @@ public partial class MainWindowViewModel
     private void ClearReportColumns()
     {
         HasReportColumns = false;
-        DatToolPanelViewModel?.ClearReportCommand.Execute(null);
         ReportColumnsCleared?.Invoke(this, EventArgs.Empty);
     }
 

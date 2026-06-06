@@ -150,29 +150,15 @@ namespace Gamelist_Manager.Classes.Api
 
         public async Task<(bool Success, int MaxThreads, string ErrorMessage)> AuthenticateAsync(string userID, string userPassword)
         {
-            var (success, userInfo, error) = await AuthenticateDetailedAsync(userID, userPassword);
-            return (success, userInfo?.MaxThreads ?? -1, error);
-        }
-
-        public async Task<(bool Success, ScreenScraperUserInfo? UserInfo, string ErrorMessage)> AuthenticateDetailedAsync(string userID, string userPassword)
-        {
             if (string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(userPassword))
-            {
-                return (false, null, "User ID and password are required");
-            }
+                return (false, 0, "User ID and password are required");
 
-            // Authentication requires both dev and user credentials
             string url = $"{ApiUrl}/ssuserInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={userID}&sspassword={userPassword}";
 
             var (success, xml, fetchError) = await FetchFromApi(url);
 
             if (!success || string.IsNullOrEmpty(xml))
-            {
-                string errorMsg = string.IsNullOrEmpty(fetchError)
-                    ? "Failed to retrieve authentication data"
-                    : fetchError;
-                return (false, null, errorMsg);
-            }
+                return (false, 0, string.IsNullOrEmpty(fetchError) ? "Failed to retrieve authentication data" : fetchError);
 
             try
             {
@@ -181,43 +167,32 @@ namespace Gamelist_Manager.Classes.Api
 
                 XmlNode? idNode = xmlDoc.SelectSingleNode("//ssuser/id");
                 if (idNode == null)
-                {
-                    return (false, null, "User ID not found in authentication response");
-                }
+                    return (false, 0, "User ID not found in authentication response");
 
                 if (!string.Equals(idNode.InnerText, userID, StringComparison.OrdinalIgnoreCase))
-                {
-                    return (false, null, "User ID mismatch in authentication response");
-                }
+                    return (false, 0, "User ID mismatch in authentication response");
 
-                var userInfo = new ScreenScraperUserInfo();
-
-                // Get max threads
                 XmlNode? maxThreadsNode = xmlDoc.SelectSingleNode("//ssuser/maxthreads");
-                userInfo.MaxThreads = maxThreadsNode != null && int.TryParse(maxThreadsNode.InnerText, out int mt) ? mt : 1;
+                int maxThreads = maxThreadsNode != null && int.TryParse(maxThreadsNode.InnerText, out int mt) ? mt : 1;
 
-                // Get requests info
                 XmlNode? requestsTodayNode = xmlDoc.SelectSingleNode("//ssuser/requeststoday");
-                if (requestsTodayNode != null && int.TryParse(requestsTodayNode.InnerText, out int reqToday))
-                {
-                    userInfo.RequestsToday = reqToday;
-                }
+                int requestsToday = requestsTodayNode != null && int.TryParse(requestsTodayNode.InnerText, out int rt) ? rt : 0;
 
                 XmlNode? maxRequestsNode = xmlDoc.SelectSingleNode("//ssuser/maxrequestsperday");
-                if (maxRequestsNode != null && int.TryParse(maxRequestsNode.InnerText, out int maxReq))
-                {
-                    userInfo.MaxRequestsPerDay = maxReq;
-                }
+                int maxRequestsPerDay = maxRequestsNode != null && int.TryParse(maxRequestsNode.InnerText, out int mr) ? mr : 0;
 
-                return (true, userInfo, string.Empty);
+                if (maxRequestsPerDay > 0 && requestsToday >= maxRequestsPerDay)
+                    return (false, 0, $"ScreenScraper request limit reached ({requestsToday}/{maxRequestsPerDay}).");
+
+                return (true, maxThreads, string.Empty);
             }
             catch (XmlException ex)
             {
-                return (false, null, $"Failed to parse authentication XML: {ex.Message}");
+                return (false, 0, $"Failed to parse authentication XML: {ex.Message}");
             }
             catch (Exception ex)
             {
-                return (false, null, $"Error during authentication: {ex.Message}");
+                return (false, 0, $"Error during authentication: {ex.Message}");
             }
         }
 
@@ -237,7 +212,7 @@ namespace Gamelist_Manager.Classes.Api
 
             long fileSize = new FileInfo(parameters.RomFilePath).Length;
 
-            if (fileSize > 0 && fileSize <= 131072 * 1024)
+            if (fileSize > 1024 && fileSize <= 131072 * 1024 && !parameters.SkipMD5)
             {
                 string md5 = ChecksumHelper.CalculateMd5(parameters.RomFilePath);
                 if (!string.IsNullOrEmpty(md5))

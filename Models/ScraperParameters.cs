@@ -11,7 +11,7 @@ namespace Gamelist_Manager.Models
         public int MaxConcurrency { get; set; } = 1;
         public bool BatchProcessing { get; set; }
         public Dictionary<string, List<string>> EmuMoviesMediaLists { get; set; } = new();
-
+        public bool SkipMD5 { get; set; }
         public string? RomFilePath { get; set; }
         public string? RomFileName { get; set; }
         public string? RomName { get; set; }

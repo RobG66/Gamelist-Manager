@@ -214,20 +214,8 @@ public partial class DatToolViewModel
             IsBusy = false;
         }
     }
+         
 
-    // Resets the Report Summary ComboBox and clears the internal report lookup data.
-    // Temporary DataGrid columns are managed by the main ViewModel via
-    // MainWindowViewModel.ClearReportColumnsCommand.
-    [RelayCommand]
-    private void ClearReport()
-    {
-        ReportLookup.Clear();
-        ReportViewIndex = 0;
-        IsClearReportEnabled = false;
-    }
-
-    // Disposes the ViewModel, which fires ReportColumnsCleared to clean up temporary
-    // DataGrid columns, and raises CloseRequested so the main window can tear down the panel.
     [RelayCommand]
     private void Close()
     {

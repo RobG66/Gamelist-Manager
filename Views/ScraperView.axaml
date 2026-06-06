@@ -35,19 +35,26 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                    
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Scraper" FontWeight="Bold" FontSize="{DynamicResource GlobalHeaderFontSize}"
                                    Foreground="{DynamicResource AccentTextBrush}"
                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <Rectangle Grid.Column="1" Height="1" VerticalAlignment="Center" Margin="0,0,8,0"
                                    Fill="{DynamicResource SystemAccentColor}"/>
-                        <Button Grid.Column="2" Classes="rounded green" Content="Start" Command="{Binding StartCommand}" Margin="0,0,6,0" VerticalAlignment="Center"
+                        <Button Grid.Column="2" Classes="rounded green" Content="Start" Command="{Binding StartCommand}" Margin="0,0,5,0" VerticalAlignment="Center"
                                 ToolTip.Tip="Start scraping game metadata and media from the selected source"/>
-                        <Button Grid.Column="3" Classes="rounded red" Content="Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsScraping}" Margin="0,0,6,0" VerticalAlignment="Center"
+                        <Button Grid.Column="3" Classes="rounded red" Content="Stop" Command="{Binding StopCommand}" IsEnabled="{Binding IsScraping}" Margin="0,0,5,0" VerticalAlignment="Center"
                                 ToolTip.Tip="Stop the current scraping operation"/>
                         <Button Grid.Column="4" Classes="rounded blue" Content="Setup" Command="{Binding OpenScraperSetupCommand}" VerticalAlignment="Center"
-                        IsEnabled="{Binding !IsScraping}"           
+                        IsEnabled="{Binding !IsScraping}"  
+                        Margin="0,0,5,0"
                         ToolTip.Tip="Open scraper settings for the currently selected scraper"/>
+                        <Button Grid.Column="5" Classes="rounded red" Content="Reset" Command="{Binding ResetScraperSettingsCommand}" VerticalAlignment="Center"
+                        IsEnabled="{Binding !IsScraping}"           
+                        ToolTip.Tip="Reset Scraper Settings"/>
+            
                     </Grid>
 
                     <!-- Scraper source + Items to scrape -->
@@ -359,7 +366,7 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
-                                                                   IsVisible="{Binding DataContext.ShowLogTimestamp, ElementName=scraperView}"/>
+                                                                  IsVisible="{Binding $parent[UserControl].DataContext.ShowLogTimestamp}"/>
                                                         <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
                                                     </Grid>
@@ -396,7 +403,8 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" Margin="0,0,4,0"
-                                                            IsVisible="{Binding DataContext.ShowLogTimestamp, ElementName=scraperView}"/>      <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
+                                                           IsVisible="{Binding $parent[UserControl].DataContext.ShowLogTimestamp}"/> 
+                                                        <TextBlock Grid.Column="1" Text="{Binding Prefix}" Foreground="{Binding PrefixLevel, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center"/>
                                                         <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Level, Converter={StaticResource LogLevelToBrushConverter}}" FontSize="{DynamicResource GlobalSmallFontSize}" TextTrimming="CharacterEllipsis"/>
                                                     </Grid>
                                                 </DataTemplate>

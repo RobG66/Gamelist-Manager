@@ -253,6 +253,7 @@
                         <ComboBoxItem Content="CHD Required" FontWeight="SemiBold"/>
                         <ComboBoxItem Content="Non Playable" FontWeight="SemiBold"/>
                         <ComboBoxItem Content="Not In DAT" FontWeight="SemiBold"/>
+                        <ComboBoxItem Content="Controls" FontWeight="SemiBold"/>
                     </ComboBox>
                 </StackPanel>
 
@@ -299,13 +300,6 @@
                                    Margin="5,0,0,0"
                                    TextWrapping="Wrap"/>
                     </Grid>
-
-                    <Button Content="Clear All Reports"
-                            Classes="rounded yellow"
-                            Command="{Binding ClearReportCommand}"
-                            IsEnabled="{Binding IsClearReportEnabled}"
-                            HorizontalAlignment="Left"
-                            Margin="0,8,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>

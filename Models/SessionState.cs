@@ -100,9 +100,10 @@ namespace Gamelist_Manager.Models
 
         public IReadOnlyList<AvailableMediaFolder> AvailableMedia { get; private set; } = [];
 
-        public void RefreshAvailableMedia(string profileType, string? currentSystem, string? mediaBaseFolder, Dictionary<string, string> mediaPaths)
+        public void RefreshAvailableMedia()
         {
-            AvailableMedia = MediaPathResolver.BuildAvailableMedia(profileType, currentSystem, mediaBaseFolder, mediaPaths);
+            AvailableMedia = MediaPathResolver.BuildAvailableMedia(
+                ProfileType, CurrentSystem, CurrentMediaFolder, SettingsState.Instance.MediaPaths);
             OnPropertyChanged(nameof(AvailableMedia));
         }
 
@@ -129,7 +130,7 @@ namespace Gamelist_Manager.Models
         public IEnumerable<MetaDataDecl> XmlPersistedFields => MetadataService.GetXmlPersistedFields();
 
         // --- Derived properties ---
-
+        
         public string? CurrentRomFolder => ProfileType == SettingKeys.ProfileTypeEsDe
             ? FilePathHelper.CurrentRomFolder(SettingsState.Instance.RomsFolder, CurrentSystem)
             : Path.GetDirectoryName(XmlFilename);
