@@ -8,6 +8,8 @@ namespace Gamelist_Manager.Services
 {
     public static class IniFileService
     {
+        #region Public Methods
+
         public static Dictionary<string, Dictionary<string, string>> ReadIniFile(string filePath)
         {
             var sections = new Dictionary<string, Dictionary<string, string>>();
@@ -98,5 +100,7 @@ namespace Gamelist_Manager.Services
 
             WriteIniFile(filePath, sections);
         }
+
+        #endregion
     }
 }

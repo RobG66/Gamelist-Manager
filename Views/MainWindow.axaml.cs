@@ -3,7 +3,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
@@ -20,6 +19,8 @@ public partial class MainWindow : Window
     private readonly List<DataGridColumn> _reportColumns = [];
     private readonly SettingsState _settingsState = SettingsState.Instance;
     private readonly SessionState _sessionState = SessionState.Instance;
+    private readonly SettingsService _settingService = SettingsService.Instance;
+
     private (int Left, int Top, int Width, int Height) _restoredBounds;
 
     public MainWindow()
@@ -71,7 +72,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (SessionState.Instance.IsBusy)
+        if (_sessionState.IsBusy)
             e.Handled = true;
         else if (IsGridSelectionLocked && e.Key is Key.Up or Key.Down or Key.PageUp or Key.PageDown or Key.Home or Key.End)
             e.Handled = true;
@@ -86,7 +87,7 @@ public partial class MainWindow : Window
             if (DataContext is not MainWindowViewModel viewModel)
                 return;
 
-            if (SessionState.Instance.IsScraping)
+            if (_sessionState.IsScraping)
             {
                 e.Cancel = true;
                 await new ThreeButtonDialogView(new ThreeButtonDialogConfig
@@ -102,7 +103,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            if (SessionState.Instance.IsBusy)
+            if (_sessionState.IsBusy)
             {
                 e.Cancel = true;
                 await new ThreeButtonDialogView(new ThreeButtonDialogConfig
@@ -282,13 +283,12 @@ public partial class MainWindow : Window
     private void RestoreWindowStateFromSettings()
     {
         if (!_settingsState.SaveWindowState) return;
-
-        var s = SettingsService.Instance;
-        var left = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowLeft.Key, SettingKeys.WindowLeft.Default);
-        var top = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowTop.Key, SettingKeys.WindowTop.Default);
-        var width = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowWidth.Key, SettingKeys.WindowWidth.Default);
-        var height = s.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowHeight.Key, SettingKeys.WindowHeight.Default);
-        var state = s.GetValue(SettingKeys.WindowStateSection, SettingKeys.WindowStateValue.Key, SettingKeys.WindowStateValue.Default);
+                
+        var left = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowLeft.Key, SettingKeys.WindowLeft.Default);
+        var top = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowTop.Key, SettingKeys.WindowTop.Default);
+        var width = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowWidth.Key, SettingKeys.WindowWidth.Default);
+        var height = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowHeight.Key, SettingKeys.WindowHeight.Default);
+        var state = _settingService.GetValue(SettingKeys.WindowStateSection, SettingKeys.WindowStateValue.Key, SettingKeys.WindowStateValue.Default);
 
         if (width > 0 && height > 0)
         {

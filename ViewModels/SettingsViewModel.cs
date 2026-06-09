@@ -79,12 +79,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     #region Public Properties
 
-    public bool SuffixesEnabled => _sessionState.ProfileType == SettingKeys.ProfileTypeEs;
-    public bool RomsPathVisible => _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe;
-    public bool EsDePathsVisible => _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
-    public bool RemoteTabVisible => _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe;
-    public bool MediaPathsReadOnly => _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
-    public bool ResetToDefaultsVisible => _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe;
+    private ProfileTypeOption ActiveProfile => SettingKeys.GetProfileTypeOption(_settingsState.ProfileType);
+
+    public bool AreSuffixesAllowed => ActiveProfile.MediaFilenamesUseSuffixes;
+    public bool RomsPathVisible => ActiveProfile.ShowsRomsPathInFolderPaths;
+    public bool EsDePathsVisible => ActiveProfile.ShowsEsDePathsSection;
+    public bool RemoteTabVisible => ActiveProfile.ShowsRemoteTab;
+    public bool MediaPathsReadOnly => !ActiveProfile.GamelistHasMediaPaths;
+    public bool ResetToDefaultsVisible => ActiveProfile.ShowsResetToDefaults;
 
     #endregion
 
@@ -114,18 +116,23 @@ public partial class SettingsViewModel : ViewModelBase
             _isProfileLoading = false;
         }
 
-        _sessionState.PropertyChanged += (_, e) =>
+        _settingsState.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(SessionState.ProfileType))
+            if (e.PropertyName == nameof(SettingsState.ProfileType))
             {
-                OnPropertyChanged(nameof(SuffixesEnabled));
+                OnPropertyChanged(nameof(AreSuffixesAllowed));
                 OnPropertyChanged(nameof(RomsPathVisible));
                 OnPropertyChanged(nameof(EsDePathsVisible));
                 OnPropertyChanged(nameof(RemoteTabVisible));
                 OnPropertyChanged(nameof(MediaPathsReadOnly));
                 OnPropertyChanged(nameof(ResetToDefaultsVisible));
+                RefreshMediaFolderDisplayState();
             }
-            else if (e.PropertyName == nameof(SessionState.CurrentSystem))
+        };
+
+        _sessionState.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SessionState.CurrentSystem))
             {
                 OnPropertyChanged(nameof(CanOverrideSystem));
                 OnPropertyChanged(nameof(SystemOverrideLabel));
@@ -158,66 +165,67 @@ public partial class SettingsViewModel : ViewModelBase
 
     #endregion
 
-    #region Load / Save / Reset
+    #region Public Methods
 
     public void LoadSettings()
     {
-        var s = SettingsState.Instance;
-        var isEsDe = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
+        var profile = ActiveProfile;
 
         // Appearance
-        SelectedThemeIndex = NameToIndex(ThemeNames, s.Theme);
-        SelectedColorIndex = NameToIndex(ColorNames, s.Color);
-        SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, s.AccentVariant);
-        SelectedAlternatingRowColorIndex = s.AlternatingRowColorIndex;
-        SelectedGridLinesVisibilityIndex = s.GridLinesVisibilityIndex;
-        AppFontSize = s.AppFontSize;
-        GridFontSize = s.GridFontSize;
+        SelectedThemeIndex = NameToIndex(ThemeNames, _settingsState.Theme);
+        SelectedColorIndex = NameToIndex(ColorNames, _settingsState.Color);
+        SelectedAccentVariantIndex = NameToIndex(AccentVariantNames, _settingsState.AccentVariant);
+        SelectedAlternatingRowColorIndex = _settingsState.AlternatingRowColorIndex;
+        SelectedGridLinesVisibilityIndex = _settingsState.GridLinesVisibilityIndex;
+        AppFontSize = _settingsState.AppFontSize;
+        GridFontSize = _settingsState.GridFontSize;
 
         // Behavior
-        ConfirmBulkChanges = s.ConfirmBulkChanges;
-        EnableSaveReminder = s.EnableSaveReminder;
-        VerifyImageDownloads = s.VerifyImageDownloads;
-        OverrideConcurrency = s.OverrideConcurrency;
-        ConcurrencyOverride = s.ConcurrencyOverride;
-        VideoAutoplay = s.VideoAutoplay;
-        RememberColumns = s.RememberColumns;
-        RememberAutosize = s.RememberAutosize;
-        EnableDelete = s.EnableDelete;
-        RemoveZzzNotGamePrefix = s.RemoveZzzNotGamePrefix;
-        IgnoreDuplicates = s.IgnoreDuplicates;
-        BatchProcessing = s.BatchProcessing;
-        ShowLogTimestamp = s.ShowLogTimestamp;
-        LogToDisk = s.LogToDisk;
-        CheckForNewAndMissingGamesOnLoad = s.CheckForNewAndMissingGamesOnLoad;
-        UseSimpleSystemPicker = s.UseSimpleSystemPicker;
-        SaveWindowState = s.SaveWindowState;
+        ConfirmBulkChanges = _settingsState.ConfirmBulkChanges;
+        EnableSaveReminder = _settingsState.EnableSaveReminder;
+        VerifyImageDownloads = _settingsState.VerifyImageDownloads;
+        OverrideConcurrency = _settingsState.OverrideConcurrency;
+        ConcurrencyOverride = _settingsState.ConcurrencyOverride;
+        VideoAutoplay = _settingsState.VideoAutoplay;
+        RememberColumns = _settingsState.RememberColumns;
+        RememberAutosize = _settingsState.RememberAutosize;
+        EnableDelete = _settingsState.EnableDelete;
+        RemoveZzzNotGamePrefix = _settingsState.RemoveZzzNotGamePrefix;
+        IgnoreDuplicates = _settingsState.IgnoreDuplicates;
+        BatchProcessing = _settingsState.BatchProcessing;
+        ShowLogTimestamp = _settingsState.ShowLogTimestamp;
+        LogToDisk = _settingsState.LogToDisk;
+        CheckForNewAndMissingGamesOnLoad = _settingsState.CheckForNewAndMissingGamesOnLoad;
+        UseSimpleSystemPicker = _settingsState.UseSimpleSystemPicker;
+        SaveWindowState = _settingsState.SaveWindowState;
 
-        ScraperConfigSaveIndex = s.ScraperConfigSave;
-        MaxUndo = s.MaxUndo;
-        SearchDepth = s.SearchDepth;
-        RecentFilesCount = s.RecentFilesCount;
-        MaxBatch = s.MaxBatch;
-        DefaultVolume = s.DefaultVolume;
-        LogVerbosityIndex = s.LogVerbosity;
+        ScraperConfigSaveIndex = _settingsState.ScraperConfigSave;
+        MaxUndo = _settingsState.MaxUndo;
+        SearchDepth = _settingsState.SearchDepth;
+        RecentFilesCount = _settingsState.RecentFilesCount;
+        MaxBatch = _settingsState.MaxBatch;
+        DefaultVolume = _settingsState.DefaultVolume;
+        LogVerbosityIndex = _settingsState.LogVerbosity;
 
         // Connection
-        Hostname = s.Hostname;
-        UserId = s.UserId;
-        Password = s.Password;
+        Hostname = _settingsState.Hostname;
+        UserId = _settingsState.UserId;
+        Password = _settingsState.Password;
 
         // Paths
-        MamePath = s.MamePath;
-        RomsPath = s.RomsFolder;
+        MamePath = _settingsState.MamePath;
+        RomsPath = _settingsState.RootRomFolder;
 
         foreach (var item in MediaFolderItems)
         {
-            item.Path = LoadMediaPath(s.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
-            item.Suffix = s.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix);
-            item.SfxEnabled = bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
-            // TODO : This logic is a bit convoluted - consider refactoring to be clearer
-            item.Enabled = (!isEsDe || (MetadataService.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
-                           (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
+            item.Path = LoadMediaPath(_settingsState.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
+            var sfxEnabled = bool.TryParse(_settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
+            item.LoadSuffixState(
+                sfxEnabled,
+                _settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix));
+            var decl = MetadataService.GetDeclByType(item.Key);
+            item.Enabled = decl != null && profile.IncludesMediaFolder(decl) &&
+                           (bool.TryParse(_settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
         }
 
         _isProfileLoading = true;
@@ -236,10 +244,10 @@ public partial class SettingsViewModel : ViewModelBase
         LoadScraperCredentials();
         RefreshProfileList();
 
-        if (isEsDe)
+        if (profile.ShowsEsDePathsSection)
         {
-            EsDeRoot = s.EsDeRoot;
-            EsDeMediaBase = _sessionState.MediaRootFolder ?? string.Empty;
+            EsDeRoot = _settingsState.EsDeRoot;
+            EsDeMediaBase = _settingsState.RootMediaFolder ?? string.Empty;
         }
 
 
@@ -303,7 +311,7 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.MamePath.Key] = MamePath,
                 [SettingKeys.RomsFolder.Key] = RomsPath
             },
-            [SettingKeys.MediaPathsSection] = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe
+            [SettingKeys.MediaPathsSection] = !ActiveProfile.GamelistHasMediaPaths
             ? MediaFolderItems
                 .Where(_ => !SystemOverrideActive)  // don't overwrite global enabled when override is active
                 .Select(item => new KeyValuePair<string, string>($"{item.Key}_enabled", item.Enabled.ToString()))
@@ -366,10 +374,10 @@ public partial class SettingsViewModel : ViewModelBase
 
         settings[SettingKeys.ProfileSection] = new()
         {
-            [SettingKeys.ProfileType.Key] = _sessionState.ProfileType,
+            [SettingKeys.ProfileType.Key] = _settingsState.ProfileType,
         };
 
-        if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe)
+        if (ActiveProfile.ShowsEsDePathsSection)
         {
             settings[SettingKeys.EsDeSection] = new()
             {
@@ -381,7 +389,7 @@ public partial class SettingsViewModel : ViewModelBase
         if (SystemOverrideActive && !string.IsNullOrEmpty(_sessionState.CurrentSystem))
             SaveSystemOverrides();
 
-        SettingsState.Instance.Reload();
+        _settingsState.Reload();
         _sessionState.RefreshAvailableMedia();
         ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
         WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage());
@@ -405,18 +413,19 @@ public partial class SettingsViewModel : ViewModelBase
 
     public static void ApplyThemeOnStartup()
     {
-        var settings = SettingsState.Instance;
-        var themeIndex = NameToIndex(ThemeNames, settings.Theme);
-        var colorIndex = NameToIndex(ColorNames, settings.Color);
-        var variantIndex = NameToIndex(AccentVariantNames, settings.AccentVariant);
+        // Need instance since void
+        var settingsState = SettingsState.Instance;
+        var themeIndex = NameToIndex(ThemeNames, settingsState.Theme);
+        var colorIndex = NameToIndex(ColorNames, settingsState.Color);
+        var variantIndex = NameToIndex(AccentVariantNames, settingsState.AccentVariant);
 
         ThemeService.ApplyTheme(themeIndex, colorIndex, variantIndex);
-        ThemeService.ApplyFontSizes(settings.AppFontSize, settings.GridFontSize);
+        ThemeService.ApplyFontSizes(settingsState.AppFontSize, settingsState.GridFontSize);
     }
 
     #endregion
 
-    #region Private Helpers
+    #region Private Methods
 
     private static int NameToIndex(string[] names, string name)
     {

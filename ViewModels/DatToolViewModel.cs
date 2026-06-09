@@ -91,15 +91,6 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     #endregion
 
-    #region Constructor
-
-    public DatToolViewModel()
-    {
-        _sessionState.PropertyChanged += OnSharedDataPropertyChanged;
-        Reset();
-    }
-
-    #endregion
 
     #region Property Change Callbacks
 
@@ -207,6 +198,16 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
     }
 
     private static string BuildControlsDisplay(GameReportItem item) => item.ControlTypes;
+
+    #endregion
+
+    #region Constructor
+
+    public DatToolViewModel()
+    {
+        _sessionState.PropertyChanged += OnSharedDataPropertyChanged;
+        Reset();
+    }
 
     #endregion
 

@@ -80,7 +80,7 @@ public partial class MediaPreviewViewModel
 
             var baseParameters = ScraperService.CreateScraperParameters(
                 _settingsState.VerifyImageDownloads,
-                _sessionState.ProfileType,
+                _settingsState.ProfileType,
                 availableMedia,
                 scraperName,
                 currentSystem,

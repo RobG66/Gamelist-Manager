@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Messages;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
@@ -19,16 +18,12 @@ namespace Gamelist_Manager.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    #region Services
+    #region Fields & Constants
 
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
     private readonly SettingsService _settingsService = SettingsService.Instance;
     private readonly IWindowService _windowService = WindowService.Instance;
-
-    #endregion
-
-    #region Private Fields
 
     private readonly MediaPreviewViewModel _mediaPreviewViewModel = new();
     private readonly SourceCache<GameMetadataRow, string> _sourceCache;
@@ -78,13 +73,13 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public bool ClearMediaPathsButtonEnabled =>
-    _sessionState.ProfileType != SettingKeys.ProfileTypeEsDe && HasGameSelected;
+        SettingKeys.GetProfileTypeOption(_settingsState.ProfileType).GamelistHasMediaPaths && HasGameSelected;
 
     public ReadOnlyObservableCollection<GameMetadataRow> Games => _games;
     public bool IsRemoteVisible => !string.IsNullOrWhiteSpace(_settingsState.Hostname);
 
     public bool IsNewGamelistEnabled =>
-    !string.IsNullOrWhiteSpace(_settingsState.RomsFolder) && Directory.Exists(_settingsState.RomsFolder);
+    !string.IsNullOrWhiteSpace(_settingsState.RootRomFolder) && Directory.Exists(_settingsState.RootRomFolder);
 
     private bool CanUseMameInternalNames =>
         string.Equals(_sessionState.CurrentSystem, "mame", StringComparison.OrdinalIgnoreCase) &&
@@ -152,10 +147,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsEditModeEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
                 break;
-            case nameof(SessionState.ProfileType):
-                OnPropertyChanged(nameof(ClearMediaPathsButtonEnabled));
-                _ = LoadSystemsAsync();
-                break;
             case nameof(SessionState.CurrentSystem):
                 OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
                 if (!IsMameInternalNamesOptionVisible)
@@ -171,12 +162,16 @@ public partial class MainWindowViewModel : ViewModelBase
             case nameof(SettingsState.Hostname):
                 OnPropertyChanged(nameof(IsRemoteVisible));
                 break;
-            case nameof(SettingsState.RomsFolder):
+            case nameof(SettingsState.RootRomFolder):
                 OnPropertyChanged(nameof(IsNewGamelistEnabled));
                 _ = LoadSystemsAsync();
                 break;
             case nameof(SettingsState.EsDeRoot):
                 OnPropertyChanged(nameof(IsNewGamelistEnabled));
+                _ = LoadSystemsAsync();
+                break;
+            case nameof(SettingsState.ProfileType):
+                OnPropertyChanged(nameof(ClearMediaPathsButtonEnabled));
                 _ = LoadSystemsAsync();
                 break;
             case nameof(SettingsState.EnableDelete):
@@ -268,7 +263,64 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #endregion
 
-    #region Collection & Selection Handlers
+
+
+    #region Commands
+
+    [RelayCommand]
+    private void ToggleUseMameInternalNames() => UseMameInternalNames = !UseMameInternalNames;
+
+    [RelayCommand]
+    public void TriggerMenu() => IsMenuOpen = !IsMenuOpen;
+
+    [RelayCommand]
+    private void ToggleEditMode() => IsEditModeEnabled = !IsEditModeEnabled;
+
+    [RelayCommand]
+    private void TogglePersistentSelection()
+    {
+        IsPersistentSelectionEnabled = !IsPersistentSelectionEnabled;
+        OnPropertyChanged(nameof(PersistentSelectionMenuHeader));
+    }
+
+    [RelayCommand]
+    private void ClearPersistentSelection() => SelectedGames?.Clear();
+
+    [RelayCommand]
+    private void ToggleAlwaysOnTop() => IsAlwaysOnTop = !IsAlwaysOnTop;
+
+    [RelayCommand]
+    private void ResetView()
+    {
+        ClearFilters();
+        IsAlwaysOnTop = false;
+        ResetColumnVisibility();
+        _sourceCache.Refresh();
+    }
+
+    [RelayCommand]
+    private Task OpenSettingsAsync() => _windowService.ShowSettingsAsync();
+
+    [RelayCommand]
+    private Task OpenAboutAsync() => _windowService.ShowAboutAsync();
+
+    [RelayCommand]
+    private void ReportIssue()
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://github.com/RobG66/Gamelist-Manager/issues",
+                UseShellExecute = true
+            });
+        }
+        catch { }
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private void OnGamesCollectionChanged()
     {
@@ -330,65 +382,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(SetSelectedGenreVisibleMenuText));
         OnPropertyChanged(nameof(SetSelectedGenreHiddenMenuText));
     }
-
-    #endregion
-
-    #region Commands
-
-    [RelayCommand]
-    private void ToggleUseMameInternalNames() => UseMameInternalNames = !UseMameInternalNames;
-
-    [RelayCommand]
-    public void TriggerMenu() => IsMenuOpen = !IsMenuOpen;
-
-    [RelayCommand]
-    private void ToggleEditMode() => IsEditModeEnabled = !IsEditModeEnabled;
-
-    [RelayCommand]
-    private void TogglePersistentSelection()
-    {
-        IsPersistentSelectionEnabled = !IsPersistentSelectionEnabled;
-        OnPropertyChanged(nameof(PersistentSelectionMenuHeader));
-    }
-
-    [RelayCommand]
-    private void ClearPersistentSelection() => SelectedGames?.Clear();
-
-    [RelayCommand]
-    private void ToggleAlwaysOnTop() => IsAlwaysOnTop = !IsAlwaysOnTop;
-
-    [RelayCommand]
-    private void ResetView()
-    {
-        ClearFilters();
-        IsAlwaysOnTop = false;
-        ResetColumnVisibility();
-        _sourceCache.Refresh();
-    }
-
-    [RelayCommand]
-    private Task OpenSettingsAsync() => _windowService.ShowSettingsAsync();
-
-    [RelayCommand]
-    private Task OpenAboutAsync() => _windowService.ShowAboutAsync();
-
-    [RelayCommand]
-    private void ReportIssue()
-    {
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "https://github.com/RobG66/Gamelist-Manager/issues",
-                UseShellExecute = true
-            });
-        }
-        catch { }
-    }
-
-    #endregion
-
-    #region Private Methods
 
     internal void UnloadGamelist()
     {

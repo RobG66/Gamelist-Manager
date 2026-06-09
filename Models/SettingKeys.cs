@@ -1,8 +1,8 @@
-using Gamelist_Manager.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Gamelist_Manager.Classes.Helpers;
+namespace Gamelist_Manager.Models;
 
 public interface ISettingDef
 {
@@ -16,9 +16,22 @@ public record SettingDef<T>(string Section, string Key, T Default) : ISettingDef
     public string DefaultStr => Default?.ToString() ?? "";
 }
 
-public record ProfileTypeOption(string Key, string DisplayName)
+public record ProfileTypeOption(
+    string Key,
+    string DisplayName,
+    bool MediaFilenamesUseSuffixes = false,
+    bool GamelistHasMediaPaths = false,
+    bool ShowsRomsPathInFolderPaths = false,
+    bool ShowsEsDePathsSection = false,
+    bool ShowsRemoteTab = false,
+    bool ShowsResetToDefaults = false)
 {
     public override string ToString() => DisplayName;
+
+    // Whether a media folder type is in scope for this profile (settings UI, resolver, enabled state).
+    // Editable-path profiles include all types; fixed-layout profiles only include mapped folder types.
+    public bool IncludesMediaFolder(MetaDataDecl decl) =>
+        GamelistHasMediaPaths || decl.IsEsDeSupported;
 }
 
 public static class SettingKeys
@@ -49,9 +62,21 @@ public static class SettingKeys
 
     public static readonly IReadOnlyList<ProfileTypeOption> AllProfileTypes =
     [
-        new ProfileTypeOption(ProfileTypeEs,   "ES"),
-        new ProfileTypeOption(ProfileTypeEsDe, "ES-DE"),
+        new ProfileTypeOption(
+            ProfileTypeEs, "ES",
+            MediaFilenamesUseSuffixes: true,
+            GamelistHasMediaPaths: true,
+            ShowsRomsPathInFolderPaths: true,
+            ShowsRemoteTab: true,
+            ShowsResetToDefaults: true),
+        new ProfileTypeOption(
+            ProfileTypeEsDe, "ES-DE",
+            ShowsEsDePathsSection: true),
     ];
+
+    public static ProfileTypeOption GetProfileTypeOption(string? profileTypeKey) =>
+        AllProfileTypes.FirstOrDefault(t => string.Equals(t.Key, profileTypeKey, StringComparison.OrdinalIgnoreCase))
+        ?? AllProfileTypes[0];
 
     #endregion
 

@@ -1,4 +1,3 @@
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System.Collections.Generic;
 using System.IO;
@@ -8,30 +7,30 @@ namespace Gamelist_Manager.Services
     public static class MediaPathResolver
     {
         public static IReadOnlyList<AvailableMediaFolder> BuildAvailableMedia(
-        string profileType,
-        string? currentSystem,
-        string? mediaBaseFolder,
-        Dictionary<string, string> mediaPaths)
+            string profileType,
+            string? currentSystem,
+            string? mediaBaseFolder,
+            Dictionary<string, string> mediaPaths)
         {
             var result = new List<AvailableMediaFolder>();
 
             if (string.IsNullOrEmpty(mediaBaseFolder))
                 return result;
 
-            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
+            var profile = SettingKeys.GetProfileTypeOption(profileType);
             var overrides = !string.IsNullOrEmpty(currentSystem)
                 ? SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection)
                 : null;
 
             foreach (var decl in MetadataService.GetAllMediaFolderTypes())
             {
-                if (isEsDe && !decl.IsEsDeSupported)
+                if (!profile.IncludesMediaFolder(decl))
                     continue;
 
                 var mediaEnabled = ResolveMediaEnabled(decl, currentSystem, mediaPaths, overrides);
-                var folderPath = ResolveFolderPath(isEsDe, mediaBaseFolder, decl, mediaPaths);
-                var suffix = isEsDe ? string.Empty : ResolveSuffix(decl, mediaPaths);
-                var sfxEnabled = !isEsDe && ResolveSfxEnabled(decl, mediaPaths);
+                var folderPath = ResolveFolderPath(profile, mediaBaseFolder, decl, mediaPaths);
+                var suffix = profile.MediaFilenamesUseSuffixes ? ResolveSuffix(decl, mediaPaths) : string.Empty;
+                var sfxEnabled = profile.MediaFilenamesUseSuffixes && ResolveSfxEnabled(decl, mediaPaths);
 
                 result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, mediaEnabled, sfxEnabled));
             }
@@ -55,9 +54,13 @@ namespace Gamelist_Manager.Services
             return ResolveBoolSetting($"{decl.Type}_enabled", decl.DefaultEnabled, mediaPaths);
         }
 
-        private static string ResolveFolderPath(bool isEsDe, string mediaBaseFolder, MetaDataDecl decl, Dictionary<string, string> mediaPaths)
+        private static string ResolveFolderPath(
+            ProfileTypeOption profile,
+            string mediaBaseFolder,
+            MetaDataDecl decl,
+            Dictionary<string, string> mediaPaths)
         {
-            if (isEsDe)
+            if (!profile.GamelistHasMediaPaths)
                 return Path.Combine(mediaBaseFolder, decl.EsDeFolderName);
 
             var relativePath = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;

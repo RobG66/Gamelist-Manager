@@ -63,10 +63,10 @@ public partial class SettingsViewModel
             item.PropertyChanged += (_, e) =>
             {
                 if (_isProfileLoading) return;
-                if (e.PropertyName is nameof(MediaFolderItem.IsNotEsDeMode)
-                                   or nameof(MediaFolderItem.IsPathReadOnly)
-                                   or nameof(MediaFolderItem.IsMediaEnabled)
-                                   or nameof(MediaFolderItem.IsSuffixEnabled)
+                if (e.PropertyName is nameof(MediaFolderItem.AreSuffixesAllowed)
+                                   or nameof(MediaFolderItem.ArePathsReadOnly)
+                                   or nameof(MediaFolderItem.CanMediaOverrideCheckboxBeEnabled)
+                                   or nameof(MediaFolderItem.IsSuffixInputEnabled)
                                    or nameof(MediaFolderItem.DisplayPath))
                     return;
                 SettingsChanged = true;
@@ -136,7 +136,7 @@ public partial class SettingsViewModel
     public List<string> ValidateAndTrimPaths()
     {
         var errors = new List<string>();
-        var isEsDe = SessionState.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
+        var profile = SettingKeys.GetProfileTypeOption(SettingsState.Instance.ProfileType);
 
         foreach (var item in MediaFolderItems)
         {
@@ -163,7 +163,7 @@ public partial class SettingsViewModel
 
             item.Path = normalized;
 
-            if (item.SfxEnabled && !FilePathHelper.IsValidMediaFolderSuffix(item.Suffix))
+            if (profile.MediaFilenamesUseSuffixes && item.SfxEnabled && !FilePathHelper.IsValidMediaFolderSuffix(item.Suffix))
                 errors.Add($"{item.Label}: Suffix must be alphanumeric only (a-z, A-Z, 0-9) and no longer than 20 characters.");
         }
 
@@ -177,7 +177,7 @@ public partial class SettingsViewModel
                 string effectivePath;
                 string effectiveSuffix;
 
-                if (isEsDe)
+                if (!profile.GamelistHasMediaPaths)
                 {
                     effectivePath = (MetadataService.GetDeclByType(item.Key)?.EsDeFolderName ?? item.Key).ToLowerInvariant();
                     effectiveSuffix = string.Empty;
@@ -190,7 +190,7 @@ public partial class SettingsViewModel
 
                 var key = (effectivePath, effectiveSuffix);
                 if (seen.TryGetValue(key, out var firstName))
-                    errors.Add($"{item.Label} and {firstName} share the same folder and filename suffix, which would cause a collision.");
+                    errors.Add($"{item.Label} and {firstName} share the same folder and filenames would be identical");
                 else
                     seen[key] = item.Label;
             }
@@ -201,16 +201,15 @@ public partial class SettingsViewModel
 
     private void RefreshMediaFolderDisplayState()
     {
-        var isEsDe = SessionState.Instance.ProfileType == SettingKeys.ProfileTypeEsDe;
+        var profile = SettingKeys.GetProfileTypeOption(SettingsState.Instance.ProfileType);
         var esDeMediaBase = EsDeMediaBase;
         var currentSystem = SessionState.Instance.CurrentSystem;
 
         foreach (var item in MediaFolderItems)
         {
             var decl = MetadataService.GetDeclByType(item.Key);
-            var isEsDeSupported = decl?.IsEsDeSupported ?? false;
-            var esDeFolderName = decl?.EsDeFolderName;
-            item.RefreshDisplayState(isEsDe, isEsDeSupported, esDeMediaBase, currentSystem, esDeFolderName);
+            if (decl == null) continue;
+            item.RefreshDisplayState(profile, decl, esDeMediaBase, currentSystem);
         }
     }
 
@@ -257,7 +256,7 @@ public partial class SettingsViewModel
     {
         var system = _sessionState.CurrentSystem;
         if (string.IsNullOrEmpty(system)) return;
-        // blah
+      
         var overrides = MediaFolderItems
             .ToDictionary(
                 item => $"{system}_{item.Key}_enabled",
@@ -310,10 +309,11 @@ public partial class SettingsViewModel
         {
             SettingsService.Instance.ClearSystemMediaOverrides(system);
             var s = SettingsState.Instance;
-            var isEsDe = _sessionState.ProfileType == SettingKeys.ProfileTypeEsDe;
+            var profile = SettingKeys.GetProfileTypeOption(_settingsState.ProfileType);
             foreach (var item in MediaFolderItems)
             {
-                item.Enabled = (!isEsDe || (MetadataService.GetDeclByType(item.Key)?.IsEsDeSupported ?? false)) &&
+                var decl = MetadataService.GetDeclByType(item.Key);
+                item.Enabled = decl != null && profile.IncludesMediaFolder(decl) &&
                                (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
             }
         }

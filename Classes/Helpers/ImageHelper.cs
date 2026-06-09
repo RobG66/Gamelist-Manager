@@ -9,17 +9,11 @@ namespace Gamelist_Manager.Classes.Helpers;
 
 public static class ImageHelper
 {
-    #region Constants
-
     private const int MinImageWidth = 8;
     private const int MinImageHeight = 8;
     private const int ColumnSampleInterval = 3;
     private const int RowSampleInterval = 2;
     private const int ColorTolerance = 20;
-
-    #endregion
-
-    #region Public API
 
     public static void ConvertToPng(string inputFilePath, string outputFilePath)
     {
@@ -211,6 +205,4 @@ public static class ImageHelper
             new SKRect(0, 0, cropWidth, cropHeight));
         return result;
     }
-
-    #endregion
 }

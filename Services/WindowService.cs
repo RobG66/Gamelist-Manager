@@ -7,12 +7,26 @@ namespace Gamelist_Manager.Services;
 
 public class WindowService : IWindowService
 {
-    private static WindowService? _instance;
-    public static WindowService Instance => _instance ??= new WindowService();
+    #region Fields & Constants
 
+    private static WindowService? _instance;
     private Window? _owner;
 
+    #endregion
+
+    #region Public Properties
+
+    public static WindowService Instance => _instance ??= new WindowService();
+
+    #endregion
+
+    #region Constructor
+
     private WindowService() { }
+
+    #endregion
+
+    #region Public Methods
 
     public void SetOwner(Window owner) => _owner = owner;
 
@@ -45,4 +59,6 @@ public class WindowService : IWindowService
         if (clipboard != null)
             await clipboard.SetTextAsync(text);
     }
+
+    #endregion
 }

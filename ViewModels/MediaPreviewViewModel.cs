@@ -73,15 +73,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     #endregion
 
-    #region Constructor
-
-    public MediaPreviewViewModel()
-    {
-        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
-        InitializeMediaItems();
-    }
-
-    #endregion
 
     #region Property Change Callbacks
 
@@ -96,6 +87,16 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     {
         _ = value;
         UpdateVisibility();
+    }
+
+    #endregion
+
+    #region Constructor
+
+    public MediaPreviewViewModel()
+    {
+        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
+        InitializeMediaItems();
     }
 
     #endregion
@@ -131,8 +132,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         if (SelectedGame == null) return;
         var mediaItem = MediaItems.FirstOrDefault(m => m.MediaType == mediaType);
         if (mediaItem == null) return;
-        var romFolder = FilePathHelper.CurrentRomFolder(_settingsState.RomsFolder, _sessionState.CurrentSystem);
-        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, romFolder!);
+        var romFolder = _sessionState.CurrentRomFolder;
+        if (string.IsNullOrEmpty(romFolder)) return;
+
+        var relativePath = FilePathHelper.PathToRelativePathWithDotSlashPrefix(fullPath, romFolder);
         SelectedGame.SetValue(mediaItem.PathKey, null);
         SelectedGame.SetValue(mediaItem.PathKey, relativePath);
         _sessionState.IsDataChanged = true;
@@ -186,7 +189,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         }
 
         var mediaFolder = _sessionState.AvailableMedia.FirstOrDefault(m => m.Type == mediaItem.MediaTypeKey);
-        var romFolder = FilePathHelper.CurrentRomFolder(_settingsState.RomsFolder, _sessionState.CurrentSystem);
+        var romFolder = _sessionState.CurrentRomFolder;
 
         if (mediaFolder == null || string.IsNullOrEmpty(romFolder))
         {

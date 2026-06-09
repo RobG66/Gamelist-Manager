@@ -53,7 +53,7 @@ public partial class ScraperViewModel
         var verifyImageDownloads = _settingsState.VerifyImageDownloads;
         var overrideConcurrency = _settingsState.OverrideConcurrency;
         var concurrencyOverride = _settingsState.ConcurrencyOverride;
-        var profileType = _sessionState.ProfileType;
+        var profileType = _settingsState.ProfileType;
         var availableMedia = _sessionState.AvailableMedia;
 
         SaveScraperSettings();

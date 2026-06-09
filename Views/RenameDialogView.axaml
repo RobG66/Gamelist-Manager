@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="180"
+        x:Class="Gamelist_Manager.Views.RenameDialogView"
+        Title="Rename Profile"
+        MinWidth="400"
+        SizeToContent="WidthAndHeight"
+        FontSize="{DynamicResource GlobalFontSize}"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    
+    <StackPanel Margin="20" Spacing="16">
+        <StackPanel Spacing="8">
+            <TextBlock Text="Enter new name for the profile:"
+                       FontSize="{DynamicResource GlobalFontSize}"
+                       FontWeight="Medium"/>
+            <TextBox x:Name="NewNameTextBox"
+                     FontSize="{DynamicResource GlobalFontSize}"
+                     Width="360"
+                     HorizontalAlignment="Left"
+                     TextChanged="NewNameTextBox_TextChanged"/>
+            <TextBlock x:Name="ErrorTextBlock"
+                       Foreground="{DynamicResource ErrorTextBrush}"
+                       FontSize="{DynamicResource GlobalSmallFontSize}"
+                       TextWrapping="Wrap"
+                       IsVisible="False"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+        
+        <StackPanel Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Spacing="10"
+                    Margin="0,8,0,0">
+            <Button x:Name="CancelButton"
+                    Content="Cancel"
+                    Click="CancelButton_Click"
+                    Classes="rounded grey"
+                    FontSize="{DynamicResource GlobalFontSize}"/>
+            <Button x:Name="RenameButton"
+                    Content="Rename"
+                    Click="RenameButton_Click"
+                    Classes="rounded green"
+                    FontSize="{DynamicResource GlobalFontSize}"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

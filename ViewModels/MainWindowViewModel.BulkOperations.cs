@@ -433,10 +433,12 @@ public partial class MainWindowViewModel
     private static void ClearGameData(GameMetadataRow game)
     {
         var nameFromPath = System.IO.Path.GetFileNameWithoutExtension(game.Path);
+        bool hasMediaPaths = SessionState.Instance.GamelistHasMediaPaths;
 
         foreach (var decl in MetadataService.GetMetaDataDictionary().Values)
         {
             if (decl.Key == MetaDataKeys.path) continue;
+            if (decl.IsMedia && !hasMediaPaths) continue;
 
             if (decl.Key == MetaDataKeys.name)
                 game.SetValue(decl.Key, nameFromPath);
@@ -451,6 +453,8 @@ public partial class MainWindowViewModel
 
     private static void ClearMediaPathData(GameMetadataRow game)
     {
+        if (!SessionState.Instance.GamelistHasMediaPaths) return;
+
         foreach (var decl in MetadataService.GetMediaDeclarations())
             game.SetValue(decl.Key, null);
 

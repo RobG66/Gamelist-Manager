@@ -3,19 +3,33 @@ using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Gamelist_Manager.Models
 {
-   
     // Observable snapshot of all persisted settings.
     // Call Reload() on startup and after any profile switch or settings save.
     // View models bind to these properties directly.
     public partial class SettingsState : ObservableObject
     {
+        #region Singleton
+
         private static readonly Lazy<SettingsState> _instance = new(() => new SettingsState());
         public static SettingsState Instance => _instance.Value;
 
-        private SettingsState() => Reload();
+        #endregion
+
+        #region Constructor
+
+        private SettingsState()
+        {
+            _esDeDetectedMediaRoot = EsDePathResolver.ReadPathsFromEsDeSettings(EsDeRoot).MediaDirectory;
+            Reload();
+        }
+
+        #endregion
+
+        #region Reload
 
         public void Reload()
         {
@@ -75,19 +89,25 @@ namespace Gamelist_Manager.Models
 
             // Folder Paths
             MamePath = s.GetValue(SettingKeys.MamePath);
-            RomsFolder = s.GetValue(SettingKeys.RomsFolder);
+            RootRomFolder = s.GetValue(SettingKeys.RomsFolder);
 
             // Media Viewer
             MediaViewerScaledDisplay = s.GetBool(SettingKeys.ScaledDisplay);
 
             // ES-DE / Profile
             EsDeRoot = s.GetValue(SettingKeys.EsDeRoot);
+            ProfileType = s.GetValue(SettingKeys.ProfileType);
 
             // Media Paths
             MediaPaths = s.GetSection(SettingKeys.MediaPathsSection) ?? [];
+
+            OnPropertyChanged(nameof(RootGamelistFolder));
+            OnPropertyChanged(nameof(RootMediaFolder));
         }
 
-        // --- Save helpers (keeps save logic out of ViewModels) ---
+        #endregion
+
+        #region Save Helpers
 
         public void Save(SettingDef<bool> key, bool value)
         {
@@ -107,7 +127,9 @@ namespace Gamelist_Manager.Models
             Reload();
         }
 
-        // --- Column visibility (raw section, no SettingDef coverage) ---
+        #endregion
+
+        #region Column Visibility
 
         public Dictionary<string, string>? GetColumnVisibility() =>
             SettingsService.Instance.GetSection("ColumnVisibility");
@@ -118,64 +140,64 @@ namespace Gamelist_Manager.Models
             Reload();
         }
 
+        #endregion
+
         #region Appearance
 
-        [ObservableProperty] private string _theme = "Light";
-        [ObservableProperty] private string _color = "Blue";
-        [ObservableProperty] private string _accentVariant = "Base";
-        [ObservableProperty] private int _alternatingRowColorIndex = 1;
-        [ObservableProperty] private int _gridLinesVisibilityIndex = 0;
-        [ObservableProperty] private int _appFontSize = 12;
-        [ObservableProperty] private int _gridFontSize = 12;
+        [ObservableProperty] private string _theme = "";
+        [ObservableProperty] private string _color = "";
+        [ObservableProperty] private string _accentVariant = "";
+        [ObservableProperty] private int _alternatingRowColorIndex;
+        [ObservableProperty] private int _gridLinesVisibilityIndex;
+        [ObservableProperty] private int _appFontSize;
+        [ObservableProperty] private int _gridFontSize;
 
         #endregion
 
         #region Behavior
 
-        [ObservableProperty] private bool _confirmBulkChanges = true;
-        [ObservableProperty] private bool _enableSaveReminder = true;
-        [ObservableProperty] private bool _videoAutoplay = true;
-        [ObservableProperty] private bool _rememberColumns = false;
-        [ObservableProperty] private bool _rememberAutosize = false;
-        [ObservableProperty] private bool _enableDelete = false;
-        [ObservableProperty] private bool _ignoreDuplicates = false;
-        [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad = false;
-        [ObservableProperty] private bool _useSimpleSystemPicker = false;
-        [ObservableProperty] private bool _saveWindowState = false;
+        [ObservableProperty] private bool _confirmBulkChanges;
+        [ObservableProperty] private bool _enableSaveReminder;
+        [ObservableProperty] private bool _videoAutoplay;
+        [ObservableProperty] private bool _rememberColumns;
+        [ObservableProperty] private bool _rememberAutosize;
+        [ObservableProperty] private bool _enableDelete;
+        [ObservableProperty] private bool _ignoreDuplicates;
+        [ObservableProperty] private bool _checkForNewAndMissingGamesOnLoad;
+        [ObservableProperty] private bool _useSimpleSystemPicker;
+        [ObservableProperty] private bool _saveWindowState;
 
         #endregion
 
         #region Scraper Options
 
-        [ObservableProperty] private bool _verifyImageDownloads = true;
-        [ObservableProperty] private bool _batchProcessing = true;
-        [ObservableProperty] private bool _showLogTimestamp = false;
-        [ObservableProperty] private bool _overrideConcurrency = false;
-        [ObservableProperty] private int _concurrencyOverride = 1;
-        [ObservableProperty] private bool _logToDisk = false;
+        [ObservableProperty] private bool _verifyImageDownloads;
+        [ObservableProperty] private bool _batchProcessing;
+        [ObservableProperty] private bool _showLogTimestamp;
+        [ObservableProperty] private bool _overrideConcurrency;
+        [ObservableProperty] private int _concurrencyOverride;
+        [ObservableProperty] private bool _logToDisk;
         [ObservableProperty] private string _selectedScraper = "";
-        [ObservableProperty] private int _scraperConfigSave = 0;
-        [ObservableProperty] private bool _removeZzzNotGamePrefix = true;
-        [ObservableProperty] private string _screenScraperLanguage = "English (en)";
-        [ObservableProperty] private string _screenScraperPrimaryRegion = "USA (us)";
-        [ObservableProperty] private bool _screenScraperGenreEnglish = false;
-        [ObservableProperty] private bool _screenScraperAnyMedia = true;
-        [ObservableProperty] private bool _screenScraperNamesLanguageFirst = false;
-        [ObservableProperty] private bool _screenScraperMediaRegionFirst = false;
-        [ObservableProperty]
-        private string _screenScraperRegionFallback =
-            """["USA (us)", "Europe (eu)", "United Kingdom (uk)", "World (wor)", "Japan (jp)", "ScreenScraper (ss)", "Custom (cus)"]""";
+        [ObservableProperty] private int _scraperConfigSave;
+        [ObservableProperty] private bool _removeZzzNotGamePrefix;
+        [ObservableProperty] private string _screenScraperLanguage = "";
+        [ObservableProperty] private string _screenScraperPrimaryRegion = "";
+        [ObservableProperty] private bool _screenScraperGenreEnglish;
+        [ObservableProperty] private bool _screenScraperAnyMedia;
+        [ObservableProperty] private bool _screenScraperNamesLanguageFirst;
+        [ObservableProperty] private bool _screenScraperMediaRegionFirst;
+        [ObservableProperty] private string _screenScraperRegionFallback = "";
 
         #endregion
 
         #region Advanced
 
-        [ObservableProperty] private int _maxUndo = 5;
-        [ObservableProperty] private int _searchDepth = 2;
-        [ObservableProperty] private int _recentFilesCount = 15;
-        [ObservableProperty] private int _maxBatch = 300;
-        [ObservableProperty] private int _logVerbosity = 1;
-        [ObservableProperty] private int _defaultVolume = 75;
+        [ObservableProperty] private int _maxUndo;
+        [ObservableProperty] private int _searchDepth;
+        [ObservableProperty] private int _recentFilesCount;
+        [ObservableProperty] private int _maxBatch;
+        [ObservableProperty] private int _logVerbosity;
+        [ObservableProperty] private int _defaultVolume;
 
         #endregion
 
@@ -190,25 +212,59 @@ namespace Gamelist_Manager.Models
         #region Folder Paths
 
         [ObservableProperty] private string _mamePath = "";
-        [ObservableProperty] private string _romsFolder = "";
+        [ObservableProperty] private string _rootRomFolder = "";
 
         #endregion
 
         #region Media Viewer
 
-        [ObservableProperty] private bool _mediaViewerScaledDisplay = true;
+        [ObservableProperty] private bool _mediaViewerScaledDisplay;
 
         #endregion
 
         #region ES-DE / Profile
 
         [ObservableProperty] private string _esDeRoot = "";
+        [ObservableProperty] private string _profileType = "";
+
+        partial void OnEsDeRootChanged(string value)
+        {
+            _esDeDetectedMediaRoot = EsDePathResolver.ReadPathsFromEsDeSettings(value).MediaDirectory;
+            OnPropertyChanged(nameof(RootGamelistFolder));
+            OnPropertyChanged(nameof(RootMediaFolder));
+        }
+
+        partial void OnProfileTypeChanged(string value)
+        {
+            OnPropertyChanged(nameof(RootGamelistFolder));
+            OnPropertyChanged(nameof(RootMediaFolder));
+        }
+
+        partial void OnRootRomFolderChanged(string value)
+        {
+            OnPropertyChanged(nameof(RootGamelistFolder));
+            OnPropertyChanged(nameof(RootMediaFolder));
+        }
 
         #endregion
 
         #region Media Paths
 
         [ObservableProperty] private Dictionary<string, string> _mediaPaths = [];
+
+        #endregion
+
+        #region Derived Root Properties
+
+        private string? _esDeDetectedMediaRoot;
+
+        public string? RootGamelistFolder => ProfileType == SettingKeys.ProfileTypeEsDe
+            ? (string.IsNullOrEmpty(EsDeRoot) ? null : Path.Combine(EsDeRoot, "gamelists"))
+            : RootRomFolder;
+
+        public string? RootMediaFolder => ProfileType == SettingKeys.ProfileTypeEsDe
+            ? _esDeDetectedMediaRoot
+            : RootRomFolder;
 
         #endregion
     }

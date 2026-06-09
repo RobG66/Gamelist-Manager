@@ -1,6 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
@@ -193,23 +192,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     #endregion
 
-    #region Constructor
-
-    public ScraperViewModel()
-    {
-        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
-        _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
-
-        _isProfileLoading = true;
-        LoadScraperSettings();
-        _isProfileLoading = false;
-        _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
-        RefreshCacheCount();
-        Log("Ready to scrape...", LogLevel.Info);
-    }
-
-    #endregion
-
     #region Event Handlers
 
     private void OnSettingsStatePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -275,6 +257,157 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         if (_isProfileLoading || !ScrapeFromCacheEnabled) return;
         SkipNonCachedItemsEnabled = value;
         if (!value) SkipNonCachedItems = false;
+    }
+
+    #endregion
+
+    #region Constructor
+
+    public ScraperViewModel()
+    {
+        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
+        _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
+
+        _isProfileLoading = true;
+        LoadScraperSettings();
+        _isProfileLoading = false;
+        _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
+        RefreshCacheCount();
+        Log("Ready to scrape...", LogLevel.Info);
+    }
+
+    #endregion
+
+    #region Commands
+
+    [RelayCommand(CanExecute = nameof(CanStart))]
+    private async Task Start()
+    {
+        _isStopping = false;
+        IsScraping = true;
+        await StartAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanStop))]
+    private void Stop()
+    {
+        _isStopping = true;
+        StopCommand.NotifyCanExecuteChanged();
+        _cts?.Cancel();
+        Log("Stopping scraper...", LogLevel.Warning);
+    }
+
+    [RelayCommand]
+    private void ClearCache()
+    {
+        var system = _sessionState.CurrentSystem ?? string.Empty;
+        if (string.IsNullOrEmpty(system))
+        {
+            Log("No system loaded, cannot clear cache.", LogLevel.Warning);
+            return;
+        }
+
+        var cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
+        if (!Directory.Exists(cacheFolder))
+        {
+            RefreshCacheCount();
+            Log("Cache is already empty.", LogLevel.Info);
+            return;
+        }
+
+        int deleted = 0;
+        foreach (var file in Directory.EnumerateFiles(cacheFolder))
+        {
+            try { File.Delete(file); deleted++; }
+            catch (Exception ex) { Log($"Failed to delete {Path.GetFileName(file)}: {ex.Message}", LogLevel.Warning); }
+        }
+
+        RefreshCacheCount();
+        Log($"Cleared {deleted} cached file(s).", LogLevel.Warning);
+    }
+
+    [RelayCommand]
+    private async Task OpenScraperSetup()
+    {
+        var scraperIndex = ScraperRegistry.All
+            .Select((s, i) => (s, i))
+            .FirstOrDefault(x => string.Equals(x.s.Name, CurrentScraper, StringComparison.OrdinalIgnoreCase))
+            .i;
+
+        await WindowService.Instance.ShowSettingsAsync(4, scraperIndex);
+    }
+
+    [RelayCommand]
+    private async Task ResetScraperSettings()
+    {
+        ScrapeHiddenItems = false;
+        ScrapeAllMode = true;
+        OverwriteMedia = false;
+        OverwriteName = true;
+        SkipNonCachedItems = false;
+        OverwriteMetadata = false;
+
+        if (ScrapeFromCacheEnabled)
+            ScrapeFromCache = true;
+        
+    }
+
+    [RelayCommand]
+    private void SelectAllMetadata()
+    {
+        foreach (var t in GetBoolToggles().Where(t => !t.IsMedia && t.GetEnabled()))
+            t.SetValue(true);
+    }
+
+    [RelayCommand]
+    private void SelectNoneMetadata()
+    {
+        foreach (var t in GetBoolToggles().Where(t => !t.IsMedia))
+            t.SetValue(false);
+    }
+
+    [RelayCommand]
+    private void SelectAllMedia()
+    {
+        foreach (var t in GetBoolToggles().Where(t => t.IsMedia && t.GetEnabled()))
+            t.SetValue(true);
+    }
+
+    [RelayCommand]
+    private void SelectNoneMedia()
+    {
+        foreach (var t in GetBoolToggles().Where(t => t.IsMedia))
+            t.SetValue(false);
+    }
+
+    [RelayCommand]
+    private void ResetSources()
+    {
+        foreach (var s in GetSourceToggles().Where(s => GetBoolToggles().Any(t => t.ElementKey == s.AvailabilityType && t.GetEnabled())))
+            s.SetSelected(0);
+    }
+
+    #endregion
+
+    #region Command Guards
+
+    private bool CanStart => !IsScraping;
+    private bool CanStop => IsScraping && !_isStopping;
+
+    #endregion
+
+    #region Dispose
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _sessionState.PropertyChanged -= OnSessionStatePropertyChanged;
+        _settingsState.PropertyChanged -= OnSettingsStatePropertyChanged;
+        _cts?.Cancel();
+        _cts?.Dispose();
+        SaveScraperSettings();
+        GC.SuppressFinalize(this);
     }
 
     #endregion
@@ -525,137 +658,5 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     #endregion
 
-    #region Commands
 
-    [RelayCommand(CanExecute = nameof(CanStart))]
-    private async Task Start()
-    {
-        _isStopping = false;
-        IsScraping = true;
-        await StartAsync();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanStop))]
-    private void Stop()
-    {
-        _isStopping = true;
-        StopCommand.NotifyCanExecuteChanged();
-        _cts?.Cancel();
-        Log("Stopping scraper...", LogLevel.Warning);
-    }
-
-    [RelayCommand]
-    private void ClearCache()
-    {
-        var system = _sessionState.CurrentSystem ?? string.Empty;
-        if (string.IsNullOrEmpty(system))
-        {
-            Log("No system loaded, cannot clear cache.", LogLevel.Warning);
-            return;
-        }
-
-        var cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", CurrentScraper, system);
-        if (!Directory.Exists(cacheFolder))
-        {
-            RefreshCacheCount();
-            Log("Cache is already empty.", LogLevel.Info);
-            return;
-        }
-
-        int deleted = 0;
-        foreach (var file in Directory.EnumerateFiles(cacheFolder))
-        {
-            try { File.Delete(file); deleted++; }
-            catch (Exception ex) { Log($"Failed to delete {Path.GetFileName(file)}: {ex.Message}", LogLevel.Warning); }
-        }
-
-        RefreshCacheCount();
-        Log($"Cleared {deleted} cached file(s).", LogLevel.Warning);
-    }
-
-    [RelayCommand]
-    private async Task OpenScraperSetup()
-    {
-        var scraperIndex = ScraperRegistry.All
-            .Select((s, i) => (s, i))
-            .FirstOrDefault(x => string.Equals(x.s.Name, CurrentScraper, StringComparison.OrdinalIgnoreCase))
-            .i;
-
-        await WindowService.Instance.ShowSettingsAsync(4, scraperIndex);
-    }
-
-    [RelayCommand]
-    private async Task ResetScraperSettings()
-    {
-        ScrapeHiddenItems = false;
-        ScrapeAllMode = true;
-        OverwriteMedia = false;
-        OverwriteName = true;
-        SkipNonCachedItems = false;
-        OverwriteMetadata = false;
-
-        if (ScrapeFromCacheEnabled)
-            ScrapeFromCache = true;
-        
-    }
-
-    [RelayCommand]
-    private void SelectAllMetadata()
-    {
-        foreach (var t in GetBoolToggles().Where(t => !t.IsMedia && t.GetEnabled()))
-            t.SetValue(true);
-    }
-
-    [RelayCommand]
-    private void SelectNoneMetadata()
-    {
-        foreach (var t in GetBoolToggles().Where(t => !t.IsMedia))
-            t.SetValue(false);
-    }
-
-    [RelayCommand]
-    private void SelectAllMedia()
-    {
-        foreach (var t in GetBoolToggles().Where(t => t.IsMedia && t.GetEnabled()))
-            t.SetValue(true);
-    }
-
-    [RelayCommand]
-    private void SelectNoneMedia()
-    {
-        foreach (var t in GetBoolToggles().Where(t => t.IsMedia))
-            t.SetValue(false);
-    }
-
-    [RelayCommand]
-    private void ResetSources()
-    {
-        foreach (var s in GetSourceToggles().Where(s => GetBoolToggles().Any(t => t.ElementKey == s.AvailabilityType && t.GetEnabled())))
-            s.SetSelected(0);
-    }
-
-    #endregion
-
-    #region Command Guards
-
-    private bool CanStart => !IsScraping;
-    private bool CanStop => IsScraping && !_isStopping;
-
-    #endregion
-
-    #region Dispose
-
-    public void Dispose()
-    {
-        if (_isDisposed) return;
-        _isDisposed = true;
-        _sessionState.PropertyChanged -= OnSessionStatePropertyChanged;
-        _settingsState.PropertyChanged -= OnSettingsStatePropertyChanged;
-        _cts?.Cancel();
-        _cts?.Dispose();
-        SaveScraperSettings();
-        GC.SuppressFinalize(this);
-    }
-
-    #endregion
 }

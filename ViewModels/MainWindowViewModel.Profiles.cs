@@ -79,76 +79,27 @@ public partial class MainWindowViewModel
 
     #region Internal Methods
 
-    // Checks that the active profile type matches the gamelist being loaded.
-    // If mismatched, prompts the user to switch to or create a matching profile.
-    // Returns true if the load should proceed, false if it should be aborted.
     internal async Task<bool> EnsureMatchingProfileAsync(string gamelistPath)
     {
-        var gamelistType = IsEsDeGamelistPath(gamelistPath) ? SettingKeys.ProfileTypeEsDe : SettingKeys.ProfileTypeEs;
-        var profileType = _sessionState.ProfileType;
+        var expectedRoot = _settingsState.RootGamelistFolder;
 
-        if (string.Equals(gamelistType, profileType, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(expectedRoot)) return true;
+
+        if (gamelistPath.StartsWith(expectedRoot, FilePathHelper.PathComparison))
             return true;
 
-        var requiredLabel = gamelistType == SettingKeys.ProfileTypeEsDe ? EsDeLabel : EsLabel;
-
-        // Find existing profiles whose type matches what is required.
-        var matchingProfiles = _profileService.GetProfiles()
-            .Where(p => string.Equals(
-                _profileService.GetProfileType(p), gamelistType, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        string switchTo;
-
-        if (matchingProfiles.Count > 0)
+        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
         {
-            // There is at least one matching profile — offer to switch.
-            var profileNames = string.Join(", ", matchingProfiles);
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Profile Mismatch",
-                Message = $"This gamelist requires an {requiredLabel} profile.",
-                DetailMessage = $"The active profile is not configured for {requiredLabel} gamelists.\n\n" +
-                                $"Available {requiredLabel} profiles: {profileNames}\n\n" +
-                                $"Switch to '{matchingProfiles[0]}'?",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Switch"
-            });
+            Title = "Invalid Gamelist",
+            Message = "This gamelist is not in the expected location and may be the wrong type for the current profile.",
+            DetailMessage = $"Expected root location: {expectedRoot}",
+            IconTheme = DialogIconTheme.Warning,
+            Button1Text = "",
+            Button2Text = "",
+            Button3Text = "OK"
+        });
 
-            if (result != ThreeButtonResult.Button3) return false;
-
-            switchTo = matchingProfiles[0];
-        }
-        else
-        {
-            // No matching profile exists — offer to create one automatically.
-            var suggestedName = gamelistType == SettingKeys.ProfileTypeEsDe ? EsDeLabel : EsLabel;
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Profile Mismatch",
-                Message = $"This gamelist requires an {requiredLabel} profile.",
-                DetailMessage = $"No {requiredLabel} profile exists yet.\n\n" +
-                                $"A new profile named '{suggestedName}' will be created and activated. Continue?",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Create"
-            });
-
-            if (result != ThreeButtonResult.Button3) return false;
-
-            var created = _profileService.CreateTypedProfile(suggestedName, gamelistType);
-            if (created == null) return false;
-
-            switchTo = created;
-        }
-
-        await ApplyProfileSwitchAsync(switchTo);
-        RefreshProfiles();
-
-        return true;
+        return false;
     }
 
     internal async Task PromptEsDeRootAsync(string contextMessage = "An ES-DE gamelist has been detected.", Window? owner = null)
@@ -268,7 +219,7 @@ public partial class MainWindowViewModel
         _profileService.SetActiveProfile(profileName);
         _settingsService.SwitchProfile(_profileService.ActiveProfilePath);
         SettingsState.Instance.Reload();
-        SessionState.Instance.ProfileType = SettingsService.Instance.GetValue(SettingKeys.ProfileType);
+        SettingsState.Instance.ProfileType = SettingsService.Instance.GetValue(SettingKeys.ProfileType);
 
         LoadColumnSettings();
         LoadRecentFilesFromSettings();
@@ -283,13 +234,6 @@ public partial class MainWindowViewModel
 
         if (!_profileService.IsEsDeRootConfigured(profileName))
             await PromptEsDeRootAsync($"Profile '{profileName}' is an ES-DE profile but its root folder has not been set.");
-    }
-
-
-    private static bool IsEsDeGamelistPath(string path)
-    {
-        var normalized = path.Replace('\\', '/');
-        return normalized.IndexOf("/ES-DE/gamelists/", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     #endregion

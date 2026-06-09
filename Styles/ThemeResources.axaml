@@ -117,6 +117,9 @@
             <SolidColorBrush x:Key="SliderThumbBrush"      Color="{DynamicResource SystemAccentColor}"/>
             <SolidColorBrush x:Key="SliderThumbHoverBrush" Color="{DynamicResource SystemAccentColorDark1}"/>
 
+            <!-- ProgressBar -->
+            <SolidColorBrush x:Key="ProgressBarTrackBrush" Color="#28808080"/>
+
             <!-- Status Bar -->
             <SolidColorBrush x:Key="StatusBarBackground" Color="#D6E8F7"/>
             <SolidColorBrush x:Key="StatusBarForeground" Color="#2D3F52"/>
@@ -213,6 +216,9 @@
             <SolidColorBrush x:Key="SliderTrackBrush"      Color="#455A64"/>
             <SolidColorBrush x:Key="SliderThumbBrush"      Color="{DynamicResource SystemAccentColorLight2}"/>
             <SolidColorBrush x:Key="SliderThumbHoverBrush" Color="{DynamicResource SystemAccentColorLight1}"/>
+
+            <!-- ProgressBar -->
+            <SolidColorBrush x:Key="ProgressBarTrackBrush" Color="#38808080"/>
 
             <!-- Status Bar -->
             <SolidColorBrush x:Key="StatusBarBackground" Color="#1A2535"/>

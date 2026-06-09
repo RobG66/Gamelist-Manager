@@ -82,7 +82,7 @@ namespace Gamelist_Manager.Services
                 regions.Insert(0, primaryRegion);
             }
 
-            bool isEsDe = profileType == SettingKeys.ProfileTypeEsDe;
+            var profile = SettingKeys.GetProfileTypeOption(profileType);
 
             var parameters = new ScraperParameters
             {
@@ -117,14 +117,14 @@ namespace Gamelist_Manager.Services
                         m => m.FolderPath,
                         StringComparer.OrdinalIgnoreCase),
 
-                MediaSuffixes = isEsDe
-                    ? new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
-                    : availableMedia
+                MediaSuffixes = profile.MediaFilenamesUseSuffixes
+                    ? availableMedia
                         .Where(m => m.MediaEnabled)
                         .ToDictionary(
                             m => m.Type,
                             m => (m.Suffix, m.SfxEnabled),
                             StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
             };
 
             parameters.BuildMetaLookup();

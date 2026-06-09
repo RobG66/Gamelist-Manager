@@ -52,20 +52,6 @@ namespace Gamelist_Manager.Services
 
         #endregion
 
-        #region Private Methods
-
-        private void Log(string message, LogLevel level = LogLevel.Default, string? prefix = null, LogLevel prefixLevel = LogLevel.Default)
-            => LogAction?.Invoke(message, level, prefix, prefixLevel);
-
-        private API_ArcadeDB CreateArcadeDb() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper));
-        private API_EmuMovies CreateEmuMovies() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper));
-        private API_ScreenScraper CreateScreenScraper() => new(_httpClientFactory.CreateClient(HttpClientNames.ScreenScraper));
-        private FileTransferHelper CreateFileTransfer() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper));
-        private FileTransferHelper CreateScreenScraperFileTransfer() => new(_httpClientFactory.CreateClient(HttpClientNames.ScreenScraper));
-        private EmuMoviesMediaCacheHelper CreateMediaCache() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper), Secrets.EmuMoviesBearerToken);
-
-        #endregion
-
         #region Public Methods
 
         public async Task<(bool Success, ScrapedGameData Data)> ScrapeGameAsync(
@@ -156,7 +142,7 @@ namespace Gamelist_Manager.Services
             if (parameters.ElementsToScrape == null || scrapedData?.Data == null)
                 return;
 
-            var profileType = SessionState.Instance.ProfileType;
+            var profile = SettingKeys.GetProfileTypeOption(SettingsState.Instance.ProfileType);
             var metaDataDict = MetadataService.GetMetaDataDictionary();
 
             var updates = new Dictionary<MetaDataKeys, string>();
@@ -169,7 +155,7 @@ namespace Gamelist_Manager.Services
 
                 if (metaDataDict.TryGetValue(key, out var decl) && decl.IsMedia)
                 {
-                    if (profileType == SettingKeys.ProfileTypeEs)
+                    if (profile.GamelistHasMediaPaths)
                     {
                         var romFolder = SessionState.Instance.CurrentRomFolder;
                         if (!string.IsNullOrEmpty(romFolder))
@@ -219,6 +205,16 @@ namespace Gamelist_Manager.Services
         #endregion
 
         #region Private Methods
+
+        private void Log(string message, LogLevel level = LogLevel.Default, string? prefix = null, LogLevel prefixLevel = LogLevel.Default)
+            => LogAction?.Invoke(message, level, prefix, prefixLevel);
+
+        private API_ArcadeDB CreateArcadeDb() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper));
+        private API_EmuMovies CreateEmuMovies() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper));
+        private API_ScreenScraper CreateScreenScraper() => new(_httpClientFactory.CreateClient(HttpClientNames.ScreenScraper));
+        private FileTransferHelper CreateFileTransfer() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper));
+        private FileTransferHelper CreateScreenScraperFileTransfer() => new(_httpClientFactory.CreateClient(HttpClientNames.ScreenScraper));
+        private EmuMoviesMediaCacheHelper CreateMediaCache() => new(_httpClientFactory.CreateClient(HttpClientNames.Scraper), Secrets.EmuMoviesBearerToken);
 
         private void RecordDownload(string mediaType)
         {

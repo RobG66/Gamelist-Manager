@@ -12,7 +12,7 @@ namespace Gamelist_Manager.ViewModels;
 
 public partial class MediaItemViewModel : ObservableObject, IDisposable
 {
-    #region Private Fields
+    #region Fields & Constants
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
     private volatile bool _previewSeekPending;
@@ -64,7 +64,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     }
     #endregion
 
-    #region Game Attachment
+    #region Public Methods
     public void AttachGame(GameMetadataRow? game)
     {
         if (_game != null)
@@ -77,40 +77,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
         RefreshFromGame();
     }
-
-    private void OnGamePropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == $"Item[{_pathKey}]")
-            RefreshFromGame();
-    }
-
-    private void RefreshFromGame()
-    {
-        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
-            RefreshFromGameCore();
-        else
-            Avalonia.Threading.Dispatcher.UIThread.Post(RefreshFromGameCore);
-    }
-
-    private void RefreshFromGameCore()
-    {
-        var newPath = _game?.GetValue(_pathKey)?.ToString();
-        if (string.IsNullOrEmpty(newPath))
-            newPath = null;
-
-        MediaPath = null;
-        MediaPath = newPath;
-        UpdateFileExistence();
-        UpdateImageBitmap();
-
-        if (IsVideo && newPath == null)
-            DisposeVideoPlayer();
-
-        OnPropertyChanged(nameof(HasMedia));
-    }
-    #endregion
-
-    #region Public Methods
     public void UpdateImageBitmap()
     {
         var old = ImageBitmap;
@@ -330,9 +296,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         ImageBitmap = null;
         bmp?.Dispose();
     }
-    #endregion
-
-    #region Drop Validation
     public bool IsValidDrop(string filePath)
     {
         if (IsVideo) return IsVideoFile(filePath);
@@ -356,9 +319,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     {
         return Path.GetExtension(filePath).ToLowerInvariant() == ".pdf";
     }
-    #endregion
 
-    #region Internal Methods
     internal string ResolveFullPath(string path)
     {
         var currentMediaDirectory = _sessionState.CurrentMediaFolder;
@@ -367,9 +328,41 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             ? FilePathHelper.GamelistPathToFullPath(path, currentMediaDirectory)
             : path;
     }
+
     #endregion
 
     #region Private Methods
+
+    private void OnGamePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == $"Item[{_pathKey}]")
+            RefreshFromGame();
+    }
+
+    private void RefreshFromGame()
+    {
+        if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            RefreshFromGameCore();
+        else
+            Avalonia.Threading.Dispatcher.UIThread.Post(RefreshFromGameCore);
+    }
+
+    private void RefreshFromGameCore()
+    {
+        var newPath = _game?.GetValue(_pathKey)?.ToString();
+        if (string.IsNullOrEmpty(newPath))
+            newPath = null;
+
+        MediaPath = null;
+        MediaPath = newPath;
+        UpdateFileExistence();
+        UpdateImageBitmap();
+
+        if (IsVideo && newPath == null)
+            DisposeVideoPlayer();
+
+        OnPropertyChanged(nameof(HasMedia));
+    }
 
     // VLC raises these events on its own internal native threads, never on the UI thread.
     // Any Avalonia observable property change must be dispatched to the UI thread to avoid

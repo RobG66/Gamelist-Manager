@@ -80,7 +80,8 @@ public partial class GamelistPickerViewModel : ObservableObject
     public string ConfirmButtonText { get; }
     public string SubtitleText { get; }
     public bool ShowGamelistBadge { get; }
-    public string RomFolder => SettingsState.Instance.RomsFolder;
+    //blah
+    public string RomFolder => SettingsState.Instance.RootRomFolder;
 
     #endregion
 
@@ -88,6 +89,13 @@ public partial class GamelistPickerViewModel : ObservableObject
 
     public event EventHandler? ConfirmRequested;
     public event EventHandler? CancelRequested;
+
+    #endregion
+
+
+    #region Property Change Handlers
+
+    partial void OnSearchTextChanged(string value) => RefreshFilter();
 
     #endregion
 
@@ -108,12 +116,6 @@ public partial class GamelistPickerViewModel : ObservableObject
 
         RefreshFilter();
     }
-
-    #endregion
-
-    #region Property Change Handlers
-
-    partial void OnSearchTextChanged(string value) => RefreshFilter();
 
     #endregion
 

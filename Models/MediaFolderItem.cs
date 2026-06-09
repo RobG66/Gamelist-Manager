@@ -21,49 +21,77 @@ namespace Gamelist_Manager.Models
         [ObservableProperty] private string _suffix = string.Empty;
         [ObservableProperty] private string _displayPath = string.Empty;
 
-        private bool _sfxEnabled;
-        public bool SfxEnabled
-        {
-            get => _sfxEnabled;
-            set => SetProperty(ref _sfxEnabled, value);
-        }
+        [ObservableProperty] private bool _sfxEnabled;
+
+        public bool IsSuffixInputEnabled => Enabled && SfxEnabled;
+
+        private bool _syncingSuffix;
 
         // --- Display state (set by SettingsViewModel via RefreshDisplayState) ---
 
-        [ObservableProperty] private bool _isNotEsDeMode = true;
-        [ObservableProperty] private bool _isPathReadOnly = false;
-        [ObservableProperty] private bool _isMediaEnabled = true;
-        [ObservableProperty] private bool _isSuffixEnabled = true;
+        [ObservableProperty] private bool _areSuffixesAllowed;
+        [ObservableProperty] private bool _arePathsReadOnly;
+        [ObservableProperty] private bool _canMediaOverrideCheckboxBeEnabled = true;
 
         // --- Mutations ---
 
         public void ResetToDefaults()
         {
             Path = DefaultPath;
-            Suffix = DefaultSuffix;
-            SfxEnabled = DefaultSfxEnabled;
             Enabled = DefaultEnabled;
+            SfxEnabled = DefaultSfxEnabled;
+        }
+
+        public void LoadSuffixState(bool sfxEnabled, string suffix)
+        {
+            _syncingSuffix = true;
+            try
+            {
+                SfxEnabled = sfxEnabled;
+                Suffix = sfxEnabled ? suffix : string.Empty;
+            }
+            finally
+            {
+                _syncingSuffix = false;
+            }
+
+            OnPropertyChanged(nameof(IsSuffixInputEnabled));
+        }
+
+        partial void OnEnabledChanged(bool value) => OnPropertyChanged(nameof(IsSuffixInputEnabled));
+
+        partial void OnSfxEnabledChanged(bool value)
+        {
+            if (!_syncingSuffix)
+                Suffix = value ? DefaultSuffix : string.Empty;
+
+            OnPropertyChanged(nameof(IsSuffixInputEnabled));
         }
 
         partial void OnPathChanged(string value)
         {
-            if (IsNotEsDeMode)
+            if (!ArePathsReadOnly)
                 DisplayPath = value;
         }
 
-        public void RefreshDisplayState(bool isEsDe, bool isEsDeSupported, string esDeMediaBase, string? currentSystem, string? esDeFolderName)
+        partial void OnDisplayPathChanged(string value)
         {
-            IsNotEsDeMode = !isEsDe;
-            IsPathReadOnly = isEsDe;
-            IsMediaEnabled = !isEsDe || isEsDeSupported;
-            IsSuffixEnabled = Enabled && !isEsDe;
+            if (!ArePathsReadOnly)
+                Path = value;
+        }
 
-            if (!isEsDe)
+        public void RefreshDisplayState(ProfileTypeOption profile, MetaDataDecl decl, string esDeMediaBase, string? currentSystem)
+        {
+            AreSuffixesAllowed = profile.MediaFilenamesUseSuffixes;
+            ArePathsReadOnly = !profile.GamelistHasMediaPaths;
+            CanMediaOverrideCheckboxBeEnabled = profile.IncludesMediaFolder(decl);
+
+            if (profile.GamelistHasMediaPaths)
                 DisplayPath = Path;
-            else if (!string.IsNullOrEmpty(esDeFolderName) && !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem))
-                DisplayPath = System.IO.Path.Combine(esDeMediaBase, currentSystem, esDeFolderName);
+            else if (!string.IsNullOrEmpty(decl.EsDeFolderName) && !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem))
+                DisplayPath = System.IO.Path.Combine(esDeMediaBase, currentSystem, decl.EsDeFolderName);
             else
-                DisplayPath = esDeFolderName ?? string.Empty;
+                DisplayPath = decl.EsDeFolderName;
         }
     }
 }

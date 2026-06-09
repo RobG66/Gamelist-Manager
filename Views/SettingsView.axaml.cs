@@ -209,7 +209,7 @@ namespace Gamelist_Manager.Views
             if (topLevel == null) return;
 
             var locationPath = _sessionState.CurrentRomFolder
-                ?? _settingsState.RomsFolder;
+                ?? _settingsState.RootRomFolder;
 
             IStorageFolder? startLocation = null;
             if (locationPath != null)

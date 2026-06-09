@@ -176,10 +176,10 @@ public partial class MainWindowViewModel
             if (!await LoadGamelistFromFileAsync(backupPath)) return;
 
             // Null guard
-            if (string.IsNullOrEmpty(_sessionState.GamelistsRootFolder)) return;
+            if (string.IsNullOrEmpty(_settingsState.RootGamelistFolder)) return;
 
             // Point session at the real gamelist destination, show no path (treated as unsaved new gamelist)
-            var realGamelistPath = Path.Combine(_sessionState.GamelistsRootFolder, systemName, "gamelist.xml");
+            var realGamelistPath = Path.Combine(_settingsState.RootGamelistFolder, systemName, "gamelist.xml");
             _sessionState.XmlFilename = realGamelistPath;
             FileStatusText = string.Empty;
             LastModifiedText = string.Empty;
@@ -270,7 +270,7 @@ public partial class MainWindowViewModel
             IStorageFolder? suggestedStart = null;
             try
             {
-                var startPath = _sessionState.GamelistsRootFolder;
+                var startPath = _settingsState.RootGamelistFolder;
 
                 if (startPath != null && Directory.Exists(startPath))
                     suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
@@ -326,7 +326,6 @@ public partial class MainWindowViewModel
         try
         {
             if (string.IsNullOrEmpty(filePath)) return;
-            if (!File.Exists(filePath)) return;
             if (!await CheckUnsavedChangesAsync()) return;
             if (!await LoadGamelistFromFileAsync(filePath)) return;
             await PostLoadAsync(filePath);
@@ -387,6 +386,8 @@ public partial class MainWindowViewModel
             var picker = new GamelistPickerView(pickerVm);
             var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
 
+            pickerVm.Cleanup();
+
             if (selected == null) return;
 
             if (selected.HasGamelist)
@@ -404,13 +405,16 @@ public partial class MainWindowViewModel
                 if (confirm != ThreeButtonResult.Button3) return;
             }
 
+            UnloadGamelist();
+
             var systemName = selected.Name;
-            var gamelistFolder = selected.FolderPath;
+
+            var gamelistFolder = Path.Combine(SettingsState.Instance.RootGamelistFolder!, systemName);
+
             var gamelistPath = Path.Combine(gamelistFolder, "gamelist.xml");
 
-            Directory.CreateDirectory(gamelistFolder);
-
-            UnloadGamelist();
+            if (!Directory.Exists(gamelistFolder))
+                Directory.CreateDirectory(gamelistFolder);
 
             _sessionState.SetGamelist(gamelistPath, systemName, new ObservableCollection<GameMetadataRow>());
 
@@ -432,6 +436,9 @@ public partial class MainWindowViewModel
                 var logo = TryLoadSystemLogo(systemName, 130);
                 matchedSystem = new SystemItem { Name = systemName, GamelistPath = gamelistPath, Logo = logo };
             }
+
+            if (SelectedSystem != null && !Systems.Contains(SelectedSystem))
+                SelectedSystem.Logo?.Dispose();
 
             SelectedSystem = matchedSystem;
             OnPropertyChanged(nameof(SystemLogo));
@@ -478,9 +485,11 @@ public partial class MainWindowViewModel
             var picker = new GamelistPickerView(pickerVm);
             var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
 
+            pickerVm.Cleanup();
+
             if (selected == null) return;
 
-            var gamelistPath = Path.Combine(selected.FolderPath, "gamelist.xml");
+            var gamelistPath = Path.Combine(SettingsState.Instance.RootGamelistFolder!, selected.Name, "gamelist.xml");
             if (!await LoadGamelistFromFileAsync(gamelistPath)) return;
             await PostLoadAsync(gamelistPath);
         }
@@ -496,7 +505,7 @@ public partial class MainWindowViewModel
 
     private async Task<List<SystemPickerItem>> BuildSystemCandidatesAsync()
     {
-        var scanFolder = _sessionState.GamelistsRootFolder;
+        var scanFolder = _settingsState.RootRomFolder;
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
             return [];
@@ -513,7 +522,7 @@ public partial class MainWindowViewModel
                     Name = name,
                     FolderPath = Path.Combine(scanFolder, name),
                     Logo = TryLoadSystemLogo(name, 90),
-                    HasGamelist = File.Exists(Path.Combine(scanFolder, name, "gamelist.xml"))
+                    HasGamelist = File.Exists(Path.Combine(SettingsState.Instance.RootGamelistFolder!, name, "gamelist.xml"))
                 })
                 .ToList());
     }
@@ -525,19 +534,23 @@ public partial class MainWindowViewModel
 
     private async Task LoadSystemsAsync()
     {
-        var profileType = _sessionState.ProfileType;
-        var scanFolder = _sessionState.GamelistsRootFolder;
+        var profile = SettingKeys.GetProfileTypeOption(_settingsState.ProfileType);
+        var scanFolder = _settingsState.RootGamelistFolder;
 
         if (string.IsNullOrWhiteSpace(scanFolder) || !Directory.Exists(scanFolder))
         {
+            foreach (var sys in Systems)
+                sys.Logo?.Dispose();
             Systems.Clear();
-            StatusText = profileType == SettingKeys.ProfileTypeEsDe
+            StatusText = profile.ShowsEsDePathsSection
                 ? "Set ES-DE root folder in Settings"
                 : "Set ROMs folder in Settings";
             IsSystemsMenuEnabled = false;
             return;
         }
 
+        foreach (var sys in Systems)
+            sys.Logo?.Dispose();
         Systems.Clear();
         IsSystemsMenuEnabled = false;
 
@@ -558,9 +571,8 @@ public partial class MainWindowViewModel
             Systems.Add(new SystemItem { Name = name, GamelistPath = path, Logo = TryLoadSystemLogo(name, 90) });
 
         IsSystemsMenuEnabled = Systems.Count > 0;
-        StatusText = Systems.Count == 0
-            ? (profileType == SettingKeys.ProfileTypeEsDe ? "No systems found in ES-DE gamelists folder" : "No systems found in ROMs folder")
-            : string.Empty;
+
+        StatusText = Systems.Count == 0 ? "No gamelists found" : string.Empty;
     }
 
     private void LoadRecentFilesFromSettings()
@@ -619,6 +631,21 @@ public partial class MainWindowViewModel
     private async Task<bool> LoadGamelistFromFileAsync(string filePath)
     {
 
+        if (!File.Exists(filePath))
+        {
+            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = "File Not Found",
+                Message = "The gamelist file could not be found.",
+                DetailMessage = filePath,
+                IconTheme = DialogIconTheme.Error,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK"
+            });
+            return false;
+        }
+
         if (!await EnsureMatchingProfileAsync(filePath)) return false;
 
         _sessionState.IsBusy = true;
@@ -662,7 +689,7 @@ public partial class MainWindowViewModel
 
             _sessionState.RefreshAvailableMedia();
 
-            if (_sessionState.ProfileType == SettingKeys.ProfileTypeEsDe &&
+            if (!_sessionState.GamelistHasMediaPaths &&
                 _sessionState.CurrentMediaFolder is { } mediaDir)
                 await Task.Run(() => GamelistService.PopulateMediaPaths(loadedGames, mediaDir));
 
@@ -681,6 +708,9 @@ public partial class MainWindowViewModel
                 var logo = TryLoadSystemLogo(systemName, 130);
                 matchedSystem = new SystemItem { Name = systemName, GamelistPath = filePath, Logo = logo };
             }
+
+            if (SelectedSystem != null && !Systems.Contains(SelectedSystem))
+                SelectedSystem.Logo?.Dispose();
 
             SelectedSystem = matchedSystem;
             OnPropertyChanged(nameof(SystemLogo));

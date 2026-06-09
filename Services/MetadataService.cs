@@ -1,4 +1,3 @@
-﻿using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
@@ -26,18 +25,6 @@ namespace Gamelist_Manager.Services
             typeToDecl = gameDecls.ToDictionary(d => d.Type, d => d, StringComparer.OrdinalIgnoreCase);
             nameToDecl = gameDecls.ToDictionary(d => d.Name, d => d, StringComparer.OrdinalIgnoreCase);
         }
-
-        #endregion
-
-        #region Private Helpers
-
-        private static bool IsSupportedByCurrentProfile(MetaDataDecl decl) =>
-            SessionState.Instance.ProfileType == SettingKeys.ProfileTypeEsDe
-                ? decl.EsDeSupported
-                : decl.EsSupported;
-
-        private static bool IsToggleable(MetaDataDecl decl) =>
-            decl.Viewable && !decl.AlwaysVisible && decl.Key != MetaDataKeys.desc && !decl.IsMedia;
 
         #endregion
 
@@ -101,6 +88,19 @@ namespace Gamelist_Manager.Services
 
         public static MetaDataDecl? GetDeclByKey(MetaDataKeys key) =>
             metaDataDictionary.TryGetValue(key, out var decl) ? decl : null;
+
+        #endregion
+
+        #region Private Helpers
+
+        private static ProfileTypeOption CurrentProfile =>
+            SettingKeys.GetProfileTypeOption(SettingsState.Instance.ProfileType);
+
+        private static bool IsSupportedByCurrentProfile(MetaDataDecl decl) =>
+            CurrentProfile.GamelistHasMediaPaths ? decl.EsSupported : decl.EsDeSupported;
+
+        private static bool IsToggleable(MetaDataDecl decl) =>
+            decl.Viewable && !decl.AlwaysVisible && decl.Key != MetaDataKeys.desc && !decl.IsMedia;
 
         #endregion
     }

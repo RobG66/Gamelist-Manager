@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Messages;
+using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
 using System;
@@ -27,7 +27,6 @@ public partial class SettingsViewModel
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DeleteProfileCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RenameProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(SetActiveProfileCommand))]
     private string _selectedProfileName = string.Empty;
 
@@ -37,7 +36,6 @@ public partial class SettingsViewModel
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CopyProfileCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RenameProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(CreateNewProfileCommand))]
     private string _newProfileName = string.Empty;
 
@@ -71,7 +69,6 @@ public partial class SettingsViewModel
         OnPropertyChanged(nameof(ActiveProfileName));
         CreateNewProfileCommand.NotifyCanExecuteChanged();
         CopyProfileCommand.NotifyCanExecuteChanged();
-        RenameProfileCommand.NotifyCanExecuteChanged();
         DeleteProfileCommand.NotifyCanExecuteChanged();
     }
 
@@ -99,11 +96,7 @@ public partial class SettingsViewModel
         !string.IsNullOrWhiteSpace(NewProfileName) &&
         !ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase);
 
-    private bool CanRenameProfile() =>
-        !string.IsNullOrWhiteSpace(SelectedProfileName) &&
-        !string.IsNullOrWhiteSpace(NewProfileName) &&
-        !string.Equals(NewProfileName.Trim(), SelectedProfileName, StringComparison.OrdinalIgnoreCase) &&
-        !ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase);
+
 
     private bool CanDeleteProfile() =>
         !string.IsNullOrWhiteSpace(SelectedProfileName) &&
@@ -163,12 +156,15 @@ public partial class SettingsViewModel
         WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
     }
 
-    [RelayCommand(CanExecute = nameof(CanRenameProfile))]
-    private void RenameProfile()
+    [RelayCommand]
+    private async Task RenameProfile()
     {
-        if (!ProfileService.Instance.RenameProfile(SelectedProfileName, NewProfileName.Trim())) return;
-        NewProfileName = string.Empty;
+        if (string.IsNullOrWhiteSpace(SelectedProfileName)) return;
+        var newName = await RenameDialogView.ShowAsync(SelectedProfileName);
+        if (string.IsNullOrEmpty(newName)) return;
+        if (!ProfileService.Instance.RenameProfile(SelectedProfileName, newName)) return;
         RefreshProfileList();
+        SelectedProfileName = newName;
         WeakReferenceMessenger.Default.Send(new ProfilesChangedMessage());
     }
 
@@ -232,9 +228,14 @@ public partial class SettingsViewModel
 
         if (switchResult == ThreeButtonResult.Button1) return;
 
+        if (isDirty && switchResult == ThreeButtonResult.Button3)
+        {
+            SaveSettings();
+        }
+
         WeakReferenceMessenger.Default.Send(new UnloadGamelistMessage());
         await WeakReferenceMessenger.Default.Send(new ApplyProfileSwitchMessage(profileName));
-        DoSwitchProfile(saveFirst: isDirty && switchResult == ThreeButtonResult.Button3);
+        DoSwitchProfile(saveFirst: false);
     }
 
     [RelayCommand]

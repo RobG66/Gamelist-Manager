@@ -1,4 +1,4 @@
-using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,13 +8,24 @@ namespace Gamelist_Manager.Services
 {
     public class SettingsService
     {
+        #region Fields & Constants
+
         private static SettingsService? _instance;
-        public static SettingsService Instance => _instance ??= new SettingsService();
 
         private string _settingsFilePath;
         private readonly string _iniFolder;
         private Dictionary<string, Dictionary<string, string>>? _cache;
         private Dictionary<string, string>? _fileTypesCache;
+
+        #endregion
+
+        #region Public Properties
+
+        public static SettingsService Instance => _instance ??= new SettingsService();
+
+        #endregion
+
+        #region Constructor
 
         private SettingsService()
         {
@@ -25,6 +36,11 @@ namespace Gamelist_Manager.Services
             if (!ProfileService.Instance.NoProfilesExist && !File.Exists(_settingsFilePath))
                 CreateDefaultSettings();
         }
+
+        #endregion
+
+        #region Public Methods
+
 
         public void SwitchProfile(string profilePath)
         {
@@ -131,7 +147,18 @@ namespace Gamelist_Manager.Services
             return result;
         }
 
-        // --- Private helpers ---
+        public void ClearSystemMediaOverrides(string system)
+        {
+            IniFileService.DeleteKeysWithPrefix(
+                _settingsFilePath,
+                SettingKeys.MediaPathOverridesSection,
+                $"{system}_");
+            InvalidateCache();
+        }
+
+        #endregion
+
+        #region Private Methods
 
         private Dictionary<string, Dictionary<string, string>> Cache() =>
             _cache ??= IniFileService.ReadIniFile(_settingsFilePath);
@@ -144,13 +171,6 @@ namespace Gamelist_Manager.Services
             InvalidateCache();
         }
 
-        public void ClearSystemMediaOverrides(string system)
-        {
-            IniFileService.DeleteKeysWithPrefix(
-                _settingsFilePath,
-                SettingKeys.MediaPathOverridesSection,
-                $"{system}_");
-            InvalidateCache();
-        }
+        #endregion
     }
 }

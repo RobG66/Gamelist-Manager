@@ -1,4 +1,4 @@
-using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,8 +10,9 @@ namespace Gamelist_Manager.Services
 {
     public class ProfileService
     {
+        #region Fields & Constants
+
         private static ProfileService? _instance;
-        public static ProfileService Instance => _instance ??= new ProfileService();
 
         public const string DefaultProfileName = "Default";
         private const string AppIniSection = "App";
@@ -21,9 +22,21 @@ namespace Gamelist_Manager.Services
         private readonly string _profilesFolder;
         private readonly string _appIniPath;
 
+        #endregion
+
+        #region Public Properties
+
+        public static ProfileService Instance => _instance ??= new ProfileService();
+
         public string ActiveProfile { get; private set; }
 
         public bool NoProfilesExist { get; private set; }
+
+        public string ActiveProfilePath => GetProfilePath(ActiveProfile);
+
+        #endregion
+
+        #region Constructor
 
         private ProfileService()
         {
@@ -41,7 +54,9 @@ namespace Gamelist_Manager.Services
                 MigrateProfile(ActiveProfilePath);
         }
 
-        public string ActiveProfilePath => GetProfilePath(ActiveProfile);
+        #endregion
+
+        #region Public Methods
 
         public string GetProfilePath(string profileName) =>
             Path.Combine(_profilesFolder, profileName + ".ini");
@@ -99,6 +114,7 @@ namespace Gamelist_Manager.Services
             {
                 ActiveProfile = newName;
                 WriteActiveProfile(newName);
+                SettingsService.Instance.SwitchProfile(newPath);
             }
 
             return true;
@@ -161,7 +177,7 @@ namespace Gamelist_Manager.Services
         // Returns true when the profile is ES-DE type AND has a valid, existing root folder configured.
         public bool IsEsDeRootConfigured(string profileName)
         {
-            if (GetProfileType(profileName) != SettingKeys.ProfileTypeEsDe)
+            if (!SettingKeys.GetProfileTypeOption(GetProfileType(profileName)).ShowsEsDePathsSection)
                 return true;
 
             var section = IniFileService.GetSection(GetProfilePath(profileName), SettingKeys.EsDeSection);
@@ -237,6 +253,8 @@ namespace Gamelist_Manager.Services
                 [SettingKeys.RecentFilesSection] = dict
             });
         }
+
+        #endregion
 
         #region Private Methods
 

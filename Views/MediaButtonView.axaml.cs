@@ -230,6 +230,8 @@ public partial class MediaButtonView : UserControl
 
     private static void PopulateOpenWithSubmenu(MenuItem openWithMenu, string filePath)
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         var items = new List<object>();
         string extension = Path.GetExtension(filePath);
         var apps = AppAssociationHelper.GetAssociatedApps(extension);

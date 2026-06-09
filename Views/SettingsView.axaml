@@ -139,21 +139,21 @@
 								<Grid ColumnDefinitions="*,12,*">
 									<StackPanel Grid.Column="0" Spacing="3">
 										<TextBlock Text="Global Font Size"
-												   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–26."/>
+												   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8ï¿½26."/>
 										<NumericUpDown Value="{Binding AppFontSize}"
 													   Minimum="8" Maximum="26" Increment="1"
 													   FormatString="0"
 													   Width="60" HorizontalAlignment="Left"
-													   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8–26."/>
+													   ToolTip.Tip="Font size for all UI text (menus, labels, dialogs). Range: 8ï¿½26."/>
 									</StackPanel>
 									<StackPanel Grid.Column="2" Spacing="3">
 										<TextBlock Text="Data Grid Font Size"
-												   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–26."/>
+												   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8ï¿½26."/>
 										<NumericUpDown Value="{Binding GridFontSize}"
 													   Minimum="8" Maximum="26" Increment="1"
 													   FormatString="0"
 													   Width="60" HorizontalAlignment="Left"
-													   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8–26."/>
+													   ToolTip.Tip="Font size for the game list grid cells and headers. Range: 8ï¿½26."/>
 									</StackPanel>
 								</Grid>
 							</StackPanel>
@@ -281,7 +281,7 @@
 							</StackPanel>
 						</Border>
 
-						<!-- ES-DE Paths card — only visible when an ES-DE profile is active -->
+						<!-- ES-DE Paths card ï¿½ only visible when an ES-DE profile is active -->
 						<Border BorderThickness="1" CornerRadius="4" Padding="8"
 								Background="{DynamicResource CardBackground}"
 								BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
@@ -351,8 +351,8 @@
 											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
 											<ColumnDefinition Width="3*"/>
 											<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol3"/>
-											<ColumnDefinition Width="{Binding SuffixesEnabled, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
-											<ColumnDefinition Width="{Binding SuffixesEnabled, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
+											<ColumnDefinition Width="{Binding AreSuffixesAllowed, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
+											<ColumnDefinition Width="{Binding AreSuffixesAllowed, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
 										</Grid.ColumnDefinitions>
 										<TextBlock Grid.Column="0" Text="Enabled"     FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" HorizontalAlignment="Center" Margin="0,0,0,4"
 												   ToolTip.Tip="Enable or disable this media type. Disabled types are ignored during scraping and media operations."/>
@@ -360,11 +360,11 @@
 										<TextBlock Grid.Column="2" Text="Folder" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="0,0,0,4"
 												   ToolTip.Tip="Subfolder path relative to the ROM folder where this media type is stored (e.g. 'images' or 'media/screenshots')."/>
 										<TextBlock Grid.Column="4" Text="Suffix" FontWeight="SemiBold" FontSize="{DynamicResource GlobalSmallFontSize}" Margin="2,0,0,4"
-												   IsVisible="{Binding SuffixesEnabled}"
+												   IsVisible="{Binding AreSuffixesAllowed}"
 												   ToolTip.Tip="Optional filename suffix appended before the extension when looking up or saving this media type (e.g. '-image' produces 'gamename-image.png')."/>
 										<Button    Grid.Column="5" Classes="transparentbutton" Command="{Binding ToggleAllSfxCommand}"
 												   Width="14" Height="14" HorizontalAlignment="Center" Margin="0,0,0,0"
-												   IsVisible="{Binding SuffixesEnabled}"
+												   IsVisible="{Binding AreSuffixesAllowed}"
 												   ToolTip.Tip="Toggle all suffix checkboxes on or off.">
 											<Image Source="avares://Gamelist_Manager/Assets/Icons/reset2.png" Width="14" Height="14"/>
 										</Button>
@@ -378,22 +378,22 @@
 														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol0"/>
 														<ColumnDefinition Width="Auto" SharedSizeGroup="MediaCol1"/>
 														<ColumnDefinition Width="3*"/>
-														<ColumnDefinition Width="{Binding IsNotEsDeMode, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
-														<ColumnDefinition Width="{Binding IsNotEsDeMode, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
+														<ColumnDefinition Width="{Binding AreSuffixesAllowed, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='*'}" SharedSizeGroup="MediaCol4"/>
+														<ColumnDefinition Width="{Binding AreSuffixesAllowed, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter='Auto'}" SharedSizeGroup="MediaCol5"/>
 													</Grid.ColumnDefinitions>
 													<CheckBox  Grid.Column="0" IsChecked="{Binding Enabled}"
-															   IsEnabled="{Binding IsMediaEnabled}"
+															   IsEnabled="{Binding CanMediaOverrideCheckboxBeEnabled}"
 															   VerticalAlignment="Center"
 															   HorizontalAlignment="Center"
 															   ToolTip.Tip="Enable or disable this media type for scraping and display."/>
 													<TextBlock Grid.Column="1" Text="{Binding Label}"           VerticalAlignment="Center" Margin="4,0,6,0" IsEnabled="{Binding Enabled}"/>
 													<TextBox   Grid.Column="2" Text="{Binding DisplayPath}"     Padding="3,2"              IsEnabled="{Binding Enabled}"
-															   IsReadOnly="{Binding IsPathReadOnly}"/>
-													<TextBox   Grid.Column="3" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
-															   IsVisible="{Binding IsNotEsDeMode}"
+															   IsReadOnly="{Binding ArePathsReadOnly}"/>
+													<TextBox   Grid.Column="3" Text="{Binding Suffix}"          Padding="3,2" Margin="2,0,0,0" IsEnabled="{Binding IsSuffixInputEnabled}"
+															   IsVisible="{Binding AreSuffixesAllowed}"
 															   ToolTip.Tip="Optional filename suffix appended when scraping this media type."/>
-													<CheckBox  Grid.Column="4" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding IsSuffixEnabled}"
-															   IsVisible="{Binding IsNotEsDeMode}"
+													<CheckBox  Grid.Column="4" IsChecked="{Binding SfxEnabled}" VerticalAlignment="Center" Margin="3,0,0,0" IsEnabled="{Binding Enabled}"
+															   IsVisible="{Binding AreSuffixesAllowed}"
 															   ToolTip.Tip="When checked, the optional suffix will be appended to scraped files for this media type."/>
 												</Grid>
 											</DataTemplate>
@@ -712,7 +712,7 @@
 											Classes="rounded"
 											FontSize="{DynamicResource GlobalFontSize}"
 											Margin="0,0,4,0"
-											ToolTip.Tip="Rename the profile selected in the list above to this name"/>
+											ToolTip.Tip="Rename the selected profile"/>
 									<Button Grid.Column="3"
 											Content="Delete"
 											Command="{Binding DeleteProfileCommand}"
@@ -767,10 +767,10 @@
 								<Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
 									<TextBox Grid.Column="0"
 											 Text="{Binding NewProfileName}"
-											 PlaceholderText="Profile name…"
+											 PlaceholderText="Profile nameâ€¦"
 											 FontSize="{DynamicResource GlobalFontSize}"
 											 Margin="0,0,6,0"
-											 ToolTip.Tip="Enter a name for the new profile or the new name when renaming"/>
+											 ToolTip.Tip="Enter a name for the new profile"/>
 									<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
 										<Button Content="Create New"
 												Command="{Binding CreateNewProfileCommand}"

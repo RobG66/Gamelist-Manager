@@ -165,75 +165,6 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
     #endregion
 
-    // Design-time constructor
-    public ImageEditViewModel() : this(string.Empty)
-    {
-        SelectedTool = EditTool.Crop;
-    }
-
-    public ImageEditViewModel(string imagePath)
-    {
-        _imagePath = imagePath;
-    }
-
-    #region Public Methods
-
-    public async Task LoadAsync()
-    {
-        if (_disposed) return;
-
-        IsBusy = true;
-        var original = await Task.Run(() => SKBitmap.Decode(_imagePath));
-        if (_disposed) { original?.Dispose(); return; }
-        if (original == null) { CloseRequested?.Invoke(null); return; }
-
-        _originalBitmap = original;
-        _workingBitmap = _originalBitmap.Copy();
-        _isLoaded = true;
-        UpdateSizeText(_workingBitmap);
-        UpdateHasAlphaChannel();
-        UpdateImageInfo();
-        SelectedTool = EditTool.Crop;
-        IsBusy = false;
-    }
-
-    public void SetCropRectLive(int x, int y, int w, int h)
-    {
-        CropX = x; CropY = y; CropW = w; CropH = h;
-        MarkCropPending();
-        StatusText = $"Crop: {w} × {h}  at ({x}, {y})";
-    }
-
-    public void ZoomIn()
-        => ZoomLevel = Math.Min(MaxZoom, Math.Round(ZoomLevel * ZoomStep, 2));
-
-    public void ZoomOut()
-        => ZoomLevel = Math.Max(MinZoom, Math.Round(ZoomLevel / ZoomStep, 2));
-
-    public void ZoomFit(double viewportWidth, double viewportHeight)
-    {
-        if (DisplayImage == null || viewportWidth <= 0 || viewportHeight <= 0) return;
-        int imgW = DisplayImage.PixelSize.Width;
-        int imgH = DisplayImage.PixelSize.Height;
-        if (imgW <= 0 || imgH <= 0) return;
-        ZoomLevel = Math.Clamp(Math.Min(viewportWidth / imgW, viewportHeight / imgH),
-                               MinZoom, MaxZoom);
-    }
-
-    /// <summary>Called by the view when either refine slider is released.</summary>
-    public void CommitRefinePreview()
-    {
-        if (IsRefineTool) _ = UpdatePreviewAsync();
-    }
-
-    /// <summary>Called by the view when the resize slider is released.</summary>
-    public void CommitResizePreview()
-    {
-        if (IsResizeTool) _ = UpdatePreviewAsync();
-    }
-
-    #endregion
-
     #region Commands
 
     [RelayCommand(CanExecute = nameof(CanApply))]
@@ -483,6 +414,64 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         CropX = nx; CropY = ny; CropW = nw; CropH = nh;
         MarkCropPending();
         StatusText = $"Auto-crop: {nw} × {nh} — click Apply to confirm";
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    public async Task LoadAsync()
+    {
+        if (_disposed) return;
+
+        IsBusy = true;
+        var original = await Task.Run(() => SKBitmap.Decode(_imagePath));
+        if (_disposed) { original?.Dispose(); return; }
+        if (original == null) { CloseRequested?.Invoke(null); return; }
+
+        _originalBitmap = original;
+        _workingBitmap = _originalBitmap.Copy();
+        _isLoaded = true;
+        UpdateSizeText(_workingBitmap);
+        UpdateHasAlphaChannel();
+        UpdateImageInfo();
+        SelectedTool = EditTool.Crop;
+        IsBusy = false;
+    }
+
+    public void SetCropRectLive(int x, int y, int w, int h)
+    {
+        CropX = x; CropY = y; CropW = w; CropH = h;
+        MarkCropPending();
+        StatusText = $"Crop: {w} × {h}  at ({x}, {y})";
+    }
+
+    public void ZoomIn()
+        => ZoomLevel = Math.Min(MaxZoom, Math.Round(ZoomLevel * ZoomStep, 2));
+
+    public void ZoomOut()
+        => ZoomLevel = Math.Max(MinZoom, Math.Round(ZoomLevel / ZoomStep, 2));
+
+    public void ZoomFit(double viewportWidth, double viewportHeight)
+    {
+        if (DisplayImage == null || viewportWidth <= 0 || viewportHeight <= 0) return;
+        int imgW = DisplayImage.PixelSize.Width;
+        int imgH = DisplayImage.PixelSize.Height;
+        if (imgW <= 0 || imgH <= 0) return;
+        ZoomLevel = Math.Clamp(Math.Min(viewportWidth / imgW, viewportHeight / imgH),
+                               MinZoom, MaxZoom);
+    }
+
+    /// <summary>Called by the view when either refine slider is released.</summary>
+    public void CommitRefinePreview()
+    {
+        if (IsRefineTool) _ = UpdatePreviewAsync();
+    }
+
+    /// <summary>Called by the view when the resize slider is released.</summary>
+    public void CommitResizePreview()
+    {
+        if (IsResizeTool) _ = UpdatePreviewAsync();
     }
 
     #endregion
@@ -803,6 +792,21 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     partial void OnSmoothEdgesChanged(bool value)
     {
         if (IsRefineTool) _ = UpdatePreviewAsync();
+    }
+
+    #endregion
+
+    #region Constructor
+
+    // Design-time constructor
+    public ImageEditViewModel() : this(string.Empty)
+    {
+        SelectedTool = EditTool.Crop;
+    }
+
+    public ImageEditViewModel(string imagePath)
+    {
+        _imagePath = imagePath;
     }
 
     #endregion

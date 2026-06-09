@@ -11,18 +11,19 @@ namespace Gamelist_Manager.Models
 {
     public partial class SessionState : ObservableObject
     {
+        #region Singleton
+
         private static readonly Lazy<SessionState> _instance = new(() => new SessionState());
         public static SessionState Instance => _instance.Value;
 
+        #endregion
+
+        #region Constructor
+
         private bool _handlingSettingsChange;
-        private string? _esDeDetectedMediaRoot;
 
         private SessionState()
         {
-            // Prime the ES-DE media root cache on construction
-            _esDeDetectedMediaRoot = EsDePathResolver.ReadPathsFromEsDeSettings(
-                SettingsState.Instance.EsDeRoot).MediaDirectory;
-
             SettingsState.Instance.PropertyChanged += (_, e) =>
             {
                 if (_handlingSettingsChange) return;
@@ -31,15 +32,10 @@ namespace Gamelist_Manager.Models
                 {
                     switch (e.PropertyName)
                     {
-                        case nameof(SettingsState.RomsFolder):
+                        case nameof(SettingsState.RootRomFolder):
                             OnPropertyChanged(nameof(CurrentRomFolder));
-                            OnPropertyChanged(nameof(GamelistsRootFolder));
                             break;
-                        case nameof(SettingsState.EsDeRoot):
-                            _esDeDetectedMediaRoot = EsDePathResolver.ReadPathsFromEsDeSettings(
-                                SettingsState.Instance.EsDeRoot).MediaDirectory;
-                            OnPropertyChanged(nameof(GamelistsRootFolder));
-                            OnPropertyChanged(nameof(MediaRootFolder));
+                        case nameof(SettingsState.RootMediaFolder):
                             OnPropertyChanged(nameof(CurrentMediaFolder));
                             break;
                     }
@@ -51,7 +47,9 @@ namespace Gamelist_Manager.Models
             };
         }
 
-        // --- Current gamelist ---
+        #endregion
+
+        #region Current Gamelist
 
         [ObservableProperty] private string? _xmlFilename;
         [ObservableProperty] private string? _currentSystem;
@@ -60,7 +58,6 @@ namespace Gamelist_Manager.Models
         partial void OnXmlFilenameChanged(string? value)
         {
             OnPropertyChanged(nameof(CurrentRomFolder));
-            OnPropertyChanged(nameof(MediaRootFolder));
             OnPropertyChanged(nameof(CurrentMediaFolder));
         }
 
@@ -70,17 +67,23 @@ namespace Gamelist_Manager.Models
             OnPropertyChanged(nameof(CurrentMediaFolder));
         }
 
-        // --- Operation flags ---
+        #endregion
+
+        #region Operation Flags
 
         [ObservableProperty] private bool _isBusy;
         [ObservableProperty] private bool _isScraping;
         [ObservableProperty] private bool _enableEdit;
 
-        // --- Video playback ---
+        #endregion
+
+        #region Video Playback
 
         [ObservableProperty] private bool _videoUserPaused;
 
-        // --- Grid ---
+        #endregion
+
+        #region Grid
 
         public IList? SelectedItems { get; set; }
         public ObservableCollection<GameMetadataRow>? GamelistData { get; private set; }
@@ -92,64 +95,50 @@ namespace Gamelist_Manager.Models
             set => SetProperty(ref _filteredGamelistData, value);
         }
 
-        // --- Recent files ---
+        #endregion
+
+        #region Recent Files
 
         public ObservableCollection<RecentFileItem> RecentFiles { get; } = [];
 
-        // --- Available media ---
+        #endregion
+
+        #region Available Media
 
         public IReadOnlyList<AvailableMediaFolder> AvailableMedia { get; private set; } = [];
 
         public void RefreshAvailableMedia()
         {
             AvailableMedia = MediaPathResolver.BuildAvailableMedia(
-                ProfileType, CurrentSystem, CurrentMediaFolder, SettingsState.Instance.MediaPaths);
+                SettingsState.Instance.ProfileType, CurrentSystem, CurrentMediaFolder, SettingsState.Instance.MediaPaths);
             OnPropertyChanged(nameof(AvailableMedia));
         }
 
-        // --- Profile type ---
+        #endregion
 
-        [ObservableProperty] private string _profileType = SettingKeys.ProfileTypeEs;
-
-        partial void OnProfileTypeChanged(string value)
-        {
-            OnPropertyChanged(nameof(AvailableColumns));
-            OnPropertyChanged(nameof(AvailableToggleableColumns));
-            OnPropertyChanged(nameof(XmlPersistedFields));
-            OnPropertyChanged(nameof(GamelistsRootFolder));
-            OnPropertyChanged(nameof(CurrentRomFolder));
-            OnPropertyChanged(nameof(MediaRootFolder));
-            OnPropertyChanged(nameof(CurrentMediaFolder));
-        }
-
-        // --- Profile-filtered metadata ---
+        #region Profile
 
         public IReadOnlyList<MetaDataDecl> AvailableColumns => MetadataService.GetColumnDeclarations();
         public IReadOnlyList<MetaDataDecl> AvailableToggleableColumns => MetadataService.GetToggleableColumns();
-
         public IEnumerable<MetaDataDecl> XmlPersistedFields => MetadataService.GetXmlPersistedFields();
+        public bool GamelistHasMediaPaths =>
+            SettingKeys.GetProfileTypeOption(SettingsState.Instance.ProfileType).GamelistHasMediaPaths;
 
-        // --- Derived properties ---
-        
-        public string? CurrentRomFolder => ProfileType == SettingKeys.ProfileTypeEsDe
-            ? FilePathHelper.CurrentRomFolder(SettingsState.Instance.RomsFolder, CurrentSystem)
+        #endregion
+
+        #region Derived Current Properties
+
+        public string? CurrentRomFolder => SettingsState.Instance.ProfileType == SettingKeys.ProfileTypeEsDe
+            ? FilePathHelper.CurrentRomFolder(SettingsState.Instance.RootRomFolder, CurrentSystem)
             : Path.GetDirectoryName(XmlFilename);
 
-        public string? GamelistsRootFolder => ProfileType == SettingKeys.ProfileTypeEsDe
-            ? (string.IsNullOrEmpty(SettingsState.Instance.EsDeRoot)
-                ? null
-                : Path.Combine(SettingsState.Instance.EsDeRoot, "gamelists"))
-            : SettingsState.Instance.RomsFolder;
-
-        public string? MediaRootFolder => ProfileType == SettingKeys.ProfileTypeEsDe
-            ? _esDeDetectedMediaRoot
-            : Path.GetDirectoryName(Path.GetDirectoryName(XmlFilename));
-
-        public string? CurrentMediaFolder => string.IsNullOrEmpty(MediaRootFolder) || string.IsNullOrEmpty(CurrentSystem)
+        public string? CurrentMediaFolder => string.IsNullOrEmpty(SettingsState.Instance.RootMediaFolder) || string.IsNullOrEmpty(CurrentSystem)
             ? null
-            : Path.Combine(MediaRootFolder, CurrentSystem);
+            : Path.Combine(SettingsState.Instance.RootMediaFolder, CurrentSystem);
 
-        // --- Mutations ---
+        #endregion
+
+        #region Mutations
 
         public void SetGamelist(string xmlPath, string systemName, ObservableCollection<GameMetadataRow> data)
         {
@@ -168,5 +157,7 @@ namespace Gamelist_Manager.Models
             AvailableMedia = [];
             OnPropertyChanged(nameof(AvailableMedia));
         }
+
+        #endregion
     }
 }

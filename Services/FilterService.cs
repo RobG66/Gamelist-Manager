@@ -6,6 +6,8 @@ namespace Gamelist_Manager.Services
 {
     public static class FilterService
     {
+        #region Public Methods
+
         public static Func<GameMetadataRow, bool> MakeFilter(
             string filterItem,
             string filterText,
@@ -74,6 +76,10 @@ namespace Gamelist_Manager.Services
             };
         }
 
+        #endregion
+
+        #region Private Methods
+
         private static string? GetProperty(GameMetadataRow game, string propertyName)
         {
             var type = MetadataService.GetMetadataTypeByName(propertyName);
@@ -94,5 +100,7 @@ namespace Gamelist_Manager.Services
 
             return null;
         }
+
+        #endregion
     }
 }

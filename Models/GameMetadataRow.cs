@@ -11,28 +11,6 @@ namespace Gamelist_Manager.Models
         private readonly Dictionary<MetaDataKeys, object?> _values = new();
         #endregion
 
-        #region Public Methods
-        public object? GetValue(MetaDataKeys key)
-            => _values.TryGetValue(key, out var value) ? value : null;
-
-        public void SetValue(MetaDataKeys key, object? value)
-        {
-            if (_values.TryGetValue(key, out var existing) && Equals(existing, value))
-                return;
-
-            _values[key] = value;
-            OnPropertyChanged($"Item[{key}]");
-            var propName = MetadataService.GetPropertyName(key);
-            if (propName != null)
-                OnPropertyChanged(propName);
-
-            if (MetadataService.GetDeclByKey(key)?.IsMedia == true)
-                OnPropertyChanged(nameof(MissingMedia));
-        }
-
-        public void NotifyDataChanged() => OnPropertyChanged(string.Empty);
-        #endregion
-
         #region Public Properties
         private string GetString(MetaDataKeys key) => GetValue(key)?.ToString() ?? string.Empty;
         private bool GetBool(MetaDataKeys key) => GetValue(key) is true;
@@ -128,6 +106,28 @@ namespace Gamelist_Manager.Models
             return decl != null && string.IsNullOrEmpty(GetValue(decl.Key)?.ToString());
         })
         .Select(m => m.Name));
+        #endregion
+
+        #region Public Methods
+        public object? GetValue(MetaDataKeys key)
+            => _values.TryGetValue(key, out var value) ? value : null;
+
+        public void SetValue(MetaDataKeys key, object? value)
+        {
+            if (_values.TryGetValue(key, out var existing) && Equals(existing, value))
+                return;
+
+            _values[key] = value;
+            OnPropertyChanged($"Item[{key}]");
+            var propName = MetadataService.GetPropertyName(key);
+            if (propName != null)
+                OnPropertyChanged(propName);
+
+            if (MetadataService.GetDeclByKey(key)?.IsMedia == true)
+                OnPropertyChanged(nameof(MissingMedia));
+        }
+
+        public void NotifyDataChanged() => OnPropertyChanged(string.Empty);
         #endregion
     }
 }
