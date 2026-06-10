@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
+using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
 using System.Threading.Tasks;
 
@@ -11,6 +12,7 @@ public class WindowService : IWindowService
 
     private static WindowService? _instance;
     private Window? _owner;
+    private JukeboxView? _jukeboxView;
 
     #endregion
 
@@ -58,6 +60,34 @@ public class WindowService : IWindowService
         var clipboard = TopLevel.GetTopLevel(_owner)?.Clipboard;
         if (clipboard != null)
             await clipboard.SetTextAsync(text);
+    }
+
+    public async Task ShowJukeboxAsync(string[] mediaFiles)
+    {
+        if (_owner is null) return;
+
+        // Single instance — if already open, bring to front
+        if (_jukeboxView is { } existing && existing.IsVisible)
+        {
+            existing.Activate();
+            return;
+        }
+
+        var viewModel = new JukeboxViewModel();
+        var window = new JukeboxView { DataContext = viewModel };
+
+        // Clean up reference when the window closes
+        window.Closed += (_, _) => _jukeboxView = null;
+
+        _jukeboxView = window;
+
+        var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+        window.Loaded += (s, e) => tcs.TrySetResult(true);
+
+        window.Show(_owner);
+
+        await tcs.Task;
+        await viewModel.PlayMediaFilesAsync(mediaFiles, autoPlay: true);
     }
 
     #endregion

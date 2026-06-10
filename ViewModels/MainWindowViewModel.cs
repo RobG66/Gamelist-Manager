@@ -318,6 +318,55 @@ public partial class MainWindowViewModel : ViewModelBase
         catch { }
     }
 
+    [RelayCommand]
+    private Task OpenVideoJukeboxAsync() => OpenJukeboxAsync("video",
+        [".mp4", ".avi", ".mkv", ".webm", ".ogv", ".m4v", ".mov"],
+        "Video Jukebox", "video");
+
+    [RelayCommand]
+    private Task OpenMusicJukeboxAsync() => OpenJukeboxAsync("music",
+        [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
+        "Music Jukebox", "music");
+
+    private async Task OpenJukeboxAsync(string mediaType, string[] extensions, string title, string label)
+    {
+        var mediaFolder = _sessionState.AvailableMedia
+            .FirstOrDefault(m => m.Type == mediaType && m.MediaEnabled);
+
+        if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
+        {
+            await Views.ThreeButtonDialogView.ShowAsync(new Views.ThreeButtonDialogConfig
+            {
+                Title = title,
+                Message = $"No {label} folder is configured or the folder does not exist.",
+                IconTheme = Views.DialogIconTheme.Info,
+                Button1Text = "OK",
+                Button1Result = Views.ThreeButtonResult.Button1,
+            });
+            return;
+        }
+
+        var files = Directory.EnumerateFiles(mediaFolder.FolderPath)
+            .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (files.Length == 0)
+        {
+            await Views.ThreeButtonDialogView.ShowAsync(new Views.ThreeButtonDialogConfig
+            {
+                Title = title,
+                Message = $"No {label} files were found in:\n{mediaFolder.FolderPath}",
+                IconTheme = Views.DialogIconTheme.Info,
+                Button1Text = "OK",
+                Button1Result = Views.ThreeButtonResult.Button1,
+            });
+            return;
+        }
+
+        await _windowService.ShowJukeboxAsync(files);
+    }
+
     #endregion
 
     #region Private Methods

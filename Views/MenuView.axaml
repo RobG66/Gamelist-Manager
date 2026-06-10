@@ -223,9 +223,9 @@
 									<Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>
 							</MenuItem>
-							<Separator IsVisible="False"/>
+							<Separator/>
 							<MenuItem Header="Video Jukebox"
-									  IsVisible="False"
+									  Command="{Binding OpenVideoJukeboxCommand}"
 									  IsEnabled="{Binding IsGamelistLoaded}"
 									  ToolTip.Tip="Play videos from the gamelist">
 								<MenuItem.Icon>
@@ -233,7 +233,7 @@
 								</MenuItem.Icon>
 							</MenuItem>
 							<MenuItem Header="Music Jukebox"
-									  IsVisible="False"
+									  Command="{Binding OpenMusicJukeboxCommand}"
 									  IsEnabled="{Binding IsGamelistLoaded}"
 									  ToolTip.Tip="Play music from the gamelist">
 								<MenuItem.Icon>
