@@ -122,12 +122,11 @@ namespace Gamelist_Manager.Services
                         .Where(m => m.MediaEnabled)
                         .ToDictionary(
                             m => m.Type,
-                            m => (m.Suffix, m.SfxEnabled),
+                            m => (m.Suffix, m.IsSuffixEnabled),
                             StringComparer.OrdinalIgnoreCase)
-                    : new Dictionary<string, (string Suffix, bool SfxEnabled)>(StringComparer.OrdinalIgnoreCase)
+                    : new Dictionary<string, (string Suffix, bool IsSuffixEnabled)>(StringComparer.OrdinalIgnoreCase)
             };
 
-            parameters.BuildMetaLookup();
             return parameters;
         }
 

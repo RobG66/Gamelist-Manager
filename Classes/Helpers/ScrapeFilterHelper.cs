@@ -1,4 +1,5 @@
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,13 +30,12 @@ namespace Gamelist_Manager.Classes.Helpers
                     continue;
                 }
 
-                if (!parameters.MetaLookup!.TryGetValue(item, out var meta))
+                var decl = MetadataService.GetDeclByType(item);
+                if (decl == null)
                     continue;
 
-                var (type, _) = meta;
-
                 // Media with an existing gamelist path — skip if the file is on disk and not overwriting
-                if (type is "Image" or "Document" or "Video" &&
+                if (decl.IsMedia &&
                     parameters.MediaPaths != null &&
                     parameters.MediaPaths.TryGetValue(item, out string? folder) &&
                     !string.IsNullOrEmpty(folder))
@@ -75,7 +75,7 @@ namespace Gamelist_Manager.Classes.Helpers
                 }
 
                 // Remaining string metadata — only scrape if overwrite metadata is enabled
-                if (type == "String" && parameters.OverwriteMetadata)
+                if (decl.DataType == MetaDataType.String && parameters.OverwriteMetadata)
                     itemsToScrape.Add(item);
             }
 

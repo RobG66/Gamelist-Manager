@@ -24,6 +24,14 @@ public partial class GamelistPickerView : Window
         vm.CancelRequested += OnCancel;
     }
 
+    public static async System.Threading.Tasks.Task<SystemPickerItem?> ShowAsync(GamelistPickerViewModel vm, object? owner = null)
+    {
+        var windowOwner = owner as Window ?? (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        if (windowOwner == null) return null;
+        var view = new GamelistPickerView(vm);
+        return await view.ShowDialog<SystemPickerItem?>(windowOwner);
+    }
+
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);

@@ -223,23 +223,6 @@
 									<Image Source="/Assets/Icons/reset.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 								</MenuItem.Icon>
 							</MenuItem>
-							<Separator/>
-							<MenuItem Header="Video Jukebox"
-									  Command="{Binding OpenVideoJukeboxCommand}"
-									  IsEnabled="{Binding IsGamelistLoaded}"
-									  ToolTip.Tip="Play videos from the gamelist">
-								<MenuItem.Icon>
-									<Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-								</MenuItem.Icon>
-							</MenuItem>
-							<MenuItem Header="Music Jukebox"
-									  Command="{Binding OpenMusicJukeboxCommand}"
-									  IsEnabled="{Binding IsGamelistLoaded}"
-									  ToolTip.Tip="Play music from the gamelist">
-								<MenuItem.Icon>
-									<Image Source="/Assets/Icons/music.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
-								</MenuItem.Icon>
-							</MenuItem>
 						</MenuFlyout>
 					</Button.Flyout>
 					<StackPanel Orientation="Horizontal" Spacing="10">
@@ -772,6 +755,32 @@
 				<!-- Separator -->
 				<Border Height="1"
 						IsVisible="{Binding HasMultipleProfiles}"
+						Background="{DynamicResource SeparatorBrush}"
+						Margin="0,8"/>
+
+				<!-- Play Videos -->
+				<Button Classes="NavButton" Command="{Binding OpenVideoJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" ToolTip.Tip="Play videos from the gamelist">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Play Videos"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsMenuOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
+
+				<!-- Play Music -->
+				<Button Classes="NavButton" Command="{Binding OpenMusicJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" ToolTip.Tip="Play music from the gamelist">
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<Image Source="/Assets/Icons/music.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
+						<TextBlock Text="Play Music"
+								   VerticalAlignment="Center"
+								   IsVisible="{Binding IsMenuOpen}"
+								   Foreground="{DynamicResource NavButtonForeground}"/>
+					</StackPanel>
+				</Button>
+	
+							<Border Height="1"
 						Background="{DynamicResource SeparatorBrush}"
 						Margin="0,8"/>
 

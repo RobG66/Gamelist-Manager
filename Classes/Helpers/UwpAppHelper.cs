@@ -108,29 +108,13 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             if (!IsUwpSupported())
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Error",
-                    Message = "UWP apps are not supported on this version of Windows.",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowErrorAsync("Error", "UWP apps are not supported on this version of Windows.");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(appUserModelId) || string.IsNullOrWhiteSpace(filePath))
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Error",
-                    Message = "Invalid appUserModelId or file path.",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowErrorAsync("Error", "Invalid appUserModelId or file path.");
                 return false;
             }
 
@@ -149,15 +133,7 @@ namespace Gamelist_Manager.Classes.Helpers
             }
             catch (Exception ex)
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Error",
-                    Message = $"Failed to launch UWP app with file: {ex.Message}",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowErrorAsync("Error", $"Failed to launch UWP app with file: {ex.Message}");
             }
 
             return false;
@@ -175,10 +151,8 @@ namespace Gamelist_Manager.Classes.Helpers
 
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                // Just log, don't show dialog for fallback failures
-                Debug.WriteLine($"Failed to launch file with default handler: {ex.Message}");
                 return false;
             }
         }

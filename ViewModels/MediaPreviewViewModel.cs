@@ -143,26 +143,33 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     public async void InitializeLibVLC()
     {
-        if (IsLibVLCInitialized && LibVLC != null)
+        try
         {
-            InitializeVideosForCurrentGame();
-            return;
+            if (IsLibVLCInitialized && LibVLC != null)
+            {
+                InitializeVideosForCurrentGame();
+                return;
+            }
+
+            var token = _videoInitCts.Token;
+            var libVlc = await _libVlcInit.Value.ConfigureAwait(false);
+
+            if (_disposed || token.IsCancellationRequested) return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                LibVLC = libVlc;
+                IsLibVLCInitialized = LibVLC != null;
+                IsLibVLCMissing = LibVLC == null;
+
+                if (IsLibVLCInitialized)
+                    InitializeVideosForCurrentGame(token);
+            });
         }
-
-        var token = _videoInitCts.Token;
-        var libVlc = await _libVlcInit.Value.ConfigureAwait(false);
-
-        if (_disposed || token.IsCancellationRequested) return;
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        catch (Exception ex)
         {
-            LibVLC = libVlc;
-            IsLibVLCInitialized = LibVLC != null;
-            IsLibVLCMissing = LibVLC == null;
-
-            if (IsLibVLCInitialized)
-                InitializeVideosForCurrentGame(token);
-        });
+            SetStatus($"Error initializing video player: {ex.Message}", "error");
+        }
     }
 
     public void SuspendVideo()
@@ -206,7 +213,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             var romPath = SelectedGame.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             var romName = FilePathHelper.NormalizeRomName(romPath);
             var extension = Path.GetExtension(newPath);
-            var suffix = mediaFolder.SfxEnabled && !string.IsNullOrEmpty(mediaFolder.Suffix)
+            var suffix = mediaFolder.IsSuffixEnabled && !string.IsNullOrEmpty(mediaFolder.Suffix)
                 ? $"-{mediaFolder.Suffix}"
                 : string.Empty;
             var destFileName = $"{romName}{suffix}{extension}";

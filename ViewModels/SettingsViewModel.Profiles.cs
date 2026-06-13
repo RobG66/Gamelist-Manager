@@ -121,17 +121,14 @@ public partial class SettingsViewModel
         NewProfileName = string.Empty;
         RefreshProfileList();
 
-        var activate = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Activate Profile",
-            Message = $"Would you like to make '{profileName}' the active profile?",
-            IconTheme = DialogIconTheme.Info,
-            Button1Text = "No",
-            Button2Text = "",
-            Button3Text = "Yes"
-        });
-
-        if (activate != ThreeButtonResult.Button3) return;
+        var activate = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Activate Profile",
+            $"Would you like to make '{profileName}' the active profile?",
+            confirmText: "Yes",
+            cancelText: "No",
+            icon: DialogIconTheme.Info);
+        
+        if (!activate) return;
 
         var gamelistLoaded = WeakReferenceMessenger.Default.Send(new GamelistLoadedRequestMessage()).Response;
 
@@ -171,18 +168,15 @@ public partial class SettingsViewModel
     [RelayCommand(CanExecute = nameof(CanDeleteProfile))]
     private async Task DeleteProfile()
     {
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Delete Profile",
-            Message = $"Delete profile '{SelectedProfileName}'?",
-            DetailMessage = "This cannot be undone.",
-            IconTheme = DialogIconTheme.Warning,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Delete"
-        });
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Delete Profile",
+            $"Delete profile '{SelectedProfileName}'?",
+            confirmText: "Delete",
+            cancelText: "Cancel",
+            icon: DialogIconTheme.Warning,
+            detail: "This cannot be undone.");
 
-        if (result != ThreeButtonResult.Button3) return;
+        if (!result) return;
 
         if (!ProfileService.Instance.DeleteProfile(SelectedProfileName)) return;
         RefreshProfileList();
@@ -245,18 +239,15 @@ public partial class SettingsViewModel
 
         if (ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase))
         {
-            var overwriteResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Profile Already Exists",
-                Message = $"A profile named '{NewProfileName.Trim()}' already exists.",
-                DetailMessage = "Do you want to overwrite it?",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Overwrite"
-            });
+            var overwriteResult = await ThreeButtonDialogView.ShowConfirmAsync(
+                "Profile Already Exists",
+                $"A profile named '{NewProfileName.Trim()}' already exists.",
+                confirmText: "Overwrite",
+                cancelText: "Cancel",
+                icon: DialogIconTheme.Warning,
+                detail: "Do you want to overwrite it?");
 
-            if (overwriteResult != ThreeButtonResult.Button3) return;
+            if (!overwriteResult) return;
             DoCreateFromTemplate(overwrite: true);
             return;
         }

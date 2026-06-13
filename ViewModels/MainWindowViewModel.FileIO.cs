@@ -1,6 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
@@ -54,13 +51,16 @@ public partial class MainWindowViewModel
     {
         if (Games.Count == 0) return;
 
-        var mainWindow = GetMainWindow();
+        var mainWindow = _windowOwnerProvider.GetMainWindowOwner();
         if (mainWindow == null) return;
 
         var options = await ExportCsvOptionsView.ShowAsync(mainWindow);
         if (options == null) return;
 
-        var file = await mainWindow.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        var storageProvider = _windowOwnerProvider.GetStorageProvider();
+        if (storageProvider == null) return;
+
+        var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Export Gamelist to CSV",
             DefaultExtension = "csv",
@@ -78,27 +78,11 @@ public partial class MainWindowViewModel
         try
         {
             await Task.Run(() => ExportDataToCsv(filePath, Games.ToList(), options));
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Export Successful",
-                Message = $"Gamelist exported to CSV successfully.\nFile: {filePath}",
-                IconTheme = DialogIconTheme.Info,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            }, mainWindow);
+            await ThreeButtonDialogView.ShowInfoAsync("Export Successful", $"Gamelist exported to CSV successfully.\nFile: {filePath}", owner: mainWindow);
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Export Failed",
-                Message = $"Failed to export gamelist to CSV.\nError: {ex.Message}",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            }, mainWindow);
+            await ThreeButtonDialogView.ShowErrorAsync("Export Failed", $"Failed to export gamelist to CSV.\nError: {ex.Message}", owner: mainWindow);
         }
     }
 
@@ -117,17 +101,20 @@ public partial class MainWindowViewModel
         {
             if (!await CheckUnsavedChangesAsync()) return;
 
-            var topLevel = GetMainWindow();
+            var topLevel = _windowOwnerProvider.GetMainWindowOwner();
             if (topLevel == null) return;
+
+            var storageProvider = _windowOwnerProvider.GetStorageProvider();
+            if (storageProvider == null) return;
 
             var backupFolder = Path.Combine(AppContext.BaseDirectory, BackupFolderName);
             Directory.CreateDirectory(backupFolder);
 
             IStorageFolder? suggestedStart = null;
             if (Directory.Exists(backupFolder))
-                suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(backupFolder);
+                suggestedStart = await storageProvider.TryGetFolderFromPathAsync(backupFolder);
 
-            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Load Gamelist Backup",
                 AllowMultiple = false,
@@ -145,31 +132,14 @@ public partial class MainWindowViewModel
 
             if (!backupPath.StartsWith(backupFolder, FilePathHelper.PathComparison))
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Invalid Backup",
-                    Message = "The selected file is not from the Gamelist Backups folder.",
-                    DetailMessage = $"Please select a backup from:\n{backupFolder}",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowWarningAsync("Invalid Backup", "The selected file is not from the Gamelist Backups folder.", detail: $"Please select a backup from:\n{backupFolder}");
                 return;
             }
 
             var systemName = Path.GetFileName(Path.GetDirectoryName(backupPath));
             if (string.IsNullOrEmpty(systemName))
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Restore Failed",
-                    Message = "Could not determine the system name from the backup path.",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowErrorAsync("Restore Failed", "Could not determine the system name from the backup path.");
                 return;
             }
 
@@ -209,8 +179,6 @@ public partial class MainWindowViewModel
             bool success = await Task.Run(() =>
             {
                 var backupPath = CreateBackupBeforeSave(filename, system);
-                if (backupPath != null)
-                    System.Diagnostics.Debug.WriteLine($"Backup created: {backupPath}");
                 return GamelistService.SaveGamelist(filename, allGames);
             });
 
@@ -227,28 +195,12 @@ public partial class MainWindowViewModel
             }
             else
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Save Failed",
-                    Message = "Failed to save the gamelist. Please check file permissions and disk space.",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowErrorAsync("Save Failed", "Failed to save the gamelist. Please check file permissions and disk space.");
             }
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Save Error",
-                Message = $"An error occurred while saving the gamelist.\nError: {ex.Message}",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("Save Error", $"An error occurred while saving the gamelist.\nError: {ex.Message}");
         }
         finally
         {
@@ -264,8 +216,11 @@ public partial class MainWindowViewModel
         {
             if (!await CheckUnsavedChangesAsync()) return;
 
-            var topLevel = GetMainWindow();
+            var topLevel = _windowOwnerProvider.GetMainWindowOwner();
             if (topLevel == null) return;
+
+            var storageProvider = _windowOwnerProvider.GetStorageProvider();
+            if (storageProvider == null) return;
 
             IStorageFolder? suggestedStart = null;
             try
@@ -273,11 +228,11 @@ public partial class MainWindowViewModel
                 var startPath = _settingsState.RootGamelistFolder;
 
                 if (startPath != null && Directory.Exists(startPath))
-                    suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
+                    suggestedStart = await storageProvider.TryGetFolderFromPathAsync(new Uri("file://" + startPath));
             }
             catch { }
 
-            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Load Gamelist XML",
                 AllowMultiple = false,
@@ -366,25 +321,15 @@ public partial class MainWindowViewModel
 
             if (candidates.Count == 0)
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "New Gamelist",
-                    Message = "No recognised system folders found.",
-                    DetailMessage = "Make sure your ROMs folder contains system subfolders that match known systems.",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowWarningAsync("New Gamelist", "No recognised system folders found.", detail: "Make sure your ROMs folder contains system subfolders that match known systems.");
                 return;
             }
 
-            var mainWindow = GetMainWindow();
+            var mainWindow = _windowOwnerProvider.GetMainWindowOwner();
             if (mainWindow == null) return;
 
             var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: true);
-            var picker = new GamelistPickerView(pickerVm);
-            var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
+            var selected = await GamelistPickerView.ShowAsync(pickerVm, mainWindow);
 
             pickerVm.Cleanup();
 
@@ -392,17 +337,14 @@ public partial class MainWindowViewModel
 
             if (selected.HasGamelist)
             {
-                var confirm = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Gamelist Already Exists",
-                    Message = $"A gamelist already exists for '{selected.Name}'.",
-                    DetailMessage = "Creating a new one will replace it. Do you want to continue?",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "Cancel",
-                    Button2Text = "",
-                    Button3Text = "Continue"
-                });
-                if (confirm != ThreeButtonResult.Button3) return;
+                var confirm = await ThreeButtonDialogView.ShowConfirmAsync(
+                    "Gamelist Already Exists",
+                    $"A gamelist already exists for '{selected.Name}'.",
+                    confirmText: "Continue",
+                    cancelText: "Cancel",
+                    icon: DialogIconTheme.Warning,
+                    detail: "Creating a new one will replace it. Do you want to continue?");
+                if (!confirm) return;
             }
 
             UnloadGamelist();
@@ -465,25 +407,15 @@ public partial class MainWindowViewModel
 
             if (candidates.Count == 0 || !candidates.Any(c => c.HasGamelist))
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Open Gamelist",
-                    Message = "No gamelists found.",
-                    DetailMessage = "No recognised system folders with a gamelist were found.",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowWarningAsync("Open Gamelist", "No gamelists found.", detail: "No recognised system folders with a gamelist were found.");
                 return;
             }
 
-            var mainWindow = GetMainWindow();
+            var mainWindow = _windowOwnerProvider.GetMainWindowOwner();
             if (mainWindow == null) return;
 
             var pickerVm = new GamelistPickerViewModel(candidates, showAllSystems: false);
-            var picker = new GamelistPickerView(pickerVm);
-            var selected = await picker.ShowDialog<SystemPickerItem?>(mainWindow);
+            var selected = await GamelistPickerView.ShowAsync(pickerVm, mainWindow);
 
             pickerVm.Cleanup();
 
@@ -527,10 +459,7 @@ public partial class MainWindowViewModel
                 .ToList());
     }
 
-    private Window? GetMainWindow() =>
-        Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            ? desktop.MainWindow
-            : null;
+
 
     private async Task LoadSystemsAsync()
     {
@@ -604,10 +533,10 @@ public partial class MainWindowViewModel
         if (!_sessionState.IsDataChanged || !_settingsState.EnableSaveReminder)
             return true;
 
-        var mainWindow = GetMainWindow();
+        var mainWindow = _windowOwnerProvider.GetMainWindowOwner();
         if (mainWindow == null) return true;
 
-        var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
         {
             Title = "Unsaved Changes",
             Message = "You have unsaved changes to the current gamelist.",
@@ -616,9 +545,7 @@ public partial class MainWindowViewModel
             Button1Text = "Cancel",
             Button2Text = "Don't Save",
             Button3Text = "Save"
-        });
-
-        var result = await dialog.ShowDialog<ThreeButtonResult>(mainWindow);
+        }, mainWindow);
 
         return result switch
         {
@@ -633,16 +560,7 @@ public partial class MainWindowViewModel
 
         if (!File.Exists(filePath))
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "File Not Found",
-                Message = "The gamelist file could not be found.",
-                DetailMessage = filePath,
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("File Not Found", "The gamelist file could not be found.", detail: filePath);
             return false;
         }
 
@@ -657,9 +575,8 @@ public partial class MainWindowViewModel
             {
                 (loadedGames, duplicates) = await Task.Run(() => GamelistService.LoadGamelist(filePath, _settingsState.IgnoreDuplicates));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Load error: {ex.Message}");
                 FileStatusText = $"Load failed: {filePath}";
                 LastModifiedText = string.Empty;
                 return false;
@@ -671,16 +588,7 @@ public partial class MainWindowViewModel
                 if (duplicates.Count > 10)
                     detail += $"\n...and {duplicates.Count - 10} more";
 
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Duplicate Entries Detected",
-                    Message = "Duplicate entries were found in the gamelist. ROM paths should be unique.",
-                    DetailMessage = detail,
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowWarningAsync("Duplicate Entries Detected", "Duplicate entries were found in the gamelist. ROM paths should be unique.", detail: detail);
             }
 
             var systemName = Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "unknown";
@@ -786,9 +694,8 @@ public partial class MainWindowViewModel
             File.Copy(gamelistPath, backupPath, overwrite: false);
             return backupPath;
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"Backup failed: {ex.Message}");
             return null;
         }
     }

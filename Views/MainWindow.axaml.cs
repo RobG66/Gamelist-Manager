@@ -90,32 +90,22 @@ public partial class MainWindow : Window
             if (_sessionState.IsScraping)
             {
                 e.Cancel = true;
-                await new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                {
-                    Title = "Scraping in Progress",
-                    Message = "Scraping is currently in progress.",
-                    DetailMessage = "Please stop the scraper before closing the application.",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                }).ShowDialog<ThreeButtonResult>(this);
+                await ThreeButtonDialogView.ShowWarningAsync(
+                    "Scraping in Progress",
+                    "Scraping is currently in progress.",
+                    detail: "Please stop the scraper before closing the application.",
+                    owner: this);
                 return;
             }
 
             if (_sessionState.IsBusy)
             {
                 e.Cancel = true;
-                await new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                {
-                    Title = "Save in Progress",
-                    Message = "The gamelist is currently being saved.",
-                    DetailMessage = "Please wait until the save has completed before closing.",
-                    IconTheme = DialogIconTheme.Warning,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                }).ShowDialog<ThreeButtonResult>(this);
+                await ThreeButtonDialogView.ShowWarningAsync(
+                    "Save in Progress",
+                    "The gamelist is currently being saved.",
+                    detail: "Please wait until the save has completed before closing.",
+                    owner: this);
                 return;
             }
 
@@ -143,13 +133,14 @@ public partial class MainWindow : Window
             viewModel.DisposeMediaPreview();
             viewModel.ScraperPanelViewModel?.Dispose();
 
+            WindowService.Instance.CloseJukebox();
+
             SaveWindowStateToSettings();
             Closing -= MainWindow_Closing;
             Close();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine($"Error during window closing: {ex.Message}");
             Closing -= MainWindow_Closing;
             Close();
         }
@@ -238,17 +229,24 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object? sender, EventArgs e)
     {
-        ThemeService.ApplyDataGridAppearance(GameDataGrid, _settingsState.AlternatingRowColorIndex, _settingsState.GridLinesVisibilityIndex);
-        ThemeService.ApplyDataGridColumnWidths(GameDataGrid, _settingsState.GridFontSize);
-
-        if (DataContext is MainWindowViewModel vm)
+        try
         {
-            vm.UpdateSearchableColumns(GetVisibleColumnNames());
-            await vm.ResolveMissingProfileAsync();
-        }
+            ThemeService.ApplyDataGridAppearance(GameDataGrid, _settingsState.AlternatingRowColorIndex, _settingsState.GridLinesVisibilityIndex);
+            ThemeService.ApplyDataGridColumnWidths(GameDataGrid, _settingsState.GridFontSize);
 
-        foreach (var column in GameDataGrid.Columns)
-            column.PropertyChanged += DataGridColumn_PropertyChanged;
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.UpdateSearchableColumns(GetVisibleColumnNames());
+                await vm.ResolveMissingProfileAsync();
+            }
+
+            foreach (var column in GameDataGrid.Columns)
+                column.PropertyChanged += DataGridColumn_PropertyChanged;
+        }
+        catch (Exception ex)
+        {
+            await ThreeButtonDialogView.ShowErrorAsync("Load Error", "An error occurred while loading the main window.", detail: ex.Message, owner: this);
+        }
     }
 
     private void TrackRestoredBounds()

@@ -49,52 +49,54 @@ namespace Gamelist_Manager.Views
 
         private async void SettingsWindow_Closing(object? sender, CancelEventArgs e)
         {
-            if (!ViewModel.SettingsChanged)
+            try
             {
-                KeyDown -= SettingsWindow_KeyDown;
-                Closing -= SettingsWindow_Closing;
-                return;
-            }
-
-            e.Cancel = true;
-
-            var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
-            {
-                Title = "Save Settings",
-                Message = "Do you want to save changes to settings?",
-                DetailMessage = "You have unsaved changes that will be lost if you don't save.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "Don't Save",
-                Button3Text = "Save"
-            });
-            var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-
-            if (result == ThreeButtonResult.Button1) return;
-
-            if (result == ThreeButtonResult.Button3)
-            {
-                var errors = ViewModel.ValidateAndTrimPaths();
-                if (errors.Count > 0)
+                if (!ViewModel.SettingsChanged)
                 {
-                    await new ThreeButtonDialogView(new ThreeButtonDialogConfig
-                    {
-                        Title = "Validation Error",
-                        Message = "Settings could not be saved due to the following issues:",
-                        DetailMessage = string.Join("\n", errors),
-                        IconTheme = DialogIconTheme.Error,
-                        Button1Text = "",
-                        Button2Text = "",
-                        Button3Text = "OK"
-                    }).ShowDialog<ThreeButtonResult>(this);
+                    KeyDown -= SettingsWindow_KeyDown;
+                    Closing -= SettingsWindow_Closing;
                     return;
                 }
-                ViewModel.SaveSettings();
-            }
 
-            KeyDown -= SettingsWindow_KeyDown;
-            Closing -= SettingsWindow_Closing;
-            Close();
+                e.Cancel = true;
+
+                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                {
+                    Title = "Save Settings",
+                    Message = "Do you want to save changes to settings?",
+                    DetailMessage = "You have unsaved changes that will be lost if you don't save.",
+                    IconTheme = DialogIconTheme.Warning,
+                    Button1Text = "Cancel",
+                    Button2Text = "Don't Save",
+                    Button3Text = "Save"
+                });
+                var result = await dialog.ShowDialog<ThreeButtonResult>(this);
+
+                if (result == ThreeButtonResult.Button1) return;
+
+                if (result == ThreeButtonResult.Button3)
+                {
+                    var errors = ViewModel.ValidateAndTrimPaths();
+                    if (errors.Count > 0)
+                    {
+                        await ThreeButtonDialogView.ShowErrorAsync(
+                            "Validation Error",
+                            "Settings could not be saved due to the following issues:",
+                            detail: string.Join("\n", errors),
+                            owner: this);
+                        return;
+                    }
+                    ViewModel.SaveSettings();
+                }
+
+                KeyDown -= SettingsWindow_KeyDown;
+                Closing -= SettingsWindow_Closing;
+                Close();
+            }
+            catch (Exception ex)
+            {
+                await ThreeButtonDialogView.ShowErrorAsync("Error", "An unexpected error occurred while closing settings.", detail: ex.Message, owner: this);
+            }
         }
 
         private void SettingsWindow_KeyDown(object? sender, KeyEventArgs e)
@@ -112,29 +114,30 @@ namespace Gamelist_Manager.Views
 
         private async void ButtonSave_Click(object? sender, RoutedEventArgs e)
         {
-            var errors = ViewModel.ValidateAndTrimPaths();
-            if (errors.Count > 0)
+            try
             {
-                var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+                var errors = ViewModel.ValidateAndTrimPaths();
+                if (errors.Count > 0)
                 {
-                    Title = "Validation Error",
-                    Message = "Settings could not be saved due to the following issues:",
-                    DetailMessage = string.Join("\n", errors),
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
-                await dialog.ShowDialog<ThreeButtonResult>(this);
-                return;
+                    await ThreeButtonDialogView.ShowErrorAsync(
+                        "Validation Error",
+                        "Settings could not be saved due to the following issues:",
+                        detail: string.Join("\n", errors),
+                        owner: this);
+                    return;
+                }
+
+                ViewModel.SaveSettings();
+
+                // Resize window to match the (possibly changed) font size
+                var scale = ViewModel.AppFontSize / BASE_FONT_SIZE;
+                Width = Math.Round(BASE_WIDTH * scale);
+                Height = Math.Round(BASE_HEIGHT * scale);
             }
-
-            ViewModel.SaveSettings();
-
-            // Resize window to match the (possibly changed) font size
-            var scale = ViewModel.AppFontSize / BASE_FONT_SIZE;
-            Width = Math.Round(BASE_WIDTH * scale);
-            Height = Math.Round(BASE_HEIGHT * scale);
+            catch (Exception ex)
+            {
+                await ThreeButtonDialogView.ShowErrorAsync("Save Error", "An error occurred while saving settings.", detail: ex.Message, owner: this);
+            }
         }
 
         private void ButtonClose_Click(object? sender, RoutedEventArgs e) => Close();
@@ -143,90 +146,115 @@ namespace Gamelist_Manager.Views
 
         private async void ButtonResetAll_Click(object? sender, RoutedEventArgs e)
         {
-            var dialog = new ThreeButtonDialogView(new ThreeButtonDialogConfig
+            try
             {
-                Title = "Reset All Settings",
-                Message = "Are you sure you want to reset all settings to defaults?",
-                DetailMessage = "This action cannot be undone. All your customizations will be lost.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Reset"
-            });
+                var result = await ThreeButtonDialogView.ShowConfirmAsync(
+                    "Reset All Settings",
+                    "Are you sure you want to reset all settings to defaults?",
+                    confirmText: "Reset",
+                    cancelText: "Cancel",
+                    icon: DialogIconTheme.Warning,
+                    detail: "This action cannot be undone. All your customizations will be lost.",
+                    owner: this);
 
-            var result = await dialog.ShowDialog<ThreeButtonResult>(this);
-            if (result == ThreeButtonResult.Button3)
+                if (result)
+                {
+                    ViewModel.ResetAllSettings();
+                    ViewModel.SettingsChanged = true;
+                }
+            }
+            catch (Exception ex)
             {
-                ViewModel.ResetAllSettings();
-                ViewModel.SettingsChanged = true;
+                await ThreeButtonDialogView.ShowErrorAsync("Reset Error", "An error occurred while resetting settings.", detail: ex.Message, owner: this);
             }
         }
 
         private async void BrowseRomsFolder_Click(object? sender, RoutedEventArgs e)
         {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return;
+            try
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel == null) return;
 
-            var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
-                new Avalonia.Platform.Storage.FolderPickerOpenOptions
-                {
-                    Title = "Select ROMs Folder",
-                    AllowMultiple = false
-                });
+                var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
+                    new Avalonia.Platform.Storage.FolderPickerOpenOptions
+                    {
+                        Title = "Select ROMs Folder",
+                        AllowMultiple = false
+                    });
 
-            if (folders.Count > 0)
-                ViewModel.RomsPath = folders[0].Path.LocalPath;
+                if (folders.Count > 0)
+                    ViewModel.RomsPath = folders[0].Path.LocalPath;
+            }
+            catch (Exception ex)
+            {
+                await ThreeButtonDialogView.ShowErrorAsync("Folder Selection Error", "An error occurred while opening the folder picker.", detail: ex.Message, owner: this);
+            }
         }
 
         private async void BrowseMameExecutable_Click(object? sender, RoutedEventArgs e)
         {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return;
+            try
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel == null) return;
 
-            var files = await topLevel.StorageProvider.OpenFilePickerAsync(
-                new Avalonia.Platform.Storage.FilePickerOpenOptions
-                {
-                    Title = "Select MAME Executable",
-                    AllowMultiple = false,
-                    FileTypeFilter = new[]
+                var files = await topLevel.StorageProvider.OpenFilePickerAsync(
+                    new Avalonia.Platform.Storage.FilePickerOpenOptions
                     {
-                        new Avalonia.Platform.Storage.FilePickerFileType("Executable Files")
+                        Title = "Select MAME Executable",
+                        AllowMultiple = false,
+                        FileTypeFilter = new[]
                         {
-                            Patterns = new[] { "*.exe", "*" }
+                            new Avalonia.Platform.Storage.FilePickerFileType("Executable Files")
+                            {
+                                Patterns = new[] { "*.exe", "*" }
+                            }
                         }
-                    }
-                });
+                    });
 
-            if (files.Count > 0)
-                ViewModel.MamePath = files[0].Path.LocalPath;
+                if (files.Count > 0)
+                    ViewModel.MamePath = files[0].Path.LocalPath;
+            }
+            catch (Exception ex)
+            {
+                await ThreeButtonDialogView.ShowErrorAsync("File Selection Error", "An error occurred while opening the file picker.", detail: ex.Message, owner: this);
+            }
         }
 
         private async void BrowseMediaFolder_Click(object? sender, RoutedEventArgs e)
         {
-            if (sender is not Button { DataContext: Gamelist_Manager.Models.MediaFolderItem item }) return;
-
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return;
-
-            var locationPath = _sessionState.CurrentRomFolder
-                ?? _settingsState.RootRomFolder;
-
-            IStorageFolder? startLocation = null;
-            if (locationPath != null)
+            try
             {
-                startLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(locationPath);
-            }
+                if (sender is not Button { DataContext: Gamelist_Manager.Models.MediaFolderItem item }) return;
 
-            var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
-                new Avalonia.Platform.Storage.FolderPickerOpenOptions
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel == null) return;
+
+                var locationPath = _sessionState.CurrentRomFolder
+                    ?? _settingsState.RootRomFolder;
+
+                IStorageFolder? startLocation = null;
+                if (locationPath != null)
                 {
-                    SuggestedStartLocation = startLocation,
-                    Title = "Select Media Folder",
-                    AllowMultiple = false
-                });
+                    startLocation = await topLevel.StorageProvider.TryGetFolderFromPathAsync(locationPath);
+                }
 
-            if (folders.Count > 0)
-                item.Path = folders[0].Path.LocalPath;
+                var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(
+                    new Avalonia.Platform.Storage.FolderPickerOpenOptions
+                    {
+                        SuggestedStartLocation = startLocation,
+                        Title = "Select Media Folder",
+                        AllowMultiple = false
+                    });
+
+                if (folders.Count > 0)
+                    item.Path = folders[0].Path.LocalPath;
+            }
+            catch (Exception ex)
+            {
+                await ThreeButtonDialogView.ShowErrorAsync("Folder Selection Error", "An error occurred while opening the folder picker.", detail: ex.Message, owner: this);
+            }
         }
 
         #endregion

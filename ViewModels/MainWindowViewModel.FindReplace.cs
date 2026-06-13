@@ -166,15 +166,7 @@ public partial class MainWindowViewModel
         if (match == null)
         {
             _findMatchIndex = -1;
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Find",
-                Message = $"No match found for \"{FindText}\".",
-                IconTheme = DialogIconTheme.Info,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowInfoAsync("Find", $"No match found for \"{FindText}\".");
             return;
         }
 
@@ -191,15 +183,7 @@ public partial class MainWindowViewModel
         if (matches.Count == 0)
         {
             _findMatchIndex = -1;
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Replace",
-                Message = $"No match found for \"{FindText}\".",
-                IconTheme = DialogIconTheme.Info,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowInfoAsync("Replace", $"No match found for \"{FindText}\".");
             return;
         }
 
@@ -238,49 +222,30 @@ public partial class MainWindowViewModel
         if (matches.Count == 0)
         {
             _findMatchIndex = -1;
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Replace All",
-                Message = $"No match found for \"{FindText}\".",
-                IconTheme = DialogIconTheme.Info,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowInfoAsync("Replace All", $"No match found for \"{FindText}\".");
             return;
         }
 
         if (_settingsState.ConfirmBulkChanges)
         {
             var totalOccurrences = CountReplacementOccurrences(matches, SelectedFindColumn!, FindText);
-            var occurrenceLabel = totalOccurrences == 1 ? "occurrence" : "occurrences";
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Replace All",
-                Message = $"Replace {totalOccurrences} {occurrenceLabel} of \"{FindText}\" in column \"{SelectedFindColumn}\" with \"{ReplaceToText}\"?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button2Text = "",
-                Button3Text = "Yes"
-            });
-            if (result != ThreeButtonResult.Button3) return;
+            var result = await ThreeButtonDialogView.ShowConfirmAsync(
+                "Replace All",
+                $"Are you sure you want to replace all occurrences of \"{FindText}\" with \"{ReplaceToText}\" in the {(ReplaceAllItems ? "all" : "selected")} items?",
+                confirmText: "Yes",
+                cancelText: "No",
+                icon: DialogIconTheme.Question);
+
+            if (!result) return;
         }
 
         var replaced = PerformReplaceInRows(matches, SelectedFindColumn!, FindText, ReplaceToText);
         _findMatchIndex = -1;
 
         var replacedLabel = replaced == 1 ? "occurrence" : "occurrences";
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Replace All",
-            Message = replaced > 0
-                ? $"Replaced {replaced} {replacedLabel} of \"{FindText}\"."
-                : "No text was replaced.",
-            IconTheme = DialogIconTheme.Info,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        await ThreeButtonDialogView.ShowInfoAsync("Replace All", replaced > 0
+            ? $"Replaced {replaced} {replacedLabel} of \"{FindText}\"."
+            : "No text was replaced.");
     }
 
     #endregion

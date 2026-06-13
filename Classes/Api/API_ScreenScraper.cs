@@ -1,4 +1,4 @@
-﻿using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
@@ -153,7 +153,7 @@ namespace Gamelist_Manager.Classes.Api
             if (string.IsNullOrEmpty(userID) || string.IsNullOrEmpty(userPassword))
                 return (false, 0, "User ID and password are required");
 
-            string url = $"{ApiUrl}/ssuserInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={userID}&sspassword={userPassword}";
+            string url = $"{ApiUrl}/ssuserInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={Uri.EscapeDataString(userID)}&sspassword={Uri.EscapeDataString(userPassword)}";
 
             var (success, xml, fetchError) = await FetchFromApi(url);
 
@@ -198,7 +198,7 @@ namespace Gamelist_Manager.Classes.Api
 
         private string BuildScrapeUrl(ScraperParameters parameters, string romName)
         {
-            string baseUrl = $"{ApiUrl}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={parameters.UserID}&sspassword={parameters.UserPassword}&systemeid={parameters.SystemID}";
+            string baseUrl = $"{ApiUrl}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={Uri.EscapeDataString(parameters.UserID ?? string.Empty)}&sspassword={Uri.EscapeDataString(parameters.UserPassword ?? string.Empty)}&systemeid={parameters.SystemID}";
 
             if (!string.IsNullOrEmpty(parameters.GameID))
             {
@@ -236,7 +236,7 @@ namespace Gamelist_Manager.Classes.Api
                 return string.Empty;
 
             string scrapInfo = $"&romtype=rom&romnom={Uri.EscapeDataString(parameters.RomName)}";
-            return $"{ApiUrl}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={parameters.UserID}&sspassword={parameters.UserPassword}&systemeid={parameters.SystemID}{scrapInfo}";
+            return $"{ApiUrl}/jeuInfos.php?devid={_devId}&devpassword={_devPassword}&softname={Software}&output=xml&ssid={Uri.EscapeDataString(parameters.UserID ?? string.Empty)}&sspassword={Uri.EscapeDataString(parameters.UserPassword ?? string.Empty)}&systemeid={parameters.SystemID}{scrapInfo}";
         }
 
         private static void AddMedia(ScrapedGameData data, ScrapedGameData.MediaResult? media)

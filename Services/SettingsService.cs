@@ -57,22 +57,22 @@ namespace Gamelist_Manager.Services
             try
             {
                 var sections = Cache();
-                return sections.TryGetValue(section, out var s) && s.TryGetValue(key, out var v)
-                    ? v : defaultValue;
+                return sections.TryGetValue(section, out var sectionDict) && sectionDict.TryGetValue(key, out var value)
+                    ? value : defaultValue;
             }
             catch { return defaultValue; }
         }
 
         public bool GetBool(string section, string key, bool defaultValue = false)
         {
-            var v = GetValue(section, key, defaultValue.ToString());
-            return bool.TryParse(v, out var r) ? r : defaultValue;
+            var value = GetValue(section, key, defaultValue.ToString());
+            return bool.TryParse(value, out var result) ? result : defaultValue;
         }
 
         public int GetInt(string section, string key, int defaultValue = 0)
         {
-            var v = GetValue(section, key, defaultValue.ToString());
-            return int.TryParse(v, out var r) ? r : defaultValue;
+            var value = GetValue(section, key, defaultValue.ToString());
+            return int.TryParse(value, out var result) ? result : defaultValue;
         }
 
         // SettingDef overloads — preferred call style

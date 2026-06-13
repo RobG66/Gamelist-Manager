@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Gamelist_Manager.Classes.Helpers;
@@ -263,30 +263,37 @@ public partial class MediaItemView : UserControl
 
     private async void OnDrop(object? sender, DragEventArgs e)
     {
-        if (DataContext is not MediaItemViewModel mediaItem)
-            return;
-
-        mediaItem.IsDragOver = false;
-
-        if (!IsValidDrop(e, mediaItem))
-            return;
-
-        var parentViewModel = VisualTreeHelper.FindAncestorViewModel<MediaPreviewViewModel>(this);
-        if (parentViewModel?.SelectedGame == null)
-            return;
-
-        var (filePath, isTemp) = await GetDroppedFile(e, mediaItem);
-        if (string.IsNullOrEmpty(filePath))
-            return;
-
         try
         {
-            await parentViewModel.UpdateGameMedia(mediaItem.MediaType, filePath);
+            if (DataContext is not MediaItemViewModel mediaItem)
+                return;
+
+            mediaItem.IsDragOver = false;
+
+            if (!IsValidDrop(e, mediaItem))
+                return;
+
+            var parentViewModel = VisualTreeHelper.FindAncestorViewModel<MediaPreviewViewModel>(this);
+            if (parentViewModel?.SelectedGame == null)
+                return;
+
+            var (filePath, isTemp) = await GetDroppedFile(e, mediaItem);
+            if (string.IsNullOrEmpty(filePath))
+                return;
+
+            try
+            {
+                await parentViewModel.UpdateGameMedia(mediaItem.MediaType, filePath);
+            }
+            finally
+            {
+                if (isTemp && File.Exists(filePath))
+                    try { File.Delete(filePath); } catch { }
+            }
         }
-        finally
+        catch (Exception ex)
         {
-            if (isTemp && File.Exists(filePath))
-                try { File.Delete(filePath); } catch { }
+            await ThreeButtonDialogView.ShowErrorAsync("Drop Error", "An error occurred while processing the dropped item.", detail: ex.Message, owner: this);
         }
     }
 

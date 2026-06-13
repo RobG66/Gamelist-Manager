@@ -33,73 +33,73 @@ namespace Gamelist_Manager.Models
 
         public void Reload()
         {
-            var s = SettingsService.Instance;
+            var settingsService = SettingsService.Instance;
 
             // Appearance
-            Theme = s.GetValue(SettingKeys.Theme);
-            Color = s.GetValue(SettingKeys.Color);
-            AccentVariant = s.GetValue(SettingKeys.AccentVariant);
-            AlternatingRowColorIndex = s.GetInt(SettingKeys.AlternatingRowColorIndex);
-            GridLinesVisibilityIndex = s.GetInt(SettingKeys.GridLinesVisibilityIndex);
-            AppFontSize = s.GetInt(SettingKeys.GlobalFontSize);
-            GridFontSize = s.GetInt(SettingKeys.GridFontSize);
+            Theme = settingsService.GetValue(SettingKeys.Theme);
+            Color = settingsService.GetValue(SettingKeys.Color);
+            AccentVariant = settingsService.GetValue(SettingKeys.AccentVariant);
+            AlternatingRowColorIndex = settingsService.GetInt(SettingKeys.AlternatingRowColorIndex);
+            GridLinesVisibilityIndex = settingsService.GetInt(SettingKeys.GridLinesVisibilityIndex);
+            AppFontSize = settingsService.GetInt(SettingKeys.GlobalFontSize);
+            GridFontSize = settingsService.GetInt(SettingKeys.GridFontSize);
 
             // Behavior
-            ConfirmBulkChanges = s.GetBool(SettingKeys.ConfirmBulkChange);
-            EnableSaveReminder = s.GetBool(SettingKeys.SaveReminder);
-            VideoAutoplay = s.GetBool(SettingKeys.VideoAutoplay);
-            RememberColumns = s.GetBool(SettingKeys.RememberColumns);
-            RememberAutosize = s.GetBool(SettingKeys.RememberAutoSize);
-            EnableDelete = s.GetBool(SettingKeys.EnableDelete);
-            IgnoreDuplicates = s.GetBool(SettingKeys.IgnoreDuplicates);
-            CheckForNewAndMissingGamesOnLoad = s.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
-            UseSimpleSystemPicker = s.GetBool(SettingKeys.UseSimpleSystemPicker);
-            SaveWindowState = s.GetBool(SettingKeys.SaveWindowState);
+            ConfirmBulkChanges = settingsService.GetBool(SettingKeys.ConfirmBulkChange);
+            EnableSaveReminder = settingsService.GetBool(SettingKeys.SaveReminder);
+            VideoAutoplay = settingsService.GetBool(SettingKeys.VideoAutoplay);
+            RememberColumns = settingsService.GetBool(SettingKeys.RememberColumns);
+            RememberAutosize = settingsService.GetBool(SettingKeys.RememberAutoSize);
+            EnableDelete = settingsService.GetBool(SettingKeys.EnableDelete);
+            IgnoreDuplicates = settingsService.GetBool(SettingKeys.IgnoreDuplicates);
+            CheckForNewAndMissingGamesOnLoad = settingsService.GetBool(SettingKeys.CheckForNewAndMissingGamesOnLoad);
+            UseSimpleSystemPicker = settingsService.GetBool(SettingKeys.UseSimpleSystemPicker);
+            SaveWindowState = settingsService.GetBool(SettingKeys.SaveWindowState);
 
             // Scraper Options
-            VerifyImageDownloads = s.GetBool(SettingKeys.VerifyDownloadedImages);
-            BatchProcessing = s.GetBool(SettingKeys.BatchProcessing);
-            MaxBatch = s.GetInt(SettingKeys.BatchProcessingMaximum);
-            ShowLogTimestamp = s.GetBool(SettingKeys.ShowLogTimestamp);
-            OverrideConcurrency = s.GetBool(SettingKeys.OverrideConcurrency);
-            ConcurrencyOverride = s.GetInt(SettingKeys.ConcurrencyOverride);
-            LogToDisk = s.GetBool(SettingKeys.LogToDisk);
-            SelectedScraper = s.GetValue(SettingKeys.SelectedScraper);
-            ScraperConfigSave = s.GetInt(SettingKeys.ScraperConfigSave);
-            RemoveZzzNotGamePrefix = s.GetBool(SettingKeys.RemoveZzzNotGamePrefix);
-            ScreenScraperLanguage = s.GetValue(SettingKeys.ScreenScraperLanguage);
-            ScreenScraperPrimaryRegion = s.GetValue(SettingKeys.ScreenScraperPrimaryRegion);
-            ScreenScraperGenreEnglish = s.GetBool(SettingKeys.ScreenScraperGenreEnglish);
-            ScreenScraperAnyMedia = s.GetBool(SettingKeys.ScreenScraperAnyMedia);
-            ScreenScraperNamesLanguageFirst = s.GetBool(SettingKeys.ScreenScraperNamesLanguageFirst);
-            ScreenScraperMediaRegionFirst = s.GetBool(SettingKeys.ScreenScraperMediaRegionFirst);
-            ScreenScraperRegionFallback = s.GetValue(SettingKeys.ScreenScraperRegionFallback);
+            VerifyImageDownloads = settingsService.GetBool(SettingKeys.VerifyDownloadedImages);
+            BatchProcessing = settingsService.GetBool(SettingKeys.BatchProcessing);
+            MaxBatch = settingsService.GetInt(SettingKeys.BatchProcessingMaximum);
+            ShowLogTimestamp = settingsService.GetBool(SettingKeys.ShowLogTimestamp);
+            OverrideConcurrency = settingsService.GetBool(SettingKeys.OverrideConcurrency);
+            ConcurrencyOverride = settingsService.GetInt(SettingKeys.ConcurrencyOverride);
+            LogToDisk = settingsService.GetBool(SettingKeys.LogToDisk);
+            SelectedScraper = settingsService.GetValue(SettingKeys.SelectedScraper);
+            ScraperConfigSave = settingsService.GetInt(SettingKeys.ScraperConfigSave);
+            RemoveZzzNotGamePrefix = settingsService.GetBool(SettingKeys.RemoveZzzNotGamePrefix);
+            ScreenScraperLanguage = settingsService.GetValue(SettingKeys.ScreenScraperLanguage);
+            ScreenScraperPrimaryRegion = settingsService.GetValue(SettingKeys.ScreenScraperPrimaryRegion);
+            ScreenScraperGenreEnglish = settingsService.GetBool(SettingKeys.ScreenScraperGenreEnglish);
+            ScreenScraperAnyMedia = settingsService.GetBool(SettingKeys.ScreenScraperAnyMedia);
+            ScreenScraperNamesLanguageFirst = settingsService.GetBool(SettingKeys.ScreenScraperNamesLanguageFirst);
+            ScreenScraperMediaRegionFirst = settingsService.GetBool(SettingKeys.ScreenScraperMediaRegionFirst);
+            ScreenScraperRegionFallback = settingsService.GetValue(SettingKeys.ScreenScraperRegionFallback);
 
             // Advanced
-            MaxUndo = s.GetInt(SettingKeys.MaxUndo);
-            SearchDepth = s.GetInt(SettingKeys.SearchDepth);
-            RecentFilesCount = s.GetInt(SettingKeys.RecentFilesCount);
-            LogVerbosity = s.GetInt(SettingKeys.LogVerbosity);
-            DefaultVolume = s.GetInt(SettingKeys.Volume);
+            MaxUndo = settingsService.GetInt(SettingKeys.MaxUndo);
+            SearchDepth = settingsService.GetInt(SettingKeys.SearchDepth);
+            RecentFilesCount = settingsService.GetInt(SettingKeys.RecentFilesCount);
+            LogVerbosity = settingsService.GetInt(SettingKeys.LogVerbosity);
+            DefaultVolume = settingsService.GetInt(SettingKeys.Volume);
 
             // Connection
-            Hostname = s.GetValue(SettingKeys.HostName);
-            UserId = s.GetValue(SettingKeys.UserID);
-            Password = s.GetValue(SettingKeys.Password);
+            Hostname = settingsService.GetValue(SettingKeys.HostName);
+            UserId = settingsService.GetValue(SettingKeys.UserID);
+            Password = settingsService.GetValue(SettingKeys.Password);
 
             // Folder Paths
-            MamePath = s.GetValue(SettingKeys.MamePath);
-            RootRomFolder = s.GetValue(SettingKeys.RomsFolder);
+            MamePath = settingsService.GetValue(SettingKeys.MamePath);
+            RootRomFolder = settingsService.GetValue(SettingKeys.RomsFolder);
 
             // Media Viewer
-            MediaViewerScaledDisplay = s.GetBool(SettingKeys.ScaledDisplay);
+            MediaViewerScaledDisplay = settingsService.GetBool(SettingKeys.ScaledDisplay);
 
             // ES-DE / Profile
-            EsDeRoot = s.GetValue(SettingKeys.EsDeRoot);
-            ProfileType = s.GetValue(SettingKeys.ProfileType);
+            EsDeRoot = settingsService.GetValue(SettingKeys.EsDeRoot);
+            ProfileType = settingsService.GetValue(SettingKeys.ProfileType);
 
             // Media Paths
-            MediaPaths = s.GetSection(SettingKeys.MediaPathsSection) ?? [];
+            MediaPaths = settingsService.GetSection(SettingKeys.MediaPathsSection) ?? [];
 
             OnPropertyChanged(nameof(RootGamelistFolder));
             OnPropertyChanged(nameof(RootMediaFolder));

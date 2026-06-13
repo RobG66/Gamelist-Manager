@@ -127,15 +127,10 @@ public partial class MainWindowViewModel
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "batocera-es-swissknife --version");
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Batocera Version",
-            Message = sshResult.Success ? $"Your Batocera is version {sshResult.Output}." : sshResult.Error,
-            IconTheme = sshResult.Success ? DialogIconTheme.Info : DialogIconTheme.Error,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        if (sshResult.Success)
+            await ThreeButtonDialogView.ShowInfoAsync("Batocera Version", $"Your Batocera is version {sshResult.Output}.");
+        else
+            await ThreeButtonDialogView.ShowErrorAsync("Batocera Version", sshResult.Error);
     }
 
     [RelayCommand]
@@ -149,15 +144,10 @@ public partial class MainWindowViewModel
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "batocera-es-swissknife --update");
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Batocera Updates",
-            Message = !string.IsNullOrEmpty(sshResult.Output) ? sshResult.Output : sshResult.Error,
-            IconTheme = !string.IsNullOrEmpty(sshResult.Output) ? DialogIconTheme.Info : DialogIconTheme.Error,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        if (!string.IsNullOrEmpty(sshResult.Output))
+            await ThreeButtonDialogView.ShowInfoAsync("Batocera Updates", sshResult.Output);
+        else
+            await ThreeButtonDialogView.ShowErrorAsync("Batocera Updates", sshResult.Error);
     }
 
     [RelayCommand]
@@ -169,29 +159,19 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Stop Emulators",
-            Message = "Are you sure you want to stop any running emulators?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Stop"
-        });
-
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Stop Emulators",
+            "This will terminate all running emulators on the host. Continue?",
+            confirmText: "OK",
+            icon: DialogIconTheme.Warning);
+        if (!result) return;
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop");
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Stop Emulators",
-            Message = sshResult.Success ? "Running emulators should now be stopped." : sshResult.Error,
-            IconTheme = sshResult.Success ? DialogIconTheme.Info : DialogIconTheme.Error,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        if (sshResult.Success)
+            await ThreeButtonDialogView.ShowInfoAsync("Stop Emulators", "Running emulators should now be stopped.");
+        else
+            await ThreeButtonDialogView.ShowErrorAsync("Stop Emulators", sshResult.Error);
     }
 
     [RelayCommand]
@@ -203,33 +183,26 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Stop EmulationStation",
-            Message = "Are you sure you want to stop EmulationStation?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Stop"
-        });
-
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Stop EmulationStation",
+            "This will stop EmulationStation. Continue?",
+            confirmText: "OK",
+            icon: DialogIconTheme.Warning);
+        if (!result) return;
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop ; batocera-es-swissknife --espid");
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        bool isStopped = sshResult.Output != null && sshResult.Output.TrimEnd().EndsWith("0");
+
+        if (isStopped)
         {
-            Title = "Stop EmulationStation",
-            Message = sshResult.Success && sshResult.Output.Contains('0')
-                ? "EmulationStation is stopped."
-                : sshResult.Error,
-            IconTheme = sshResult.Success && sshResult.Output.Contains('0')
-                ? DialogIconTheme.Info
-                : DialogIconTheme.Error,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+            await ThreeButtonDialogView.ShowInfoAsync("Stop EmulationStation", "EmulationStation is stopped.");
+        }
+        else
+        {
+            string error = !string.IsNullOrEmpty(sshResult.Error) ? sshResult.Error : $"Failed or unexpected output: {sshResult.Output}";
+            await ThreeButtonDialogView.ShowErrorAsync("Stop EmulationStation", error);
+        }
     }
 
     [RelayCommand]
@@ -241,29 +214,19 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Reboot Host",
-            Message = "Are you sure you want to reboot your Batocera host?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Reboot"
-        });
-
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Reboot Host",
+            "This will reboot the remote host. Continue?",
+            confirmText: "OK",
+            icon: DialogIconTheme.Warning);
+        if (!result) return;
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop;reboot");
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Reboot Host",
-            Message = sshResult.Success ? "A reboot command has been sent to the host." : sshResult.Error,
-            IconTheme = sshResult.Success ? DialogIconTheme.Info : DialogIconTheme.Error,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        if (sshResult.Success)
+            await ThreeButtonDialogView.ShowInfoAsync("Reboot Host", "A reboot command has been sent to the host.");
+        else
+            await ThreeButtonDialogView.ShowErrorAsync("Reboot Host", sshResult.Error);
     }
 
     [RelayCommand]
@@ -275,29 +238,19 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Shutdown Host",
-            Message = "Are you sure you want to shutdown your Batocera host?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Shutdown"
-        });
-
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Shutdown Host",
+            "This will shutdown the remote host. Continue?",
+            confirmText: "OK",
+            icon: DialogIconTheme.Warning);
+        if (!result) return;
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop;sleep 5;shutdown -h now");
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Shutdown Host",
-            Message = sshResult.Success ? "A shutdown command has been sent to the host." : sshResult.Error,
-            IconTheme = sshResult.Success ? DialogIconTheme.Info : DialogIconTheme.Error,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        if (sshResult.Success)
+            await ThreeButtonDialogView.ShowInfoAsync("Shutdown Host", "A shutdown command has been sent to the host.");
+        else
+            await ThreeButtonDialogView.ShowErrorAsync("Shutdown Host", sshResult.Error);
     }
 
     [RelayCommand]
@@ -309,17 +262,12 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Remove SSH Key",
-            Message = $"Do you want to reset the local SSH key for '{_sshTarget}'?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Remove"
-        });
-
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Remove SSH Key",
+            "Are you sure you want to remove the trusted SSH key for this host?",
+            confirmText: "OK",
+            icon: DialogIconTheme.Warning);
+        if (!result) return;
 
         try
         {
@@ -336,27 +284,14 @@ public partial class MainWindowViewModel
             process?.WaitForExit();
             bool success = process?.ExitCode == 0;
 
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Remove SSH Key",
-                Message = success ? "SSH key has been removed." : "Failed to remove SSH key.",
-                IconTheme = success ? DialogIconTheme.Info : DialogIconTheme.Error,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            if (success)
+                await ThreeButtonDialogView.ShowInfoAsync("Remove SSH Key", "SSH key has been removed.");
+            else
+                await ThreeButtonDialogView.ShowErrorAsync("Remove SSH Key", "Failed to remove SSH key.");
         }
         catch
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Remove SSH Key",
-                Message = "Failed to remove SSH key. Is ssh-keygen installed?",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("Remove SSH Key", "Failed to remove SSH key. Is ssh-keygen installed?");
         }
     }
 
@@ -366,28 +301,20 @@ public partial class MainWindowViewModel
 
     private async void CredentialsMissing()
     {
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        try
         {
-            Title = "Remote Credentials Missing",
-            Message = "No remote credentials are defined.",
-            IconTheme = DialogIconTheme.Info,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+            await ThreeButtonDialogView.ShowInfoAsync("Remote Credentials Missing", "No remote credentials are defined.");
+        }
+        catch (Exception) { }
     }
 
     private async void CommandFailed()
     {
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        try
         {
-            Title = "Command Failed",
-            Message = "The command execution failed.",
-            IconTheme = DialogIconTheme.Info,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+            await ThreeButtonDialogView.ShowInfoAsync("Command Failed", "The command execution failed.");
+        }
+        catch (Exception) { }
     }
 
     #endregion

@@ -40,7 +40,8 @@ namespace Gamelist_Manager.Classes.Helpers
 
             // Reject any directory traversal segments (..)
             // Normalize slashes first so we catch both /../ and \..\
-            var normalized = path.Replace('\\', '/');
+            var normalized = path.Replace(Path.DirectorySeparatorChar, '/')
+                                 .Replace(Path.AltDirectorySeparatorChar, '/');
             foreach (var segment in normalized.Split('/'))
             {
                 if (segment == "..")
@@ -65,7 +66,9 @@ namespace Gamelist_Manager.Classes.Helpers
         //   result:     "folder2/file.zip"
         public static string PathToRelativePath(string fullPath, string parentPath)
         {
-            return Path.GetRelativePath(parentPath, fullPath).Replace("\\", "/");
+            return Path.GetRelativePath(parentPath, fullPath)
+                       .Replace(Path.DirectorySeparatorChar, '/')
+                       .Replace(Path.AltDirectorySeparatorChar, '/');
         }
 
         // Converts an absolute file path to a gamelist-relative path (prefixed with "./").
@@ -99,8 +102,9 @@ namespace Gamelist_Manager.Classes.Helpers
             if (string.IsNullOrWhiteSpace(path))
                 return null;
 
-            // Convert all backslashes to forward slashes
-            path = path.Replace('\\', '/');
+            // Convert all path separators to forward slashes
+            path = path.Replace(Path.DirectorySeparatorChar, '/')
+                       .Replace(Path.AltDirectorySeparatorChar, '/');
 
             // Split into segments and discard empty segments, lone dots, and traversal
             var segments = path.Split('/');
@@ -126,8 +130,7 @@ namespace Gamelist_Manager.Classes.Helpers
         //   relativePath: "/home/rob/media/game.png"                        → "/home/rob/media/game.png"
         public static string GamelistPathToFullPath(string relativePath, string parentPath)
         {
-            relativePath = relativePath.Replace('/', Path.DirectorySeparatorChar)
-                                       .Replace('\\', Path.DirectorySeparatorChar);
+            relativePath = relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
             // Absolute paths are returned as-is
             if (Path.IsPathRooted(relativePath))
@@ -141,10 +144,10 @@ namespace Gamelist_Manager.Classes.Helpers
         public static string NormalizeRomName(string path)
         {
             // Trim whitespace and any trailing slashes
-            path = path.Trim().TrimEnd('/', '\\');
+            path = path.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
             // Find the last slash (forward or back)
-            var lastSlashPosition = Math.Max(path.LastIndexOf('/'), path.LastIndexOf('\\'));
+            var lastSlashPosition = Math.Max(path.LastIndexOf(Path.AltDirectorySeparatorChar), path.LastIndexOf(Path.DirectorySeparatorChar));
 
             // Extract the file name part
             var fileName = lastSlashPosition >= 0 ? path[(lastSlashPosition + 1)..] : path;

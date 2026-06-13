@@ -266,7 +266,7 @@ namespace Gamelist_Manager.Services
 
             if (currentScraper == ScraperRegistry.EmuMovies.Name)
             {
-                var (success, data, messages) = await CreateEmuMovies().ScrapeEmuMoviesAsync(scraperParameters, scraperParameters.EmuMoviesMediaLists);
+                var (success, data, messages) = CreateEmuMovies().ScrapeEmuMoviesAsync(scraperParameters, scraperParameters.EmuMoviesMediaLists);
                 return (success, data, messages);
             }
 

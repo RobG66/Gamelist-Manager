@@ -5,6 +5,7 @@
     <x:Double x:Key="GlobalFontSize">12</x:Double>
     <x:Double x:Key="GlobalHeaderFontSize">14</x:Double>
     <x:Double x:Key="GlobalSmallFontSize">10</x:Double>
+    <x:Double x:Key="GlobalTinyFontSize">8</x:Double>
     <x:Double x:Key="GlobalMenuFontSize">13</x:Double>
     <x:Double x:Key="GlobalMenuIconSize">18</x:Double>
     <x:Double x:Key="GlobalIconSize">14</x:Double>

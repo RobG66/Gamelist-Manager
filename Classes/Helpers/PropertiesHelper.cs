@@ -23,9 +23,8 @@ namespace Gamelist_Manager.Classes.Helpers
             {
                 SHObjectProperties(IntPtr.Zero, SHOP_FILEPATH, filePath, null!);
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"Failed to show properties: {ex.Message}");
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Gamelist_Manager.Models
         public string DefaultPath { get; init; } = string.Empty;
         public string DefaultSuffix { get; init; } = string.Empty;
         public bool DefaultEnabled { get; init; } = true;
-        public bool DefaultSfxEnabled => !string.IsNullOrEmpty(DefaultSuffix);
+        public bool DefaultSuffixEnabled => !string.IsNullOrEmpty(DefaultSuffix);
 
 
         // --- Observable state ---
@@ -21,9 +21,9 @@ namespace Gamelist_Manager.Models
         [ObservableProperty] private string _suffix = string.Empty;
         [ObservableProperty] private string _displayPath = string.Empty;
 
-        [ObservableProperty] private bool _sfxEnabled;
+        [ObservableProperty] private bool _isSuffixEnabled;
 
-        public bool IsSuffixInputEnabled => Enabled && SfxEnabled;
+        public bool IsSuffixInputEnabled => Enabled && IsSuffixEnabled;
 
         private bool _syncingSuffix;
 
@@ -39,16 +39,16 @@ namespace Gamelist_Manager.Models
         {
             Path = DefaultPath;
             Enabled = DefaultEnabled;
-            SfxEnabled = DefaultSfxEnabled;
+            IsSuffixEnabled = DefaultSuffixEnabled;
         }
 
-        public void LoadSuffixState(bool sfxEnabled, string suffix)
+        public void LoadSuffixState(bool isSuffixEnabled, string suffix)
         {
             _syncingSuffix = true;
             try
             {
-                SfxEnabled = sfxEnabled;
-                Suffix = sfxEnabled ? suffix : string.Empty;
+                IsSuffixEnabled = isSuffixEnabled;
+                Suffix = isSuffixEnabled ? suffix : string.Empty;
             }
             finally
             {
@@ -60,7 +60,7 @@ namespace Gamelist_Manager.Models
 
         partial void OnEnabledChanged(bool value) => OnPropertyChanged(nameof(IsSuffixInputEnabled));
 
-        partial void OnSfxEnabledChanged(bool value)
+        partial void OnIsSuffixEnabledChanged(bool value)
         {
             if (!_syncingSuffix)
                 Suffix = value ? DefaultSuffix : string.Empty;

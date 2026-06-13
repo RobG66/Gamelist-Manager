@@ -1,4 +1,4 @@
-﻿using Gamelist_Manager.Models;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -301,7 +301,7 @@ namespace Gamelist_Manager.Classes.Api
             try
             {
                 // Fetch metadata
-                string metadataUrl = $"{ApiUrl}?ajax=query_mame&game_name={romName}";
+                string metadataUrl = $"{ApiUrl}?ajax=query_mame&game_name={Uri.EscapeDataString(romName)}";
                 var (metadataFetched, metadataJson, metadataError) = await FetchFromApi(metadataUrl, cancellationToken);
 
                 if (!metadataFetched)
@@ -327,7 +327,7 @@ namespace Gamelist_Manager.Classes.Api
                 }
 
                 // Fetch media
-                string mediaUrl = $"{ApiUrl}?ajax=query_mame_media&game_name={romName}";
+                string mediaUrl = $"{ApiUrl}?ajax=query_mame_media&game_name={Uri.EscapeDataString(romName)}";
                 var (mediaFetched, mediaJson, mediaError) = await FetchFromApi(mediaUrl, cancellationToken);
 
                 if (!mediaFetched)
@@ -409,7 +409,7 @@ namespace Gamelist_Manager.Classes.Api
 
             try
             {
-                string gameNameQuery = string.Join(";", romNames);
+                string gameNameQuery = string.Join(";", romNames.Select(Uri.EscapeDataString));
 
                 // Fetch metadata
                 string metadataUrl = $"{ApiUrl}?ajax=query_mame&game_name={gameNameQuery}";

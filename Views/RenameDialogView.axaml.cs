@@ -11,23 +11,25 @@ namespace Gamelist_Manager.Views
 {
     public partial class RenameDialogView : Window
     {
-        public static async Task<string?> ShowAsync(string currentName, Window? owner = null)
+        public static async Task<string?> ShowAsync(string currentName, Window? owner = null, Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             owner ??= (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (owner == null) return null;
 
-            var dialog = new RenameDialogView(currentName);
+            var dialog = new RenameDialogView(currentName, validator);
             return await dialog.ShowDialog<string?>(owner);
         }
 
         private readonly string _currentName;
+        private readonly Func<string, (bool IsValid, string ErrorMessage)>? _validator;
 
-        public RenameDialogView() : this(string.Empty) { }
+        public RenameDialogView() : this(string.Empty, null) { }
 
-        public RenameDialogView(string currentName)
+        public RenameDialogView(string currentName, Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             InitializeComponent();
             _currentName = currentName;
+            _validator = validator;
             NewNameTextBox.Text = currentName;
 
             Loaded += (s, e) =>
@@ -113,6 +115,13 @@ namespace Gamelist_Manager.Views
                 return false;
             }
 
+            if (_validator != null)
+            {
+                var result = _validator(name);
+                errorMessage = result.ErrorMessage;
+                return result.IsValid;
+            }
+
             try
             {
                 string path = ProfileService.Instance.GetProfilePath(name);
@@ -124,7 +133,7 @@ namespace Gamelist_Manager.Views
             }
             catch (Exception ex)
             {
-                errorMessage = $"Error validating profile name: {ex.Message}";
+                errorMessage = $"Error validating name: {ex.Message}";
                 return false;
             }
 

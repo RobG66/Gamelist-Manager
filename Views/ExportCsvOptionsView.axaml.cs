@@ -10,11 +10,11 @@ namespace Gamelist_Manager.Views
 
     public partial class ExportCsvOptionsView : Window
     {
-        public static async Task<ExportCsvOptions?> ShowAsync(Window? owner = null)
+        public static async Task<ExportCsvOptions?> ShowAsync(object? owner = null)
         {
-            owner ??= (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (owner == null) return null;
-            return await new ExportCsvOptionsView().ShowDialog<ExportCsvOptions?>(owner);
+            var windowOwner = owner as Window ?? (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (windowOwner == null) return null;
+            return await new ExportCsvOptionsView().ShowDialog<ExportCsvOptions?>(windowOwner);
         }
 
         public ExportCsvOptionsView()

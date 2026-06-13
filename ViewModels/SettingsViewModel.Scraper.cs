@@ -96,17 +96,12 @@ public partial class SettingsViewModel
 
     private async Task PromptToSaveScraperCredentials()
     {
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Unsaved Credentials",
-            Message = "You have unsaved credentials. Save them before switching scrapers?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "",
-            Button2Text = "Discard",
-            Button3Text = "Save"
-        });
-
-        if (result == ThreeButtonResult.Button3)
+        if (await ThreeButtonDialogView.ShowConfirmAsync(
+                "Unsaved Credentials",
+                "You have unsaved credentials. Save them before switching scrapers?",
+                confirmText: "Save",
+                cancelText: "Discard",
+                icon: DialogIconTheme.Question))
         {
             CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
             _isProfileLoading = true;
@@ -251,11 +246,11 @@ public partial class SettingsViewModel
     private void MoveScraperRegionUp()
     {
         if (SelectedScraperFallbackRegion == null) return;
-        var i = ScraperFallbackRegions.IndexOf(SelectedScraperFallbackRegion);
-        if (i <= 0) return;
+        var index = ScraperFallbackRegions.IndexOf(SelectedScraperFallbackRegion);
+        if (index <= 0) return;
         var item = SelectedScraperFallbackRegion;
         SelectedScraperFallbackRegion = null;
-        ScraperFallbackRegions.Move(i, i - 1);
+        ScraperFallbackRegions.Move(index, index - 1);
         SelectedScraperFallbackRegion = item;
         MoveScraperRegionUpCommand.NotifyCanExecuteChanged();
         MoveScraperRegionDownCommand.NotifyCanExecuteChanged();

@@ -37,20 +37,8 @@ public partial class MainWindowViewModel
         var games = scope == "all" ? Games.ToList() : SelectedGames?.OfType<GameMetadataRow>().ToList();
         if (games == null || games.Count == 0) return;
 
-        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
-        {
-            var label = ScopeLabel(scope, games.Count);
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Confirm Bulk Operation",
-                Message = $"Reset names for {label} items?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button2Text = "",
-                Button3Text = "Yes"
-            });
-            if (result != ThreeButtonResult.Button3) return;
-        }
+        var label = ScopeLabel(scope, games.Count);
+        if (!await PromptBulkConfirmationAsync(games.Count, $"Reset names for {label} items?")) return;
 
         IReadOnlyDictionary<string, string>? mameNames = null;
 
@@ -92,21 +80,9 @@ public partial class MainWindowViewModel
 
         if (games == null || games.Count == 0) return;
 
-        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
-        {
-            var label = options.UseAllItems ? $"all {games.Count} visible" : $"{games.Count} selected";
-            var decl = MetadataService.GetMetaDataDictionary()[options.Key];
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Confirm Bulk Operation",
-                Message = $"Set '{decl.Name}' for {label} items?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button2Text = "",
-                Button3Text = "Yes"
-            });
-            if (result != ThreeButtonResult.Button3) return;
-        }
+        var label = options.UseAllItems ? $"all {games.Count} visible" : $"{games.Count} selected";
+        var decl = MetadataService.GetMetaDataDictionary()[options.Key];
+        if (!await PromptBulkConfirmationAsync(games.Count, $"Set '{decl.Name}' for {label} items?")) return;
 
         // For bool columns the dialog always returns true or false — no coercion needed
         var writeValue = options.Value;
@@ -204,16 +180,10 @@ public partial class MainWindowViewModel
         if (SelectedGames == null || !_settingsState.EnableDelete) return;
 
         var itemLabel = SelectedGames.Count == 1 ? "item" : "items";
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Confirm Deletion",
-            Message = $"Do you want to permanently delete {SelectedGames.Count} {itemLabel}?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "No",
-            Button2Text = "",
-            Button3Text = "Yes"
-        });
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Confirm Deletion",
+            $"Do you want to permanently delete {SelectedGames.Count} {itemLabel}?");
+        if (!result) return;
 
         var toDelete = SelectedGames.OfType<GameMetadataRow>().ToList();
         foreach (var game in toDelete)
@@ -233,16 +203,10 @@ public partial class MainWindowViewModel
         if (SelectedGames == null || SelectedGames.Count == 0) return;
 
         var itemLabel = SelectedGames.Count == 1 ? "item" : "items";
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Confirm Remove",
-            Message = $"Remove {SelectedGames.Count} {itemLabel} from the gamelist?",
-            IconTheme = DialogIconTheme.Question,
-            Button1Text = "No",
-            Button2Text = "",
-            Button3Text = "Yes"
-        });
-        if (result != ThreeButtonResult.Button3) return;
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Confirm Remove",
+            $"Remove {SelectedGames.Count} {itemLabel} from the gamelist?");
+        if (!result) return;
 
         foreach (var game in SelectedGames.OfType<GameMetadataRow>().ToList())
             RemoveGame(game);
@@ -252,26 +216,23 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Private Methods
+    private async Task<bool> PromptBulkConfirmationAsync(int itemCount, string message)
+    {
+        if (!_settingsState.ConfirmBulkChanges || itemCount <= 1) return true;
+
+        return await ThreeButtonDialogView.ShowConfirmAsync(
+            "Confirm Bulk Operation",
+            message);
+    }
+
     private async Task SetItemsVisibility(string scope, bool hidden)
     {
         var games = GetGamesByScope(scope);
         if (games == null || games.Count == 0) return;
 
-        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
-        {
-            var action = hidden ? "hidden" : "visible";
-            var label = ScopeLabel(scope, games.Count);
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Confirm Bulk Operation",
-                Message = $"Set {label} items {action}?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button2Text = "",
-                Button3Text = "Yes"
-            });
-            if (result != ThreeButtonResult.Button3) return;
-        }
+        var action = hidden ? "hidden" : "visible";
+        var label = ScopeLabel(scope, games.Count);
+        if (!await PromptBulkConfirmationAsync(games.Count, $"Set {label} items {action}?")) return;
 
         foreach (var game in games)
             game.SetValue(MetaDataKeys.hidden, hidden);
@@ -284,20 +245,8 @@ public partial class MainWindowViewModel
         var games = scope == "all" ? Games.ToList() : SelectedGames?.OfType<GameMetadataRow>().ToList();
         if (games == null || games.Count == 0) return;
 
-        if (_settingsState.ConfirmBulkChanges && games.Count > 1)
-        {
-            var label = ScopeLabel(scope, games.Count);
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Confirm Bulk Operation",
-                Message = $"{actionLabel} for {label} items?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button2Text = "",
-                Button3Text = "Yes"
-            });
-            if (result != ThreeButtonResult.Button3) return;
-        }
+        var label = ScopeLabel(scope, games.Count);
+        if (!await PromptBulkConfirmationAsync(games.Count, $"{actionLabel} for {label} items?")) return;
 
         _mediaPreviewViewModel.SuspendVideo();
 
@@ -384,9 +333,8 @@ public partial class MainWindowViewModel
             else if (Directory.Exists(romFullPath))
                 Directory.Delete(romFullPath, recursive: true);
         }
-        catch (Exception ex)
+        catch
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to delete ROM: {ex.Message}");
         }
     }
 
@@ -407,7 +355,7 @@ public partial class MainWindowViewModel
             if (!File.Exists(fullPath)) continue;
 
             try { File.Delete(fullPath); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to delete media file: {ex.Message}"); }
+            catch { }
         }
     }
 

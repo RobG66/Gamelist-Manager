@@ -71,6 +71,7 @@ namespace Gamelist_Manager.Services
             app.Resources["GlobalFontSize"] = globalFontSize;
             app.Resources["GlobalHeaderFontSize"] = globalFontSize + 2;
             app.Resources["GlobalSmallFontSize"] = Math.Max(8, globalFontSize - 2);
+            app.Resources["GlobalTinyFontSize"] = Math.Max(4, globalFontSize - 4);
             app.Resources["GlobalMenuFontSize"] = globalFontSize + 1;
             app.Resources["GlobalMenuIconSize"] = globalFontSize + 8;
             app.Resources["GlobalIconSize"] = globalFontSize + 3;

@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
 using Gamelist_Manager.ViewModels;
+using LibVLCSharp.Avalonia;
 using LibVLCSharp.Shared;
 using System;
 
@@ -22,13 +24,24 @@ public partial class JukeboxView : Window
             vm.MediaPlayerCreated += OnMediaPlayerCreated;
             vm.ErrorOccurred += OnErrorOccurred;
             vm.CloseRequested += OnCloseRequested;
-            
+            vm.PropertyChanged += OnViewModelPropertyChanged;
+
+            VideoView.SizeChanged += OnVideoViewSizeChanged;
+
+            var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+            vm.InitializeDimensions((int)(VideoView.Bounds.Width * scaling), (int)(VideoView.Bounds.Height * scaling));
             vm.RequestPlayer();
         }
     }
 
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Removed dynamic window resizing for the picker as it is now an overlay
+    }
+
     private void OnClosing(object? sender, WindowClosingEventArgs e)
     {
+        VideoView.SizeChanged -= OnVideoViewSizeChanged;
         VideoView.MediaPlayer = null;
 
         if (DataContext is JukeboxViewModel vm)
@@ -36,6 +49,7 @@ public partial class JukeboxView : Window
             vm.MediaPlayerCreated -= OnMediaPlayerCreated;
             vm.ErrorOccurred -= OnErrorOccurred;
             vm.CloseRequested -= OnCloseRequested;
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
             _ = vm.DisposeAsync();
         }
     }
@@ -45,34 +59,46 @@ public partial class JukeboxView : Window
         Close();
     }
 
-    private MediaPlayer? _latestMediaPlayer;
-
     private void OnMediaPlayerCreated(MediaPlayer? mediaPlayer)
     {
-        _latestMediaPlayer = mediaPlayer;
-
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        // Immediately detach the UI from the player if we receive null, 
+        // to prevent native crashes when the backend player is being destroyed
+        VideoView.MediaPlayer = mediaPlayer;
+        
+        if (mediaPlayer != null && DataContext is JukeboxViewModel vm)
         {
-            if (_latestMediaPlayer == mediaPlayer)
-            {
-                VideoView.MediaPlayer = mediaPlayer;
-                if (DataContext is JukeboxViewModel vm)
-                {
-                    vm.NotifyPlayerAttached();
-                }
-            }
-        }, Avalonia.Threading.DispatcherPriority.Background);
+            vm.NotifyPlayerAttached();
+        }
+    }
+
+    private void OnVideoViewSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (DataContext is JukeboxViewModel vm)
+        {
+            var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+            vm.HandleResize((int)(e.NewSize.Width * scaling), (int)(e.NewSize.Height * scaling));
+        }
     }
 
     private async void OnErrorOccurred(string message)
     {
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        try
         {
-            Title = "Jukebox Error",
-            Message = message,
-            IconTheme = DialogIconTheme.Error,
-            Button1Text = "OK",
-            Button1Result = ThreeButtonResult.Button1,
-        }, this);
+            await ThreeButtonDialogView.ShowErrorAsync(
+                "Jukebox Error",
+                message,
+                owner: this);
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    private void PresetList_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        if (DataContext is JukeboxViewModel vm && vm.SelectedPreset != null)
+        {
+            vm.ApplyPresetCommand.Execute(null);
+        }
     }
 }

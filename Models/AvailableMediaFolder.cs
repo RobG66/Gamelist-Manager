@@ -8,5 +8,5 @@ public record AvailableMediaFolder(
     string FolderPath,
     string Suffix,
     bool MediaEnabled,
-    bool SfxEnabled
+    bool IsSuffixEnabled
 );

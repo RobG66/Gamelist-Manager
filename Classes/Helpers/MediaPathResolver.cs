@@ -30,9 +30,9 @@ namespace Gamelist_Manager.Services
                 var mediaEnabled = ResolveMediaEnabled(decl, currentSystem, mediaPaths, overrides);
                 var folderPath = ResolveFolderPath(profile, mediaBaseFolder, decl, mediaPaths);
                 var suffix = profile.MediaFilenamesUseSuffixes ? ResolveSuffix(decl, mediaPaths) : string.Empty;
-                var sfxEnabled = profile.MediaFilenamesUseSuffixes && ResolveSfxEnabled(decl, mediaPaths);
+                var isSuffixEnabled = profile.MediaFilenamesUseSuffixes && ResolveIsSuffixEnabled(decl, mediaPaths);
 
-                result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, mediaEnabled, sfxEnabled));
+                result.Add(new AvailableMediaFolder(decl.Type, decl.Name, folderPath, suffix, mediaEnabled, isSuffixEnabled));
             }
 
             return result;
@@ -65,15 +65,16 @@ namespace Gamelist_Manager.Services
 
             var relativePath = mediaPaths.TryGetValue(decl.Type, out var path) ? path : decl.DefaultPath;
             // Strip leading "./" or ".\" before combining
-            var cleanRelative = relativePath.TrimStart('.').TrimStart('/').TrimStart('\\');
+            var cleanRelative = relativePath.TrimStart('.')
+                                            .TrimStart(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             return Path.Combine(mediaBaseFolder, cleanRelative);
         }
 
         private static string ResolveSuffix(MetaDataDecl decl, Dictionary<string, string> mediaPaths)
             => mediaPaths.TryGetValue($"{decl.Type}_suffix", out var sfx) ? sfx : decl.DefaultSuffix;
 
-        private static bool ResolveSfxEnabled(MetaDataDecl decl, Dictionary<string, string> mediaPaths)
-            => ResolveBoolSetting($"{decl.Type}_sfx_enabled", !string.IsNullOrEmpty(decl.DefaultSuffix), mediaPaths);
+        private static bool ResolveIsSuffixEnabled(MetaDataDecl decl, Dictionary<string, string> mediaPaths)
+            => ResolveBoolSetting($"{decl.Type}_suffix_enabled", !string.IsNullOrEmpty(decl.DefaultSuffix), mediaPaths);
 
         private static bool ResolveBoolSetting(string key, bool fallback, Dictionary<string, string> mediaPaths)
             => mediaPaths.TryGetValue(key, out var raw)

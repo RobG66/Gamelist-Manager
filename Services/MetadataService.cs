@@ -44,8 +44,8 @@ namespace Gamelist_Manager.Services
 
         public static IReadOnlyList<MetaDataDecl> GetMediaMetadata() =>
             MetaDataDecl.AllDeclarations
-                .Where(d => d.DataType == MetaDataType.Image || d.DataType == MetaDataType.Document || d.DataType == MetaDataType.Video)
-                .OrderBy(d => d.DataType == MetaDataType.Video ? 1 : 0)
+                .Where(d => d.DataType == MetaDataType.Image || d.DataType == MetaDataType.Document || d.DataType == MetaDataType.Video || d.DataType == MetaDataType.Music)
+                .OrderBy(d => d.DataType == MetaDataType.Video || d.DataType == MetaDataType.Music ? 1 : 0)
                 .ThenBy(d => d.Key)
                 .ToList();
 

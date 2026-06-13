@@ -1,4 +1,4 @@
-﻿using Gamelist_Manager.Models;
+using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,20 +23,6 @@ namespace Gamelist_Manager.Classes.Helpers
                 kvp => new List<string>(kvp.Value));
 
             return clone;
-        }
-
-        public static void BuildMetaLookup(this ScraperParameters parameters)
-        {
-            if (parameters.ElementsToScrape == null)
-                return;
-
-            parameters.MetaLookup = parameters.ElementsToScrape.ToDictionary(
-                item => item,
-                item => (
-                    MetadataService.GetMetadataDataTypeByType(item),
-                    MetadataService.GetMetadataNameByType(item)
-                )
-            );
         }
     }
 }

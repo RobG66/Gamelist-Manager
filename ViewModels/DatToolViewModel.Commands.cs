@@ -30,15 +30,7 @@ public partial class DatToolViewModel
 
             if (xmlStream == null)
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Error",
-                    Message = "Failed to get XML stream from MAME.",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = string.Empty,
-                    Button2Text = string.Empty,
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowErrorAsync("Error", "Failed to get XML stream from MAME.");
                 return;
             }
 
@@ -47,15 +39,7 @@ public partial class DatToolViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Error",
-                Message = $"Error streaming from MAME: {ex.Message}",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = string.Empty,
-                Button2Text = string.Empty,
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("Error", $"Error streaming from MAME: {ex.Message}");
         }
         finally
         {
@@ -101,15 +85,7 @@ public partial class DatToolViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Error",
-                Message = $"Error opening DAT file: {ex.Message}",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = string.Empty,
-                Button2Text = string.Empty,
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("Error", $"Error opening DAT file: {ex.Message}");
         }
         finally
         {
@@ -176,15 +152,7 @@ public partial class DatToolViewModel
 
             if (string.IsNullOrEmpty(reportContent))
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "No Missing Games",
-                    Message = "All playable games from the DAT are present in your gamelist.",
-                    IconTheme = DialogIconTheme.Info,
-                    Button1Text = string.Empty,
-                    Button2Text = string.Empty,
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowInfoAsync("No Missing Games", "All playable games from the DAT are present in your gamelist.");
                 return;
             }
 
@@ -199,15 +167,7 @@ public partial class DatToolViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Error",
-                Message = $"Error generating report: {ex.Message}",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = string.Empty,
-                Button2Text = string.Empty,
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("Error", $"Error generating report: {ex.Message}");
         }
         finally
         {

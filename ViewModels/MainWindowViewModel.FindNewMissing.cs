@@ -34,15 +34,7 @@ public partial class MainWindowViewModel
 
         if (!fileTypes.TryGetValue(systemName, out var extensionsCsv))
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Find New Items",
-                Message = $"No file types are defined for system '{systemName}'.",
-                IconTheme = DialogIconTheme.Info,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowInfoAsync("Find New Items", $"No file types are defined for system '{systemName}'.");
             return;
         }
 
@@ -75,15 +67,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Find New Items",
-                Message = $"Error scanning directory: {ex.Message}",
-                IconTheme = DialogIconTheme.Error,
-                Button1Text = "",
-                Button2Text = "",
-                Button3Text = "OK"
-            });
+            await ThreeButtonDialogView.ShowErrorAsync("Find New Items", $"Error scanning directory: {ex.Message}");
             return;
         }
         finally
@@ -95,34 +79,19 @@ public partial class MainWindowViewModel
         {
             if (!silent)
             {
-                await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                {
-                    Title = "Find New Items",
-                    Message = "No new items were found.",
-                    IconTheme = DialogIconTheme.Info,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+                await ThreeButtonDialogView.ShowInfoAsync("Find New Items", "No new items were found.");
             }
             return;
         }
 
-        var itemLabel = newFiles.Count == 1 ? "item" : "items";
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Find New Items",
+            $"{newFiles.Count} new items were found. Add them to the gamelist?",
+            confirmText: "Yes",
+            cancelText: "No",
+            icon: DialogIconTheme.Question);
 
-        var result = await ThreeButtonDialogView.ShowAsync(
-            new ThreeButtonDialogConfig
-            {
-                Title = "Find New Items",
-                Message = $"Found {newFiles.Count} new {itemLabel} not in the gamelist.",
-                DetailMessage = "Do you want to add them?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button3Text = "Yes"
-            });
-
-        if (result != ThreeButtonResult.Button3)
-            return;
+        if (!result) return;
 
         bool newGamelist =
             _sessionState.GamelistData == null ||
@@ -171,16 +140,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowAsync(
-                new ThreeButtonDialogConfig
-                {
-                    Title = "Find Missing Items",
-                    Message = $"Error checking files: {ex.Message}",
-                    IconTheme = DialogIconTheme.Error,
-                    Button1Text = "",
-                    Button2Text = "",
-                    Button3Text = "OK"
-                });
+            await ThreeButtonDialogView.ShowErrorAsync("Find Missing Items", $"Error checking files: {ex.Message}");
             return;
         }
         finally
@@ -192,34 +152,22 @@ public partial class MainWindowViewModel
         {
             if (!silent)
             {
-                await ThreeButtonDialogView.ShowAsync(
-                    new ThreeButtonDialogConfig
-                    {
-                        Title = "Find Missing Items",
-                        Message = "No missing items were found.",
-                        IconTheme = DialogIconTheme.Info,
-                        Button1Text = "",
-                        Button2Text = "",
-                        Button3Text = "OK"
-                    });
+                await ThreeButtonDialogView.ShowInfoAsync("Find Missing Items", "No missing items were found.");
             }
             return;
         }
 
         var itemLabel = missingGamelistPaths.Count == 1 ? "item" : "items";
 
-        var result = await ThreeButtonDialogView.ShowAsync(
-            new ThreeButtonDialogConfig
-            {
-                Title = "Find Missing Items",
-                Message = $"Found {missingGamelistPaths.Count} missing {itemLabel}.",
-                DetailMessage = "Identify them in a 'Missing' report column?",
-                IconTheme = DialogIconTheme.Question,
-                Button1Text = "No",
-                Button3Text = "Yes"
-            });
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "Find Missing Items",
+            $"Found {missingGamelistPaths.Count} missing {itemLabel}.",
+            confirmText: "Yes",
+            cancelText: "No",
+            icon: DialogIconTheme.Question,
+            detail: "Identify them in a 'Missing' report column?");
 
-        if (result != ThreeButtonResult.Button3)
+        if (!result)
             return;
 
         RaiseFindReportColumn("Missing", missingGamelistPaths);

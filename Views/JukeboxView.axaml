@@ -1,33 +1,23 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Gamelist_Manager.ViewModels"
         xmlns:vlc="using:LibVLCSharp.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="480"
         x:Class="Gamelist_Manager.Views.JukeboxView"
         x:DataType="vm:JukeboxViewModel"
         Title="Jukebox"
-        Width="720" Height="480"
-        MinWidth="400" MinHeight="300"
+        Width="640" Height="480"
+        MinWidth="640" MinHeight="480"
         CanResize="True"
         WindowStartupLocation="CenterOwner">
 
+    <Design.DataContext>
+        <vm:JukeboxViewModel/>
+    </Design.DataContext>
+
     <Window.Styles>
-        <Style Selector="Button.jukebox-btn">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="3"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="MinWidth" Value="0"/>
-            <Setter Property="MinHeight" Value="0"/>
-        </Style>
-        <Style Selector="Button.jukebox-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
-        </Style>
-        <Style Selector="Button.jukebox-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
-        </Style>
-        <Style Selector="Button.jukebox-btn:disabled">
-            <Setter Property="Opacity" Value="0.35"/>
-        </Style>
         <Style Selector="Grid.playing TextBlock">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
@@ -35,92 +25,98 @@
     </Window.Styles>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="{Binding IsPlaylistVisible, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter=320}" />
-            <ColumnDefinition Width="{Binding IsPlaylistVisible, Converter={StaticResource BooleanToGridLengthConverter}, ConverterParameter=1}" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <!-- Collapsible Left Sidebar Playlist Overlay (Using Popup) -->
+        <Popup IsOpen="{Binding IsPlaylistVisible}" 
+               PlacementTarget="{Binding ElementName=LeftAnchor}"
+               Placement="RightEdgeAlignedTop"
+               VerticalOffset="0">
+            <Grid Width="320" Height="{Binding #VideoView.Bounds.Height}" RowDefinitions="Auto, Auto, Auto, *"
+                  Background="#B3151515">
 
-        <!-- Collapsible Left Sidebar Playlist -->
-        <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *"
-              Background="{DynamicResource PanelBackground}"
-              IsVisible="{Binding IsPlaylistVisible}">
+                <!-- System Info Header -->
+                <StackPanel Grid.Row="0" Margin="10" Spacing="5" HorizontalAlignment="Stretch">
+                    <Image Source="{Binding SystemLogo}" MaxHeight="120" Stretch="Uniform" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding Tracks.Count, StringFormat='{}{0} Media Files'}" 
+                               HorizontalAlignment="Center" 
+                               FontSize="{DynamicResource GlobalFontSize}" 
+                               Foreground="{DynamicResource SubtleTextBrush}"/>
+                </StackPanel>
 
-            <!-- Search box -->
-            <TextBox Grid.Row="0"
-                     Text="{Binding SearchText, Mode=TwoWay}"
-                     PlaceholderText="Search playlist..."
-                     Margin="10,10,10,5"
-                     VerticalAlignment="Center"/>
+                <!-- Search box -->
+                <TextBox Grid.Row="1"
+                         Text="{Binding SearchText, Mode=TwoWay}"
+                         PlaceholderText="Search playlist..."
+                         Margin="10,5,10,5"
+                         VerticalAlignment="Center"/>
 
-            <!-- Column Headers -->
-            <Grid Grid.Row="1" ColumnDefinitions="*, 45, 70, 70" Margin="15,5,15,5">
-                <TextBlock Grid.Column="0" Text="Title" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}"/>
-                <TextBlock Grid.Column="1" Text="Length" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Right"/>
-                <TextBlock Grid.Column="2" Text="Res" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Right"/>
-                <TextBlock Grid.Column="3" Text="Bitrate" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Right"/>
+                <!-- Column Headers -->
+                <Grid Grid.Row="2" ColumnDefinitions="*, Auto, Auto, Auto" Margin="15,5,15,5">
+                    <TextBlock Grid.Column="0" Text="Title" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}"/>
+                    <TextBlock Grid.Column="1" Text="Length" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Column="2" Text="Resolution" IsVisible="{ReflectionBinding $parent[Window].DataContext.HasVideoInPlaylist}" Width="70" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Column="3" Text="Bitrate" FontSize="{DynamicResource GlobalSmallFontSize}" FontWeight="SemiBold" Foreground="{DynamicResource SubtleTextBrush}" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                </Grid>
+
+                <!-- Track ListBox -->
+                <ListBox Grid.Row="3"
+                         ItemsSource="{Binding FilteredTracks}"
+                         SelectedItem="{Binding SelectedTrack, Mode=TwoWay}"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Margin="0,0,0,10">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:JukeboxTrack">
+                            <Grid ColumnDefinitions="*, 55, Auto, 60" Background="Transparent" Classes.playing="{Binding IsPlaying}">
+                                <!-- Title with playing status indicator -->
+                                <DockPanel Grid.Column="0">
+                                    <!-- Triangle indicator when playing -->
+                                    <Path DockPanel.Dock="Left"
+                                          Fill="{DynamicResource AccentTextBrush}"
+                                          Data="M 0,0 L 0,10 L 8,5 Z"
+                                          Width="8" Height="10"
+                                          Margin="0,0,8,0"
+                                          VerticalAlignment="Center"
+                                          IsVisible="{Binding IsPlaying}" />
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="{DynamicResource GlobalSmallFontSize}"
+                                               VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <!-- Length -->
+                                <TextBlock Grid.Column="1" Text="{Binding Duration}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                                <!-- Resolution -->
+                                <TextBlock Grid.Column="2" Text="{Binding Resolution}" IsVisible="{ReflectionBinding $parent[Window].DataContext.HasVideoInPlaylist}" Width="70" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                                <!-- Bitrate -->
+                                <TextBlock Grid.Column="3" Text="{Binding Bitrate}" FontSize="{DynamicResource GlobalSmallFontSize}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,0"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </Grid>
-
-            <!-- Track ListBox -->
-            <ListBox Grid.Row="2"
-                     ItemsSource="{Binding FilteredTracks}"
-                     SelectedItem="{Binding SelectedTrack, Mode=TwoWay}"
-                     BorderThickness="0"
-                     Background="Transparent"
-                     Margin="0,0,0,10">
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:JukeboxTrack">
-                        <Grid ColumnDefinitions="*, 45, 70, 70" Background="Transparent" Classes.playing="{Binding IsPlaying}">
-                            <!-- Title with playing status indicator -->
-                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                <!-- Triangle indicator when playing -->
-                                <Path Fill="{DynamicResource AccentTextBrush}"
-                                      Data="M 0,0 L 0,10 L 8,5 Z"
-                                      Width="8" Height="10"
-                                      Margin="0,0,8,0"
-                                      VerticalAlignment="Center"
-                                      IsVisible="{Binding IsPlaying}" />
-                                <TextBlock Text="{Binding DisplayName}"
-                                           TextTrimming="CharacterEllipsis"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <!-- Length -->
-                            <TextBlock Grid.Column="1" Text="{Binding Duration}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                            <!-- Res -->
-                            <TextBlock Grid.Column="2" Text="{Binding Resolution}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                            <!-- Bitrate -->
-                            <TextBlock Grid.Column="3" Text="{Binding Bitrate}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Grid>
-
-        <!-- Divider GridSplitter -->
-        <GridSplitter Grid.Column="1" Width="1" Background="{DynamicResource PanelBorder}" ResizeDirection="Columns" />
-
+        </Popup>
+        
         <!-- Main Video and Player Area -->
-        <Grid Grid.Column="2" RowDefinitions="*, 40">
+        <Grid RowDefinitions="*, 40">
             <!-- Video Container -->
-            <Grid Grid.Row="0" Background="Black" x:Name="VideoContainer">
-                <vlc:VideoView x:Name="VideoView"
-                               HorizontalAlignment="Stretch"
-                               VerticalAlignment="Stretch" />
-            </Grid>
+            <vlc:VideoView Grid.Row="0" x:Name="VideoView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
+            <!-- Anchors for precise Popup placement within the airspace -->
+            <Control Grid.Row="0" x:Name="LeftAnchor" Width="0" HorizontalAlignment="Left" VerticalAlignment="Top" />
+            <Control Grid.Row="0" x:Name="RightAnchor" Width="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
 
             <!-- Control Bar -->
             <Border Grid.Row="1" Background="{DynamicResource PanelBackground}"
                     BorderBrush="{DynamicResource PanelBorder}"
                     BorderThickness="0,1,0,0">
-                <Grid ColumnDefinitions="Auto, Auto, *, Auto">
+                <Grid ColumnDefinitions="Auto, Auto, *, 120">
 
                     <!-- Playlist toggle button -->
                     <Button Grid.Column="0"
                             Command="{Binding TogglePlaylistCommand}"
                             ToolTip.Tip="Show File Picker"
                             Margin="5,3,5,3"
-                            IsVisible="{Binding HasMultipleTracks}"
-                            Classes="jukebox-btn">
+                            IsEnabled="{Binding HasMultipleTracks}"
+                            Classes="transparentbutton">
                         <Image Source="avares://Gamelist_Manager/Assets/Buttons/glossybutton.png"
                                Width="24" Height="24"/>
                     </Button>
@@ -131,7 +127,7 @@
                               IsChecked="{Binding IsRandomPlayback}"
                               VerticalAlignment="Center"
                               Margin="5,0,5,0"
-                              IsVisible="{Binding HasMultipleTracks}"
+                              IsEnabled="{Binding HasMultipleTracks}"
                               ToolTip.Tip="Randomize Playback" />
 
                     <!-- Transport buttons -->
@@ -143,7 +139,7 @@
                         <Button Command="{Binding PreviousCommand}"
                                 IsEnabled="{Binding HasMultipleTracks}"
                                 Margin="5,3,5,3"
-                                Classes="jukebox-btn"
+                                Classes="transparentbutton"
                                 ToolTip.Tip="Previous">
                             <Image Source="avares://Gamelist_Manager/Assets/Buttons/previous.png"
                                    Width="24" Height="24"/>
@@ -152,7 +148,7 @@
                         <Button Command="{Binding PauseCommand}"
                                 IsEnabled="{Binding CanPause}"
                                 Margin="0,3,5,3"
-                                Classes="jukebox-btn"
+                                Classes="transparentbutton"
                                 ToolTip.Tip="Pause">
                             <Image Source="avares://Gamelist_Manager/Assets/Buttons/pause.png"
                                    Width="24" Height="24"/>
@@ -160,8 +156,8 @@
 
                         <Button Command="{Binding StopCommand}"
                                 IsEnabled="{Binding CanStop}"
-                                Margin="0,3,5,3"
-                                Classes="jukebox-btn"
+                                Margin="5,3,5,3"
+                                Classes="transparentbutton"
                                 ToolTip.Tip="Stop">
                             <Image Source="avares://Gamelist_Manager/Assets/Buttons/stop.png"
                                    Width="24" Height="24"/>
@@ -170,7 +166,7 @@
                         <Button Command="{Binding PlayCommand}"
                                 IsEnabled="{Binding CanPlay}"
                                 Margin="0,3,5,3"
-                                Classes="jukebox-btn"
+                                Classes="transparentbutton"
                                 ToolTip.Tip="Play">
                             <Image Source="avares://Gamelist_Manager/Assets/Buttons/play.png"
                                    Width="24" Height="24"/>
@@ -178,28 +174,123 @@
 
                         <Button Command="{Binding NextCommand}"
                                 IsEnabled="{Binding HasMultipleTracks}"
-                                Margin="0,3,5,3"
-                                Classes="jukebox-btn"
+                                Margin="5,3,5,3"
+                                Classes="transparentbutton"
                                 ToolTip.Tip="Next">
                             <Image Source="avares://Gamelist_Manager/Assets/Buttons/next.png"
                                    Width="24" Height="24"/>
                         </Button>
-
                     </StackPanel>
 
-                    <!-- Volume Slider -->
-                    <Slider Grid.Column="3"
-                            Value="{Binding Volume}"
-                            Minimum="0"
-                            Maximum="100"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Right"
-                            Width="100"
-                            Margin="10,0,10,0"
-                            ToolTip.Tip="Volume" />
-
+                    <!-- Right side buttons -->
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <!-- Volume Slider -->
+                        <Slider Minimum="0" Maximum="100" Value="{Binding Volume}"
+                                Width="80"
+                                Margin="0,0,10,0"
+                                ToolTip.Tip="Volume" />
+                                
+                        <!-- Visualizer toggle button -->
+                        <Button Command="{Binding TogglePickerCommand}"
+                                IsVisible="{Binding VisualizationsEnabled}"
+                                ToolTip.Tip="Show Visualizer Picker"
+                                Margin="5,3,5,3"
+                                Classes="transparentbutton">
+                            <Image Source="avares://Gamelist_Manager/Assets/Icons/visualizer.png" Width="24" Height="24"/>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
         </Grid>
+
+        <!-- Right Sidebar Visualizer Picker Overlay (Using Popup to bypass native HWND Airspace) -->
+        <Popup IsOpen="{Binding IsPickerVisible}" 
+               PlacementTarget="{Binding ElementName=RightAnchor}"
+               Placement="LeftEdgeAlignedTop"
+               VerticalOffset="0">
+            <Grid Width="350" Height="{Binding #VideoView.Bounds.Height}" RowDefinitions="Auto, *, Auto"
+                  Background="#B3151515">
+
+                <!-- Top Header -->
+                <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="10">
+                    <TextBlock Grid.Column="0" Text="Visualizations" FontWeight="SemiBold" FontSize="{DynamicResource GlobalFontSize}" VerticalAlignment="Center" Foreground="{DynamicResource AccentTextBrush}"/>
+                    <Button Grid.Column="1" Content="Random 🎲" Command="{Binding PickRandomPresetCommand}" Classes="transparentbutton" Padding="5,2"/>
+                </Grid>
+
+                <!-- Dual Listbox Layout -->
+                <Grid Grid.Row="1" ColumnDefinitions="0.4*, 0.6*" Margin="10,0,10,10">
+                    
+                    <!-- Categories -->
+                    <ListBox Grid.Column="0" 
+                             ItemsSource="{Binding PresetCategories}" 
+                             SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                             Background="Transparent" BorderThickness="0" Margin="0,0,5,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PresetCategory">
+                                <TextBlock Text="{Binding Name}" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Presets -->
+                    <ListBox Grid.Column="1" 
+                             ItemsSource="{Binding SelectedCategory.Presets}"
+                             SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                             Background="#20ffffff" CornerRadius="4" BorderThickness="0"
+                             DoubleTapped="PresetList_DoubleTapped">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PresetItem">
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="{DynamicResource GlobalSmallFontSize}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+                
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="2" Margin="10,0,10,10" Spacing="5">
+                    <TextBlock Text="Click Apply or double click to apply preset" 
+                               FontSize="{DynamicResource GlobalSmallFontSize}" 
+                               HorizontalAlignment="Center" 
+                               Foreground="{DynamicResource SubtleTextBrush}" 
+                               Margin="0,0,0,2"/>
+                    <Grid ColumnDefinitions="*, *, *, *">
+                        <Button Grid.Column="0" Content="Apply" 
+                                Command="{Binding ApplyPresetCommand}" 
+                                Classes="rounded green"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="2,0"/>
+                        <Button Grid.Column="1" Content="Add Favorite" 
+                                Command="{Binding AddToFavoritesCommand}" 
+                                Classes="rounded blue"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="2,0"/>
+                        <Button Grid.Column="2" Content="Delete Favorite" 
+                                Command="{Binding RemoveFromFavoritesCommand}" 
+                                Classes="rounded blue"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="2,0"/>
+                        <Button Grid.Column="3" Content="Rename" 
+                                Command="{Binding RenamePresetCommand}" 
+                                Classes="rounded grey"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="2,0"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Popup>
+
+        <!-- Initializing Message Popup -->
+        <Popup IsOpen="{Binding IsInitializing}"
+               PlacementTarget="{Binding #VideoView}"
+               Placement="Center">
+            <Border Background="{DynamicResource PanelBackground}" 
+                    BorderBrush="{DynamicResource PanelBorder}"
+                    BorderThickness="1"
+                    CornerRadius="8" 
+                    Padding="20" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center">
+                <TextBlock Text="Initializing Player..." 
+                           FontSize="18" 
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource AccentTextBrush}"/>
+            </Border>
+        </Popup>
     </Grid>
 </Window>

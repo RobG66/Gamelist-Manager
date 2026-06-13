@@ -116,11 +116,11 @@ public partial class SettingsViewModel
     }
 
     [RelayCommand]
-    private void ToggleAllSfx()
+    private void ToggleAllSuffixes()
     {
-        bool newValue = !MediaFolderItems.All(i => i.SfxEnabled);
+        bool newValue = !MediaFolderItems.All(i => i.IsSuffixEnabled);
         foreach (var item in MediaFolderItems)
-            item.SfxEnabled = newValue;
+            item.IsSuffixEnabled = newValue;
     }
 
     #endregion
@@ -163,7 +163,7 @@ public partial class SettingsViewModel
 
             item.Path = normalized;
 
-            if (profile.MediaFilenamesUseSuffixes && item.SfxEnabled && !FilePathHelper.IsValidMediaFolderSuffix(item.Suffix))
+            if (profile.MediaFilenamesUseSuffixes && item.IsSuffixEnabled && !FilePathHelper.IsValidMediaFolderSuffix(item.Suffix))
                 errors.Add($"{item.Label}: Suffix must be alphanumeric only (a-z, A-Z, 0-9) and no longer than 20 characters.");
         }
 
@@ -185,7 +185,7 @@ public partial class SettingsViewModel
                 else
                 {
                     effectivePath = (FilePathHelper.NormalizePathWithDotSlashPrefix(item.Path) ?? item.Path).ToLowerInvariant();
-                    effectiveSuffix = item.SfxEnabled ? item.Suffix.ToLowerInvariant() : string.Empty;
+                    effectiveSuffix = item.IsSuffixEnabled ? item.Suffix.ToLowerInvariant() : string.Empty;
                 }
 
                 var key = (effectivePath, effectiveSuffix);
@@ -283,17 +283,14 @@ public partial class SettingsViewModel
             ? $"Enabling overrides will save current enabled states for '{system}'. Continue?"
             : $"Disabling overrides will permanently remove them for '{system}'. Continue?";
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "System Media Overrides",
-            Message = message,
-            IconTheme = DialogIconTheme.Warning,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = enabling ? "Enable" : "Disable"
-        });
+        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            "System Media Overrides",
+            message,
+            confirmText: enabling ? "Enable" : "Disable",
+            cancelText: "Cancel",
+            icon: DialogIconTheme.Warning);
 
-        if (result != ThreeButtonResult.Button3)
+        if (!result)
         {
             _isProfileLoading = true;
             try { SystemOverrideActive = !enabling; }
@@ -308,13 +305,12 @@ public partial class SettingsViewModel
         else
         {
             SettingsService.Instance.ClearSystemMediaOverrides(system);
-            var s = SettingsState.Instance;
             var profile = SettingKeys.GetProfileTypeOption(_settingsState.ProfileType);
             foreach (var item in MediaFolderItems)
             {
                 var decl = MetadataService.GetDeclByType(item.Key);
                 item.Enabled = decl != null && profile.IncludesMediaFolder(decl) &&
-                               (bool.TryParse(s.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
+                               (bool.TryParse(_settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
             }
         }
 

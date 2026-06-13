@@ -14,6 +14,7 @@ namespace Gamelist_Manager.Services
         private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg"];
         private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv"];
         private static readonly string[] ManualExtensions = [".pdf"];
+        private static readonly string[] MusicExtensions = [".mp3", ".ogg", ".wav", ".flac"];
 
         public static (ObservableCollection<GameMetadataRow> Games, List<string> Duplicates) LoadGamelist(string xmlFilePath, bool ignoreDuplicates = false)
         {
@@ -25,9 +26,8 @@ namespace Gamelist_Manager.Services
             {
                 xmlDoc = XDocument.Load(xmlFilePath);
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load gamelist: {ex.Message}");
                 return (games, duplicates);
             }
 
@@ -118,6 +118,7 @@ namespace Gamelist_Manager.Services
                     {
                         MetaDataType.Video => VideoExtensions,
                         MetaDataType.Document => ManualExtensions,
+                        MetaDataType.Music => MusicExtensions,
                         _ => ImageExtensions
                     };
 
@@ -182,9 +183,8 @@ namespace Gamelist_Manager.Services
 
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to save gamelist: {ex.Message}");
                 return false;
             }
         }

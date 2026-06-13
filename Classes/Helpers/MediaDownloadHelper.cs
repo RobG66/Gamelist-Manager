@@ -38,10 +38,10 @@ namespace Gamelist_Manager.Classes.Helpers
                     string fileNamePrefix = Path.GetFileNameWithoutExtension(parameters.RomFileName) ?? string.Empty;
                     string fileName;
                     if (parameters.MediaSuffixes != null &&
-                        parameters.MediaSuffixes.TryGetValue(mediaType, out var sfxInfo) &&
-                        sfxInfo.SfxEnabled &&
-                        !string.IsNullOrEmpty(sfxInfo.Suffix))
-                        fileName = $"{fileNamePrefix}-{sfxInfo.Suffix}{extension}";
+                        parameters.MediaSuffixes.TryGetValue(mediaType, out var suffixInfo) &&
+                        suffixInfo.IsSuffixEnabled &&
+                        !string.IsNullOrEmpty(suffixInfo.Suffix))
+                        fileName = $"{fileNamePrefix}-{suffixInfo.Suffix}{extension}";
                     else
                         fileName = $"{fileNamePrefix}{extension}";
 

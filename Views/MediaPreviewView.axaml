@@ -93,7 +93,7 @@
 							Padding="10,4">
 						<StackPanel Orientation="Horizontal" Spacing="5">
 							<TextBlock Text="Re-Scrape"/>
-							<TextBlock Text="▼" FontSize="8" VerticalAlignment="Center"/>
+							<TextBlock Text="▼" FontSize="{DynamicResource GlobalTinyFontSize}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 

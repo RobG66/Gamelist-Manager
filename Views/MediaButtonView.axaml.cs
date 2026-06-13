@@ -71,52 +71,80 @@ public partial class MediaButtonView : UserControl
 
     private async void CopyPathItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MediaItemViewModel mediaItem) return;
-        var fullPath = GetFullPath(mediaItem);
-        if (fullPath == null) return;
-        var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel?.Clipboard != null)
-            await topLevel.Clipboard.SetTextAsync(fullPath);
+        try
+        {
+            if (DataContext is not MediaItemViewModel mediaItem) return;
+            var fullPath = GetFullPath(mediaItem);
+            if (fullPath == null) return;
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel?.Clipboard != null)
+                await topLevel.Clipboard.SetTextAsync(fullPath);
+        }
+        catch (Exception ex)
+        {
+            await ThreeButtonDialogView.ShowErrorAsync("Copy Error", "An error occurred while copying the path.", detail: ex.Message, owner: this);
+        }
     }
 
     private async void ClearItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MediaItemViewModel mediaItem) return;
-        var vm = FindMediaPreviewViewModel();
-        if (vm != null)
-            await vm.UpdateGameMedia(mediaItem.MediaType, null);
+        try
+        {
+            if (DataContext is not MediaItemViewModel mediaItem) return;
+            var vm = FindMediaPreviewViewModel();
+            if (vm != null)
+                await vm.UpdateGameMedia(mediaItem.MediaType, null);
+        }
+        catch (Exception ex)
+        {
+            await ThreeButtonDialogView.ShowErrorAsync("Clear Error", "An error occurred while clearing the media item.", detail: ex.Message, owner: this);
+        }
     }
 
     private async void DeleteItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MediaItemViewModel mediaItem) return;
-        var fullPath = GetFullPath(mediaItem);
-        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) return;
-        try { await Task.Run(() => File.Delete(fullPath)); }
-        catch { return; }
-        var vm = FindMediaPreviewViewModel();
-        if (vm != null)
-            await vm.UpdateGameMedia(mediaItem.MediaType, null);
+        try
+        {
+            if (DataContext is not MediaItemViewModel mediaItem) return;
+            var fullPath = GetFullPath(mediaItem);
+            if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) return;
+            try { await Task.Run(() => File.Delete(fullPath)); }
+            catch { return; }
+            var vm = FindMediaPreviewViewModel();
+            if (vm != null)
+                await vm.UpdateGameMedia(mediaItem.MediaType, null);
+        }
+        catch (Exception ex)
+        {
+            await ThreeButtonDialogView.ShowErrorAsync("Delete Error", "An error occurred while deleting the media item.", detail: ex.Message, owner: this);
+        }
     }
 
     private async void EditImageItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MediaItemViewModel mediaItem) return;
-        var fullPath = GetFullPath(mediaItem);
-        if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) return;
+        try
+        {
+            if (DataContext is not MediaItemViewModel mediaItem) return;
+            var fullPath = GetFullPath(mediaItem);
+            if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath)) return;
 
-        var owner = TopLevel.GetTopLevel(this) as Window;
-        var savedPath = await ImageEditView.ShowAsync(fullPath, owner);
+            var owner = TopLevel.GetTopLevel(this) as Window;
+            var savedPath = await ImageEditView.ShowAsync(fullPath, owner);
 
-        if (savedPath == null) return;
+            if (savedPath == null) return;
 
-        var vm = FindMediaPreviewViewModel();
-        if (vm == null) return;
+            var vm = FindMediaPreviewViewModel();
+            if (vm == null) return;
 
-        if (string.Equals(savedPath, fullPath, FilePathHelper.PathComparison))
-            vm.RefreshMedia(mediaItem.MediaType);
-        else
-            vm.UpdateMediaPath(mediaItem.MediaType, savedPath);
+            if (string.Equals(savedPath, fullPath, FilePathHelper.PathComparison))
+                vm.RefreshMedia(mediaItem.MediaType);
+            else
+                vm.UpdateMediaPath(mediaItem.MediaType, savedPath);
+        }
+        catch (Exception ex)
+        {
+            await ThreeButtonDialogView.ShowErrorAsync("Edit Error", "An error occurred while editing the image.", detail: ex.Message, owner: this);
+        }
     }
 
     private void PopulateScrapeSubmenu(MediaItemViewModel mediaItem)
@@ -155,9 +183,8 @@ public partial class MediaButtonView : UserControl
         {
             Process.Start(new ProcessStartInfo { FileName = filePath, UseShellExecute = true });
         }
-        catch (Exception ex)
+        catch
         {
-            Debug.WriteLine($"Failed to open file: {ex.Message}");
         }
     }
 
@@ -202,9 +229,8 @@ public partial class MediaButtonView : UserControl
                 });
             }
         }
-        catch (Exception ex)
+        catch
         {
-            Debug.WriteLine($"Failed to open file location: {ex.Message}");
         }
     }
 
@@ -276,15 +302,9 @@ public partial class MediaButtonView : UserControl
                 }
                 catch (Exception ex)
                 {
-                    await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-                    {
-                        Title = "Error",
-                        Message = $"Failed to open with {app.Name}.\n\n{ex.Message}",
-                        IconTheme = DialogIconTheme.Error,
-                        Button1Text = "",
-                        Button2Text = "",
-                        Button3Text = "OK"
-                    });
+                    await ThreeButtonDialogView.ShowErrorAsync(
+                        "Error",
+                        $"Failed to open with {app.Name}.\n\n{ex.Message}");
                 }
             };
             items.Add(item);

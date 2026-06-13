@@ -74,6 +74,7 @@ namespace Gamelist_Manager.Models
         [ObservableProperty] private bool _isBusy;
         [ObservableProperty] private bool _isScraping;
         [ObservableProperty] private bool _enableEdit;
+        [ObservableProperty] private bool _isJukeboxOpen;
 
         #endregion
 

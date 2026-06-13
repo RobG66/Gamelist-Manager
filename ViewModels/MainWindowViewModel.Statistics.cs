@@ -58,7 +58,7 @@ public partial class MainWindowViewModel
     private static IReadOnlyList<(MetaDataDecl MediaType, SolidColorBrush Brush)> GetMediaTypeInfo()
     {
         var mediaDecls = MetadataService.GetColumnDeclarations()
-            .Where(d => d.IsMedia)
+            .Where(d => d.IsMedia && d.Key != MetaDataKeys.music)
             .ToList();
 
         var result = new List<(MetaDataDecl, SolidColorBrush)>(mediaDecls.Count);

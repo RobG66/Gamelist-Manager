@@ -219,9 +219,9 @@ public partial class SettingsViewModel : ViewModelBase
         foreach (var item in MediaFolderItems)
         {
             item.Path = LoadMediaPath(_settingsState.MediaPaths.GetValueOrDefault(item.Key, item.DefaultPath), item.DefaultPath);
-            var sfxEnabled = bool.TryParse(_settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_sfx_enabled"), out var sfx) && sfx;
+            var isSuffixEnabled = bool.TryParse(_settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_suffix_enabled"), out var sfx) && sfx;
             item.LoadSuffixState(
-                sfxEnabled,
+                isSuffixEnabled,
                 _settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_suffix", item.DefaultSuffix));
             var decl = MetadataService.GetDeclByType(item.Key);
             item.Enabled = decl != null && profile.IncludesMediaFolder(decl) &&
@@ -321,7 +321,7 @@ public partial class SettingsViewModel : ViewModelBase
                 {
                     new KeyValuePair<string, string>(item.Key, item.Path),
                     new KeyValuePair<string, string>($"{item.Key}_suffix", item.Suffix),
-                    new KeyValuePair<string, string>($"{item.Key}_sfx_enabled", item.SfxEnabled.ToString()),
+                    new KeyValuePair<string, string>($"{item.Key}_suffix_enabled", item.IsSuffixEnabled.ToString()),
                 }
                 .Concat(SystemOverrideActive
                     ? []

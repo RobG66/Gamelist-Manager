@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Gamelist_Manager.Models
 {
@@ -47,8 +47,7 @@ namespace Gamelist_Manager.Models
 
         public List<string>? ElementsToScrape { get; set; }
         public Dictionary<string, string>? MediaPaths { get; set; }
-        public Dictionary<string, (string Suffix, bool SfxEnabled)>? MediaSuffixes { get; set; }
+        public Dictionary<string, (string Suffix, bool IsSuffixEnabled)>? MediaSuffixes { get; set; }
         public Dictionary<string, HashSet<string>>? ExistingMediaFiles { get; set; }
-        public Dictionary<string, (string Type, string Column)>? MetaLookup { get; set; }
     }
 }

@@ -62,7 +62,7 @@ public class WindowService : IWindowService
             await clipboard.SetTextAsync(text);
     }
 
-    public async Task ShowJukeboxAsync(string[] mediaFiles)
+    public async Task ShowJukeboxAsync(string[] mediaFiles, string systemName)
     {
         if (_owner is null) return;
 
@@ -74,20 +74,34 @@ public class WindowService : IWindowService
         }
 
         var viewModel = new JukeboxViewModel();
+        viewModel.LoadSystemLogo(systemName);
         var window = new JukeboxView { DataContext = viewModel };
 
         // Clean up reference when the window closes
-        window.Closed += (_, _) => _jukeboxView = null;
+        window.Closed += (_, _) => 
+        {
+            _jukeboxView = null;
+            Models.SessionState.Instance.IsJukeboxOpen = false;
+        };
 
         _jukeboxView = window;
+        Models.SessionState.Instance.IsJukeboxOpen = true;
 
         var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
         window.Loaded += (s, e) => tcs.TrySetResult(true);
 
-        window.Show(_owner);
+        window.Show();
 
         await tcs.Task;
         await viewModel.PlayMediaFilesAsync(mediaFiles, autoPlay: true);
+    }
+
+    public void CloseJukebox()
+    {
+        if (_jukeboxView is { } existing)
+        {
+            existing.Close();
+        }
     }
 
     #endregion

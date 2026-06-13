@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
@@ -212,11 +212,11 @@ public partial class ScraperViewModel
             TimeSpan elapsed = DateTime.Now - _startTime;
             double remainingMs = elapsed.TotalMilliseconds / pct * (100 - pct);
             TimeSpan remaining = TimeSpan.FromMilliseconds(remainingMs);
-            string t = string.Empty;
-            if (remaining.Hours > 0) t += $"{remaining.Hours:D2}h ";
-            if (remaining.Minutes > 0) t += $"{remaining.Minutes:D2}m ";
-            if (remaining.Hours == 0) t += $"{remaining.Seconds:D2}s";
-            TimeRemainingText = t.TrimEnd() + " remaining...";
+            string formattedTime = string.Empty;
+            if (remaining.Hours > 0) formattedTime += $"{remaining.Hours:D2}h ";
+            if (remaining.Minutes > 0) formattedTime += $"{remaining.Minutes:D2}m ";
+            if (remaining.Hours == 0) formattedTime += $"{remaining.Seconds:D2}s";
+            TimeRemainingText = formattedTime.TrimEnd() + " remaining...";
         }
     }
 

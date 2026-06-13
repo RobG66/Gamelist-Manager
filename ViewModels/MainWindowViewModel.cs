@@ -24,6 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SettingsState _settingsState = SettingsState.Instance;
     private readonly SettingsService _settingsService = SettingsService.Instance;
     private readonly IWindowService _windowService = WindowService.Instance;
+    private readonly IWindowOwnerProvider _windowOwnerProvider;
 
     private readonly MediaPreviewViewModel _mediaPreviewViewModel = new();
     private readonly SourceCache<GameMetadataRow, string> _sourceCache;
@@ -80,6 +81,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsNewGamelistEnabled =>
     !string.IsNullOrWhiteSpace(_settingsState.RootRomFolder) && Directory.Exists(_settingsState.RootRomFolder);
+
+    public bool IsJukeboxMenuEnabled => IsGamelistLoaded && !_sessionState.IsJukeboxOpen;
 
     private bool CanUseMameInternalNames =>
         string.Equals(_sessionState.CurrentSystem, "mame", StringComparison.OrdinalIgnoreCase) &&
@@ -143,6 +146,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
+            case nameof(SessionState.IsJukeboxOpen):
+                OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
+                break;
             case nameof(SessionState.EnableEdit):
                 OnPropertyChanged(nameof(IsEditModeEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
@@ -199,6 +205,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsEditToggleEnabled));
         OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
         OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
+        OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
     }
 
     private void OnSettingsApplied()
@@ -218,8 +225,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Constructor
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(IWindowOwnerProvider windowOwnerProvider)
     {
+        _windowOwnerProvider = windowOwnerProvider;
         _sourceCache = new SourceCache<GameMetadataRow, string>(game => game.Path);
         _filterSubject = new BehaviorSubject<Func<GameMetadataRow, bool>>(BuildFilterPredicate());
 
@@ -335,14 +343,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
         {
-            await Views.ThreeButtonDialogView.ShowAsync(new Views.ThreeButtonDialogConfig
-            {
-                Title = title,
-                Message = $"No {label} folder is configured or the folder does not exist.",
-                IconTheme = Views.DialogIconTheme.Info,
-                Button1Text = "OK",
-                Button1Result = Views.ThreeButtonResult.Button1,
-            });
+            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} folder is configured or the folder does not exist.");
             return;
         }
 
@@ -353,18 +354,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (files.Length == 0)
         {
-            await Views.ThreeButtonDialogView.ShowAsync(new Views.ThreeButtonDialogConfig
-            {
-                Title = title,
-                Message = $"No {label} files were found in:\n{mediaFolder.FolderPath}",
-                IconTheme = Views.DialogIconTheme.Info,
-                Button1Text = "OK",
-                Button1Result = Views.ThreeButtonResult.Button1,
-            });
+            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} files were found in:\n{mediaFolder.FolderPath}");
             return;
         }
 
-        await _windowService.ShowJukeboxAsync(files);
+        if (_sessionState.CurrentSystem != null)
+        {
+            await _windowService.ShowJukeboxAsync(files, _sessionState.CurrentSystem);
+        }
     }
 
     #endregion

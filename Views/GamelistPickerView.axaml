@@ -73,11 +73,11 @@
                                            MaxWidth="90" MaxHeight="44"
                                            Stretch="Uniform"
                                            IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <TextBlock Text="?"
-                                               FontSize="28"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <Image Source="avares://Gamelist_Manager/Assets/Icons/question-circle.png"
+                                           Width="44" Height="44"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNull}}"/>
                                 </Panel>
                                 <!-- Gamelist exists badge — new gamelist mode only -->
                                 <Border Grid.Row="0" Grid.RowSpan="3"
@@ -95,7 +95,7 @@
                                         </MultiBinding>
                                     </Border.IsVisible>
                                     <TextBlock Text="gamelist exists"
-                                               FontSize="8"
+                                               FontSize="{DynamicResource GlobalTinyFontSize}"
                                                Foreground="White"
                                                FontWeight="Bold"/>
                                 </Border>
@@ -111,7 +111,7 @@
                                 <!-- Game count -->
                                 <TextBlock Grid.Row="2"
                                            Text="{Binding GameCountText}"
-                                           FontSize="9"
+                                           FontSize="{DynamicResource GlobalSmallFontSize}"
                                            TextAlignment="Center"
                                            HorizontalAlignment="Center"
                                            Foreground="{DynamicResource AccentTextBrush}"

@@ -11,11 +11,72 @@ namespace Gamelist_Manager.Views
 {
     public partial class ThreeButtonDialogView : Window
     {
-        public static async Task<ThreeButtonResult> ShowAsync(ThreeButtonDialogConfig config, Window? owner = null)
+        public static async Task<ThreeButtonResult> ShowAsync(ThreeButtonDialogConfig config, object? owner = null)
         {
-            owner ??= (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (owner == null) return ThreeButtonResult.Button1;
-            return await new ThreeButtonDialogView(config).ShowDialog<ThreeButtonResult>(owner);
+            var windowOwner = owner as Window ?? (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (windowOwner == null) return ThreeButtonResult.Button1;
+            return await new ThreeButtonDialogView(config).ShowDialog<ThreeButtonResult>(windowOwner);
+        }
+
+        public static Task ShowInfoAsync(string title, string message, string? detail = null, object? owner = null)
+            => ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = title,
+                Message = message,
+                DetailMessage = detail,
+                IconTheme = DialogIconTheme.Info,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK",
+            }, owner);
+
+        public static Task ShowWarningAsync(string title, string message, string? detail = null, object? owner = null)
+            => ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = title,
+                Message = message,
+                DetailMessage = detail,
+                IconTheme = DialogIconTheme.Warning,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK",
+            }, owner);
+
+        public static Task ShowErrorAsync(string title, string message, string? detail = null, object? owner = null)
+            => ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = title,
+                Message = message,
+                DetailMessage = detail,
+                IconTheme = DialogIconTheme.Error,
+                Button1Text = "",
+                Button2Text = "",
+                Button3Text = "OK",
+            }, owner);
+
+        /// <summary>
+        /// Shows a two-button confirmation dialog. Returns <c>true</c> if the user confirmed, <c>false</c> if cancelled.
+        /// </summary>
+        public static async Task<bool> ShowConfirmAsync(
+            string title,
+            string message,
+            string confirmText = "Yes",
+            string cancelText = "Cancel",
+            DialogIconTheme icon = DialogIconTheme.Question,
+            string? detail = null,
+            object? owner = null)
+        {
+            var result = await ShowAsync(new ThreeButtonDialogConfig
+            {
+                Title = title,
+                Message = message,
+                DetailMessage = detail,
+                IconTheme = icon,
+                Button1Text = cancelText,
+                Button2Text = "",
+                Button3Text = confirmText,
+            }, owner);
+            return result == ThreeButtonResult.Button3;
         }
 
         private readonly ThreeButtonResult _button1Result;

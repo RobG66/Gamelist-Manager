@@ -10,5 +10,6 @@ public interface IWindowService
     Task ShowSettingsAsync(int tabIndex, int scraperIndex);
     Task ShowAboutAsync();
     Task CopyToClipboardAsync(string text);
-    Task ShowJukeboxAsync(string[] mediaFiles);
+    Task ShowJukeboxAsync(string[] mediaFiles, string systemName);
+    void CloseJukebox();
 }

@@ -88,16 +88,10 @@ public partial class MainWindowViewModel
         if (gamelistPath.StartsWith(expectedRoot, FilePathHelper.PathComparison))
             return true;
 
-        await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "Invalid Gamelist",
-            Message = "This gamelist is not in the expected location and may be the wrong type for the current profile.",
-            DetailMessage = $"Expected root location: {expectedRoot}",
-            IconTheme = DialogIconTheme.Warning,
-            Button1Text = "",
-            Button2Text = "",
-            Button3Text = "OK"
-        });
+        await ThreeButtonDialogView.ShowWarningAsync(
+            "Invalid Gamelist",
+            "This gamelist is not in the expected location and may be the wrong type for the current profile.",
+            detail: $"Expected root location: {expectedRoot}");
 
         return false;
     }
@@ -136,22 +130,15 @@ public partial class MainWindowViewModel
             }
         }
 
-        var detailMessage = hasRoot
-            ? $"The ES-DE root folder is currently set to:\n{currentRoot}\n\nPress Browse to keep or change this location."
-            : "The ES-DE root folder has not been set.\n\nPress Browse to choose the ES-DE root folder.";
-
-        var browseResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-        {
-            Title = "ES-DE Location",
-            Message = contextMessage,
-            DetailMessage = detailMessage,
-            IconTheme = DialogIconTheme.Info,
-            Button1Text = "Cancel",
-            Button2Text = "",
-            Button3Text = "Browse"
-        }, owner);
-
-        if (browseResult != ThreeButtonResult.Button3) return;
+        var browseResult = await ThreeButtonDialogView.ShowConfirmAsync(
+            "ES-DE Location",
+            "Please select the folder containing your ES-DE configuration.",
+            confirmText: "Browse",
+            cancelText: "Cancel",
+            icon: DialogIconTheme.Info,
+            detail: "This folder typically contains the 'es_systems.xml' and 'es_settings.xml' files.");
+        
+        if (!browseResult) return;
 
         var chosen = await FolderPickerHelper.BrowseForFolderAsync(
             "Select ES-DE Root Folder",
@@ -190,19 +177,14 @@ public partial class MainWindowViewModel
 
         if (IsGamelistLoaded)
         {
-            var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
-            {
-                Title = "Switch Profile",
-                Message = $"Switch to profile '{profileName}'?",
-                DetailMessage = "The current gamelist will be unloaded.",
-                IconTheme = DialogIconTheme.Warning,
-                Button1Text = "Cancel",
-                Button2Text = "",
-                Button3Text = "Switch"
-            });
+            var result = await ThreeButtonDialogView.ShowConfirmAsync(
+                "Switch Profile",
+                "Are you sure you want to switch to the EmulationStation profile?",
+                confirmText: "Switch",
+                cancelText: "Cancel",
+                icon: DialogIconTheme.Warning);
 
-            if (result != ThreeButtonResult.Button3)
-                return;
+            if (!result) return;
         }
 
         UnloadGamelist();

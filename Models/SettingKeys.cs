@@ -230,7 +230,7 @@ public static class SettingKeys
                 KeyValuePair.Create(d.Type,                  d.DefaultPath),
                 KeyValuePair.Create($"{d.Type}_enabled",     d.DefaultEnabled.ToString().ToLower()),
                 KeyValuePair.Create($"{d.Type}_suffix",      d.DefaultSuffix),
-                KeyValuePair.Create($"{d.Type}_sfx_enabled", (!string.IsNullOrEmpty(d.DefaultSuffix)).ToString().ToLower()),
+                KeyValuePair.Create($"{d.Type}_suffix_enabled", (!string.IsNullOrEmpty(d.DefaultSuffix)).ToString().ToLower()),
             })
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 

@@ -1,34 +1,65 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Style Selector="Slider /template/ Thumb">
+    <Style Selector="Slider:horizontal">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="MinHeight" Value="20"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Width="16" Height="12"
-                        CornerRadius="2"
-                        Background="{DynamicResource SliderThumbBrush}"/>
+                <Grid Background="{TemplateBinding Background}" VerticalAlignment="Center">
+                    <!-- The empty track background -->
+                    <Border Height="4" CornerRadius="2" Background="#444444" VerticalAlignment="Center"/>
+                    
+                    <Track Name="PART_Track" Orientation="Horizontal"
+                           Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value, Mode=TwoWay}">
+                        <Track.DecreaseButton>
+                            <RepeatButton Name="PART_DecreaseButton" 
+                                          Background="{DynamicResource SliderTrackBrush}" 
+                                          Focusable="False"
+                                          Height="4" 
+                                          VerticalAlignment="Center">
+                                <RepeatButton.Template>
+                                    <ControlTemplate>
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="2,0,0,2" Height="{TemplateBinding Height}"/>
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Track.DecreaseButton>
+                        <Track.IncreaseButton>
+                            <RepeatButton Name="PART_IncreaseButton" 
+                                          Background="Transparent" 
+                                          Focusable="False"
+                                          Height="4" 
+                                          VerticalAlignment="Center">
+                                <RepeatButton.Template>
+                                    <ControlTemplate>
+                                        <Border Background="Transparent"/>
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Track.IncreaseButton>
+                        <Thumb Name="thumb"
+                               Width="16" Height="12"
+                               Background="{DynamicResource SliderThumbBrush}">
+                            <Thumb.Template>
+                                <ControlTemplate>
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="2"/>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                    </Track>
+                </Grid>
             </ControlTemplate>
         </Setter>
     </Style>
 
-    <Style Selector="Slider:pointerover /template/ Thumb">
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Border Width="16" Height="12"
-                        CornerRadius="2"
-                        Background="{DynamicResource SliderThumbHoverBrush}"/>
-            </ControlTemplate>
-        </Setter>
+    <Style Selector="Slider:horizontal:pointerover /template/ Thumb">
+        <Setter Property="Background" Value="{DynamicResource SliderThumbHoverBrush}"/>
     </Style>
-
-    <Style Selector="Slider:pressed /template/ Thumb">
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Border Width="16" Height="12"
-                        CornerRadius="2"
-                        Background="{DynamicResource SliderThumbHoverBrush}"/>
-            </ControlTemplate>
-        </Setter>
+    <Style Selector="Slider:horizontal:pressed /template/ Thumb">
+        <Setter Property="Background" Value="{DynamicResource SliderThumbHoverBrush}"/>
     </Style>
 
 </Styles>
