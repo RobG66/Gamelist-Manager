@@ -59,51 +59,7 @@ public partial class JukeboxViewModel
         
         return false;
     }
-    private void EnsureProjectMPluginsCopied()
-    {
-        try
-        {
-            var projectMDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProjectM");
-            var vlcDir = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "vlc"));
-            
-            if (!Directory.Exists(projectMDir)) return;
 
-            string pluginFileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "libprojectm_plugin.dll" : "libprojectm_plugin.so";
-            string osFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "win-x64" : "linux-x64";
-            
-            string sourcePluginPath = Path.Combine(projectMDir, osFolder, pluginFileName);
-            string destinationPluginDirectory = Path.Combine(vlcDir.FullName, "plugins", "visualization");
-            string destinationPluginPath = Path.Combine(destinationPluginDirectory, pluginFileName);
-
-            if (File.Exists(sourcePluginPath))
-            {
-                if (!Directory.Exists(destinationPluginDirectory))
-                    Directory.CreateDirectory(destinationPluginDirectory);
-
-                // Copy plugin if it doesn't exist or if source timestamp differs
-                if (!File.Exists(destinationPluginPath) || File.GetLastWriteTimeUtc(sourcePluginPath) != File.GetLastWriteTimeUtc(destinationPluginPath))
-                {
-                    File.Copy(sourcePluginPath, destinationPluginPath, true);
-                }
-                
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    string sourceCoreDll = Path.Combine(projectMDir, osFolder, "libprojectM.dll");
-                    string destinationCoreDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "libprojectM.dll");
-                    if (File.Exists(sourceCoreDll))
-                    {
-                        if (!File.Exists(destinationCoreDll) || File.GetLastWriteTimeUtc(sourceCoreDll) != File.GetLastWriteTimeUtc(destinationCoreDll))
-                        {
-                            File.Copy(sourceCoreDll, destinationCoreDll, true);
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception)
-        {
-        }
-    }
     private void LoadPresets()
     {
         var projectMDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProjectM");
@@ -116,38 +72,35 @@ public partial class JukeboxViewModel
             var categories = new List<PresetCategory>();
             var allPresetsCategory = new PresetCategory { Name = "All Presets" };
             
-            // Scan directories efficiently
-            foreach (var dir in Directory.EnumerateDirectories(presetsDir))
+            // Get all subdirectories recursively, plus the root presets dir
+            var allDirs = new List<string> { presetsDir };
+            try
             {
-                var dirName = Path.GetFileName(dir);
-                var category = new PresetCategory { Name = dirName };
-                
-                var files = Directory.EnumerateFiles(dir, "*.milk", SearchOption.AllDirectories)
+                allDirs.AddRange(Directory.GetDirectories(presetsDir, "*", SearchOption.AllDirectories));
+            }
+            catch { }
+
+            foreach (var dir in allDirs)
+            {
+                var files = Directory.EnumerateFiles(dir, "*.milk", SearchOption.TopDirectoryOnly)
                                      .Select(f => new PresetItem { Name = Path.GetFileNameWithoutExtension(f), FullPath = f })
                                      .OrderBy(p => p.Name)
                                      .ToList();
                                      
-                foreach (var item in files)
+                if (files.Count > 0)
                 {
-                    category.Presets.Add(item);
-                    allPresetsCategory.Presets.Add(item);
-                }
-                
-                if (category.Presets.Count > 0)
-                {
+                    // Create a readable category name relative to the presets folder
+                    var relativePath = Path.GetRelativePath(presetsDir, dir);
+                    var categoryName = relativePath == "." ? "Root" : relativePath.Replace(Path.DirectorySeparatorChar, '/');
+                    
+                    var category = new PresetCategory { Name = categoryName };
+                    foreach (var item in files)
+                    {
+                        category.Presets.Add(item);
+                        allPresetsCategory.Presets.Add(item);
+                    }
                     categories.Add(category);
                 }
-            }
-
-            // Also get files in the root preset directory
-            var rootFiles = Directory.EnumerateFiles(presetsDir, "*.milk")
-                                     .Select(f => new PresetItem { Name = Path.GetFileNameWithoutExtension(f), FullPath = f })
-                                     .OrderBy(p => p.Name)
-                                     .ToList();
-                                     
-            foreach (var item in rootFiles)
-            {
-                allPresetsCategory.Presets.Add(item);
             }
 
             // Sort categories alphabetically
@@ -162,7 +115,7 @@ public partial class JukeboxViewModel
 
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                PresetCategories = new ObservableCollection<PresetCategory>(categories.Where(c => c.Presets.Count > 0));
+                PresetCategories = new ObservableCollection<PresetCategory>(categories);
                 SelectedCategory = PresetCategories.FirstOrDefault();
             });
         });
@@ -175,84 +128,36 @@ public partial class JukeboxViewModel
     [RelayCommand]
     private void PickRandomPreset()
     {
-        if (PresetCategories.Count == 0) return;
+        if (PresetCategories.Count == 0) 
+        {
+            Console.WriteLine("[ViewModel] PickRandomPreset aborted: PresetCategories is empty!");
+            return;
+        }
         var allPresets = PresetCategories.FirstOrDefault(c => c.Name == "All Presets");
         if (allPresets != null && allPresets.Presets.Count > 0)
         {
             SelectedCategory = allPresets;
             int idx = _random.Next(allPresets.Presets.Count);
             SelectedPreset = allPresets.Presets[idx];
+            Console.WriteLine($"[ViewModel] PickRandomPreset picked: {SelectedPreset.FullPath}");
             ApplyPreset();
+        }
+        else
+        {
+            Console.WriteLine("[ViewModel] PickRandomPreset aborted: No presets found in All Presets category.");
         }
     }
     [RelayCommand]
     private void ApplyPreset()
     {
-        if (SelectedPreset == null || _isDisposed) return;
-        
-        var presetToApply = SelectedPreset;
-        
-        Task.Run(async () =>
+        Console.WriteLine($"[ViewModel] ApplyPreset called! SelectedPreset: {SelectedPreset?.FullPath ?? "NULL"}");
+        if (SelectedPreset == null || _projectMControl == null || _isDisposed) 
         {
-            try
-            {
-                var tempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProjectM", "temp_preset");
-                if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
-                
-                // Clean temp dir
-                foreach (var f in Directory.GetFiles(tempDir, "*.milk"))
-                {
-                    try { File.Delete(f); } catch { }
-                }
-                
-                // Copy selected preset
-                var destPath = Path.Combine(tempDir, Path.GetFileName(presetToApply.FullPath));
-                File.Copy(presetToApply.FullPath, destPath, true);
-
-                bool wasPlaying = false;
-                long currentTime = 0;
-                
-                if (_audioMediaPlayer != null)
-                {
-                    try
-                    {
-                        wasPlaying = _audioMediaPlayer.IsPlaying;
-                        if (wasPlaying) currentTime = _audioMediaPlayer.Time;
-                    }
-                    catch { }
-                }
-
-                if (wasPlaying && _currentMedia != null)
-                {
-                    // Stop the player so the visualizer unloads
-                    _audioMediaPlayer?.Stop();
-                    
-                    // Small delay to ensure resources are freed
-                    await Task.Delay(50);
-                    
-                    // Restart playback to spin up the visualizer with the new preset
-                    _audioMediaPlayer?.Play(_currentMedia);
-                    
-                    // Poll for up to 2.5 seconds to allow media to parse and start before seeking
-                    for (int i = 0; i < 25; i++)
-                    {
-                        if (_audioMediaPlayer != null && _audioMediaPlayer.IsPlaying)
-                            break;
-                        await Task.Delay(100);
-                    }
-
-                    try
-                    {
-                        if (_audioMediaPlayer != null && _audioMediaPlayer.IsPlaying)
-                            _audioMediaPlayer.Time = currentTime;
-                    }
-                    catch { }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        });
+            Console.WriteLine($"[ViewModel] ApplyPreset ABORTED. _projectMControl is null? {_projectMControl == null}. _isDisposed? {_isDisposed}");
+            return;
+        }
+        Console.WriteLine($"[ViewModel] Calling _projectMControl.LoadPreset with {SelectedPreset.FullPath}");
+        _projectMControl.LoadPreset(SelectedPreset.FullPath, smooth: true);
     }
     [RelayCommand(CanExecute = nameof(CanAddToFavorites))]
     private void AddToFavorites()
@@ -289,6 +194,26 @@ public partial class JukeboxViewModel
 
             File.Copy(SelectedPreset.FullPath, destinationPath, true);
             
+            // Also copy any locally associated textures
+            try
+            {
+                string sourceDir = Path.GetDirectoryName(SelectedPreset.FullPath) ?? "";
+                string content = File.ReadAllText(SelectedPreset.FullPath);
+                var regex = new System.Text.RegularExpressions.Regex(@"[a-zA-Z0-9_-]+\.(?:jpg|png|bmp|tga)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                
+                foreach (System.Text.RegularExpressions.Match match in regex.Matches(content))
+                {
+                    string textureName = match.Value;
+                    string sourceTex = Path.Combine(sourceDir, textureName);
+                    if (File.Exists(sourceTex))
+                    {
+                        string destTex = Path.Combine(favoritesDirectory, textureName);
+                        File.Copy(sourceTex, destTex, true);
+                    }
+                }
+            }
+            catch { }
+
             var favoritesCategory = PresetCategories.FirstOrDefault(c => c.Name.Equals("Favorites", StringComparison.OrdinalIgnoreCase));
             if (favoritesCategory == null)
             {
@@ -392,7 +317,7 @@ public partial class JukeboxViewModel
             string newPath = Path.Combine(currentDir, newName + ".milk");
             File.Move(preset.FullPath, newPath);
 
-            // Update the preset item so the UI reflects the change
+            string oldPath = preset.FullPath;
             preset.Name = newName;
             preset.FullPath = newPath;
         }

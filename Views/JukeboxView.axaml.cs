@@ -1,35 +1,78 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Gamelist_Manager.ViewModels;
 using LibVLCSharp.Avalonia;
 using LibVLCSharp.Shared;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Gamelist_Manager.Views;
 
 public partial class JukeboxView : Window
 {
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT lpPoint);
+
+    private readonly DispatcherTimer _mousePoller = new();
+    private POINT _lastMousePos;
+
     public JukeboxView()
     {
         InitializeComponent();
 
         Opened += OnOpened;
         Closing += OnClosing;
+
+        _mousePoller.Interval = TimeSpan.FromMilliseconds(100);
+        _mousePoller.Tick += OnMousePollerTick;
+        _mousePoller.Start();
+    }
+
+    private void OnMousePollerTick(object? sender, EventArgs e)
+    {
+        if (!IsVisible) return;
+
+        if (GetCursorPos(out var p))
+        {
+            if (p.X != _lastMousePos.X || p.Y != _lastMousePos.Y)
+            {
+                _lastMousePos = p;
+                
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel == null) return;
+                
+                var clientPos = topLevel.PointToClient(new PixelPoint(p.X, p.Y));
+                if (clientPos.X >= 0 && clientPos.X <= Bounds.Width &&
+                    clientPos.Y >= 0 && clientPos.Y <= Bounds.Height)
+                {
+                    if (DataContext is JukeboxViewModel vm)
+                    {
+                        vm.ResetAutoHideTimer();
+                    }
+                }
+            }
+        }
     }
 
     private void OnOpened(object? sender, EventArgs e)
     {
         if (DataContext is JukeboxViewModel vm)
         {
+            vm.SetProjectMControl(ProjectMView);
+            vm.SetStorageProvider(TopLevel.GetTopLevel(this)?.StorageProvider);
             vm.MediaPlayerCreated += OnMediaPlayerCreated;
             vm.ErrorOccurred += OnErrorOccurred;
             vm.CloseRequested += OnCloseRequested;
             vm.PropertyChanged += OnViewModelPropertyChanged;
 
-            VideoView.SizeChanged += OnVideoViewSizeChanged;
-
-            var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
-            vm.InitializeDimensions((int)(VideoView.Bounds.Width * scaling), (int)(VideoView.Bounds.Height * scaling));
             vm.RequestPlayer();
         }
     }
@@ -41,7 +84,6 @@ public partial class JukeboxView : Window
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
     {
-        VideoView.SizeChanged -= OnVideoViewSizeChanged;
         VideoView.MediaPlayer = null;
 
         if (DataContext is JukeboxViewModel vm)
@@ -61,24 +103,32 @@ public partial class JukeboxView : Window
 
     private void OnMediaPlayerCreated(MediaPlayer? mediaPlayer)
     {
-        // Immediately detach the UI from the player if we receive null, 
-        // to prevent native crashes when the backend player is being destroyed
-        VideoView.MediaPlayer = mediaPlayer;
-        
-        if (mediaPlayer != null && DataContext is JukeboxViewModel vm)
+        if (DataContext is JukeboxViewModel vm)
         {
-            vm.NotifyPlayerAttached();
+            // Only attach the player to the VideoView if we are playing a video, OR if we are playing audio but ProjectM is missing (fallback).
+            // If we are playing audio (VisualizationsEnabled == true) and ProjectM is installed, we leave the VideoView detached
+            // so its native HWND doesn't pop up and cover the visualizer.
+            if (vm.VisualizationsEnabled && vm.HasProjectM)
+            {
+                VideoView.MediaPlayer = null;
+                VideoView.IsVisible = false;
+                ProjectMWrapper.IsVisible = true;
+            }
+            else
+            {
+                VideoView.MediaPlayer = mediaPlayer;
+                VideoView.IsVisible = true;
+                ProjectMWrapper.IsVisible = false;
+            }
+            
+            if (mediaPlayer != null)
+            {
+                vm.NotifyPlayerAttached();
+            }
         }
     }
 
-    private void OnVideoViewSizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        if (DataContext is JukeboxViewModel vm)
-        {
-            var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
-            vm.HandleResize((int)(e.NewSize.Width * scaling), (int)(e.NewSize.Height * scaling));
-        }
-    }
+
 
     private async void OnErrorOccurred(string message)
     {

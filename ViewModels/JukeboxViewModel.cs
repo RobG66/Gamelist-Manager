@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using System.Runtime.InteropServices;
 
 namespace Gamelist_Manager.ViewModels;
@@ -22,6 +23,10 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
 
     private LibVLC? _audioLibVLC;
     private MediaPlayer? _audioMediaPlayer;
+    
+    private Controls.ProjectMControl? _projectMControl;
+    private IStorageProvider? _storageProvider;
+    private Classes.Audio.AudioOutputHandler? _audioOutput;
 
     private MediaPlayer? ActiveMediaPlayer => VisualizationsEnabled ? _audioMediaPlayer : _videoMediaPlayer;
     private LibVLC? ActiveLibVLC => VisualizationsEnabled ? _audioLibVLC : _videoLibVLC;
@@ -32,13 +37,19 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
     private readonly Random _random = new();
     private bool _isDisposed;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VideoEnabled))]
+    [NotifyPropertyChangedFor(nameof(PickerEnabled))]
     private bool _visualizationsEnabled;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PickerEnabled))]
+    private bool _hasProjectM;
+
+    public bool VideoEnabled => !VisualizationsEnabled;
+    public bool PickerEnabled => VisualizationsEnabled && HasProjectM;
     
     private CancellationTokenSource? _scannerCts;
     private Task? _scannerTask;
-    private CancellationTokenSource? _resizeDebounceCts;
-    private int _lastWidth = 512;
-    private int _lastHeight = 384;
 
     [ObservableProperty] private Avalonia.Media.Imaging.Bitmap? _systemLogo;
 
@@ -56,6 +67,35 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
 
     [ObservableProperty]
     private double _volume = 75;
+
+    [ObservableProperty]
+    private double _playbackPosition;
+
+    [ObservableProperty]
+    private double _playbackLength = 100;
+
+    [ObservableProperty]
+    private string _currentTimeString = "0:00";
+
+    [ObservableProperty]
+    private string _totalTimeString = "0:00";
+
+    [ObservableProperty]
+    private bool _isAutoHideEnabled = true;
+
+    [ObservableProperty]
+    private bool _isControlBarVisible = true;
+
+    [ObservableProperty]
+    private double _controlBarHeight = 65;
+
+    partial void OnIsControlBarVisibleChanged(bool value)
+    {
+        ControlBarHeight = value ? 65 : 0;
+    }
+
+    private bool _isUpdatingTimeFromPlayer = false;
+    private readonly Avalonia.Threading.DispatcherTimer _autoHideTimer = new();
 
     [ObservableProperty]
     private bool _hasVideoInPlaylist = true;
@@ -81,20 +121,57 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
 
     public JukeboxViewModel()
     {
+        IsInitializing = true;
+        
+        _autoHideTimer.Interval = TimeSpan.FromSeconds(3);
+        _autoHideTimer.Tick += (s, e) => 
+        {
+            if (IsAutoHideEnabled)
+            {
+                IsControlBarVisible = false;
+            }
+            _autoHideTimer.Stop();
+        };
+
         _initTask = Task.Run(() => 
         {
-            EnsureProjectMPluginsCopied();
             InitializeVideoVLC();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                IsInitializing = false;
+            });
         });
         LoadPresets();
     }
 
+    public void SetProjectMControl(Controls.ProjectMControl control)
+    {
+        Console.WriteLine($"[ViewModel] SetProjectMControl called. Control is null? {control == null}");
+        _projectMControl = control;
+    }
 
+    public void SetStorageProvider(IStorageProvider? provider)
+    {
+        _storageProvider = provider;
+    }
 
+    // OnAudioSetup and OnAudioCleanup removed because SetAudioFormat is used instead
 
+    private void OnAudioPlay(IntPtr data, IntPtr samples, uint count, long pts)
+    {
+        int sampleCount = (int)count * 2; // stereo
+        
+        // Feed 16-bit PCM directly to OpenAL and ProjectM
+        var shortBuffer = new short[sampleCount];
+        Marshal.Copy(samples, shortBuffer, 0, sampleCount);
+        _audioOutput?.Enqueue(shortBuffer);
+        _projectMControl?.FeedPcm(shortBuffer);
+    }
 
-
-
+    private void OnAudioPause(IntPtr data, long pts) { }
+    private void OnAudioResume(IntPtr data, long pts) { }
+    private void OnAudioFlush(IntPtr data, long pts) { }
+    private void OnAudioDrain(IntPtr data) { }
 
     public void LoadSystemLogo(string systemName)
     {
@@ -127,6 +204,11 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
             _videoMediaPlayer.Volume = (int)Volume;
             _videoMediaPlayer.EndReached += OnEndReached;
             _videoMediaPlayer.TimeChanged += OnTimeChanged;
+            _videoMediaPlayer.LengthChanged += OnLengthChanged;
+            _videoMediaPlayer.Buffering += OnBuffering;
+            _videoMediaPlayer.Playing += OnPlaying;
+              
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => RequestPlayer());
         }
         catch (Exception ex)
         {
@@ -134,7 +216,7 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
-    private void CreateAudioVLC(int width, int height)
+    private void CreateAudioVLC()
     {
         try
         {
@@ -158,6 +240,9 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
                             try { oldPlayer.Stop(); } catch { }
                             oldPlayer.EndReached -= OnEndReached;
                             oldPlayer.TimeChanged -= OnTimeChanged;
+                            oldPlayer.LengthChanged -= OnLengthChanged;
+                            oldPlayer.Buffering -= OnBuffering;
+                            oldPlayer.Playing -= OnPlaying;
                             try { oldPlayer.Dispose(); } catch { }
                         }
                         if (oldLibVlc != null)
@@ -169,7 +254,7 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
                 });
             }
 
-            var baseOptions = new[]
+            var baseOptions = new List<string>
             {
                 "--no-video-title-show",
                 "--no-stats",
@@ -179,77 +264,28 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
                 "--file-caching=300"
             };
 
-            var audioOptions = baseOptions.ToList();
-            var vlcDir = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "vlc"));
-            audioOptions.Add($"--plugin-path={vlcDir.FullName}");
+            HasProjectM = Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProjectM"));
 
-            var projectMDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProjectM");
-            var presetsDir = Path.Combine(projectMDir, "presets");
-            
-            bool useProjectM = false;
-
-            if (Directory.Exists(projectMDir) && Directory.Exists(presetsDir))
+            if (!HasProjectM)
             {
-                string pluginFileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "libprojectm_plugin.dll" : "libprojectm_plugin.so";
-                string destPluginDir = Path.Combine(vlcDir.FullName, "plugins", "visualization");
-                string destPluginPath = Path.Combine(destPluginDir, pluginFileName);
+                baseOptions.Add("--audio-visual=visual");
+                baseOptions.Add("--effect-width=50");
+                baseOptions.Add("--effect-height=50");
+                baseOptions.Add("--effect-list=spectrometer");
 
-                if (File.Exists(destPluginPath))
-                {
-                    useProjectM = true;
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    // On Linux, the plugin might be installed system-wide via apt-get.
-                    useProjectM = true;
-                }
+                var vlcDir = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "vlc"));
+                baseOptions.Add($"--plugin-path={vlcDir.FullName}");
             }
 
-            _currentAudioWidth = width;
-            _currentAudioHeight = height;
-
-            if (useProjectM)
-            {
-                var tempPresetDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ProjectM", "temp_preset");
-                
-                if (!Directory.Exists(tempPresetDir)) Directory.CreateDirectory(tempPresetDir);
-                
-                // If it's empty, grab a random file from anywhere so we don't start with a black screen
-                if (Directory.GetFiles(tempPresetDir, "*.milk").Length == 0)
-                {
-                    try
-                    {
-                        var allMilk = Directory.GetFiles(presetsDir, "*.milk", SearchOption.AllDirectories);
-                        if (allMilk.Length > 0)
-                        {
-                            var randomFile = allMilk[new Random().Next(allMilk.Length)];
-                            File.Copy(randomFile, Path.Combine(tempPresetDir, Path.GetFileName(randomFile)));
-                        }
-                    }
-                    catch { }
-                }
-
-                audioOptions.Add("--audio-visual=projectm");
-                audioOptions.Add($"--projectm-preset-path={tempPresetDir}");
-                audioOptions.Add($"--projectm-width={width}");
-                audioOptions.Add($"--projectm-height={height}");
-            }
-            else
-            {
-                audioOptions.Add("--audio-visual=visual");
-                audioOptions.Add($"--effect-width={width}");
-                audioOptions.Add($"--effect-height={height}");
-                audioOptions.Add("--effect-list=spectrometer");
-            }
-
-            audioOptions.Add("--verbose=2");
-
-            _audioLibVLC = new LibVLC(audioOptions.ToArray());
+            _audioLibVLC = new LibVLC(baseOptions.ToArray());
             _audioMediaPlayer = new MediaPlayer(_audioLibVLC);
             _audioMediaPlayer.Volume = (int)Volume;
             _audioMediaPlayer.Scale = 0;
             _audioMediaPlayer.EndReached += OnEndReached;
             _audioMediaPlayer.TimeChanged += OnTimeChanged;
+            _audioMediaPlayer.LengthChanged += OnLengthChanged;
+            _audioMediaPlayer.Buffering += OnBuffering;
+            _audioMediaPlayer.Playing += OnPlaying;
         }
         catch (Exception ex)
         {
@@ -302,7 +338,7 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
     {
         if (_isDisposed || ActiveMediaPlayer == null) return;
 
-        if (ActiveMediaPlayer.IsPlaying || IsPaused)
+        if (IsPlaying || IsPaused)
         {
             var player = ActiveMediaPlayer;
             Task.Run(() => { try { player.Stop(); } catch { } });
@@ -311,6 +347,8 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
             IsPlaying = false;
             IsPaused = false;
             IsStopped = true;
+            PlaybackPosition = 0;
+            CurrentTimeString = "0:00";
             UpdateButtons();
         }
     }
@@ -336,12 +374,6 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
     private bool _isPlayerAttached;
     private bool _playPending;
 
-    public void InitializeDimensions(int width, int height)
-    {
-        _lastWidth = Math.Max(1, width);
-        _lastHeight = Math.Max(1, height);
-    }
-
     public void NotifyPlayerAttached()
     {
         _isPlayerAttached = true;
@@ -352,107 +384,11 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
-    private int _currentAudioWidth;
-    private int _currentAudioHeight;
-
-    public void HandleResize(int width, int height)
-    {
-        if (width <= 0 || height <= 0 || (_lastWidth == width && _lastHeight == height))
-            return;
-
-        _lastWidth = width;
-        _lastHeight = height;
-
-        if (_audioMediaPlayer != null && VisualizationsEnabled)
-        {
-            _resizeDebounceCts?.Cancel();
-            _resizeDebounceCts?.Dispose();
-            _resizeDebounceCts = new CancellationTokenSource();
-            var token = _resizeDebounceCts.Token;
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(500, token);
-                    if (!token.IsCancellationRequested)
-                    {
-                        Avalonia.Threading.Dispatcher.UIThread.Post(() => RecreateAudioPlayer(width, height));
-                    }
-                }
-                catch (TaskCanceledException) { }
-            });
-        }
-    }
-
-    private void RecreateAudioPlayer(int width, int height)
-    {
-        if (_isDisposed) return;
-
-        // Prevent recreating the player if the dimensions haven't actually changed!
-        // This stops transient layout jitters (like opening the sidebar) from dropping the audio.
-        if (_currentAudioWidth == width && _currentAudioHeight == height)
-            return;
-
-        bool wasPlaying = false;
-        long currentTime = 0;
-        string? currentMediaUrl = _currentMedia?.Mrl;
-
-        if (_audioMediaPlayer != null)
-        {
-            try
-            {
-                wasPlaying = _audioMediaPlayer.IsPlaying || IsPaused;
-                if (wasPlaying) currentTime = _audioMediaPlayer.Time;
-            }
-            catch { }
-            
-            // Do NOT call Stop() or Dispose() here! 
-            // CreateAudioVLC will safely detach and dispose the old players on a background thread.
-        }
-
-        CreateAudioVLC(width, height);
-
-        MediaPlayerCreated?.Invoke(_audioMediaPlayer);
-
-        if (currentMediaUrl != null && wasPlaying)
-        {
-            _currentMedia?.Dispose();
-            // Use FromLocation because Mrl is a URI
-            _currentMedia = new Media(_audioLibVLC!, currentMediaUrl, FromType.FromLocation);
-            
-            var player = _audioMediaPlayer!;
-            var media = _currentMedia;
-            bool shouldPause = IsPaused;
-
-            Task.Run(async () => 
-            {
-                try 
-                { 
-                    player.Play(media);
-                    if (currentTime > 0)
-                    {
-                        // Wait for player to start playing before seeking
-                        while (!player.IsPlaying && !_isDisposed)
-                        {
-                            await Task.Delay(50);
-                        }
-                        if (!_isDisposed)
-                        {
-                            player.Time = currentTime;
-                            if (shouldPause)
-                                player.Pause();
-                        }
-                    }
-                } catch { }
-            });
-        }
-    }
-
     private void PlayTrack(string fileName)
     {
         if (_isDisposed) return;
 
+        IsInitializing = true;
         try
         {
             bool isAudio = IsAudioFile(fileName);
@@ -462,12 +398,19 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
             {
                 ActiveMediaPlayer?.Stop();
                 VisualizationsEnabled = isAudio;
-                if (!isAudio) IsPickerVisible = false;
+                if (!isAudio) 
+                {
+                    IsPickerVisible = false;
+                }
+                else
+                {
+                    _projectMControl?.StartEngine();
+                }
                 _isPlayerAttached = false;
 
                 if (isAudio && _audioLibVLC == null)
                 {
-                    CreateAudioVLC(_lastWidth, _lastHeight);
+                    CreateAudioVLC();
                 }
 
                 var playerToAttach = ActiveMediaPlayer;
@@ -484,6 +427,26 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
             var activeLibVlc = ActiveLibVLC;
 
             if (activePlayer == null || activeLibVlc == null) return;
+
+            if (isAudio)
+            {
+                if (HasProjectM)
+                {
+                    activePlayer.SetAudioFormat("S16N", 44100, 2);
+                    activePlayer.SetAudioCallbacks(OnAudioPlay, OnAudioPause, OnAudioResume, OnAudioFlush, OnAudioDrain);
+                    _audioOutput ??= new Classes.Audio.AudioOutputHandler();
+                }
+
+                // If no preset is loaded, pick a random one so we don't just see a black screen
+                if (SelectedPreset == null && HasProjectM)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => PickRandomPresetCommand.Execute(null));
+                }
+                else
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => ApplyPresetCommand.Execute(null));
+                }
+            }
 
             _currentMedia?.Dispose();
             var mediaToPlay = new Media(activeLibVlc, fileName, FromType.FromPath);
@@ -546,20 +509,95 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
         });
     }
         
+    private void OnPlaying(object? sender, EventArgs e)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => IsInitializing = false);
+    }
+
+    private void OnBuffering(object? sender, MediaPlayerBufferingEventArgs e)
+    {
+        if (e.Cache == 100)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsInitializing = false);
+        }
+    }
+
     private void OnTimeChanged(object? sender, MediaPlayerTimeChangedEventArgs e)
     {
         var player = sender as MediaPlayer;
-        if (player != null && player.Length > 0 && CurrentIndex >= 0 && CurrentIndex < Tracks.Count)
-        {
-            var track = Tracks[CurrentIndex];
-            if (track.Duration == "--:--")
+        long time = e.Time;
+        long durationMs = player?.Length ?? 0;
+        
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            _isUpdatingTimeFromPlayer = true;
+            PlaybackPosition = time;
+            CurrentTimeString = TimeSpan.FromMilliseconds(time).ToString(time >= 3600000 ? @"h\:mm\:ss" : @"m\:ss");
+            _isUpdatingTimeFromPlayer = false;
+            
+            if (player != null && durationMs > 0 && CurrentIndex >= 0 && CurrentIndex < Tracks.Count)
             {
-                long durationMs = player.Length;
-                string durationStr = durationMs > 0 
-                    ? TimeSpan.FromMilliseconds(durationMs).ToString(durationMs >= 3600000 ? @"h\:mm\:ss" : @"m\:ss")
-                    : "--:--";
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => track.Duration = durationStr);
+                var track = Tracks[CurrentIndex];
+                if (track.Duration == "--:--")
+                {
+                    string durationStr = TimeSpan.FromMilliseconds(durationMs).ToString(durationMs >= 3600000 ? @"h\:mm\:ss" : @"m\:ss");
+                    track.Duration = durationStr;
+                }
             }
+        });
+    }
+
+    private void OnLengthChanged(object? sender, MediaPlayerLengthChangedEventArgs e)
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            PlaybackLength = e.Length;
+            TotalTimeString = e.Length > 0 ? TimeSpan.FromMilliseconds(e.Length).ToString(e.Length >= 3600000 ? @"h\:mm\:ss" : @"m\:ss") : "0:00";
+        });
+    }
+
+    partial void OnIsAutoHideEnabledChanged(bool value)
+    {
+        if (value)
+        {
+            ResetAutoHideTimer();
+        }
+        else
+        {
+            IsControlBarVisible = true;
+            _autoHideTimer.Stop();
+        }
+    }
+
+    partial void OnIsInitializingChanged(bool value)
+    {
+        if (value)
+        {
+            IsControlBarVisible = true;
+            _autoHideTimer.Stop();
+        }
+        else
+        {
+            ResetAutoHideTimer();
+        }
+    }
+
+    public void ResetAutoHideTimer()
+    {
+        if (_isDisposed || IsInitializing) return;
+        IsControlBarVisible = true;
+        if (IsAutoHideEnabled)
+        {
+            _autoHideTimer.Stop();
+            _autoHideTimer.Start();
+        }
+    }
+
+    partial void OnPlaybackPositionChanged(double value)
+    {
+        if (_isUpdatingTimeFromPlayer) return;
+        var player = ActiveMediaPlayer;
+        if (player != null && player.IsPlaying)
+        {
+            Task.Run(() => { try { player.Time = (long)value; } catch { } });
         }
     }
 
@@ -584,13 +622,6 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
             _scannerCts = null;
         }
 
-        if (_resizeDebounceCts != null)
-        {
-            try { _resizeDebounceCts.Cancel(); } catch { }
-            try { _resizeDebounceCts.Dispose(); } catch { }
-            _resizeDebounceCts = null;
-        }
-
         MediaPlayerCreated?.Invoke(null);
         
         var videoPlayer = _videoMediaPlayer;
@@ -598,6 +629,7 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
         
         var audioPlayer = _audioMediaPlayer;
         var audioVlc = _audioLibVLC;
+        var audioOutput = _audioOutput;
 
         var currentMedia = _currentMedia;
         var logo = SystemLogo;
@@ -621,6 +653,9 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
                     if (videoPlayer.IsPlaying) videoPlayer.Stop();
                     videoPlayer.EndReached -= OnEndReached;
                     videoPlayer.TimeChanged -= OnTimeChanged;
+                    videoPlayer.LengthChanged -= OnLengthChanged;
+                    videoPlayer.Buffering -= OnBuffering;
+                    videoPlayer.Playing -= OnPlaying;
                     videoPlayer.Dispose();
                 }
                 
@@ -629,6 +664,9 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
                     if (audioPlayer.IsPlaying) audioPlayer.Stop();
                     audioPlayer.EndReached -= OnEndReached;
                     audioPlayer.TimeChanged -= OnTimeChanged;
+                    audioPlayer.LengthChanged -= OnLengthChanged;
+                    audioPlayer.Buffering -= OnBuffering;
+                    audioPlayer.Playing -= OnPlaying;
                     audioPlayer.Dispose();
                 }
                 
@@ -636,6 +674,8 @@ public partial class JukeboxViewModel : ViewModelBase, IAsyncDisposable
                 
                 videoVlc?.Dispose();
                 audioVlc?.Dispose();
+                
+                audioOutput?.Dispose();
             }
             catch { }
         });

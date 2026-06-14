@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using System.Runtime.InteropServices;
 
 namespace Gamelist_Manager.ViewModels;
@@ -50,6 +51,82 @@ public partial class JukeboxViewModel
         if (_isDisposed) return;
         IsPlaylistVisible = !IsPlaylistVisible;
     }
+
+    [RelayCommand]
+    private async Task AddFiles()
+    {
+        if (_storageProvider == null) return;
+        var files = await _storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Media Files",
+            AllowMultiple = true
+        });
+        
+        if (files == null || files.Count == 0) return;
+        var paths = files.Select(f => f.Path.LocalPath).ToArray();
+        AppendToPlaylist(paths);
+    }
+
+    [RelayCommand]
+    private async Task AddFolder()
+    {
+        if (_storageProvider == null) return;
+        var folders = await _storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select Media Folder",
+            AllowMultiple = false
+        });
+        
+        if (folders == null || folders.Count == 0) return;
+        var folderPath = folders[0].Path.LocalPath;
+        if (!Directory.Exists(folderPath)) return;
+        
+        var ext = new[] { ".mp3", ".wav", ".flac", ".mp4", ".mkv", ".avi", ".webm", ".ogg" };
+        var paths = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories)
+            .Where(f => ext.Contains(Path.GetExtension(f).ToLowerInvariant()))
+            .ToArray();
+            
+        AppendToPlaylist(paths);
+    }
+
+    [RelayCommand]
+    private void ClearPlaylist()
+    {
+        Stop();
+        _mediaFiles = Array.Empty<string>();
+        Tracks.Clear();
+        ApplyFilter();
+        HasVideoInPlaylist = false;
+        HasMultipleTracks = false;
+        SelectedTrack = null;
+    }
+
+    private void AppendToPlaylist(string[] newFiles)
+    {
+        if (newFiles.Length == 0) return;
+        
+        var currentList = _mediaFiles.ToList();
+        int startIndex = currentList.Count;
+        currentList.AddRange(newFiles);
+        _mediaFiles = currentList.ToArray();
+        
+        bool hasVideo = HasVideoInPlaylist;
+        
+        for (int i = 0; i < newFiles.Length; i++)
+        {
+            var f = newFiles[i];
+            bool isVideo = !IsAudioFile(f);
+            if (isVideo) hasVideo = true;
+            
+            Tracks.Add(new JukeboxTrack(startIndex + i, f, Path.GetFileNameWithoutExtension(f)));
+        }
+        
+        HasVideoInPlaylist = hasVideo;
+        HasMultipleTracks = _mediaFiles.Length > 1;
+        ApplyFilter();
+        StartMetadataScanner();
+    }
+
     public async Task PlayMediaFilesAsync(string[] fileList, bool autoPlay)
     {
         if (_isDisposed) return;
