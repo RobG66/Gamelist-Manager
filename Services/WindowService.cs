@@ -3,6 +3,8 @@ using Avalonia.Input.Platform;
 using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
 using System.Threading.Tasks;
+using Jukebox.Views;
+using Jukebox.ViewModels;
 
 namespace Gamelist_Manager.Services;
 
