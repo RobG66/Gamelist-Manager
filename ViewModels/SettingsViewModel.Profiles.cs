@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Gamelist_Manager.Messages;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
@@ -120,6 +121,8 @@ public partial class SettingsViewModel
 
         NewProfileName = string.Empty;
         RefreshProfileList();
+
+        await NewProfileHelper.RunWizardAsync(profileName, profileType);
 
         var activate = await ThreeButtonDialogView.ShowConfirmAsync(
             "Activate Profile",

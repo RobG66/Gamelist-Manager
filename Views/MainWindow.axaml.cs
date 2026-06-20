@@ -133,7 +133,7 @@ public partial class MainWindow : Window
             viewModel.DisposeMediaPreview();
             viewModel.ScraperPanelViewModel?.Dispose();
 
-            WindowService.Instance.CloseJukebox();
+            // WindowService.Instance.CloseJukebox();
 
             SaveWindowStateToSettings();
             Closing -= MainWindow_Closing;

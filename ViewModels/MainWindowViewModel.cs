@@ -82,7 +82,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsNewGamelistEnabled =>
     !string.IsNullOrWhiteSpace(_settingsState.RootRomFolder) && Directory.Exists(_settingsState.RootRomFolder);
 
-    public bool IsJukeboxMenuEnabled => IsGamelistLoaded && !_sessionState.IsJukeboxOpen;
+    // public bool IsJukeboxMenuEnabled => IsGamelistLoaded && !_sessionState.IsJukeboxOpen;
 
     private bool CanUseMameInternalNames =>
         string.Equals(_sessionState.CurrentSystem, "mame", StringComparison.OrdinalIgnoreCase) &&
@@ -146,9 +146,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
-            case nameof(SessionState.IsJukeboxOpen):
-                OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
-                break;
+            // case nameof(SessionState.IsJukeboxOpen):
+            //     OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
+            //     break;
             case nameof(SessionState.EnableEdit):
                 OnPropertyChanged(nameof(IsEditModeEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
@@ -205,7 +205,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsEditToggleEnabled));
         OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
         OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
-        OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
+        // OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
     }
 
     private void OnSettingsApplied()
@@ -326,43 +326,43 @@ public partial class MainWindowViewModel : ViewModelBase
         catch { }
     }
 
-    [RelayCommand]
-    private Task OpenVideoJukeboxAsync() => OpenJukeboxAsync("video",
-        [".mp4", ".avi", ".mkv", ".webm", ".ogv", ".m4v", ".mov"],
-        "Video Jukebox", "video");
-
-    [RelayCommand]
-    private Task OpenMusicJukeboxAsync() => OpenJukeboxAsync("music",
-        [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
-        "Music Jukebox", "music");
-
-    private async Task OpenJukeboxAsync(string mediaType, string[] extensions, string title, string label)
-    {
-        var mediaFolder = _sessionState.AvailableMedia
-            .FirstOrDefault(m => m.Type == mediaType && m.MediaEnabled);
-
-        if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
-        {
-            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} folder is configured or the folder does not exist.");
-            return;
-        }
-
-        var files = Directory.EnumerateFiles(mediaFolder.FolderPath)
-            .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        if (files.Length == 0)
-        {
-            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} files were found in:\n{mediaFolder.FolderPath}");
-            return;
-        }
-
-        if (_sessionState.CurrentSystem != null)
-        {
-            await _windowService.ShowJukeboxAsync(files, _sessionState.CurrentSystem);
-        }
-    }
+    // [RelayCommand]
+    // private Task OpenVideoJukeboxAsync() => OpenJukeboxAsync("video",
+    //     [".mp4", ".avi", ".mkv", ".webm", ".ogv", ".m4v", ".mov"],
+    //     "Video Jukebox", "video");
+    //
+    // [RelayCommand]
+    // private Task OpenMusicJukeboxAsync() => OpenJukeboxAsync("music",
+    //     [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
+    //     "Music Jukebox", "music");
+    //
+    // private async Task OpenJukeboxAsync(string mediaType, string[] extensions, string title, string label)
+    // {
+    //     var mediaFolder = _sessionState.AvailableMedia
+    //         .FirstOrDefault(m => m.Type == mediaType && m.MediaEnabled);
+    //
+    //     if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
+    //     {
+    //         await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} folder is configured or the folder does not exist.");
+    //         return;
+    //     }
+    //
+    //     var files = Directory.EnumerateFiles(mediaFolder.FolderPath)
+    //         .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+    //         .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+    //         .ToArray();
+    //
+    //     if (files.Length == 0)
+    //     {
+    //         await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} files were found in:\n{mediaFolder.FolderPath}");
+    //         return;
+    //     }
+    //
+    //     if (_sessionState.CurrentSystem != null)
+    //     {
+    //         await _windowService.ShowJukeboxAsync(files, _sessionState.CurrentSystem);
+    //     }
+    // }
 
     #endregion
 

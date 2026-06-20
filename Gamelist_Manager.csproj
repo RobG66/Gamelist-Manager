@@ -116,7 +116,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Avalonia.Controls.DataGrid\src\Avalonia.Controls.DataGrid\Avalonia.Controls.DataGrid.csproj" />
-      <ProjectReference Include="..\Jukebox\Jukebox.csproj" />
+      <ProjectReference Include="..\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
     </ItemGroup>
 
 

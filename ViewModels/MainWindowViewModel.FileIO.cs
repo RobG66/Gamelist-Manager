@@ -678,6 +678,17 @@ public partial class MainWindowViewModel
         catch { return null; }
     }
 
+    private static Bitmap? TryLoadSystemLogoFullSize(string systemName)
+    {
+        try
+        {
+            var uri = new Uri($"avares://Gamelist_Manager/Assets/Systems/{systemName}.png");
+            using var stream = AssetLoader.Open(uri);
+            return new Bitmap(stream);
+        }
+        catch { return null; }
+    }
+
     private static string? CreateBackupBeforeSave(string gamelistPath, string systemName)
     {
         try

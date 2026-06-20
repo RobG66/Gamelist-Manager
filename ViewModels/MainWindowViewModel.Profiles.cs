@@ -70,6 +70,8 @@ public partial class MainWindowViewModel
 
         _profileService.CreateDefaultProfile(profileType);
 
+        await NewProfileHelper.RunWizardAsync(ProfileService.DefaultProfileName, profileType);
+
         await ApplyProfileSwitchAsync(ProfileService.DefaultProfileName);
 
         _profileService.ClearNoProfilesFlag();

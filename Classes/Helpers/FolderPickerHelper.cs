@@ -19,19 +19,13 @@ public static class FolderPickerHelper
 
         if (topLevel == null) return null;
 
-        IStorageFolder? suggestedStart = null;
-        try
-        {
-            if (!string.IsNullOrEmpty(suggestedPath))
-                suggestedStart = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri(suggestedPath));
-        }
-        catch { }
-
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
             Title = title,
             AllowMultiple = false,
-            SuggestedStartLocation = suggestedStart
+            SuggestedStartLocation = !string.IsNullOrEmpty(suggestedPath) 
+                ? await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPath) 
+                : null
         });
 
         return folders.Count > 0 ? folders[0].Path.LocalPath : null;
