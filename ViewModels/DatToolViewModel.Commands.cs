@@ -174,7 +174,7 @@ public partial class DatToolViewModel
             IsBusy = false;
         }
     }
-         
+
 
     [RelayCommand]
     private void Close()

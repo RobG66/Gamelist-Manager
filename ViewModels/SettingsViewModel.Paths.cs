@@ -256,7 +256,7 @@ public partial class SettingsViewModel
     {
         var system = _sessionState.CurrentSystem;
         if (string.IsNullOrEmpty(system)) return;
-      
+
         var overrides = MediaFolderItems
             .ToDictionary(
                 item => $"{system}_{item.Key}_enabled",

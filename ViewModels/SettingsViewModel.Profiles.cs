@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Gamelist_Manager.Messages;
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Messages;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.Views;
@@ -130,7 +130,7 @@ public partial class SettingsViewModel
             confirmText: "Yes",
             cancelText: "No",
             icon: DialogIconTheme.Info);
-        
+
         if (!activate) return;
 
         var gamelistLoaded = WeakReferenceMessenger.Default.Send(new GamelistLoadedRequestMessage()).Response;

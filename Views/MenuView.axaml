@@ -759,8 +759,7 @@
 						Margin="0,8"/>
 
 				<!-- Play Videos -->
-				<!--
-				<Button Classes="NavButton" Command="{Binding OpenVideoJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" IsVisible="False" ToolTip.Tip="Play videos from the gamelist">
+				<Button Classes="NavButton" Command="{Binding OpenVideoJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" ToolTip.Tip="Play videos from the gamelist">
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Play Videos"
@@ -769,11 +768,9 @@
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
-				-->
 
 				<!-- Play Music -->
-				<!--
-				<Button Classes="NavButton" Command="{Binding OpenMusicJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" IsVisible="False" ToolTip.Tip="Play music from the gamelist">
+				<Button Classes="NavButton" Command="{Binding OpenMusicJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" ToolTip.Tip="Play music from the gamelist">
 					<StackPanel Orientation="Horizontal" Spacing="10">
 						<Image Source="/Assets/Icons/music.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
 						<TextBlock Text="Play Music"
@@ -782,7 +779,6 @@
 								   Foreground="{DynamicResource NavButtonForeground}"/>
 					</StackPanel>
 				</Button>
-				-->
 	
 							<Border Height="1"
 						Background="{DynamicResource SeparatorBrush}"

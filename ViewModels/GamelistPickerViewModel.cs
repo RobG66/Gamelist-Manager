@@ -79,8 +79,7 @@ public partial class GamelistPickerViewModel : ObservableObject
     public ObservableCollection<SystemPickerItem> FilteredSystems { get; } = [];
     public string ConfirmButtonText { get; }
     public string SubtitleText { get; }
-    public bool ShowGamelistBadge { get; }
-    //blah
+    public bool ShowGamelistBadge { get; }   
     public string RomFolder => SettingsState.Instance.RootRomFolder;
 
     #endregion

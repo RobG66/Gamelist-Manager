@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SkiaSharp;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,34 +17,34 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     #region Constants
 
     // Zoom
-    public const double MinZoom     = 0.10;   //  10 %
-    public const double MaxZoom     = 8.00;   // 800 %
-    public const double ZoomStep    = 1.25;   // per button click
+    public const double MinZoom = 0.10;   //  10 %
+    public const double MaxZoom = 8.00;   // 800 %
+    public const double ZoomStep = 1.25;   // per button click
     public const double DefaultZoom = 1.00;   // 100 %
 
     // Resize
-    public const int    MinResizePx  = 1;
-    public const int    MaxResizePx  = 2000;
+    public const int MinResizePx = 1;
+    public const int MaxResizePx = 2000;
     public const double MinResizePct = 1;
     public const double MaxResizePct = 400;
 
     // Refine
-    public const double MinSharpen    = 0;
-    public const double MaxSharpen    = 100;
+    public const double MinSharpen = 0;
+    public const double MaxSharpen = 100;
     public const double MinCleanEdges = 0;
     public const double MaxCleanEdges = 5;
 
     // Remove Background
-    public const double DefaultTolerance     = 20;
-    public const double MinTolerance         = 0;
-    public const double MaxTolerance         = 50;
+    public const double DefaultTolerance = 20;
+    public const double MinTolerance = 0;
+    public const double MaxTolerance = 50;
     public const double DefaultEdgeThreshold = 0.15;
-    public const double MinEdgeThreshold     = 0.05;
-    public const double MaxEdgeThreshold     = 5.00;
+    public const double MinEdgeThreshold = 0.05;
+    public const double MaxEdgeThreshold = 5.00;
 
     // Crop
     public const int DefaultAutoCropPadding = 4;
-    public const int MaxAutoCropPadding     = 64;
+    public const int MaxAutoCropPadding = 64;
 
     #endregion
 
@@ -129,33 +128,33 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private int _autoCropPadding = DefaultAutoCropPadding;
 
     // Resize
-    [ObservableProperty] private bool   _maintainAspectRatio = true;
+    [ObservableProperty] private bool _maintainAspectRatio = true;
     [ObservableProperty] private double _resizePercent = 100;
-    [ObservableProperty] private int    _resizeWidth;
-    [ObservableProperty] private int    _resizeHeight;
+    [ObservableProperty] private int _resizeWidth;
+    [ObservableProperty] private int _resizeHeight;
 
     // Refine
-    [ObservableProperty] private double _sharpenAmount    = MinSharpen;
+    [ObservableProperty] private double _sharpenAmount = MinSharpen;
     [ObservableProperty] private double _cleanEdgesAmount = MinCleanEdges;
-    [ObservableProperty] private bool   _smoothEdges;
-    [ObservableProperty] private bool   _hasAlphaChannel;
+    [ObservableProperty] private bool _smoothEdges;
+    [ObservableProperty] private bool _hasAlphaChannel;
 
     #endregion
 
     #region Computed Properties
 
     public bool IsRemoveBackgroundTool => SelectedTool == EditTool.RemoveBackground;
-    public bool IsCropTool             => SelectedTool == EditTool.Crop;
-    public bool IsResizeTool           => SelectedTool == EditTool.Resize;
-    public bool IsRefineTool           => SelectedTool == EditTool.Refine;
+    public bool IsCropTool => SelectedTool == EditTool.Crop;
+    public bool IsResizeTool => SelectedTool == EditTool.Resize;
+    public bool IsRefineTool => SelectedTool == EditTool.Refine;
 
-    public int     SourceWidth      => _workingBitmap?.Width  ?? 0;
-    public int     SourceHeight     => _workingBitmap?.Height ?? 0;
-    public IBrush? ImageBackground  => ShowCheckerboard ? _checkerboardBrush : null;
+    public int SourceWidth => _workingBitmap?.Width ?? 0;
+    public int SourceHeight => _workingBitmap?.Height ?? 0;
+    public IBrush? ImageBackground => ShowCheckerboard ? _checkerboardBrush : null;
 
-    public double ZoomedImageWidth  => (DisplayImage?.PixelSize.Width  ?? 0) * ZoomLevel;
+    public double ZoomedImageWidth => (DisplayImage?.PixelSize.Width ?? 0) * ZoomLevel;
     public double ZoomedImageHeight => (DisplayImage?.PixelSize.Height ?? 0) * ZoomLevel;
-    public string ZoomReadoutText   => $"{(int)Math.Round(ZoomLevel * 100)}%";
+    public string ZoomReadoutText => $"{(int)Math.Round(ZoomLevel * 100)}%";
 
     #endregion
 
@@ -197,11 +196,11 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
         int x = Math.Max(0, CropX);
         int y = Math.Max(0, CropY);
-        int w = Math.Min(CropW, _workingBitmap.Width  - x);
+        int w = Math.Min(CropW, _workingBitmap.Width - x);
         int h = Math.Min(CropH, _workingBitmap.Height - y);
         if (w <= 0 || h <= 0) return;
 
-        var info    = new SKImageInfo(w, h, _workingBitmap.ColorType, _workingBitmap.AlphaType);
+        var info = new SKImageInfo(w, h, _workingBitmap.ColorType, _workingBitmap.AlphaType);
         var cropped = new SKBitmap(info);
         using var canvas = new SKCanvas(cropped);
         canvas.Clear(SKColors.Transparent);
@@ -231,11 +230,11 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
         StatusText = tool switch
         {
-            EditTool.Crop             => $"Crop applied — {_workingBitmap?.Width} × {_workingBitmap?.Height}",
-            EditTool.Resize           => $"Resize applied — {_workingBitmap?.Width} × {_workingBitmap?.Height}",
-            EditTool.Refine           => "Refine applied.",
+            EditTool.Crop => $"Crop applied — {_workingBitmap?.Width} × {_workingBitmap?.Height}",
+            EditTool.Resize => $"Resize applied — {_workingBitmap?.Width} × {_workingBitmap?.Height}",
+            EditTool.Refine => "Refine applied.",
             EditTool.RemoveBackground => "Background removed — pick another tool or save.",
-            _                         => "Changes applied."
+            _ => "Changes applied."
         };
 
         switch (tool)
@@ -249,7 +248,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         }
 
         CanCancel = false;
-        CanApply  = false;
+        CanApply = false;
     }
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
@@ -259,7 +258,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
         CancelPreviewWork();
         DisposeDeferred(_previewBitmap);
-        _previewBitmap  = null;
+        _previewBitmap = null;
         _hasPendingCrop = false;
 
         ShowWorkingBitmap();
@@ -274,22 +273,22 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
                 InitializeResizeDimensions();
                 break;
             case EditTool.Refine:
-                SharpenAmount    = MinSharpen;
+                SharpenAmount = MinSharpen;
                 CleanEdgesAmount = MinCleanEdges;
-                SmoothEdges      = false;
+                SmoothEdges = false;
                 break;
             case EditTool.RemoveBackground:
                 SelectedModeIndex = -1;
-                Tolerance         = DefaultTolerance;
-                EdgeThreshold     = DefaultEdgeThreshold;
-                RemoveEnclosed    = false;
-                InvertColors      = false;
+                Tolerance = DefaultTolerance;
+                EdgeThreshold = DefaultEdgeThreshold;
+                RemoveEnclosed = false;
+                InvertColors = false;
                 break;
         }
 
         UpdateButtonStates();
-        CanApply   = false;
-        CanCancel  = false;
+        CanApply = false;
+        CanCancel = false;
         StatusText = "Changes cancelled.";
     }
 
@@ -361,7 +360,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
                 break;
         }
         UpdateButtonStates();
-        CanApply  = false;
+        CanApply = false;
         CanCancel = false;
         StatusText = "Reverted to original.";
     }
@@ -375,8 +374,8 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         int h = _workingBitmap.Height;
         int top = -1, bottom = -1, left = -1, right = -1;
 
-        byte* p  = (byte*)_workingBitmap.GetPixels();
-        int   rb = _workingBitmap.RowBytes;
+        byte* p = (byte*)_workingBitmap.GetPixels();
+        int rb = _workingBitmap.RowBytes;
 
         for (int y = 0; y < h && top < 0; y++)
         {
@@ -404,8 +403,8 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
         int pad = AutoCropPadding;
         int nx = Math.Max(0, left - pad);
-        int ny = Math.Max(0, top  - pad);
-        int nr = Math.Min(w - 1, right  + pad);
+        int ny = Math.Max(0, top - pad);
+        int nr = Math.Min(w - 1, right + pad);
         int nb = Math.Min(h - 1, bottom + pad);
         int nw = nr - nx + 1;
         int nh = nb - ny + 1;
@@ -488,28 +487,28 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         var cts = new CancellationTokenSource();
         _cts = cts;
 
-        IsBusy   = true;
+        IsBusy = true;
         CanApply = false;
 
-        var source        = _workingBitmap.Copy();
-        var tool          = SelectedTool;
-        var modeIndex     = SelectedModeIndex;
-        var bgMode        = modeIndex switch
+        var source = _workingBitmap.Copy();
+        var tool = SelectedTool;
+        var modeIndex = SelectedModeIndex;
+        var bgMode = modeIndex switch
         {
             0 => BackgroundRemovalMode.Circle,
             1 => BackgroundRemovalMode.CircleEdge,
             3 => BackgroundRemovalMode.ConvexHull,
             _ => BackgroundRemovalMode.Freeform
         };
-        var tolerance     = (int)Tolerance;
+        var tolerance = (int)Tolerance;
         var edgeThreshold = (float)EdgeThreshold;
         var removeEnclosed = RemoveEnclosed;
-        var invert        = InvertColors;
-        var resizeW          = ResizeWidth;
-        var resizeH          = ResizeHeight;
-        var sharpenAmount    = (float)SharpenAmount;
+        var invert = InvertColors;
+        var resizeW = ResizeWidth;
+        var resizeH = ResizeHeight;
+        var sharpenAmount = (float)SharpenAmount;
         var cleanEdgesAmount = (float)CleanEdgesAmount;
-        var smoothEdges      = SmoothEdges;
+        var smoothEdges = SmoothEdges;
 
         if (tool == EditTool.Refine && sharpenAmount <= 0.001f && cleanEdgesAmount <= 0.001f && !smoothEdges)
         {
@@ -520,7 +519,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
             StatusText = "Refine: move a slider or check Smooth Edges to preview";
             IsBusy = false;
             UpdateButtonStates();
-            CanApply  = false;
+            CanApply = false;
             CanCancel = false;
             return;
         }
@@ -528,8 +527,8 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         if (tool == EditTool.RemoveBackground && modeIndex < 0)
         {
             StatusText = "Select a shape to preview";
-            IsBusy     = false;
-            CanApply   = false;
+            IsBusy = false;
+            CanApply = false;
             return;
         }
 
@@ -540,7 +539,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         }
 
         SKBitmap? result = null;
-        string strategy  = string.Empty;
+        string strategy = string.Empty;
 
         try
         {
@@ -575,9 +574,9 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
         if (result != null)
         {
-            var avBitmap   = ImageProcessing.ToAvaloniaBitmap(result);
+            var avBitmap = ImageProcessing.ToAvaloniaBitmap(result);
             var oldDisplay = DisplayImage;
-            DisplayImage   = avBitmap;
+            DisplayImage = avBitmap;
             DisposeDeferred(oldDisplay);
             UpdateSizeText(result);
         }
@@ -585,7 +584,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         DisposeDeferred(old);
 
         StatusText = strategy;
-        IsBusy     = false;
+        IsBusy = false;
         UpdateButtonStates();
     }
 
@@ -594,7 +593,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         bool removeEnclosed, float edgeThreshold, bool invert)
     {
         var bgColor = ImageProcessing.DetectBackgroundColor(source);
-        var (r, s)  = ImageProcessing.RemoveBackground(
+        var (r, s) = ImageProcessing.RemoveBackground(
             source, bgColor, tolerance, bgMode, removeEnclosed, edgeThreshold);
         if (invert) { var inv = ImageProcessing.InvertColors(r); r.Dispose(); r = inv; }
         return (r, s);
@@ -608,7 +607,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     {
         CancelPreviewWork();
         DisposeDeferred(_previewBitmap);
-        _previewBitmap  = null;
+        _previewBitmap = null;
         _hasPendingCrop = false;
 
         switch (value)
@@ -628,9 +627,9 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
                 break;
 
             case EditTool.Refine:
-                SharpenAmount    = 0;
+                SharpenAmount = 0;
                 CleanEdgesAmount = 0;
-                SmoothEdges      = false;
+                SmoothEdges = false;
                 ShowWorkingBitmap();
                 UpdateSizeText(_workingBitmap);
                 UpdateButtonStates();
@@ -638,10 +637,10 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
             case EditTool.RemoveBackground:
                 SelectedModeIndex = -1;
-                Tolerance         = 20;
-                EdgeThreshold     = 0.15;
-                RemoveEnclosed    = false;
-                InvertColors      = false;
+                Tolerance = 20;
+                EdgeThreshold = 0.15;
+                RemoveEnclosed = false;
+                InvertColors = false;
                 ShowWorkingBitmap();
                 UpdateButtonStates();
                 break;
@@ -666,7 +665,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
     partial void OnSelectedModeIndexChanged(int value)
     {
-        IsCircleMode   = value == 1;
+        IsCircleMode = value == 1;
         IsFreeformMode = value == 2;
         if (IsRemoveBackgroundTool) _ = UpdatePreviewAsync();
     }
@@ -732,19 +731,19 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         if (_updatingDimensions || _updatingResizePercent || !IsResizeTool || SourceWidth <= 0 || SourceHeight <= 0) return;
 
         double scale = Math.Clamp(value, MinResizePct, MaxResizePct) / 100.0;
-        int newW = (int)Math.Round(SourceWidth  * scale);
+        int newW = (int)Math.Round(SourceWidth * scale);
         int newH = (int)Math.Round(SourceHeight * scale);
 
         if (newW > MaxResizePx || newH > MaxResizePx)
         {
             double clampScale = Math.Min((double)MaxResizePx / SourceWidth,
                                          (double)MaxResizePx / SourceHeight);
-            newW = Math.Max(MinResizePx, (int)Math.Round(SourceWidth  * clampScale));
+            newW = Math.Max(MinResizePx, (int)Math.Round(SourceWidth * clampScale));
             newH = Math.Max(MinResizePx, (int)Math.Round(SourceHeight * clampScale));
         }
 
         _updatingDimensions = true;
-        ResizeWidth  = newW;
+        ResizeWidth = newW;
         ResizeHeight = newH;
         _updatingDimensions = false;
     }
@@ -770,7 +769,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         UpdateSizeText(_workingBitmap);
         StatusText = $"Sharpness: {value:0}%";
         UpdateButtonStates();
-        CanApply  = false;
+        CanApply = false;
         CanCancel = false;
     }
 
@@ -785,7 +784,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         UpdateSizeText(_workingBitmap);
         StatusText = $"Clean edges: {value:0.#}";
         UpdateButtonStates();
-        CanApply  = false;
+        CanApply = false;
         CanCancel = false;
     }
 
@@ -816,9 +815,9 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     private void ShowWorkingBitmap()
     {
         if (_workingBitmap == null) return;
-        var avBitmap   = ImageProcessing.ToAvaloniaBitmap(_workingBitmap);
+        var avBitmap = ImageProcessing.ToAvaloniaBitmap(_workingBitmap);
         var oldDisplay = DisplayImage;
-        DisplayImage   = avBitmap;
+        DisplayImage = avBitmap;
         DisposeDeferred(oldDisplay);
     }
 
@@ -827,11 +826,11 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
     private void UpdateButtonStates()
     {
-        CanApply  = SelectedTool == EditTool.Crop
+        CanApply = SelectedTool == EditTool.Crop
             ? _hasPendingCrop
             : SelectedTool != EditTool.None && _previewBitmap != null;
         CanCancel = _hasPendingCrop || _previewBitmap != null;
-        CanSave   = _hasUnsavedKeep || _previewBitmap != null;
+        CanSave = _hasUnsavedKeep || _previewBitmap != null;
         CanReload = _hasUnsavedKeep || _previewBitmap != null;
     }
 
@@ -862,7 +861,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
             h = Math.Max(1, (int)Math.Round(h * scale));
         }
         _updatingDimensions = true;
-        ResizeWidth  = w;
+        ResizeWidth = w;
         ResizeHeight = h;
         UpdateResizePercentFromWidth(w);
         _updatingDimensions = false;
@@ -909,7 +908,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
             {
                 long size;
                 using (snapshot)
-                using (var img  = SKImage.FromBitmap(snapshot))
+                using (var img = SKImage.FromBitmap(snapshot))
                 using (var data = img.Encode(SKEncodedImageFormat.Png, 100))
                     size = data.Size;
 
@@ -922,8 +921,8 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
     }
 
     private static string FormatFileSize(long bytes) =>
-        bytes < 1024           ? $"{bytes} B"
-        : bytes < 1024 * 1024  ? $"{bytes / 1024.0:0.#} KB"
+        bytes < 1024 ? $"{bytes} B"
+        : bytes < 1024 * 1024 ? $"{bytes / 1024.0:0.#} KB"
                                : $"{bytes / (1024.0 * 1024.0):0.##} MB";
 
     private unsafe void UpdateHasAlphaChannel()
@@ -933,10 +932,10 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
             HasAlphaChannel = false;
             return;
         }
-        byte* p  = (byte*)_workingBitmap.GetPixels();
-        int   rb = _workingBitmap.RowBytes;
-        int   w  = _workingBitmap.Width;
-        int   h  = _workingBitmap.Height;
+        byte* p = (byte*)_workingBitmap.GetPixels();
+        int rb = _workingBitmap.RowBytes;
+        int w = _workingBitmap.Width;
+        int h = _workingBitmap.Height;
         for (int y = 0; y < h; y++)
         {
             byte* row = p + y * rb;
@@ -965,7 +964,7 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
 
         CancelPreviewWork();
 
-        var display  = DisplayImage;
+        var display = DisplayImage;
         DisplayImage = null;
 
         Avalonia.Threading.Dispatcher.UIThread.Post(
@@ -975,11 +974,10 @@ public partial class ImageEditViewModel : ViewModelBase, IDisposable
         _previewBitmap?.Dispose();
         _workingBitmap?.Dispose();
         _originalBitmap?.Dispose();
-        _previewBitmap  = null;
-        _workingBitmap  = null;
+        _previewBitmap = null;
+        _workingBitmap = null;
         _originalBitmap = null;
 
-        GC.SuppressFinalize(this);
     }
 
     #endregion

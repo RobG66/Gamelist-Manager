@@ -55,7 +55,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _skipNonCachedItems;
     [ObservableProperty] private bool _skipNonCachedItemsEnabled = true;
     [ObservableProperty] private bool _overwriteMetadataEnabled = true;
-    
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StartCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
@@ -349,7 +349,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
         if (ScrapeFromCacheEnabled)
             ScrapeFromCache = true;
-        
+
     }
 
     [RelayCommand]
@@ -407,7 +407,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _cts?.Cancel();
         _cts?.Dispose();
         SaveScraperSettings();
-        GC.SuppressFinalize(this);
     }
 
     #endregion
@@ -462,7 +461,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     }
 
     private void LoadGeneralSettings(string key)
-    { 
+    {
         ScrapeAllMode = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeAllMode", true);
         OverwriteName = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteName", true);
         OverwriteMedia = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMedia", false);

@@ -383,7 +383,6 @@ public partial class MainWindowViewModel
                 SelectedSystem.Logo?.Dispose();
 
             SelectedSystem = matchedSystem;
-            OnPropertyChanged(nameof(SystemLogo));
             CalculateStatistics();
 
             await FindNewItems();
@@ -621,7 +620,6 @@ public partial class MainWindowViewModel
                 SelectedSystem.Logo?.Dispose();
 
             SelectedSystem = matchedSystem;
-            OnPropertyChanged(nameof(SystemLogo));
 
             foreach (var game in loadedGames)
                 game.PropertyChanged += GameItem_PropertyChanged;
@@ -715,7 +713,7 @@ public partial class MainWindowViewModel
 
     #region ES-DE Media Helpers
 
-    
+
     private void ExportDataToCsv(string filePath, IList<GameMetadataRow> filteredRows, ExportCsvOptions options)
     {
         var rows = options.UseFilteredRows

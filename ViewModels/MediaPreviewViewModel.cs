@@ -6,11 +6,9 @@ using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using LibVLCSharp.Shared;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,9 +17,6 @@ namespace Gamelist_Manager.ViewModels;
 public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 {
     #region Private Fields
-
-    private static readonly Lazy<Task<LibVLC?>> _libVlcInit = new(
-        () => Task.Run(CreateLibVLC), LazyThreadSafetyMode.ExecutionAndPublication);
 
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
@@ -61,10 +56,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
     public LibVLC? LibVLC { get; private set; }
-    public static bool IsLibVLCInstalled { get; private set; } = true;
-
-    public static void MarkLibVLCUnavailable() => IsLibVLCInstalled = false;
-
     #endregion
 
     #region Private Properties
@@ -113,9 +104,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     #region Public Methods
 
-    public void OnViewReady() => InitializeLibVLC();
-
-    public static Task PreloadLibVLCAsync() => _libVlcInit.Value;
+    public void OnViewReady() => _ = InitializeLibVLCAsync();
 
     public void RefreshMedia(string mediaType)
     {
@@ -141,7 +130,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         _sessionState.IsDataChanged = true;
     }
 
-    public async void InitializeLibVLC()
+    public async Task InitializeLibVLCAsync()
     {
         try
         {
@@ -152,7 +141,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             }
 
             var token = _videoInitCts.Token;
-            var libVlc = await _libVlcInit.Value.ConfigureAwait(false);
+            var libVlc = await LibVLCService.InitializationTask.Value.ConfigureAwait(false);
 
             if (_disposed || token.IsCancellationRequested) return;
 
@@ -259,38 +248,11 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             if (item.IsVideo)
                 item.DisposeVideoPlayer();
         }
-
-        LibVLC?.Dispose();
-        LibVLC = null;
     }
 
     #endregion
 
     #region Private Methods
-
-    private static LibVLC? CreateLibVLC()
-    {
-        try
-        {
-            var options = new List<string>
-            {
-                "--no-video-title-show",
-                "--no-stats",
-                "--no-snapshot-preview",
-                "--no-sub-autodetect-file"
-            };
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                options.Add("--aout=pulse");
-
-            return new LibVLC(options.ToArray());
-        }
-        catch
-        {
-            IsLibVLCInstalled = false;
-            return null;
-        }
-    }
 
     private void InitializeVideosForCurrentGame(CancellationToken token = default)
     {
@@ -316,6 +278,10 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         MediaItems.Clear();
         foreach (var metadata in MetadataService.GetMediaMetadata())
         {
+            // Music is a 'fun' download, not metadata
+            if (metadata.Key == MetaDataKeys.music)
+                continue;
+
             var isVideo = metadata.DataType == MetaDataType.Video;
             var isManual = metadata.DataType == MetaDataType.Document;
             var item = new MediaItemViewModel(metadata.Name, metadata.Type, metadata.Key, isVideo, isManual);

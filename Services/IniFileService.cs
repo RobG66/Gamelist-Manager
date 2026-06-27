@@ -72,7 +72,7 @@ namespace Gamelist_Manager.Services
                     sb.AppendLine($"{kvp.Key}={kvp.Value}");
                 }
 
-                sb.AppendLine(); // Empty line between sections
+                sb.AppendLine();
             }
 
             var directory = Path.GetDirectoryName(filePath);
@@ -81,7 +81,9 @@ namespace Gamelist_Manager.Services
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(filePath, sb.ToString());
+            var tmpPath = filePath + ".tmp";
+            File.WriteAllText(tmpPath, sb.ToString());
+            File.Move(tmpPath, filePath, overwrite: true);
         }
 
         public static void DeleteKeysWithPrefix(string filePath, string sectionName, string prefix)

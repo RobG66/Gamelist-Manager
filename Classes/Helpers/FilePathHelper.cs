@@ -1,4 +1,3 @@
-using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -171,7 +170,7 @@ namespace Gamelist_Manager.Classes.Helpers
             }
             return path;
         }
-               
+
 
         // Returns the full path to the current system's ROM folder, or null if inputs are missing.
         // Example: romsFolder="C:/roms", currentSystem="snes" → "C:/roms/snes"

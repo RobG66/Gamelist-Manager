@@ -19,18 +19,18 @@ public partial class App : Application
                 Core.Initialize();
                 // Fire-and-forget: start the expensive LibVLC engine construction immediately
                 // so it's ready (or nearly ready) by the time the user opens the media panel.
-                _ = MediaPreviewViewModel.PreloadLibVLCAsync();
+                _ = Gamelist_Manager.Services.LibVLCService.InitializationTask.Value;
             }
             catch (System.Exception ex)
             {
-                MediaPreviewViewModel.MarkLibVLCUnavailable();
+                Gamelist_Manager.Services.LibVLCService.MarkLibVLCUnavailable();
                 System.Console.WriteLine("WARNING: LibVLC initialization failed. Video playback will not be available.");
                 System.Console.WriteLine($"Error: {ex.Message}");
             }
         }
         else
         {
-            MediaPreviewViewModel.MarkLibVLCUnavailable();
+            Gamelist_Manager.Services.LibVLCService.MarkLibVLCUnavailable();
             System.Console.WriteLine("WARNING: libvlc native library not found. Video playback will not be available.");
 
             if (System.OperatingSystem.IsLinux())
@@ -54,9 +54,11 @@ public partial class App : Application
                 || System.IO.File.Exists("/usr/lib/libvlc.so.5");
         }
 
-        // On Windows, libvlc.dll is bundled alongside the executable
-        return System.IO.File.Exists(
-            System.IO.Path.Combine(System.AppContext.BaseDirectory, "libvlc.dll"));
+        // On Windows, libvlc.dll is usually bundled inside a platform-specific subfolder via the NuGet package
+        var baseDir = System.AppContext.BaseDirectory;
+        return System.IO.File.Exists(System.IO.Path.Combine(baseDir, "libvlc.dll")) ||
+               System.IO.File.Exists(System.IO.Path.Combine(baseDir, "libvlc", "win-x64", "libvlc.dll")) ||
+               System.IO.File.Exists(System.IO.Path.Combine(baseDir, "libvlc", "win-x86", "libvlc.dll"));
     }
 
     public override void OnFrameworkInitializationCompleted()

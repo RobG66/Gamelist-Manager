@@ -64,8 +64,8 @@
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
         <PackageReference Include="DynamicData" Version="9.4.31" />
-        <PackageReference Include="LibVLCSharp" Version="3.9.7.1" />
-        <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.7.1" />
+        <PackageReference Include="LibVLCSharp" Version="3.10.0" />
+        <PackageReference Include="LibVLCSharp.Avalonia" Version="3.10.0" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
         <PackageReference Include="SSH.NET" Version="2025.1.0" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.8" />
@@ -117,6 +117,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Avalonia.Controls.DataGrid\src\Avalonia.Controls.DataGrid\Avalonia.Controls.DataGrid.csproj" />
       <ProjectReference Include="..\Avalonia.Controls.TreeDataGrid\src\Avalonia.Controls.TreeDataGrid\Avalonia.Controls.TreeDataGrid.csproj" />
+      <ProjectReference Include="..\Jukebox\Jukebox.csproj" />
     </ItemGroup>
 
 

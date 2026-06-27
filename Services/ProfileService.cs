@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using IniData = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>>;
 
 namespace Gamelist_Manager.Services
@@ -21,6 +20,9 @@ namespace Gamelist_Manager.Services
         private readonly string _iniFolder;
         private readonly string _profilesFolder;
         private readonly string _appIniPath;
+
+        private static readonly object _profileMigrationLock = new();
+
 
         #endregion
 
@@ -300,89 +302,92 @@ namespace Gamelist_Manager.Services
         {
             if (!File.Exists(profilePath)) return;
 
-            var sections = IniFileService.ReadIniFile(profilePath);
-            var changed = false;
-
-            // Build the expected key/default map grouped by section from AllDefinitions.
-            var expectedBySection = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var def in SettingKeys.AllDefinitions)
+            lock (_profileMigrationLock)
             {
-                var (section, key, defaultStr) = def switch
-                {
-                    SettingDef<string> s => (s.Section, s.Key, s.Default),
-                    SettingDef<bool> b => (b.Section, b.Key, b.Default.ToString()),
-                    SettingDef<int> i => (i.Section, i.Key, i.Default.ToString()),
-                    _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
-                };
+                var sections = IniFileService.ReadIniFile(profilePath);
+                var changed = false;
 
-                if (!expectedBySection.TryGetValue(section, out var sectionMap))
+                // Build the expected key/default map grouped by section from AllDefinitions.
+                var expectedBySection = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var def in SettingKeys.AllDefinitions)
                 {
-                    sectionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    expectedBySection[section] = sectionMap;
-                }
-                sectionMap[key] = defaultStr;
-            }
-
-            // Add missing keys and prune obsolete keys for each managed section.
-            foreach (var (section, expectedKeys) in expectedBySection)
-            {
-                if (!sections.TryGetValue(section, out var existing))
-                {
-                    existing = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    sections[section] = existing;
-                }
-
-                // Add any key that is missing.
-                foreach (var (key, defaultValue) in expectedKeys)
-                {
-                    var existingKey = existing.Keys.FirstOrDefault(k => string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
-                    if (existingKey == null)
+                    var (section, key, defaultStr) = def switch
                     {
-                        existing[key] = defaultValue;
+                        SettingDef<string> s => (s.Section, s.Key, s.Default),
+                        SettingDef<bool> b => (b.Section, b.Key, b.Default.ToString()),
+                        SettingDef<int> i => (i.Section, i.Key, i.Default.ToString()),
+                        _ => throw new InvalidOperationException($"Unsupported SettingDef type: {def.GetType()}")
+                    };
+
+                    if (!expectedBySection.TryGetValue(section, out var sectionMap))
+                    {
+                        sectionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                        expectedBySection[section] = sectionMap;
+                    }
+                    sectionMap[key] = defaultStr;
+                }
+
+                // Add missing keys and prune obsolete keys for each managed section.
+                foreach (var (section, expectedKeys) in expectedBySection)
+                {
+                    if (!sections.TryGetValue(section, out var existing))
+                    {
+                        existing = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                        sections[section] = existing;
+                    }
+
+                    // Add any key that is missing.
+                    foreach (var (key, defaultValue) in expectedKeys)
+                    {
+                        var existingKey = existing.Keys.FirstOrDefault(k => string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
+                        if (existingKey == null)
+                        {
+                            existing[key] = defaultValue;
+                            changed = true;
+                        }
+                        else if (existingKey != key)
+                        {
+                            var value = existing[existingKey];
+                            existing.Remove(existingKey);
+                            existing[key] = value;
+                            changed = true;
+                        }
+                    }
+
+                    // Remove obsolete keys — but NOT in ScrapersSection which has dynamic runtime keys.
+                    if (section.Equals(SettingKeys.ScrapersSection, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var obsolete = existing.Keys
+                        .Where(k => !expectedKeys.ContainsKey(k))
+                        .ToList();
+                    foreach (var key in obsolete)
+                    {
+                        existing.Remove(key);
                         changed = true;
                     }
-                    else if (existingKey != key)
+                }
+
+                // Backfill any missing MediaPaths keys with schema defaults.
+                // Existing entries are never modified — user paths and enabled flags are preserved.
+                if (!sections.TryGetValue(SettingKeys.MediaPathsSection, out var mediaPaths))
+                {
+                    mediaPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    sections[SettingKeys.MediaPathsSection] = mediaPaths;
+                }
+
+                foreach (var (key, defaultValue) in SettingKeys.DefaultMediaPaths)
+                {
+                    if (!mediaPaths.ContainsKey(key))
                     {
-                        var value = existing[existingKey];
-                        existing.Remove(existingKey);
-                        existing[key] = value;
+                        mediaPaths[key] = defaultValue;
                         changed = true;
                     }
                 }
 
-                // Remove obsolete keys — but NOT in ScrapersSection which has dynamic runtime keys.
-                if (section.Equals(SettingKeys.ScrapersSection, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                var obsolete = existing.Keys
-                    .Where(k => !expectedKeys.ContainsKey(k))
-                    .ToList();
-                foreach (var key in obsolete)
-                {
-                    existing.Remove(key);
-                    changed = true;
-                }
+                if (changed)
+                    IniFileService.WriteIniFile(profilePath, sections);
             }
-
-            // Backfill any missing MediaPaths keys with schema defaults.
-            // Existing entries are never modified — user paths and enabled flags are preserved.
-            if (!sections.TryGetValue(SettingKeys.MediaPathsSection, out var mediaPaths))
-            {
-                mediaPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                sections[SettingKeys.MediaPathsSection] = mediaPaths;
-            }
-
-            foreach (var (key, defaultValue) in SettingKeys.DefaultMediaPaths)
-            {
-                if (!mediaPaths.ContainsKey(key))
-                {
-                    mediaPaths[key] = defaultValue;
-                    changed = true;
-                }
-            }
-
-            if (changed)
-                IniFileService.WriteIniFile(profilePath, sections);
         }
 
         #endregion

@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using System;
 using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Classes.Helpers;
@@ -23,8 +22,8 @@ public static class FolderPickerHelper
         {
             Title = title,
             AllowMultiple = false,
-            SuggestedStartLocation = !string.IsNullOrEmpty(suggestedPath) 
-                ? await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPath) 
+            SuggestedStartLocation = !string.IsNullOrEmpty(suggestedPath)
+                ? await topLevel.StorageProvider.TryGetFolderFromPathAsync(suggestedPath)
                 : null
         });
 

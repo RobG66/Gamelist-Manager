@@ -129,6 +129,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             };
 
             MediaPlayer.Playing += OnMediaPlayerPlaying;
+            MediaPlayer.PositionChanged += OnMediaPlayerPositionChanged;
             MediaPlayer.Stopped += OnMediaPlayerStopped;
 
             if (!autoPlay)
@@ -262,6 +263,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             if (player != null)
             {
                 player.Playing -= OnMediaPlayerPlaying;
+                player.PositionChanged -= OnMediaPlayerPositionChanged;
                 player.Stopped -= OnMediaPlayerStopped;
             }
 
@@ -269,8 +271,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             MediaPlayer = null;
             Media = null;
 
-            // Stop and dispose on a background thread — player.Stop() is a blocking
-            // native VLC call that can take 1-2 seconds and must not run on the UI thread.
             if (player != null || media != null)
             {
                 _ = System.Threading.Tasks.Task.Run(() =>
@@ -372,21 +372,24 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     {
         if (_previewSeekPending)
         {
-            _previewSeekPending = false;
-            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try
-                {
-                    Thread.Sleep(350);
-                    MediaPlayer?.SetPause(true);
-                }
-                catch { }
-            });
+            // Don't pause here — Playing fires before the first frame is rendered.
+            return;
         }
-        else
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
+    }
+
+    private void OnMediaPlayerPositionChanged(object? sender, EventArgs e)
+    {
+        if (!_previewSeekPending) return;
+        _previewSeekPending = false;
+
+        // PositionChanged fires on VLC's internal thread.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
-        }
+            try { MediaPlayer?.SetPause(true); }
+            catch { }
+        });
     }
 
     private void OnMediaPlayerStopped(object? sender, EventArgs e)

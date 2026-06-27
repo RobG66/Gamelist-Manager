@@ -166,7 +166,7 @@ public partial class MainWindowViewModel
         if (string.IsNullOrEmpty(_sessionState.CurrentRomFolder)) return;
 
         var paths = SelectedGames.OfType<GameMetadataRow>()
-            .Select(g => FilePathHelper.GamelistPathToFullPath(g.Path, _sessionState.CurrentRomFolder!))
+            .Select(g => FilePathHelper.GamelistPathToFullPath(g.Path, _sessionState.CurrentRomFolder))
             .Where(p => !string.IsNullOrEmpty(p));
 
         await _windowService.CopyToClipboardAsync(string.Join(Environment.NewLine, paths));
@@ -254,7 +254,7 @@ public partial class MainWindowViewModel
             clearAction(game);
 
         _sourceCache.Refresh();
-        _mediaPreviewViewModel.InitializeLibVLC();
+        _ = _mediaPreviewViewModel.InitializeLibVLCAsync();
     }
 
     private List<GameMetadataRow>? GetGamesByScope(string scope) => scope switch

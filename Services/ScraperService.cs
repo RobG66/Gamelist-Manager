@@ -55,11 +55,11 @@ namespace Gamelist_Manager.Services
         #region Public Methods
 
         public async Task<(bool Success, ScrapedGameData Data)> ScrapeGameAsync(
-            GameMetadataRow row,
-            ScraperParameters baseParameters,
-            Action<int, int>? limitCallback = null,
-            Action? onQuotaExceeded = null,
-            CancellationToken cancellationToken = default)
+    GameMetadataRow row,
+    ScraperParameters baseParameters,
+    Action<int, int>? limitCallback = null,
+    Action? onQuotaExceeded = null,
+    CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -71,7 +71,16 @@ namespace Gamelist_Manager.Services
             string gameID = row.GetValue(MetaDataKeys.id)?.ToString() ?? string.Empty;
 
             var scraperParameters = baseParameters.Clone();
-            scraperParameters.RomFilePath = Path.Combine(SessionState.Instance.CurrentRomFolder!, romFileName);
+
+            var currentRomFolder = SessionState.Instance.CurrentRomFolder;
+            if (string.IsNullOrEmpty(currentRomFolder))
+            {
+                if (baseParameters.LogVerbosity >= 1)
+                    Log($"Skipping '{romFileName}' — current ROM folder is unavailable",
+                        LogLevel.Warning);
+                return (false, new ScrapedGameData());
+            }
+            scraperParameters.RomFilePath = Path.Combine(currentRomFolder, romFileName);
 
             var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, scraperParameters);
             if (itemsToScrape.Count == 0)

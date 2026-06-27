@@ -41,7 +41,7 @@ public partial class DatToolViewModel
                 UpdateDatHeaderInfo();
 
                 var gamelistSnapshot = _sessionState.GamelistData?.ToList() ?? [];
-                string romDirectory = _sessionState.CurrentRomFolder!;
+                string romDirectory = _sessionState.CurrentRomFolder;
 
                 _gamelistSummary.Clear();
                 _gamelistSummary.AddRange(

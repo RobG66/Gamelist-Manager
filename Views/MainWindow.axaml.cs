@@ -129,20 +129,34 @@ public partial class MainWindow : Window
                     await viewModel.SaveGamelistCommand.ExecuteAsync(null);
             }
 
-            _settingsState.PropertyChanged -= OnSettingsStatePropertyChanged;
-            viewModel.DisposeMediaPreview();
-            viewModel.ScraperPanelViewModel?.Dispose();
+            viewModel.Dispose();
 
-            // WindowService.Instance.CloseJukebox();
+            WindowService.Instance.CloseJukebox();
 
             SaveWindowStateToSettings();
             Closing -= MainWindow_Closing;
             Close();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            // Log to a file the user can find later — same logs/ folder the scraper uses.
+            try
+            {
+                var logDir = System.IO.Path.Combine(AppContext.BaseDirectory, "logs");
+                System.IO.Directory.CreateDirectory(logDir);
+                var logPath = System.IO.Path.Combine(logDir, "close_error.log");
+                System.IO.File.AppendAllText(logPath,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}\n\n");
+            }
+            catch { /* nothing more we can do */ }
+
+            // Give the user a chance to back out — closing now loses unsaved changes.
             Closing -= MainWindow_Closing;
-            Close();
+            var forceClose = await ThreeButtonDialogView.ShowConfirmAsync(
+                "Unexpected Error",
+                "An error occurred while closing. Unsaved changes may be lost.",
+                detail: $"{ex.Message}\n\nClose anyway?");
+            if (forceClose) Close();
         }
     }
 
@@ -281,7 +295,7 @@ public partial class MainWindow : Window
     private void RestoreWindowStateFromSettings()
     {
         if (!_settingsState.SaveWindowState) return;
-                
+
         var left = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowLeft.Key, SettingKeys.WindowLeft.Default);
         var top = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowTop.Key, SettingKeys.WindowTop.Default);
         var width = _settingService.GetInt(SettingKeys.WindowStateSection, SettingKeys.WindowWidth.Key, SettingKeys.WindowWidth.Default);

@@ -8,7 +8,6 @@ using Gamelist_Manager.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
@@ -139,7 +138,7 @@ public partial class MainWindowViewModel
             cancelText: "Cancel",
             icon: DialogIconTheme.Info,
             detail: "This folder typically contains the 'es_systems.xml' and 'es_settings.xml' files.");
-        
+
         if (!browseResult) return;
 
         var chosen = await FolderPickerHelper.BrowseForFolderAsync(

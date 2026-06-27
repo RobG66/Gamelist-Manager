@@ -29,8 +29,8 @@ public partial class MainWindowViewModel
     #endregion
 
     #region Public Properties
-    public Bitmap? SystemLogo => SelectedSystem?.Logo ?? _defaultLogo.Value;
-    public bool IsLibVLCMissing => !MediaPreviewViewModel.IsLibVLCInstalled;
+    [ObservableProperty] private Bitmap? _systemLogo = _defaultLogo.Value;
+    public bool IsLibVLCMissing => !Gamelist_Manager.Services.LibVLCService.IsLibVLCInstalled;
     public bool IsBottomPanelVisible => IsMediaPreviewVisible || IsScraperVisible || IsDatToolVisible;
     public bool IsGridSelectionLocked => IsMediaPreviewVisible && _sessionState.IsScraping;
     public bool IsStatsCardEnabled => IsGamelistLoaded && !_sessionState.IsScraping;
@@ -65,7 +65,14 @@ public partial class MainWindowViewModel
 
     partial void OnSelectedSystemChanged(SystemItem? value)
     {
-        OnPropertyChanged(nameof(SystemLogo));
+        if (SystemLogo != _defaultLogo.Value)
+        {
+            SystemLogo?.Dispose();
+        }
+
+        SystemLogo = value != null
+            ? TryLoadSystemLogoFullSize(value.Name) ?? _defaultLogo.Value
+            : _defaultLogo.Value;
     }
     #endregion
 

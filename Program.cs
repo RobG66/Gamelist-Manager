@@ -25,6 +25,7 @@ sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(new Win32PlatformOptions { RenderingMode = new[] { Win32RenderingMode.Wgl } })
             .WithInterFont()
             .LogToTrace();
 }

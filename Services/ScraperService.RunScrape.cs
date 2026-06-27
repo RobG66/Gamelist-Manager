@@ -43,6 +43,14 @@ namespace Gamelist_Manager.Services
             int totalCount = rows.Count;
             bool completed = false;
 
+            // First-wave stagger: empirically tuned to reduce
+            // first-wave rate-limit retries on ScreenScraper. Replaced an earlier
+            // explicit rate limiter that benchmarked worse. The semaphore handles
+            // steady-state pacing; this just softens the initial burst.
+            // 
+            // Optional user-tunable concurrency override is in Settings → Scraper Options
+            // → Override Concurrency. Retry-with-backoff (see ProcessRowAsync) catches
+            // any that slip through.
             try
             {
                 foreach (var row in rows)

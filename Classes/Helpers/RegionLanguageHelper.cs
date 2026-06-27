@@ -14,7 +14,7 @@ namespace Gamelist_Manager.Classes.Helpers
 
         static RegionLanguageHelper()
         {
-   
+
             // Load JapanDefaults
             JapanDefaults = new HashSet<string>();
             var japanIniPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ini", "japan_systems.ini");
