@@ -35,8 +35,7 @@ internal static class MpvNative
 
     private static bool RetainAndFree(IntPtr handle)
     {
-        // TryLoad returns a ref-counted handle. Freeing once balances the ref.
-        // The DllImportResolver will acquire its own ref later when needed.
+        // TryLoad returns a ref-counted handle. Freeing once balances it; DllImportResolver acquires its own later.
         try { NativeLibrary.Free(handle); } catch { }
         return true;
     }

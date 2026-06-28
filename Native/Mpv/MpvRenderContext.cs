@@ -141,10 +141,6 @@ internal sealed class MpvRenderContext : IDisposable
             MpvNative.mpv_render_context_report_swap(_handle);
     }
 
-    #endregion
-
-    #region IDisposable
-
     public void Dispose()
     {
         if (_disposed) return;
@@ -166,4 +162,5 @@ internal sealed class MpvRenderContext : IDisposable
     }
 
     #endregion
+
 }

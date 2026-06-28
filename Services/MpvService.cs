@@ -8,40 +8,22 @@ namespace Gamelist_Manager.Services;
 
 public static class MpvService
 {
-    #region Public Properties
-
-    public static bool IsMpvAvailable { get; private set; } = true;
-    public static void MarkMpvUnavailable() => IsMpvAvailable = false;
-
-    #endregion
-
-    #region Initialization
+    #region Fields & Constants
 
     public static readonly Lazy<Task<bool>> InitializationTask = new(
         VerifyMpvAsync, LazyThreadSafetyMode.ExecutionAndPublication);
 
-    private static async Task<bool> VerifyMpvAsync()
-    {
-        return await Task.Run(() =>
-        {
-            try
-            {
-                using var ctx = MpvContext.Create();
-                ctx.Initialize();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"WARNING: libmpv initialization failed: {ex.Message}");
-                MarkMpvUnavailable();
-                return false;
-            }
-        });
-    }
+    #endregion
+
+    #region Public Properties
+
+    public static bool IsMpvAvailable { get; private set; } = true;
 
     #endregion
 
-    #region Factory
+    #region Public Methods
+
+    public static void MarkMpvUnavailable() => IsMpvAvailable = false;
 
     public static MpvContext? CreateContext()
     {
@@ -61,11 +43,30 @@ public static class MpvService
         }
     }
 
+    public static bool IsNativeLibraryPresent() => MpvNative.IsLibraryPresent();
+
     #endregion
 
-    #region Native Library Probe
+    #region Private Methods
 
-    public static bool IsNativeLibraryPresent() => MpvNative.IsLibraryPresent();
+    private static async Task<bool> VerifyMpvAsync()
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                using var ctx = MpvContext.Create();
+                ctx.Initialize();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"WARNING: libmpv initialization failed: {ex.Message}");
+                MarkMpvUnavailable();
+                return false;
+            }
+        });
+    }
 
     #endregion
 }

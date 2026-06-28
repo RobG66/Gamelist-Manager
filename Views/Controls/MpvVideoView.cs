@@ -37,20 +37,6 @@ public sealed class MpvVideoView : OpenGlControlBase
 
     #endregion
 
-    #region Constructor
-
-    static MpvVideoView()
-    {
-        MediaPlayerProperty.Changed.AddClassHandler<MpvVideoView>(OnMediaPlayerChanged);
-        AffectsRender<MpvVideoView>(MediaPlayerProperty);
-    }
-
-    public MpvVideoView()
-    {
-    }
-
-    #endregion
-
     #region Property Change Callbacks
 
     private static void OnMediaPlayerChanged(MpvVideoView view, AvaloniaPropertyChangedEventArgs e)
@@ -78,7 +64,21 @@ public sealed class MpvVideoView : OpenGlControlBase
 
     #endregion
 
-    #region OpenGlControlBase Overrides
+    #region Constructor
+
+    static MpvVideoView()
+    {
+        MediaPlayerProperty.Changed.AddClassHandler<MpvVideoView>(OnMediaPlayerChanged);
+        AffectsRender<MpvVideoView>(MediaPlayerProperty);
+    }
+
+    public MpvVideoView()
+    {
+    }
+
+    #endregion
+
+    #region Protected Methods
 
     protected override void OnOpenGlInit(GlInterface gl)
     {
@@ -96,10 +96,8 @@ public sealed class MpvVideoView : OpenGlControlBase
 
     protected override void OnOpenGlDeinit(GlInterface gl)
     {
-        // Do not destroy the render context here. Avalonia calls this when re-parenting 
-        // the control (e.g. Fit to View toggle). Destroying the render context while 
-        // mpv is playing breaks the video output track.
-        // The context will be destroyed in DetachRenderContext when MediaPlayer changes or becomes null.
+        // Render context destruction is deferred to DetachRenderContext to prevent
+        // breaking the video track during Avalonia control re-parenting.
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)

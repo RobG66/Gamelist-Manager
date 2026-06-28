@@ -25,9 +25,7 @@ public sealed class MpvContext : IDisposable
     public int Volume { get; private set; } = 100;
     public bool IsRenderContextAttached { get; set; }
 
-    #endregion
 
-    #region Events
 
     public event Action? FileLoaded;
     public event Action? EndFile;
@@ -187,6 +185,33 @@ public sealed class MpvContext : IDisposable
             MpvNative.mpv_wakeup(_handle);
     }
 
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _cts.Cancel();
+        Wakeup();
+
+        try
+        {
+            _eventThread?.Join(500);
+        }
+        catch { }
+
+        _cts.Dispose();
+
+        if (_handle != IntPtr.Zero)
+        {
+            try { MpvNative.mpv_terminate_destroy(_handle); } catch { }
+            _handle = IntPtr.Zero;
+        }
+
+        FileLoaded = null;
+        EndFile = null;
+        Shutdown = null;
+    }
+
     #endregion
 
     #region Private Methods
@@ -253,34 +278,4 @@ public sealed class MpvContext : IDisposable
 
     #endregion
 
-    #region IDisposable
-
-    public void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-
-        _cts.Cancel();
-        Wakeup();
-
-        try
-        {
-            _eventThread?.Join(500);
-        }
-        catch { }
-
-        _cts.Dispose();
-
-        if (_handle != IntPtr.Zero)
-        {
-            try { MpvNative.mpv_terminate_destroy(_handle); } catch { }
-            _handle = IntPtr.Zero;
-        }
-
-        FileLoaded = null;
-        EndFile = null;
-        Shutdown = null;
-    }
-
-    #endregion
 }
