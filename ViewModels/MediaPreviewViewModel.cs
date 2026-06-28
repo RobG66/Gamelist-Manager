@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using LibVLCSharp.Shared;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -40,8 +39,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _scraperStatusIconVisible;
     [ObservableProperty] private bool _scraperStatusIsOk;
     [ObservableProperty] private bool _scraperStatusIsError;
-    [ObservableProperty] private bool _isLibVLCMissing;
-    [ObservableProperty] private bool _isLibVLCInitialized;
+    [ObservableProperty] private bool _isMpvMissing;
+    [ObservableProperty] private bool _isMpvInitialized;
     [ObservableProperty] private bool _overwriteMedia;
     [ObservableProperty] private bool _overwriteMetadata;
     [ObservableProperty] private bool _showNoMediaLogo;
@@ -55,7 +54,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
     public bool VideoAutoplay => _settingsState.VideoAutoplay;
 
     public ObservableCollection<MediaItemViewModel> MediaItems { get; } = new();
-    public LibVLC? LibVLC { get; private set; }
+
     #endregion
 
     #region Private Properties
@@ -104,7 +103,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
     #region Public Methods
 
-    public void OnViewReady() => _ = InitializeLibVLCAsync();
+    public void OnViewReady() => _ = InitializeMpvAsync();
 
     public void RefreshMedia(string mediaType)
     {
@@ -130,28 +129,27 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         _sessionState.IsDataChanged = true;
     }
 
-    public async Task InitializeLibVLCAsync()
+    public async Task InitializeMpvAsync()
     {
         try
         {
-            if (IsLibVLCInitialized && LibVLC != null)
+            if (IsMpvInitialized)
             {
                 InitializeVideosForCurrentGame();
                 return;
             }
 
             var token = _videoInitCts.Token;
-            var libVlc = await LibVLCService.InitializationTask.Value.ConfigureAwait(false);
+            var ok = await MpvService.InitializationTask.Value.ConfigureAwait(false);
 
             if (_disposed || token.IsCancellationRequested) return;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                LibVLC = libVlc;
-                IsLibVLCInitialized = LibVLC != null;
-                IsLibVLCMissing = LibVLC == null;
+                IsMpvInitialized = ok;
+                IsMpvMissing = !ok;
 
-                if (IsLibVLCInitialized)
+                if (IsMpvInitialized)
                     InitializeVideosForCurrentGame(token);
             });
         }
@@ -224,7 +222,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
             {
                 mediaItem.DisposeVideoPlayer();
                 if (mediaItem.FileExists)
-                    mediaItem.InitializeVideoPlayer(LibVLC, EffectiveAutoPlay);
+                    mediaItem.InitializeVideoPlayer(EffectiveAutoPlay);
             }
 
             SetStatus($"Successfully added {mediaType}", "ok");
@@ -263,13 +261,13 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         }
 
         if (token.IsCancellationRequested) return;
-        if (!IsLibVLCInitialized || LibVLC == null) return;
+        if (!IsMpvInitialized) return;
 
         var autoPlay = EffectiveAutoPlay;
         foreach (var item in MediaItems.Where(m => m.IsVideo && m.FileExists && m.MediaPlayer == null))
         {
             if (token.IsCancellationRequested) return;
-            item.InitializeVideoPlayer(LibVLC, autoPlay);
+            item.InitializeVideoPlayer(autoPlay);
         }
     }
 
@@ -278,7 +276,6 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
         MediaItems.Clear();
         foreach (var metadata in MetadataService.GetMediaMetadata())
         {
-            // Music is a 'fun' download, not metadata
             if (metadata.Key == MetaDataKeys.music)
                 continue;
 
@@ -318,8 +315,8 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
             if (!hasNewPath)
                 item.DisposeVideoPlayer();
-            else if (item.MediaPlayer != null && LibVLC != null)
-                item.ChangeMedia(LibVLC, newPath!, autoPlay);
+            else if (item.MediaPlayer != null)
+                item.ChangeMedia(newPath!, autoPlay);
         }
 
         foreach (var item in MediaItems)
@@ -327,7 +324,7 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
         UpdateVisibility();
 
-        if (game != null && IsLibVLCInitialized && LibVLC != null)
+        if (game != null && IsMpvInitialized)
             InitializeVideosForCurrentGame(token);
     }
 

@@ -131,7 +131,8 @@ public partial class MainWindow : Window
 
             viewModel.Dispose();
 
-            WindowService.Instance.CloseJukebox();
+            // TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration.
+            // WindowService.Instance.CloseJukebox();
 
             SaveWindowStateToSettings();
             Closing -= MainWindow_Closing;

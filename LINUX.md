@@ -1,35 +1,37 @@
-# Linux Installation - LibVLC
+# Linux Installation - libmpv
 
-> **Note:** This is an initial draft and may contain errors.
-
-Gamelist Manager uses LibVLC for video preview playback.
+Gamelist Manager uses libmpv for video preview playback.
 
 ---
 
 ## Debian / Ubuntu / Linux Mint
 
 ```bash
-sudo apt install libvlc-dev libvlccore-dev
+sudo apt install libmpv2
 ```
 
 ## Fedora / RHEL / CentOS Stream
 
 ```bash
-sudo dnf install vlc-devel
+sudo dnf install libmpv
 ```
 
 ## Arch Linux / Manjaro
 
 ```bash
-sudo pacman -S vlc
+sudo pacman -S libmpv
 ```
 
 ## openSUSE
 
 ```bash
-sudo zypper install vlc-devel
+sudo zypper install libmpv2
 ```
 
 ---
 
-If your distribution is not listed, install the VLC development libraries from your package manager. Video preview will be silently unavailable if LibVLC is not found at runtime.
+If your distribution is not listed, install libmpv from your package manager.
+Video preview will be silently unavailable if libmpv is not found at runtime.
+
+The runtime resolves `libmpv.so.2` via the system loader path; no bundled
+binary is required on Linux.

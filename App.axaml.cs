@@ -3,7 +3,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Gamelist_Manager.ViewModels;
 using Gamelist_Manager.Views;
-using LibVLCSharp.Shared;
 
 namespace Gamelist_Manager;
 
@@ -11,54 +10,39 @@ public partial class App : Application
 {
     public override void Initialize()
     {
-        // Probe for the native libvlc library before calling any LibVLC API.
-        if (IsLibVLCNativeLibraryPresent())
+        if (Services.MpvService.IsNativeLibraryPresent())
         {
             try
             {
-                Core.Initialize();
-                // Fire-and-forget: start the expensive LibVLC engine construction immediately
-                // so it's ready (or nearly ready) by the time the user opens the media panel.
-                _ = Gamelist_Manager.Services.LibVLCService.InitializationTask.Value;
+                _ = Services.MpvService.InitializationTask.Value;
             }
             catch (System.Exception ex)
             {
-                Gamelist_Manager.Services.LibVLCService.MarkLibVLCUnavailable();
-                System.Console.WriteLine("WARNING: LibVLC initialization failed. Video playback will not be available.");
+                Services.MpvService.MarkMpvUnavailable();
+                System.Console.WriteLine("WARNING: libmpv initialization failed. Video playback will not be available.");
                 System.Console.WriteLine($"Error: {ex.Message}");
             }
         }
         else
         {
-            Gamelist_Manager.Services.LibVLCService.MarkLibVLCUnavailable();
-            System.Console.WriteLine("WARNING: libvlc native library not found. Video playback will not be available.");
+            Services.MpvService.MarkMpvUnavailable();
+            System.Console.WriteLine("WARNING: libmpv native library not found. Video playback will not be available.");
 
             if (System.OperatingSystem.IsLinux())
             {
-                System.Console.WriteLine("On Linux, install VLC via your package manager, for example:");
-                System.Console.WriteLine("  sudo apt-get install vlc libvlc5 libvlccore9");
-                System.Console.WriteLine("  sudo dnf install vlc vlc-core");
-                System.Console.WriteLine("  sudo pacman -S vlc");
+                System.Console.WriteLine("On Linux, install libmpv via your package manager, for example:");
+                System.Console.WriteLine("  sudo apt install libmpv2");
+                System.Console.WriteLine("  sudo dnf install libmpv");
+                System.Console.WriteLine("  sudo pacman -S libmpv");
+            }
+            else
+            {
+                System.Console.WriteLine("On Windows, place libmpv-2.dll in the lib/ folder next to the executable.");
+                System.Console.WriteLine("See lib/README.md for details.");
             }
         }
 
         AvaloniaXamlLoader.Load(this);
-    }
-
-    private static bool IsLibVLCNativeLibraryPresent()
-    {
-        if (System.OperatingSystem.IsLinux())
-        {
-            return System.IO.File.Exists("/usr/lib/x86_64-linux-gnu/libvlc.so.5")
-                || System.IO.File.Exists("/usr/lib64/libvlc.so.5")
-                || System.IO.File.Exists("/usr/lib/libvlc.so.5");
-        }
-
-        // On Windows, libvlc.dll is usually bundled inside a platform-specific subfolder via the NuGet package
-        var baseDir = System.AppContext.BaseDirectory;
-        return System.IO.File.Exists(System.IO.Path.Combine(baseDir, "libvlc.dll")) ||
-               System.IO.File.Exists(System.IO.Path.Combine(baseDir, "libvlc", "win-x64", "libvlc.dll")) ||
-               System.IO.File.Exists(System.IO.Path.Combine(baseDir, "libvlc", "win-x86", "libvlc.dll"));
     }
 
     public override void OnFrameworkInitializationCompleted()

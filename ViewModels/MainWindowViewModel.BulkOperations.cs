@@ -254,7 +254,7 @@ public partial class MainWindowViewModel
             clearAction(game);
 
         _sourceCache.Refresh();
-        _ = _mediaPreviewViewModel.InitializeLibVLCAsync();
+        _ = _mediaPreviewViewModel.InitializeMpvAsync();
     }
 
     private List<GameMetadataRow>? GetGamesByScope(string scope) => scope switch

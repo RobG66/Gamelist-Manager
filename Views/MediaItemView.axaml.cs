@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.ViewModels;
-using LibVLCSharp.Avalonia;
 using System;
 using System.IO;
 using System.Linq;
@@ -13,9 +12,6 @@ namespace Gamelist_Manager.Views;
 
 public partial class MediaItemView : UserControl
 {
-    private const int VIDEOWIDTH = 400;
-    private const int VIDEOHEIGHT = 300;
-    private const double VIDEOASPECTRATIO = (double)VIDEOWIDTH / VIDEOHEIGHT;
     public static readonly StyledProperty<bool> IsScaledProperty =
         AvaloniaProperty.Register<MediaItemView, bool>(nameof(IsScaled));
 
@@ -25,14 +21,6 @@ public partial class MediaItemView : UserControl
         set => SetValue(IsScaledProperty, value);
     }
 
-    private VideoView? _videoView;
-    private Panel? _videoViewContainer;
-    private Viewbox? _viewbox;
-    private Size _lastViewboxSize;
-    private IDisposable? _boundsSubscription;
-    private LibVLCSharp.Shared.MediaPlayer? _pendingMediaPlayer;
-    private MediaItemViewModel? _subscribedViewModel;
-
     public MediaItemView()
     {
         InitializeComponent();
@@ -40,186 +28,7 @@ public partial class MediaItemView : UserControl
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
         AddHandler(DragDrop.DropEvent, OnDrop);
-        DataContextChanged += OnDataContextChanged;
-        Loaded += OnLoaded;
-        Unloaded += OnUnloaded;
     }
-
-    #region Video View Lifecycle
-
-    private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if (_pendingMediaPlayer != null)
-        {
-            CreateVideoView(_pendingMediaPlayer);
-            _pendingMediaPlayer = null;
-            return;
-        }
-
-        if (DataContext is MediaItemViewModel viewModel && viewModel.IsVideo)
-        {
-            if (_subscribedViewModel != viewModel)
-            {
-                viewModel.PropertyChanged += OnViewModelPropertyChanged;
-                _subscribedViewModel = viewModel;
-            }
-            if (viewModel.MediaPlayer != null && _videoView == null)
-                CreateVideoView(viewModel.MediaPlayer);
-        }
-    }
-
-    private void OnUnloaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        UnsubscribeFromViewModel();
-        DisposeVideoView();
-        _pendingMediaPlayer = null;
-    }
-
-    private void UnsubscribeFromViewModel()
-    {
-        _subscribedViewModel?.PropertyChanged -= OnViewModelPropertyChanged;
-        _subscribedViewModel = null;
-    }
-
-    private void OnDataContextChanged(object? sender, EventArgs e)
-    {
-        UnsubscribeFromViewModel();
-        DisposeVideoView();
-        _pendingMediaPlayer = null;
-
-        _videoViewContainer = this.FindControl<Panel>("VideoViewContainer");
-
-        if (DataContext is MediaItemViewModel viewModel && viewModel.IsVideo)
-        {
-            viewModel.PropertyChanged += OnViewModelPropertyChanged;
-            _subscribedViewModel = viewModel;
-
-            if (viewModel.MediaPlayer != null)
-            {
-                if (IsLoaded)
-                    CreateVideoView(viewModel.MediaPlayer);
-                else
-                    _pendingMediaPlayer = viewModel.MediaPlayer;
-            }
-        }
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(MediaItemViewModel.MediaPlayer))
-            return;
-
-        if (DataContext is not MediaItemViewModel viewModel)
-            return;
-
-        if (viewModel.MediaPlayer != null)
-        {
-            if (IsLoaded)
-                CreateVideoView(viewModel.MediaPlayer);
-            else
-                _pendingMediaPlayer = viewModel.MediaPlayer;
-        }
-        else
-        {
-            DisposeVideoView();
-            _pendingMediaPlayer = null;
-        }
-    }
-
-    private void CreateVideoView(LibVLCSharp.Shared.MediaPlayer mediaPlayer)
-    {
-        if (_videoViewContainer == null)
-            return;
-
-        DisposeVideoView();
-
-        _videoView = new VideoView
-        {
-            Width = VIDEOWIDTH,
-            Height = VIDEOHEIGHT,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch
-        };
-
-        _viewbox = new Viewbox
-        {
-            Stretch = Avalonia.Media.Stretch.Uniform,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch,
-            Child = _videoView
-        };
-
-        _boundsSubscription = _viewbox.GetObservable(Viewbox.BoundsProperty)
-            .Subscribe(newBounds => OnViewboxBoundsChanged(newBounds));
-
-        _videoViewContainer.Children.Add(_viewbox);
-
-        // Defer MediaPlayer assignment until after the layout pass so the
-        // native window handle exists.  Without this, VLC can occasionally
-        // open a detached standalone window.  Play() is called here rather
-        // than in InitializeVideoPlayer to guarantee the handle is wired up.
-        var videoView = _videoView;
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            if (videoView != _videoView) return;
-            videoView.MediaPlayer = mediaPlayer;
-            if (DataContext is MediaItemViewModel vm)
-                vm.Play();
-        }, Avalonia.Threading.DispatcherPriority.Loaded);
-    }
-
-    private void OnViewboxBoundsChanged(Rect newBounds)
-    {
-        if (_viewbox == null || _videoView == null)
-            return;
-
-        var newSize = newBounds.Size;
-        if (newSize == _lastViewboxSize || newSize.Width <= 0 || newSize.Height <= 0)
-            return;
-
-        _lastViewboxSize = newSize;
-
-        var viewboxAspect = newSize.Width / newSize.Height;
-
-        double scaledWidth, scaledHeight;
-
-        if (viewboxAspect > VIDEOASPECTRATIO)
-        {
-            scaledHeight = newSize.Height;
-            scaledWidth = scaledHeight * VIDEOASPECTRATIO;
-        }
-        else
-        {
-            scaledWidth = newSize.Width;
-            scaledHeight = scaledWidth / VIDEOASPECTRATIO;
-        }
-
-        _videoView.Width = Math.Max(1, scaledWidth);
-        _videoView.Height = Math.Max(1, scaledHeight);
-        _videoView.InvalidateMeasure();
-        _videoView.InvalidateArrange();
-    }
-
-    public void DisposeVideoView()
-    {
-        try
-        {
-            _boundsSubscription?.Dispose();
-            _boundsSubscription = null;
-
-            if (_videoView != null)
-            {
-                _videoView.MediaPlayer = null;
-                _videoViewContainer?.Children.Clear();
-                _videoView = null;
-                _viewbox = null;
-                _lastViewboxSize = default;
-            }
-        }
-        catch { }
-    }
-
-    #endregion
 
     #region Drag and Drop
 

@@ -30,7 +30,7 @@ public partial class MainWindowViewModel
 
     #region Public Properties
     [ObservableProperty] private Bitmap? _systemLogo = _defaultLogo.Value;
-    public bool IsLibVLCMissing => !Gamelist_Manager.Services.LibVLCService.IsLibVLCInstalled;
+    public bool IsMpvMissing => !Gamelist_Manager.Services.MpvService.IsMpvAvailable;
     public bool IsBottomPanelVisible => IsMediaPreviewVisible || IsScraperVisible || IsDatToolVisible;
     public bool IsGridSelectionLocked => IsMediaPreviewVisible && _sessionState.IsScraping;
     public bool IsStatsCardEnabled => IsGamelistLoaded && !_sessionState.IsScraping;

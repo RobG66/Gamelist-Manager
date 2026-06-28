@@ -95,38 +95,32 @@ public partial class MediaPreviewView : UserControl
 
     private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        // Panel is now fully loaded and visible - notify ViewModel to initialize video
         _viewModel?.OnViewReady();
     }
 
     private void OnUnloaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        // Unsubscribe from ViewModel events
         if (_viewModel != null)
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
-        // Clean up all video views when panel is unloaded
         CleanupMediaGrid();
         _viewModel = null;
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
     {
-        // Unsubscribe from old ViewModel
         if (_viewModel != null)
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
-        // Check if DataContext changed to a NEW ViewModel instance (not just property changes)
         var newViewModel = DataContext as MediaPreviewViewModel;
         bool isNewInstance = newViewModel != null && _viewModel != newViewModel;
 
         if (isNewInstance)
         {
-            // Clean up old media grid and views before initializing with new ViewModel
             CleanupMediaGrid();
         }
 
@@ -135,7 +129,6 @@ public partial class MediaPreviewView : UserControl
             _viewModel = viewModel;
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-            // Initialize media grid for the new ViewModel instance
             if (_mediaContentGrid == null)
             {
                 InitializeMediaGrid();
@@ -143,7 +136,6 @@ public partial class MediaPreviewView : UserControl
         }
         else
         {
-            // DataContext is null or not our type, cleanup
             CleanupMediaGrid();
             _viewModel = null;
         }
@@ -157,14 +149,12 @@ public partial class MediaPreviewView : UserControl
         }
     }
 
-    // Clean up the media grid and all MediaItemViews before creating new ones
     private void CleanupMediaGrid()
     {
         if (_mediaContentGrid == null) return;
 
         try
         {
-            // Unsubscribe from MediaItemViewModel events
             if (_viewModel != null)
             {
                 foreach (var mediaItem in _viewModel.MediaItems)
@@ -173,19 +163,11 @@ public partial class MediaPreviewView : UserControl
                 }
             }
 
-            // Dispose all MediaItemViews that contain video players
-            foreach (var child in _mediaContentGrid.Children.OfType<MediaItemView>())
-            {
-                child.DisposeVideoView();
-            }
-
-            // Remove grid from its parent container
             if (_mediaContentGrid.Parent is Panel parent)
             {
                 parent.Children.Remove(_mediaContentGrid);
             }
 
-            // Clear all children and definitions
             _mediaContentGrid.Children.Clear();
             _mediaContentGrid.ColumnDefinitions.Clear();
             _mediaContentGrid.RowDefinitions.Clear();
@@ -194,7 +176,6 @@ public partial class MediaPreviewView : UserControl
         }
         catch
         {
-            // Silent failure on cleanup
         }
     }
 
@@ -236,6 +217,13 @@ public partial class MediaPreviewView : UserControl
             columnIndex++;
         }
 
+        var host = this.FindControl<Grid>("MediaContentHost");
+        if (host != null && !host.Children.Contains(_mediaContentGrid))
+        {
+            host.Children.Clear();
+            host.Children.Add(_mediaContentGrid);
+        }
+
         MoveGridBetweenContainers();
     }
 
@@ -273,9 +261,6 @@ public partial class MediaPreviewView : UserControl
     {
         if (_mediaContentGrid == null || _viewModel == null) return;
 
-        if (_mediaContentGrid.Parent is Panel currentParent)
-            currentParent.Children.Remove(_mediaContentGrid);
-
         foreach (var child in _mediaContentGrid.Children)
         {
             if (child is MediaItemView mediaItemView)
@@ -284,23 +269,12 @@ public partial class MediaPreviewView : UserControl
 
         UpdateColumnWidths();
 
-        var autoPlay = _viewModel.VideoAutoplay;
-        foreach (var mediaItem in _viewModel.MediaItems.Where(m => m.IsVideo))
+        var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
+        if (scrollViewer != null)
         {
-            mediaItem.DisposeVideoPlayer();
-            if (mediaItem.FileExists)
-                mediaItem.InitializeVideoPlayer(_viewModel.LibVLC, autoPlay);
-        }
-
-        if (_viewModel.ScaledDisplay)
-        {
-            ScaledContentHost.Children.Clear();
-            ScaledContentHost.Children.Add(_mediaContentGrid);
-        }
-        else
-        {
-            ScrollContentHost.Children.Clear();
-            ScrollContentHost.Children.Add(_mediaContentGrid);
+            scrollViewer.HorizontalScrollBarVisibility = _viewModel.ScaledDisplay 
+                ? Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled 
+                : Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
         }
     }
 }

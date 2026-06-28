@@ -2,17 +2,21 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using LibVLCSharp.Shared;
+using Gamelist_Manager.Native.Mpv;
+using Gamelist_Manager.Services;
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Gamelist_Manager.ViewModels;
 
 public partial class MediaItemViewModel : ObservableObject, IDisposable
 {
     #region Fields & Constants
+    private const double ThumbnailPositionSeconds = 1.0;
+
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
     private volatile bool _previewSeekPending;
@@ -20,7 +24,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     private readonly MetaDataKeys _pathKey;
     private readonly string _mediaTypeKey;
     private bool _disposed;
-    private CancellationTokenSource _changeMediaCts = new();
     #endregion
 
     #region Observable Properties
@@ -42,8 +45,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _showDropIcon;
     [ObservableProperty] private bool _isPlaying;
     [ObservableProperty] private bool _isDragOver;
-    [ObservableProperty] private MediaPlayer? _mediaPlayer;
-    [ObservableProperty] private Media? _media;
+    [ObservableProperty] private MpvContext? _mediaPlayer;
     #endregion
 
     #region Public Properties
@@ -77,6 +79,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
         RefreshFromGame();
     }
+
     public void UpdateImageBitmap()
     {
         var old = ImageBitmap;
@@ -107,9 +110,9 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         ShowDropIcon = false;
     }
 
-    public void InitializeVideoPlayer(LibVLC? libVlc, bool autoPlay = false)
+    public void InitializeVideoPlayer(bool autoPlay = false)
     {
-        if (!IsVideo || libVlc == null || string.IsNullOrWhiteSpace(MediaPath)) return;
+        if (!IsVideo || string.IsNullOrWhiteSpace(MediaPath)) return;
         if (MediaPlayer != null) return;
 
         try
@@ -117,26 +120,41 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             var fullPath = ResolveFullPath(MediaPath);
             if (!File.Exists(fullPath)) return;
 
-            Media = new Media(libVlc, fullPath);
-            Media.AddOption(":input-repeat=65535");
-            Media.AddOption(":file-caching=300");
+            var player = MpvService.CreateContext();
+            if (player == null) return;
 
-            MediaPlayer = new MediaPlayer(libVlc)
-            {
-                Media = Media,
-                Volume = _settingsState.DefaultVolume,
-                EnableHardwareDecoding = true
-            };
-
-            MediaPlayer.Playing += OnMediaPlayerPlaying;
-            MediaPlayer.PositionChanged += OnMediaPlayerPositionChanged;
-            MediaPlayer.Stopped += OnMediaPlayerStopped;
+            player.SetPropertyString("volume", _settingsState.DefaultVolume.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             if (!autoPlay)
             {
-                Media.AddOption(":start-time=1");
                 _previewSeekPending = true;
-                MediaPlayer.Volume = 0;
+                player.SetMute(true);
+                player.Pause();
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
+            }
+            else
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
+            }
+
+            player.FileLoaded += () => OnPlayerFileLoaded(player, autoPlay);
+            player.EndFile += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
+
+            MediaPlayer = player;
+
+            if (player.IsRenderContextAttached)
+            {
+                player.LoadFile(fullPath, "replace");
+                if (autoPlay) player.Play();
+            }
+            else
+            {
+                player.RenderContextAttached = () =>
+                {
+                    player.RenderContextAttached = null;
+                    player.LoadFile(fullPath, "replace");
+                    if (autoPlay) player.Play();
+                };
             }
         }
         catch
@@ -145,10 +163,7 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         }
     }
 
-    // Swaps the media source on the existing player without tearing down the native
-    // VLC player object. Used on datagrid row changes where the slot stays in place
-    // but points at a different game's file.
-    public void ChangeMedia(LibVLC libVlc, string newPath, bool autoPlay)
+    public void ChangeMedia(string newPath, bool autoPlay)
     {
         if (MediaPlayer == null) return;
 
@@ -159,67 +174,60 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // Cancel any in-flight ChangeMedia for this slot
-        _changeMediaCts.Cancel();
-        _changeMediaCts.Dispose();
-        _changeMediaCts = new CancellationTokenSource();
-        var token = _changeMediaCts.Token;
-
-        var oldMedia = Media;
-
-        var newMedia = new Media(libVlc, fullPath);
-        newMedia.AddOption(":input-repeat=65535");
-        newMedia.AddOption(":file-caching=300");
+        var player = MediaPlayer;
 
         if (!autoPlay)
         {
-            newMedia.AddOption(":start-time=5");
             _previewSeekPending = true;
-            MediaPlayer.Volume = 0;
+            player.SetMute(true);
+            player.Pause();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
         }
         else
         {
-            MediaPlayer.Volume = _settingsState.DefaultVolume;
+            player.SetMute(false);
+            player.SetVolume(_settingsState.DefaultVolume);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
         }
 
-        // Swap the media reference on the UI thread before handing off,
-        // so bindings update immediately even while the background op is pending.
-        MediaPlayer.Media = newMedia;
-        Media = newMedia;
-
-        _ = System.Threading.Tasks.Task.Run(() =>
+        if (player.IsRenderContextAttached)
         {
-            // Stop blocks until the native player is fully quiesced.
-            try { MediaPlayer?.Stop(); } catch { }
-
-            if (token.IsCancellationRequested)
+            player.LoadFile(fullPath, "replace");
+            if (autoPlay) player.Play();
+        }
+        else
+        {
+            player.RenderContextAttached = () =>
             {
-                // A newer ChangeMedia took over — dispose both and exit.
-                try { oldMedia?.Dispose(); } catch { }
-                try { newMedia?.Dispose(); } catch { }
-                return;
-            }
-
-            try { oldMedia?.Dispose(); } catch { }
-            try { MediaPlayer?.Play(); } catch { }
-        });
+                player.RenderContextAttached = null;
+                player.LoadFile(fullPath, "replace");
+                if (autoPlay) player.Play();
+            };
+        }
     }
 
     public void Play()
     {
         if (MediaPlayer == null || !FileExists) return;
-        try { MediaPlayer.Play(); }
+        try
+        {
+            MediaPlayer.SetMute(false);
+            MediaPlayer.SetVolume(_settingsState.DefaultVolume);
+            MediaPlayer.Play();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
+        }
         catch { }
     }
 
     public void Stop()
     {
         if (MediaPlayer == null) return;
-        System.Threading.ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try { MediaPlayer?.Stop(); }
-            catch { }
-        });
+        try 
+        { 
+            MediaPlayer.Stop(); 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
+        }
+        catch { }
     }
 
     public void TogglePlayback()
@@ -236,8 +244,10 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
             else
             {
                 _sessionState.VideoUserPaused = false;
-                MediaPlayer.Volume = _settingsState.DefaultVolume;
+                MediaPlayer.SetMute(false);
+                MediaPlayer.SetVolume(_settingsState.DefaultVolume);
                 MediaPlayer.Play();
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
             }
         }
         catch { }
@@ -246,38 +256,24 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     public void SetVolume(int volume)
     {
         if (MediaPlayer == null) return;
-        try { MediaPlayer.Volume = Math.Clamp(volume, 0, 100); }
+        try { MediaPlayer.SetVolume(volume); }
         catch { }
     }
 
     public void DisposeVideoPlayer()
     {
-        // Cancel any in-flight ChangeMedia before tearing down.
-        _changeMediaCts.Cancel();
-
         try
         {
             var player = MediaPlayer;
-            var media = Media;
+            IsPlaying = false;
+            MediaPlayer = null;
 
             if (player != null)
             {
-                player.Playing -= OnMediaPlayerPlaying;
-                player.PositionChanged -= OnMediaPlayerPositionChanged;
-                player.Stopped -= OnMediaPlayerStopped;
-            }
-
-            IsPlaying = false;
-            MediaPlayer = null;
-            Media = null;
-
-            if (player != null || media != null)
-            {
-                _ = System.Threading.Tasks.Task.Run(() =>
+                _ = Task.Run(() =>
                 {
-                    try { player?.Stop(); } catch { }
-                    try { media?.Dispose(); } catch { }
-                    try { player?.Dispose(); } catch { }
+                    try { player.Stop(); } catch { }
+                    try { player.Dispose(); } catch { }
                 });
             }
         }
@@ -288,14 +284,13 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _changeMediaCts.Cancel();
-        _changeMediaCts.Dispose();
         AttachGame(null);
         DisposeVideoPlayer();
         var bmp = ImageBitmap;
         ImageBitmap = null;
         bmp?.Dispose();
     }
+
     public bool IsValidDrop(string filePath)
     {
         if (IsVideo) return IsVideoFile(filePath);
@@ -333,6 +328,24 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
     #region Private Methods
 
+    private void OnPlayerFileLoaded(MpvContext player, bool autoPlay)
+    {
+        if (_previewSeekPending)
+        {
+            _previewSeekPending = false;
+            try
+            {
+                player.Seek(ThumbnailPositionSeconds);
+            }
+            catch { }
+        }
+
+        if (autoPlay)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
+        }
+    }
+
     private void OnGamePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (string.IsNullOrEmpty(e.PropertyName) || e.PropertyName == $"Item[{_pathKey}]")
@@ -363,37 +376,6 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
 
         OnPropertyChanged(nameof(HasMedia));
     }
-
-    // VLC raises these events on its own internal native threads, never on the UI thread.
-    // Any Avalonia observable property change must be dispatched to the UI thread to avoid
-    // cross-thread binding updates, which can deadlock on Linux.
-
-    private void OnMediaPlayerPlaying(object? sender, EventArgs e)
-    {
-        if (_previewSeekPending)
-        {
-            // Don't pause here — Playing fires before the first frame is rendered.
-            return;
-        }
-
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = true);
-    }
-
-    private void OnMediaPlayerPositionChanged(object? sender, EventArgs e)
-    {
-        if (!_previewSeekPending) return;
-        _previewSeekPending = false;
-
-        // PositionChanged fires on VLC's internal thread.
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            try { MediaPlayer?.SetPause(true); }
-            catch { }
-        });
-    }
-
-    private void OnMediaPlayerStopped(object? sender, EventArgs e)
-        => Avalonia.Threading.Dispatcher.UIThread.Post(() => IsPlaying = false);
 
     #endregion
 }

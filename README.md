@@ -82,4 +82,4 @@ data in the standard `gamelist.xml` format. ES-DE is now supported!
 | Platform | Requirement |
 |----------|-------------|
 | Windows | None - self-contained single executable, no install needed |
-| Linux | LibVLC required for video preview (see LINUX.md) |
+| Linux | libmpv required for video preview (see LINUX.md) |

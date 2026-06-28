@@ -93,7 +93,6 @@
             </FluentTheme.Palettes>
         </FluentTheme>
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-        <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
         <!-- Application styles -->
         <StyleInclude Source="avares://Gamelist_Manager/Styles/TransparentButtonStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/RadioButtonStyle.axaml"/>

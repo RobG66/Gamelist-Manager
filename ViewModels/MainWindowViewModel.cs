@@ -261,8 +261,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         MenuWidth = GetScaledMenuWidth();
 
-        _ = Gamelist_Manager.Services.LibVLCService.InitializationTask.Value.ContinueWith(
-            _ => OnPropertyChanged(nameof(IsLibVLCMissing)),
+        _ = Gamelist_Manager.Services.MpvService.InitializationTask.Value.ContinueWith(
+            _ => OnPropertyChanged(nameof(IsMpvMissing)),
             TaskScheduler.FromCurrentSynchronizationContext());
 
         InitializeStatisticsPipeline();
@@ -326,48 +326,45 @@ public partial class MainWindowViewModel : ViewModelBase
         catch { }
     }
 
-    [RelayCommand]
-    private Task OpenVideoJukeboxAsync() => OpenJukeboxAsync("video",
-        [".mp4", ".avi", ".mkv", ".webm", ".ogv", ".m4v", ".mov"],
-        "Video Jukebox", "video");
+    // TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration.
+    // [RelayCommand]
+    // private Task OpenVideoJukeboxAsync() => OpenJukeboxAsync("video",
+    //     [".mp4", ".avi", ".mkv", ".webm", ".ogv", ".m4v", ".mov"],
+    //     "Video Jukebox", "video");
 
-    [RelayCommand]
-    private Task OpenMusicJukeboxAsync() => OpenJukeboxAsync("music",
-        [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
-        "Music Jukebox", "music");
+    // TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration.
+    // [RelayCommand]
+    // private Task OpenMusicJukeboxAsync() => OpenJukeboxAsync("music",
+    //     [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
+    //     "Music Jukebox", "music");
 
-    private async Task OpenJukeboxAsync(string mediaType, string[] extensions, string title, string label)
-    {
-        var mediaFolder = _sessionState.AvailableMedia
-            .FirstOrDefault(m => m.Type == mediaType && m.MediaEnabled);
-
-        if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
-        {
-            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} folder is configured or the folder does not exist.");
-            return;
-        }
-
-        var files = Directory.EnumerateFiles(mediaFolder.FolderPath)
-            .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        if (files.Length == 0)
-        {
-            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} files were found in:\n{mediaFolder.FolderPath}");
-            return;
-        }
-
-        if (_sessionState.CurrentSystem != null)
-        {
-            var sharedLibVlc = await Gamelist_Manager.Services.LibVLCService.InitializationTask.Value;
-
-            await _windowService.ShowJukeboxAsync(files, _sessionState.CurrentSystem, (vm, _) =>
-            {
-                vm.SharedLibVLC = sharedLibVlc;
-            });
-        }
-    }
+    // private async Task OpenJukeboxAsync(string mediaType, string[] extensions, string title, string label)
+    // {
+    //     var mediaFolder = _sessionState.AvailableMedia
+    //         .FirstOrDefault(m => m.Type == mediaType && m.MediaEnabled);
+    //
+    //     if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
+    //     {
+    //         await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} folder is configured or the folder does not exist.");
+    //         return;
+    //     }
+    //
+    //     var files = Directory.EnumerateFiles(mediaFolder.FolderPath)
+    //         .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
+    //         .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+    //         .ToArray();
+    //
+    //     if (files.Length == 0)
+    //     {
+    //         await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} files were found in:\n{mediaFolder.FolderPath}");
+    //         return;
+    //     }
+    //
+    //     if (_sessionState.CurrentSystem != null)
+    //     {
+    //         await _windowService.ShowJukeboxAsync(files, _sessionState.CurrentSystem, null);
+    //     }
+    // }
 
     #endregion
 

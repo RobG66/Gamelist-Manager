@@ -135,7 +135,7 @@ public partial class MediaPreviewViewModel
         }
         finally
         {
-            if (scrapingVideo && IsLibVLCInitialized && LibVLC != null)
+            if (scrapingVideo && IsMpvInitialized)
                 InitializeVideosForCurrentGame();
             _sessionState.IsScraping = false;
         }
