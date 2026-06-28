@@ -3,6 +3,8 @@ using Avalonia.Input.Platform;
 using Gamelist_Manager.Views;
 using System;
 using System.Threading.Tasks;
+using Jukebox.ViewModels;
+using Jukebox.Views;
 
 namespace Gamelist_Manager.Services;
 
@@ -13,8 +15,7 @@ public class WindowService : IWindowService
     private static WindowService? _instance;
     private Window? _owner;
 
-    // TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration.
-    // private Window? _jukeboxView;
+    private Window? _jukeboxView;
 
     #endregion
 
@@ -64,48 +65,45 @@ public class WindowService : IWindowService
             await clipboard.SetTextAsync(text);
     }
 
-    // TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration.
-    // public async Task ShowJukeboxAsync(string[] mediaFiles, string systemName, Action<JukeboxViewModel, Window>? configure = null)
-    // {
-    //     if (_owner is null) return;
-    //
-    //     if (_jukeboxView is { } existing && existing.IsVisible)
-    //     {
-    //         existing.Activate();
-    //         return;
-    //     }
-    //
-    //     var viewModel = new JukeboxViewModel();
-    //     var window = new JukeboxView { DataContext = viewModel };
-    //
-    //     configure?.Invoke(viewModel, window);
-    //
-    //     window.Closed += (_, _) =>
-    //     {
-    //         viewModel.Dispose();
-    //         _jukeboxView = null;
-    //         Models.SessionState.Instance.IsJukeboxOpen = false;
-    //     };
-    //
-    //     _jukeboxView = window;
-    //     Models.SessionState.Instance.IsJukeboxOpen = true;
-    //
-    //     var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
-    //     window.Loaded += (s, e) => tcs.TrySetResult(true);
-    //
-    //     window.Show();
-    //
-    //     await tcs.Task;
-    //     await viewModel.PlayMediaFilesAsync(mediaFiles, autoPlay: true);
-    // }
-    //
-    // public void CloseJukebox()
-    // {
-    //     if (_jukeboxView is { } existing)
-    //     {
-    //         existing.Close();
-    //     }
-    // }
+    public async Task ShowJukeboxAsync(string[] mediaFiles, string systemName)
+    {
+        if (_owner is null) return;
+
+        if (_jukeboxView is { } existing && existing.IsVisible)
+        {
+            existing.Activate();
+            return;
+        }
+
+        var viewModel = new JukeboxViewModel();
+        var window = new JukeboxView { DataContext = viewModel };
+
+        window.Closed += (_, _) =>
+        {
+            viewModel.Dispose();
+            _jukeboxView = null;
+            Models.SessionState.Instance.IsJukeboxOpen = false;
+        };
+
+        _jukeboxView = window;
+        Models.SessionState.Instance.IsJukeboxOpen = true;
+
+        var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+        window.Loaded += (s, e) => tcs.TrySetResult(true);
+
+        window.Show();
+
+        await tcs.Task;
+        await viewModel.PlayMediaFilesAsync(mediaFiles, autoPlay: true);
+    }
+
+    public void CloseJukebox()
+    {
+        if (_jukeboxView is { } existing)
+        {
+            existing.Close();
+        }
+    }
 
     #endregion
 }

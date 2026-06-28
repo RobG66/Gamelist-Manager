@@ -634,7 +634,7 @@
                                 <Button Classes="NavButton"
                                                 x:Name="MediaPreviewToggleButton"
                                                 Command="{Binding ToggleMediaPreviewCommand}"
-                                                IsEnabled="{Binding IsGamelistLoaded}"
+                                                IsEnabled="{Binding IsMediaPreviewMenuEnabled}"
                                                 ToolTip.Tip="Toggle Media Preview Panel">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <Grid Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}">
@@ -758,8 +758,7 @@
                                                 Background="{DynamicResource SeparatorBrush}"
                                                 Margin="0,8"/>
 
-                                <!-- TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration. -->
-                                <!-- Play Videos
+                                <!-- Play Videos -->
                                 <Button Classes="NavButton" Command="{Binding OpenVideoJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" ToolTip.Tip="Play videos from the gamelist">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <Image Source="/Assets/Icons/video.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
@@ -768,9 +767,9 @@
                                                                    IsVisible="{Binding IsMenuOpen}"
                                                                    Foreground="{DynamicResource NavButtonForeground}"/>
                                         </StackPanel>
-                                </Button> -->
+                                </Button>
 
-                                <!-- Play Music
+                                <!-- Play Music -->
                                 <Button Classes="NavButton" Command="{Binding OpenMusicJukeboxCommand}" IsEnabled="{Binding IsJukeboxMenuEnabled}" ToolTip.Tip="Play music from the gamelist">
                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                                 <Image Source="/Assets/Icons/music.png" Width="{DynamicResource GlobalMenuIconSize}" Height="{DynamicResource GlobalMenuIconSize}"/>
@@ -779,7 +778,7 @@
                                                                    IsVisible="{Binding IsMenuOpen}"
                                                                    Foreground="{DynamicResource NavButtonForeground}"/>
                                         </StackPanel>
-                                </Button> -->
+                                </Button>
         
                                                         <Border Height="1"
                                                 Background="{DynamicResource SeparatorBrush}"

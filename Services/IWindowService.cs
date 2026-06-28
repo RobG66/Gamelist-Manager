@@ -12,7 +12,6 @@ public interface IWindowService
     Task ShowAboutAsync();
     Task CopyToClipboardAsync(string text);
 
-    // TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration.
-    // Task ShowJukeboxAsync(string[] mediaFiles, string systemName, Action<Jukebox.ViewModels.JukeboxViewModel, Window>? configure = null);
-    // void CloseJukebox();
+    Task ShowJukeboxAsync(string[] mediaFiles, string systemName);
+    void CloseJukebox();
 }

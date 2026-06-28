@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -113,8 +113,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Avalonia.Controls.DataGrid\src\Avalonia.Controls.DataGrid\Avalonia.Controls.DataGrid.csproj" />
-      <!-- TODO: Jukebox disabled — pending Jukebox project restoration and LibVLC→mpv migration. -->
-      <!-- <ProjectReference Include="..\Jukebox\Jukebox.csproj" /> -->
+      <ProjectReference Include="..\Jukebox\Jukebox.csproj" />
     </ItemGroup>
 
 
