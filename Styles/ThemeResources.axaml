@@ -12,11 +12,11 @@
     <x:Double x:Key="GlobalIconButtonSize">22</x:Double>
 
     <!-- Compact control sizing — scaled with GlobalFontSize at runtime by ThemeService -->
-    <x:Double   x:Key="ComboBoxMinHeight">18</x:Double>
+    <x:Double   x:Key="ComboBoxMinHeight">22</x:Double>
     <Thickness  x:Key="ComboBoxPadding">5,2,2,2</Thickness>
 
     <!-- NumericUpDown sizing -->
-    <x:Double   x:Key="NumericUpDownMinHeight">18</x:Double>
+    <x:Double   x:Key="NumericUpDownMinHeight">22</x:Double>
     <Thickness  x:Key="NumericUpDownPadding">5,2,2,2</Thickness>
     <Thickness  x:Key="NumericUpDownBorderThickness">1</Thickness>
     <Thickness  x:Key="NumericUpDownBorderThicknessFocused">1.5</Thickness>

@@ -114,9 +114,9 @@
                         <!-- Custom filter (visible when !IsGenreFilterMode) -->
                         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                     IsVisible="{Binding !IsGenreFilterMode}">
-                            <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" Width="120" PlaceholderText="Column..." VerticalAlignment="Center"/>
-                            <ComboBox ItemsSource="{Binding CurrentFilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" Width="110" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." Width="150" VerticalAlignment="Center"/>
+                            <ComboBox ItemsSource="{Binding SearchableColumns}" SelectedItem="{Binding SelectedCustomFilterColumn}" MinWidth="90" PlaceholderText="Column..." VerticalAlignment="Center"/>
+                            <ComboBox ItemsSource="{Binding CurrentFilterModes}" SelectedItem="{Binding SelectedCustomFilterMode}" MinWidth="80" VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding CustomFilterText}" IsEnabled="{Binding IsCustomFilterTextEnabled}" PlaceholderText="Filter text..." MinWidth="100" VerticalAlignment="Center"/>
                             <Button Width="{DynamicResource GlobalIconButtonSize}" Height="{DynamicResource GlobalIconButtonSize}" Classes="transparentbutton" Padding="0" Margin="5,0" FontSize="{DynamicResource GlobalFontSize}" ToolTip.Tip="Clear Custom Filter" Command="{Binding ClearCustomFilterCommand}" VerticalAlignment="Center">
                                 <Image Source="/Assets/Buttons/close.png" Height="{DynamicResource GlobalIconSize}"/>
                             </Button>
