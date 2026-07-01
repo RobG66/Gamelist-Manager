@@ -1,0 +1,5 @@
+# Don't track native binaries — they're third-party and not shipped in the repo.
+# Track the README so the folder is preserved.
+*
+!README.md
+!.gitignore

@@ -15,8 +15,11 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://Gamelist_Manager/Styles/ThemeResources.axaml"/>
+                <!-- Jukebox theme brushes: needed when JukeboxView runs in-process.
+                     These keys are Jukebox-specific and do not conflict with GM resources. -->
+                <ResourceInclude Source="avares://Jukebox/Styles/JukeboxThemeResources.axaml"/>
             </ResourceDictionary.MergedDictionaries>
-            
+
             <!-- Converters -->
             <converters:BooleanToGridLengthConverter x:Key="BooleanToGridLengthConverter"/>
             <converters:BooleanToScrollBarVisibilityConverter x:Key="BooleanToScrollBarVisibilityConverter"/>
@@ -93,6 +96,9 @@
             </FluentTheme.Palettes>
         </FluentTheme>
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+        <!-- Class-based Jukebox styles: safe to include globally (no element selector conflicts) -->
+        <StyleInclude Source="avares://Jukebox/Styles/TransparentButtonStyle.axaml"/>
         <!-- Application styles -->
         <StyleInclude Source="avares://Gamelist_Manager/Styles/TransparentButtonStyle.axaml"/>
         <StyleInclude Source="avares://Gamelist_Manager/Styles/RadioButtonStyle.axaml"/>

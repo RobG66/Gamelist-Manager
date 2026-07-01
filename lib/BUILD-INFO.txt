@@ -3,9 +3,9 @@ Jukebox-Visualizations Windows x64 build
 ProjectM source: https://github.com/projectM-visualizer/projectm.git
 ProjectM ref:    v4.1.6
 ProjectM commit: 3158ee615eaafd93a8912b5f6dd84a9c47b2e00a
-Built:           2026-06-27T00:52:04.9261105+00:00
+Built:           2026-06-30T08:42:46.2497850+00:00
 Runner:          Windows X64
-Workflow:        https://github.com/RobG66/Jukebox-Visualizations/actions/runs/28273379054
+Workflow:        https://github.com/RobG66/Jukebox-Visualizations/actions/runs/28431481677
 
 Contents:
 - JukeboxVisualizations.dll        — managed wrapper (MIT)

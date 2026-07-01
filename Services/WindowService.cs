@@ -78,6 +78,13 @@ public class WindowService : IWindowService
         var viewModel = new JukeboxViewModel();
         var window = new JukeboxView { DataContext = viewModel };
 
+        // Wire up the Jukebox's own StorageService so its Add Files / Add
+        // Folder commands work when launched in-process from GM (same as
+        // the standalone Jukebox App.axaml.cs startup does). Without this,
+        // viewModel.StorageService stays null and those commands silently
+        // no-op. The JukeboxView itself is the owner window for the dialogs.
+        viewModel.StorageService = new Jukebox.Services.StorageService(window);
+
         window.Closed += (_, _) =>
         {
             viewModel.Dispose();

@@ -209,6 +209,11 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
         OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
         OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
+        // BUGFIX: IsMediaPreviewMenuEnabled also depends on IsGamelistLoaded.
+        // Without this notification, the Media Preview button stayed disabled
+        // after a gamelist was loaded (only the Jukebox button was refreshed).
+        // This made the mutual-exclusion logic appear broken at startup.
+        OnPropertyChanged(nameof(IsMediaPreviewMenuEnabled));
     }
 
     private void OnSettingsApplied()
