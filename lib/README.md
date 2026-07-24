@@ -31,31 +31,28 @@ startup and will show a clear error dialog listing what's missing.
 
 ---
 
-## Optional libraries (visualizer — drop in to enable ProjectM)
+## Optional libraries (visualizer — install as plugin to enable ProjectM)
 
-If you want music visualizations, also drop these into `lib/`. If any
-are missing, the visualizer toggle button in the transport bar stays
-hidden — audio playback is unaffected.
+If you want music visualizations, download the `ProjectM-Avalonia-<platform>.zip` for your platform from [https://github.com/RobG66/Avalonia.ProjectM](https://github.com/RobG66/Avalonia.ProjectM) and extract it to the `plugins/` directory (resulting in a `plugins/ProjectM.Avalonia/` folder).
+Alternatively, you can place the files flat inside `lib/` as a fallback.
 
-### Windows
+### Windows (Plugin files)
 | File | Source | License |
 |------|--------|---------|
-| `JukeboxVisualizations.dll` | Build from https://github.com/RobG66/Jukebox-Visualizations — run `build.ps1`, unzip the resulting `Jukebox-Visualizations-dropin.zip`, find this file in the zip's `lib/` folder | MIT (the wrapper itself) |
-| `JukeboxVisualizations.deps.json` | Same as above (in the same zip) | MIT |
+| `ProjectM.Avalonia.dll` | Build from https://github.com/RobG66/Avalonia.ProjectM — run `build.ps1`, unzip `ProjectM-Avalonia-win-x64.zip`, find this file inside the `ProjectM.Avalonia` folder | MIT (the wrapper itself) |
+| `ProjectM.Avalonia.deps.json` | Same as above | MIT |
 | `libprojectM.dll` | Same zip as above — built from source by CI | LGPL v2.1+ |
 | `glew32.dll` | Same zip as above — required by `libprojectM.dll` on Windows | BSD 3-Clause / MIT |
 
-### Linux
+### Linux (Plugin files)
 | File | Source | License |
 |------|--------|---------|
-| `JukeboxVisualizations.dll` | Same as Windows — pure managed IL, identical file | MIT |
-| `JukeboxVisualizations.deps.json` | Same zip | MIT |
+| `ProjectM.Avalonia.dll` | Same as Windows — pure managed IL, identical file | MIT |
+| `ProjectM.Avalonia.deps.json` | Same zip | MIT |
 | `libprojectM.so.4` | Same zip — built from source by CI | LGPL v2.1+ |
 
-> The `Jukebox-Visualizations-dropin.zip` also contains a `ProjectM/`
-> folder with `presets/` (9,400+ `.milk` files) and `textures/`. Extract
-> that folder into the Jukebox's build output directory (next to
-> `Jukebox.exe`), not into `lib/`.
+> The separate `ProjectM/` folder with `presets/` (9,400+ `.milk` files) and `textures/` can be placed
+> in the Jukebox's build output directory (next to `Jukebox.exe`).
 
 ---
 
@@ -67,16 +64,18 @@ Jukebox build output directory should look like:
 ```
 <appdir>/
 ├── Jukebox.exe
-├── lib/                               ← ALL native runtimes + wrapper, flat
+├── lib/                               ← required native runtimes, flat
 │   ├── bass.dll                       (Windows — BASS audio)
 │   ├── libbass.so                     (Linux   — BASS audio)
 │   ├── libmpv-2.dll                   (Windows — libmpv video)
-│   ├── libmpv.so.2                    (Linux   — libmpv video)
-│   ├── JukeboxVisualizations.dll      (managed wrapper, optional)
-│   ├── JukeboxVisualizations.deps.json
-│   ├── libprojectM.dll                (Windows — ProjectM, optional)
-│   ├── libprojectM.so.4               (Linux   — ProjectM, optional)
-│   └── glew32.dll                     (Windows — required by libprojectM.dll)
+│   └── libmpv.so.2                    (Linux   — libmpv video)
+├── plugins/
+│   └── ProjectM.Avalonia/             ← visualizer plugin directory (optional)
+│       ├── ProjectM.Avalonia.dll      (managed wrapper)
+│       ├── ProjectM.Avalonia.deps.json (wrapper dependency manifest)
+│       ├── libprojectM.dll            (Windows — ProjectM, optional)
+│       ├── libprojectM.so.4           (Linux   — ProjectM, optional)
+│       └── glew32.dll                 (Windows — required by libprojectM.dll)
 └── ProjectM/                          ← preset data only (optional)
     ├── presets/
     │   └── (... .milk files)
@@ -95,8 +94,8 @@ full licensing breakdown. Key points:
   with libmpv bundled, ensure your licensing accommodates this (or use
   an LGPL build).
 - **libprojectM** is LGPL v2.1+ — dynamic linking is fine, but the
-  LICENSE file must accompany the binary (the Jukebox-Visualizations
-  drop-in zip includes it as `libprojectM-LICENSE.txt`).
+  LICENSE file must accompany the binary (the ProjectM-Avalonia
+  release zip includes it as `libprojectM-LICENSE.txt`).
 - **GLEW** is BSD/MIT — no real restrictions.
 
 ---
