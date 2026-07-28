@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
-using Gamelist_Manager.Views;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -34,21 +33,21 @@ public partial class MainWindowViewModel
     #region Commands
 
     [RelayCommand]
-    private void MapNetworkDrive()
+    private async Task MapNetworkDriveAsync()
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
     }
 
     [RelayCommand]
-    private void OpenTerminal()
+    private async Task OpenTerminalAsync()
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
         try
@@ -67,13 +66,13 @@ public partial class MainWindowViewModel
                 // Try common terminal emulators in order of popularity
                 string[] terminals = [
                     "x-terminal-emulator", // Debian/Ubuntu default alias
-        "gnome-terminal",
-        "konsole",
-        "xfce4-terminal",
-        "xterm",
-        "lxterminal",
-        "mate-terminal",
-        "tilix"
+                    "gnome-terminal",
+                    "konsole",
+                    "xfce4-terminal",
+                    "xterm",
+                    "lxterminal",
+                    "mate-terminal",
+                    "tilix"
                 ];
 
                 string sshCommand = $"ssh {_username}@{_sshTarget}";
@@ -107,12 +106,12 @@ public partial class MainWindowViewModel
                     }
                 }
 
-                if (!launched) CommandFailed();
+                if (!launched) await CommandFailedAsync();
             }
         }
         catch
         {
-            CommandFailed();
+            await CommandFailedAsync();
         }
     }
 
@@ -121,16 +120,16 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "batocera-es-swissknife --version");
 
         if (sshResult.Success)
-            await ThreeButtonDialogView.ShowInfoAsync("Batocera Version", $"Your Batocera is version {sshResult.Output}.");
+            await _dialogService.ShowInfoAsync("Batocera Version", $"Your Batocera is version {sshResult.Output}.");
         else
-            await ThreeButtonDialogView.ShowErrorAsync("Batocera Version", sshResult.Error);
+            await _dialogService.ShowErrorAsync("Batocera Version", sshResult.Error);
     }
 
     [RelayCommand]
@@ -138,16 +137,16 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "batocera-es-swissknife --update");
 
         if (!string.IsNullOrEmpty(sshResult.Output))
-            await ThreeButtonDialogView.ShowInfoAsync("Batocera Updates", sshResult.Output);
+            await _dialogService.ShowInfoAsync("Batocera Updates", sshResult.Output);
         else
-            await ThreeButtonDialogView.ShowErrorAsync("Batocera Updates", sshResult.Error);
+            await _dialogService.ShowErrorAsync("Batocera Updates", sshResult.Error);
     }
 
     [RelayCommand]
@@ -155,11 +154,11 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Stop Emulators",
             "This will terminate all running emulators on the host. Continue?",
             confirmText: "OK",
@@ -169,9 +168,9 @@ public partial class MainWindowViewModel
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop");
 
         if (sshResult.Success)
-            await ThreeButtonDialogView.ShowInfoAsync("Stop Emulators", "Running emulators should now be stopped.");
+            await _dialogService.ShowInfoAsync("Stop Emulators", "Running emulators should now be stopped.");
         else
-            await ThreeButtonDialogView.ShowErrorAsync("Stop Emulators", sshResult.Error);
+            await _dialogService.ShowErrorAsync("Stop Emulators", sshResult.Error);
     }
 
     [RelayCommand]
@@ -179,11 +178,11 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Stop EmulationStation",
             "This will stop EmulationStation. Continue?",
             confirmText: "OK",
@@ -196,12 +195,12 @@ public partial class MainWindowViewModel
 
         if (isStopped)
         {
-            await ThreeButtonDialogView.ShowInfoAsync("Stop EmulationStation", "EmulationStation is stopped.");
+            await _dialogService.ShowInfoAsync("Stop EmulationStation", "EmulationStation is stopped.");
         }
         else
         {
             string error = !string.IsNullOrEmpty(sshResult.Error) ? sshResult.Error : $"Failed or unexpected output: {sshResult.Output}";
-            await ThreeButtonDialogView.ShowErrorAsync("Stop EmulationStation", error);
+            await _dialogService.ShowErrorAsync("Stop EmulationStation", error);
         }
     }
 
@@ -210,11 +209,11 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Reboot Host",
             "This will reboot the remote host. Continue?",
             confirmText: "OK",
@@ -224,9 +223,9 @@ public partial class MainWindowViewModel
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop;reboot");
 
         if (sshResult.Success)
-            await ThreeButtonDialogView.ShowInfoAsync("Reboot Host", "A reboot command has been sent to the host.");
+            await _dialogService.ShowInfoAsync("Reboot Host", "A reboot command has been sent to the host.");
         else
-            await ThreeButtonDialogView.ShowErrorAsync("Reboot Host", sshResult.Error);
+            await _dialogService.ShowErrorAsync("Reboot Host", sshResult.Error);
     }
 
     [RelayCommand]
@@ -234,11 +233,11 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Shutdown Host",
             "This will shutdown the remote host. Continue?",
             confirmText: "OK",
@@ -248,9 +247,9 @@ public partial class MainWindowViewModel
         var sshResult = await SshHelper.ExecuteCommandAsync(GetSshConnection(), "/etc/init.d/S31emulationstation stop;sleep 5;shutdown -h now");
 
         if (sshResult.Success)
-            await ThreeButtonDialogView.ShowInfoAsync("Shutdown Host", "A shutdown command has been sent to the host.");
+            await _dialogService.ShowInfoAsync("Shutdown Host", "A shutdown command has been sent to the host.");
         else
-            await ThreeButtonDialogView.ShowErrorAsync("Shutdown Host", sshResult.Error);
+            await _dialogService.ShowErrorAsync("Shutdown Host", sshResult.Error);
     }
 
     [RelayCommand]
@@ -258,11 +257,11 @@ public partial class MainWindowViewModel
     {
         if (!LoadSSHCredentials())
         {
-            CredentialsMissing();
+            await CredentialsMissingAsync();
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Remove SSH Key",
             "Are you sure you want to remove the trusted SSH key for this host?",
             confirmText: "OK",
@@ -285,13 +284,13 @@ public partial class MainWindowViewModel
             bool success = process?.ExitCode == 0;
 
             if (success)
-                await ThreeButtonDialogView.ShowInfoAsync("Remove SSH Key", "SSH key has been removed.");
+                await _dialogService.ShowInfoAsync("Remove SSH Key", "SSH key has been removed.");
             else
-                await ThreeButtonDialogView.ShowErrorAsync("Remove SSH Key", "Failed to remove SSH key.");
+                await _dialogService.ShowErrorAsync("Remove SSH Key", "Failed to remove SSH key.");
         }
         catch
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Remove SSH Key", "Failed to remove SSH key. Is ssh-keygen installed?");
+            await _dialogService.ShowErrorAsync("Remove SSH Key", "Failed to remove SSH key. Is ssh-keygen installed?");
         }
     }
 
@@ -299,20 +298,20 @@ public partial class MainWindowViewModel
 
     #region Helpers
 
-    private async void CredentialsMissing()
+    private async Task CredentialsMissingAsync()
     {
         try
         {
-            await ThreeButtonDialogView.ShowInfoAsync("Remote Credentials Missing", "No remote credentials are defined.");
+            await _dialogService.ShowInfoAsync("Remote Credentials Missing", "No remote credentials are defined.");
         }
         catch (Exception) { }
     }
 
-    private async void CommandFailed()
+    private async Task CommandFailedAsync()
     {
         try
         {
-            await ThreeButtonDialogView.ShowInfoAsync("Command Failed", "The command execution failed.");
+            await _dialogService.ShowInfoAsync("Command Failed", "The command execution failed.");
         }
         catch (Exception) { }
     }

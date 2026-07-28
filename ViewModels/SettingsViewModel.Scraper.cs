@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -96,7 +95,7 @@ public partial class SettingsViewModel
 
     private async Task PromptToSaveScraperCredentials()
     {
-        if (await ThreeButtonDialogView.ShowConfirmAsync(
+        if (await _dialogService.ShowConfirmAsync(
                 "Unsaved Credentials",
                 "You have unsaved credentials. Save them before switching scrapers?",
                 confirmText: "Save",

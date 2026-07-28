@@ -131,8 +131,6 @@ public partial class MainWindow : Window
 
             viewModel.Dispose();
 
-            WindowService.Instance.CloseJukebox();
-
             SaveWindowStateToSettings();
             Closing -= MainWindow_Closing;
             Close();

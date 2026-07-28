@@ -124,7 +124,7 @@ public partial class SettingsViewModel
 
         await NewProfileHelper.RunWizardAsync(profileName, profileType);
 
-        var activate = await ThreeButtonDialogView.ShowConfirmAsync(
+        var activate = await _dialogService.ShowConfirmAsync(
             "Activate Profile",
             $"Would you like to make '{profileName}' the active profile?",
             confirmText: "Yes",
@@ -171,7 +171,7 @@ public partial class SettingsViewModel
     [RelayCommand(CanExecute = nameof(CanDeleteProfile))]
     private async Task DeleteProfile()
     {
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Delete Profile",
             $"Delete profile '{SelectedProfileName}'?",
             confirmText: "Delete",
@@ -242,7 +242,7 @@ public partial class SettingsViewModel
 
         if (ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase))
         {
-            var overwriteResult = await ThreeButtonDialogView.ShowConfirmAsync(
+            var overwriteResult = await _dialogService.ShowConfirmAsync(
                 "Profile Already Exists",
                 $"A profile named '{NewProfileName.Trim()}' already exists.",
                 confirmText: "Overwrite",

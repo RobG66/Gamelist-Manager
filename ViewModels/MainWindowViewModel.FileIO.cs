@@ -321,7 +321,7 @@ public partial class MainWindowViewModel
 
             if (candidates.Count == 0)
             {
-                await ThreeButtonDialogView.ShowWarningAsync("New Gamelist", "No recognised system folders found.", detail: "Make sure your ROMs folder contains system subfolders that match known systems.");
+                await _dialogService.ShowWarningAsync("New Gamelist", "No recognised system folders found.", detail: "Make sure your ROMs folder contains system subfolders that match known systems.");
                 return;
             }
 
@@ -337,7 +337,7 @@ public partial class MainWindowViewModel
 
             if (selected.HasGamelist)
             {
-                var confirm = await ThreeButtonDialogView.ShowConfirmAsync(
+                var confirm = await _dialogService.ShowConfirmAsync(
                     "Gamelist Already Exists",
                     $"A gamelist already exists for '{selected.Name}'.",
                     confirmText: "Continue",
@@ -535,7 +535,7 @@ public partial class MainWindowViewModel
         var mainWindow = _windowOwnerProvider.GetMainWindowOwner();
         if (mainWindow == null) return true;
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        var result = await _dialogService.ShowAsync(new ThreeButtonDialogConfig
         {
             Title = "Unsaved Changes",
             Message = "You have unsaved changes to the current gamelist.",
@@ -559,7 +559,7 @@ public partial class MainWindowViewModel
 
         if (!File.Exists(filePath))
         {
-            await ThreeButtonDialogView.ShowErrorAsync("File Not Found", "The gamelist file could not be found.", detail: filePath);
+            await _dialogService.ShowErrorAsync("File Not Found", "The gamelist file could not be found.", detail: filePath);
             return false;
         }
 
@@ -587,7 +587,7 @@ public partial class MainWindowViewModel
                 if (duplicates.Count > 10)
                     detail += $"\n...and {duplicates.Count - 10} more";
 
-                await ThreeButtonDialogView.ShowWarningAsync("Duplicate Entries Detected", "Duplicate entries were found in the gamelist. ROM paths should be unique.", detail: detail);
+                await _dialogService.ShowWarningAsync("Duplicate Entries Detected", "Duplicate entries were found in the gamelist. ROM paths should be unique.", detail: detail);
             }
 
             var systemName = Path.GetFileName(Path.GetDirectoryName(filePath)) ?? "unknown";

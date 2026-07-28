@@ -1,4 +1,4 @@
-using Gamelist_Manager.Views;
+using Gamelist_Manager.Services;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -108,13 +108,13 @@ namespace Gamelist_Manager.Classes.Helpers
         {
             if (!IsUwpSupported())
             {
-                await ThreeButtonDialogView.ShowErrorAsync("Error", "UWP apps are not supported on this version of Windows.");
+                await DialogService.Instance.ShowErrorAsync("Error", "UWP apps are not supported on this version of Windows.");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(appUserModelId) || string.IsNullOrWhiteSpace(filePath))
             {
-                await ThreeButtonDialogView.ShowErrorAsync("Error", "Invalid appUserModelId or file path.");
+                await DialogService.Instance.ShowErrorAsync("Error", "Invalid appUserModelId or file path.");
                 return false;
             }
 
@@ -133,7 +133,7 @@ namespace Gamelist_Manager.Classes.Helpers
             }
             catch (Exception ex)
             {
-                await ThreeButtonDialogView.ShowErrorAsync("Error", $"Failed to launch UWP app with file: {ex.Message}");
+                await DialogService.Instance.ShowErrorAsync("Error", $"Failed to launch UWP app with file: {ex.Message}");
             }
 
             return false;

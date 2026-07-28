@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -283,7 +282,7 @@ public partial class SettingsViewModel
             ? $"Enabling overrides will save current enabled states for '{system}'. Continue?"
             : $"Disabling overrides will permanently remove them for '{system}'. Continue?";
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "System Media Overrides",
             message,
             confirmText: enabling ? "Enable" : "Disable",

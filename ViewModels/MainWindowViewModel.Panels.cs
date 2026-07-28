@@ -60,11 +60,7 @@ public partial class MainWindowViewModel
 
     #region Property Change Callbacks
     partial void OnIsScraperVisibleChanged(bool value) => RaiseBottomPanelLayoutChanged();
-    partial void OnIsMediaPreviewVisibleChanged(bool value)
-    {
-        RaiseBottomPanelLayoutChanged();
-        OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
-    }
+    partial void OnIsMediaPreviewVisibleChanged(bool value) => RaiseBottomPanelLayoutChanged();
     partial void OnIsDatToolVisibleChanged(bool value) => RaiseBottomPanelLayoutChanged();
 
     partial void OnSelectedSystemChanged(SystemItem? value)

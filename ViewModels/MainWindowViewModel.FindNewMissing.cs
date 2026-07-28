@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -34,7 +33,7 @@ public partial class MainWindowViewModel
 
         if (!fileTypes.TryGetValue(systemName, out var extensionsCsv))
         {
-            await ThreeButtonDialogView.ShowInfoAsync("Find New Items", $"No file types are defined for system '{systemName}'.");
+            await _dialogService.ShowInfoAsync("Find New Items", $"No file types are defined for system '{systemName}'.");
             return;
         }
 
@@ -67,7 +66,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Find New Items", $"Error scanning directory: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Find New Items", $"Error scanning directory: {ex.Message}");
             return;
         }
         finally
@@ -79,12 +78,12 @@ public partial class MainWindowViewModel
         {
             if (!silent)
             {
-                await ThreeButtonDialogView.ShowInfoAsync("Find New Items", "No new items were found.");
+                await _dialogService.ShowInfoAsync("Find New Items", "No new items were found.");
             }
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Find New Items",
             $"{newFiles.Count} new items were found. Add them to the gamelist?",
             confirmText: "Yes",
@@ -140,7 +139,7 @@ public partial class MainWindowViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Find Missing Items", $"Error checking files: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Find Missing Items", $"Error checking files: {ex.Message}");
             return;
         }
         finally
@@ -152,14 +151,14 @@ public partial class MainWindowViewModel
         {
             if (!silent)
             {
-                await ThreeButtonDialogView.ShowInfoAsync("Find Missing Items", "No missing items were found.");
+                await _dialogService.ShowInfoAsync("Find Missing Items", "No missing items were found.");
             }
             return;
         }
 
         var itemLabel = missingGamelistPaths.Count == 1 ? "item" : "items";
 
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Find Missing Items",
             $"Found {missingGamelistPaths.Count} missing {itemLabel}.",
             confirmText: "Yes",

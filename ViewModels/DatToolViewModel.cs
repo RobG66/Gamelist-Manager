@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
+using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,6 +16,7 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
+    private readonly IDialogService _dialogService;
     private readonly List<GameReportItem> _gamelistSummary = [];
     private readonly List<GameReportItem> _datSummary = [];
     private bool _allowStreamingFromMame;
@@ -203,8 +205,9 @@ public partial class DatToolViewModel : ViewModelBase, IDisposable
 
     #region Constructor
 
-    public DatToolViewModel()
+    public DatToolViewModel(IDialogService? dialogService = null)
     {
+        _dialogService = dialogService ?? DialogService.Instance;
         _sessionState.PropertyChanged += OnSharedDataPropertyChanged;
         Reset();
     }

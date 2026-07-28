@@ -180,7 +180,7 @@ public partial class MainWindowViewModel
         if (SelectedGames == null || !_settingsState.EnableDelete) return;
 
         var itemLabel = SelectedGames.Count == 1 ? "item" : "items";
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Confirm Deletion",
             $"Do you want to permanently delete {SelectedGames.Count} {itemLabel}?");
         if (!result) return;
@@ -203,7 +203,7 @@ public partial class MainWindowViewModel
         if (SelectedGames == null || SelectedGames.Count == 0) return;
 
         var itemLabel = SelectedGames.Count == 1 ? "item" : "items";
-        var result = await ThreeButtonDialogView.ShowConfirmAsync(
+        var result = await _dialogService.ShowConfirmAsync(
             "Confirm Remove",
             $"Remove {SelectedGames.Count} {itemLabel} from the gamelist?");
         if (!result) return;
@@ -220,7 +220,7 @@ public partial class MainWindowViewModel
     {
         if (!_settingsState.ConfirmBulkChanges || itemCount <= 1) return true;
 
-        return await ThreeButtonDialogView.ShowConfirmAsync(
+        return await _dialogService.ShowConfirmAsync(
             "Confirm Bulk Operation",
             message);
     }

@@ -4,7 +4,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using Gamelist_Manager.Views;
 using System.Threading.Tasks;
 
 namespace Gamelist_Manager.Classes.Helpers;
@@ -18,7 +17,7 @@ public static class NewProfileHelper
             return;
 
         // --- Prompt 1: Roms Folder ---
-        var romResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        var romResult = await DialogService.Instance.ShowAsync(new ThreeButtonDialogConfig
         {
             Title = "ES Configuration",
             Message = "Do you want to select your ROMs folder?",
@@ -51,7 +50,7 @@ public static class NewProfileHelper
         }
 
         // --- Prompt 2: MAME Executable File ---
-        var mameResult = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        var mameResult = await DialogService.Instance.ShowAsync(new ThreeButtonDialogConfig
         {
             Title = "ES Configuration",
             Message = "Do you want to pick the MAME executable file?",

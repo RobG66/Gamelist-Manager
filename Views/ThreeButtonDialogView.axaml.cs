@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Gamelist_Manager.Models;
 using System;
 using System.Threading.Tasks;
 

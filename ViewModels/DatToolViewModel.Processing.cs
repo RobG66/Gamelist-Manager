@@ -26,7 +26,7 @@ public partial class DatToolViewModel
 
             if (datEntries == null || datEntries.Count == 0)
             {
-                await Views.ThreeButtonDialogView.ShowInfoAsync("No Data", "No entries were found in the DAT file.");
+                await _dialogService.ShowInfoAsync("No Data", "No entries were found in the DAT file.");
                 return;
             }
 

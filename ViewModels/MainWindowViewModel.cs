@@ -25,6 +25,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SettingsService _settingsService = SettingsService.Instance;
     private readonly IWindowService _windowService = WindowService.Instance;
     private readonly IWindowOwnerProvider _windowOwnerProvider;
+    private readonly IDialogService _dialogService;
 
     private readonly MediaPreviewViewModel _mediaPreviewViewModel = new();
     private readonly SourceCache<GameMetadataRow, string> _sourceCache;
@@ -82,9 +83,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsNewGamelistEnabled =>
     !string.IsNullOrWhiteSpace(_settingsState.RootRomFolder) && Directory.Exists(_settingsState.RootRomFolder);
 
-    public bool IsJukeboxMenuEnabled => IsGamelistLoaded && !_sessionState.IsJukeboxOpen && !IsMediaPreviewVisible;
-
-    public bool IsMediaPreviewMenuEnabled => IsGamelistLoaded && !_sessionState.IsJukeboxOpen;
+    public bool IsMediaPreviewMenuEnabled => IsGamelistLoaded;
 
     private bool CanUseMameInternalNames =>
         string.Equals(_sessionState.CurrentSystem, "mame", StringComparison.OrdinalIgnoreCase) &&
@@ -148,10 +147,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsMenuEnabled));
                 OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
                 break;
-            case nameof(SessionState.IsJukeboxOpen):
-                OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
-                OnPropertyChanged(nameof(IsMediaPreviewMenuEnabled));
-                break;
+
             case nameof(SessionState.EnableEdit):
                 OnPropertyChanged(nameof(IsEditModeEnabled));
                 OnPropertyChanged(nameof(IsEditingAllowed));
@@ -208,11 +204,6 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsEditToggleEnabled));
         OnPropertyChanged(nameof(IsPersistentSelectionToggleEnabled));
         OnPropertyChanged(nameof(IsMameInternalNamesOptionVisible));
-        OnPropertyChanged(nameof(IsJukeboxMenuEnabled));
-        // BUGFIX: IsMediaPreviewMenuEnabled also depends on IsGamelistLoaded.
-        // Without this notification, the Media Preview button stayed disabled
-        // after a gamelist was loaded (only the Jukebox button was refreshed).
-        // This made the mutual-exclusion logic appear broken at startup.
         OnPropertyChanged(nameof(IsMediaPreviewMenuEnabled));
     }
 
@@ -233,9 +224,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     #region Constructor
 
-    public MainWindowViewModel(IWindowOwnerProvider windowOwnerProvider)
+    public MainWindowViewModel(IWindowOwnerProvider windowOwnerProvider, IDialogService? dialogService = null)
     {
         _windowOwnerProvider = windowOwnerProvider;
+        _dialogService = dialogService ?? DialogService.Instance;
         _sourceCache = new SourceCache<GameMetadataRow, string>(game => game.Path);
         _filterSubject = new BehaviorSubject<Func<GameMetadataRow, bool>>(BuildFilterPredicate());
 
@@ -334,43 +326,7 @@ public partial class MainWindowViewModel : ViewModelBase
         catch { }
     }
 
-    [RelayCommand]
-    private Task OpenVideoJukeboxAsync() => OpenJukeboxAsync("video",
-        [".mp4", ".avi", ".mkv", ".webm", ".ogv", ".m4v", ".mov"],
-        "Video Jukebox", "video");
 
-    [RelayCommand]
-    private Task OpenMusicJukeboxAsync() => OpenJukeboxAsync("music",
-        [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
-        "Music Jukebox", "music");
-
-    private async Task OpenJukeboxAsync(string mediaType, string[] extensions, string title, string label)
-    {
-        var mediaFolder = _sessionState.AvailableMedia
-            .FirstOrDefault(m => m.Type == mediaType && m.MediaEnabled);
-
-        if (mediaFolder == null || !Directory.Exists(mediaFolder.FolderPath))
-        {
-            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} folder is configured or the folder does not exist.");
-            return;
-        }
-
-        var files = Directory.EnumerateFiles(mediaFolder.FolderPath)
-            .Where(f => extensions.Contains(Path.GetExtension(f).ToLowerInvariant()))
-            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        if (files.Length == 0)
-        {
-            await Views.ThreeButtonDialogView.ShowInfoAsync(title, $"No {label} files were found in:\n{mediaFolder.FolderPath}");
-            return;
-        }
-
-        if (_sessionState.CurrentSystem != null)
-        {
-            await _windowService.ShowJukeboxAsync(files, _sessionState.CurrentSystem);
-        }
-    }
 
     #endregion
 

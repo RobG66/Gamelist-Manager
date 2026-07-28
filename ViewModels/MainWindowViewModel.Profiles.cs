@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -52,7 +51,7 @@ public partial class MainWindowViewModel
             return;
         }
 
-        var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+        var result = await _dialogService.ShowAsync(new ThreeButtonDialogConfig
         {
             Title = "No Profiles Found",
             Message = "No profiles were found.",
@@ -89,7 +88,7 @@ public partial class MainWindowViewModel
         if (gamelistPath.StartsWith(expectedRoot, FilePathHelper.PathComparison))
             return true;
 
-        await ThreeButtonDialogView.ShowWarningAsync(
+        await _dialogService.ShowWarningAsync(
             "Invalid Gamelist",
             "This gamelist is not in the expected location and may be the wrong type for the current profile.",
             detail: $"Expected root location: {expectedRoot}");
@@ -110,7 +109,7 @@ public partial class MainWindowViewModel
 
             if (Directory.Exists(homeEsDe))
             {
-                var result = await ThreeButtonDialogView.ShowAsync(new ThreeButtonDialogConfig
+                var result = await _dialogService.ShowAsync(new ThreeButtonDialogConfig
                 {
                     Title = "ES-DE Location",
                     Message = contextMessage,
@@ -131,7 +130,7 @@ public partial class MainWindowViewModel
             }
         }
 
-        var browseResult = await ThreeButtonDialogView.ShowConfirmAsync(
+        var browseResult = await _dialogService.ShowConfirmAsync(
             "ES-DE Location",
             "Please select the folder containing your ES-DE configuration.",
             confirmText: "Browse",
@@ -178,7 +177,7 @@ public partial class MainWindowViewModel
 
         if (IsGamelistLoaded)
         {
-            var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            var result = await _dialogService.ShowConfirmAsync(
                 "Switch Profile",
                 "Are you sure you want to switch to the EmulationStation profile?",
                 confirmText: "Switch",

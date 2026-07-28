@@ -3,7 +3,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Classes.Helpers;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +29,7 @@ public partial class DatToolViewModel
 
             if (xmlStream == null)
             {
-                await ThreeButtonDialogView.ShowErrorAsync("Error", "Failed to get XML stream from MAME.");
+                await _dialogService.ShowErrorAsync("Error", "Failed to get XML stream from MAME.");
                 return;
             }
 
@@ -39,7 +38,7 @@ public partial class DatToolViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Error", $"Error streaming from MAME: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Error streaming from MAME: {ex.Message}");
         }
         finally
         {
@@ -85,7 +84,7 @@ public partial class DatToolViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Error", $"Error opening DAT file: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Error opening DAT file: {ex.Message}");
         }
         finally
         {
@@ -152,7 +151,7 @@ public partial class DatToolViewModel
 
             if (string.IsNullOrEmpty(reportContent))
             {
-                await ThreeButtonDialogView.ShowInfoAsync("No Missing Games", "All playable games from the DAT are present in your gamelist.");
+                await _dialogService.ShowInfoAsync("No Missing Games", "All playable games from the DAT are present in your gamelist.");
                 return;
             }
 
@@ -167,7 +166,7 @@ public partial class DatToolViewModel
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Error", $"Error generating report: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Error", $"Error generating report: {ex.Message}");
         }
         finally
         {

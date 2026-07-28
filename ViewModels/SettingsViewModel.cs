@@ -17,6 +17,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     private readonly SessionState _sessionState = SessionState.Instance;
     private readonly SettingsState _settingsState = SettingsState.Instance;
+    private readonly IDialogService _dialogService;
 
     private bool _isProfileLoading;
 
@@ -102,8 +103,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     #region Constructor
 
-    public SettingsViewModel()
+    public SettingsViewModel(IDialogService? dialogService = null)
     {
+        _dialogService = dialogService ?? DialogService.Instance;
         _isProfileLoading = true;
         try
         {

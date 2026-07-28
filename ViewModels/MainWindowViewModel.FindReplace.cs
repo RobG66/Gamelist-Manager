@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
-using Gamelist_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -166,7 +165,7 @@ public partial class MainWindowViewModel
         if (match == null)
         {
             _findMatchIndex = -1;
-            await ThreeButtonDialogView.ShowInfoAsync("Find", $"No match found for \"{FindText}\".");
+            await _dialogService.ShowInfoAsync("Find", $"No match found for \"{FindText}\".");
             return;
         }
 
@@ -183,7 +182,7 @@ public partial class MainWindowViewModel
         if (matches.Count == 0)
         {
             _findMatchIndex = -1;
-            await ThreeButtonDialogView.ShowInfoAsync("Replace", $"No match found for \"{FindText}\".");
+            await _dialogService.ShowInfoAsync("Replace", $"No match found for \"{FindText}\".");
             return;
         }
 
@@ -222,14 +221,14 @@ public partial class MainWindowViewModel
         if (matches.Count == 0)
         {
             _findMatchIndex = -1;
-            await ThreeButtonDialogView.ShowInfoAsync("Replace All", $"No match found for \"{FindText}\".");
+            await _dialogService.ShowInfoAsync("Replace All", $"No match found for \"{FindText}\".");
             return;
         }
 
         if (_settingsState.ConfirmBulkChanges)
         {
             var totalOccurrences = CountReplacementOccurrences(matches, SelectedFindColumn!, FindText);
-            var result = await ThreeButtonDialogView.ShowConfirmAsync(
+            var result = await _dialogService.ShowConfirmAsync(
                 "Replace All",
                 $"Are you sure you want to replace all occurrences of \"{FindText}\" with \"{ReplaceToText}\" in the {(ReplaceAllItems ? "all" : "selected")} items?",
                 confirmText: "Yes",
@@ -243,7 +242,7 @@ public partial class MainWindowViewModel
         _findMatchIndex = -1;
 
         var replacedLabel = replaced == 1 ? "occurrence" : "occurrences";
-        await ThreeButtonDialogView.ShowInfoAsync("Replace All", replaced > 0
+        await _dialogService.ShowInfoAsync("Replace All", replaced > 0
             ? $"Replaced {replaced} {replacedLabel} of \"{FindText}\"."
             : "No text was replaced.");
     }
