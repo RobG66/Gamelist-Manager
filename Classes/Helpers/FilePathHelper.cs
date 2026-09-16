@@ -155,6 +155,27 @@ namespace Gamelist_Manager.Classes.Helpers
             return Path.GetFileNameWithoutExtension(fileName).Trim();
         }
 
+        // Returns the base name to use for media associated with a ROM path.
+        // Normal ROM files use their filename without extension. ES-DE can also treat
+        // directories as files; in that case the directory's apparent extension is part
+        // of its name and must be preserved for media matching.
+        public static string NormalizeMediaRomName(string path, string? fullRomPath, bool preserveDirectoryExtension)
+        {
+            path = path.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            var lastSlashPosition = Math.Max(path.LastIndexOf(Path.AltDirectorySeparatorChar), path.LastIndexOf(Path.DirectorySeparatorChar));
+            var fileName = lastSlashPosition >= 0 ? path[(lastSlashPosition + 1)..] : path;
+
+            if (preserveDirectoryExtension &&
+                !string.IsNullOrWhiteSpace(fullRomPath) &&
+                Directory.Exists(fullRomPath))
+            {
+                return fileName.Trim();
+            }
+
+            return Path.GetFileNameWithoutExtension(fileName).Trim();
+        }
+
         // Expands a leading ~ to the current user's home directory.
         // Matches shell behaviour on Linux/macOS; safe to call on Windows too.
         // Examples:

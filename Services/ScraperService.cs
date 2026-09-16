@@ -80,7 +80,7 @@ namespace Gamelist_Manager.Services
                         LogLevel.Warning);
                 return (false, new ScrapedGameData());
             }
-            scraperParameters.RomFilePath = Path.Combine(currentRomFolder, romFileName);
+            scraperParameters.RomFilePath = FilePathHelper.GamelistPathToFullPath(romPath, currentRomFolder);
 
             var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, scraperParameters);
             if (itemsToScrape.Count == 0)

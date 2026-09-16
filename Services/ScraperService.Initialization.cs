@@ -107,6 +107,7 @@ namespace Gamelist_Manager.Services
                 ScrapeAnyMedia = scraperConfig.GetScraperBoolSetting(scraperName, "AnyMedia"),
                 ScrapeEnglishGenreOnly = scraperConfig.GetScraperBoolSetting(scraperName, "GenreEnglish"),
                 RemoveZzzNotGamePrefix = scraperConfig.GetScraperBoolSetting(scraperName, "RemoveZzzNotGamePrefix"),
+                PreserveDirectoryExtensionForMedia = profile.Key == SettingKeys.ProfileTypeEsDe,
 
 
 

@@ -44,6 +44,7 @@ namespace Gamelist_Manager.Models
         public bool ScrapeByCache { get; set; }
         public bool SkipNonCached { get; set; }
         public bool RemoveZzzNotGamePrefix { get; set; }
+        public bool PreserveDirectoryExtensionForMedia { get; set; }
 
         public List<string>? ElementsToScrape { get; set; }
         public Dictionary<string, string>? MediaPaths { get; set; }

@@ -95,7 +95,7 @@ namespace Gamelist_Manager.Services
             return (games, duplicates);
         }
 
-        public static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory)
+        public static void PopulateMediaPaths(IList<GameMetadataRow> games, string mediaDirectory, string? romDirectory = null)
         {
             if (string.IsNullOrEmpty(mediaDirectory)) return;
 
@@ -106,7 +106,10 @@ namespace Gamelist_Manager.Services
                 var romPath = game.Path;
                 if (string.IsNullOrEmpty(romPath)) continue;
 
-                var romName = FilePathHelper.NormalizeRomName(romPath);
+                string? fullRomPath = !string.IsNullOrEmpty(romDirectory)
+                    ? FilePathHelper.GamelistPathToFullPath(romPath, romDirectory)
+                    : null;
+                var romName = FilePathHelper.NormalizeMediaRomName(romPath, fullRomPath, preserveDirectoryExtension: true);
                 if (string.IsNullOrEmpty(romName)) continue;
 
                 foreach (var decl in mediaDecls)

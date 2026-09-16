@@ -198,7 +198,11 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
                 Directory.CreateDirectory(destFolder);
 
             var romPath = SelectedGame.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
-            var romName = FilePathHelper.NormalizeRomName(romPath);
+            var fullRomPath = FilePathHelper.GamelistPathToFullPath(romPath, romFolder);
+            var romName = FilePathHelper.NormalizeMediaRomName(
+                romPath,
+                fullRomPath,
+                _settingsState.ProfileType == SettingKeys.ProfileTypeEsDe);
             var extension = Path.GetExtension(newPath);
             var suffix = mediaFolder.IsSuffixEnabled && !string.IsNullOrEmpty(mediaFolder.Suffix)
                 ? $"-{mediaFolder.Suffix}"

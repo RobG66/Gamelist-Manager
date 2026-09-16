@@ -598,7 +598,7 @@ public partial class MainWindowViewModel
 
             if (!_sessionState.GamelistHasMediaPaths &&
                 _sessionState.CurrentMediaFolder is { } mediaDir)
-                await Task.Run(() => GamelistService.PopulateMediaPaths(loadedGames, mediaDir));
+                await Task.Run(() => GamelistService.PopulateMediaPaths(loadedGames, mediaDir, _sessionState.CurrentRomFolder));
 
             _isLoadingData = true;
             _sourceCache.Clear();
