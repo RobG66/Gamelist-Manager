@@ -3,6 +3,7 @@ using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -247,10 +248,27 @@ namespace Gamelist_Manager.Services
 
             var stringValue = value.ToString() ?? string.Empty;
 
-            if (metaDecl.Key == MetaDataKeys.releasedate || metaDecl.Key == MetaDataKeys.lastplayed)
+            if (metaDecl.Key == MetaDataKeys.rating)
+                stringValue = NormalizeRatingForXml(stringValue);
+            else if (metaDecl.Key == MetaDataKeys.releasedate || metaDecl.Key == MetaDataKeys.lastplayed)
                 stringValue = Iso8601Helper.ConvertToIso8601(stringValue);
 
             return string.IsNullOrWhiteSpace(stringValue) ? null : stringValue;
+        }
+
+        private static string NormalizeRatingForXml(string value)
+        {
+            if (!value.Contains(',') || value.Contains('.'))
+                return value;
+
+            string normalized = value.Replace(',', '.');
+            if (decimal.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal rating) &&
+                rating >= 0m && rating <= 1m)
+            {
+                return normalized;
+            }
+
+            return value;
         }
     }
 }

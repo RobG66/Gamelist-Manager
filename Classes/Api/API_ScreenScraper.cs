@@ -2,6 +2,7 @@ using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -823,7 +824,7 @@ namespace Gamelist_Manager.Classes.Api
 
             // Convert 0-20 rating to 0.0-1.0 format
             float ratingValFloat = ratingValue / 20.0f;
-            return ratingValFloat.ToString();
+            return ratingValFloat.ToString(CultureInfo.InvariantCulture);
         }
 
         private static (string GenreId, string GenreName) ParseGenres(XmlNode parentNode, string language)
