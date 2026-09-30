@@ -48,7 +48,12 @@ namespace Gamelist_Manager.Classes.Helpers
                     else
                         fileName = $"{fileNamePrefix}{extension}";
 
-                    string fullPath = Path.Combine(mediaFolder, fileName);
+                    string destinationFolder = FilePathHelper.MediaFolderForRom(
+                        mediaFolder,
+                        parameters.RomFilePath,
+                        parameters.RomDirectory,
+                        parameters.UseEsDeMediaLayout);
+                    string fullPath = Path.Combine(destinationFolder, fileName);
 
                     string regionDisplay = !string.IsNullOrEmpty(mediaResult.Region) ? $" ({mediaResult.Region})" : string.Empty;
 

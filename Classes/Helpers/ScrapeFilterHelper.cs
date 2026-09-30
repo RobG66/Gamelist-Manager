@@ -49,7 +49,16 @@ namespace Gamelist_Manager.Classes.Helpers
                         string fileName = Path.GetFileName(value);
                         bool fileExists;
 
-                        if (parameters.ExistingMediaFiles != null &&
+                        string mediaFolder = FilePathHelper.MediaFolderForRom(
+                            folder, parameters.RomFilePath, parameters.RomDirectory,
+                            parameters.UseEsDeMediaLayout);
+
+                        // The flat cache does not include media in ES-DE subfolders.
+                        if (!string.Equals(mediaFolder, folder, FilePathHelper.PathComparison))
+                        {
+                            fileExists = File.Exists(Path.Combine(mediaFolder, fileName));
+                        }
+                        else if (parameters.ExistingMediaFiles != null &&
                             parameters.ExistingMediaFiles.TryGetValue(item, out var fileSet))
                         {
                             fileExists = fileSet.Contains(fileName);

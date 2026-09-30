@@ -81,6 +81,7 @@ namespace Gamelist_Manager.Services
                 return (false, new ScrapedGameData());
             }
             scraperParameters.RomFilePath = FilePathHelper.GamelistPathToFullPath(romPath, currentRomFolder);
+            scraperParameters.RomDirectory = currentRomFolder;
 
             var itemsToScrape = ScrapeFilterHelper.FilterElementsToScrape(row, scraperParameters);
             if (itemsToScrape.Count == 0)

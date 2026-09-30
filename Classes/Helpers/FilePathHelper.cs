@@ -176,6 +176,26 @@ namespace Gamelist_Manager.Classes.Helpers
             return Path.GetFileNameWithoutExtension(fileName).Trim();
         }
 
+        // ES-DE mirrors the ROM's parent directories below each media type folder.
+        // The entry itself supplies the media filename, whether it is a file or folder.
+        public static string MediaFolderForRom(string mediaFolder, string? fullRomPath, string? romDirectory, bool esDeProfile)
+        {
+            if (!esDeProfile || string.IsNullOrWhiteSpace(fullRomPath) || string.IsNullOrWhiteSpace(romDirectory))
+                return mediaFolder;
+
+            var parent = Path.GetDirectoryName(fullRomPath);
+            if (string.IsNullOrEmpty(parent))
+                return mediaFolder;
+
+            var relativeParent = Path.GetRelativePath(romDirectory, parent);
+            if (relativeParent == "." || Path.IsPathRooted(relativeParent) ||
+                relativeParent == ".." ||
+                relativeParent.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                return mediaFolder;
+
+            return Path.Combine(mediaFolder, relativeParent);
+        }
+
         // Expands a leading ~ to the current user's home directory.
         // Matches shell behaviour on Linux/macOS; safe to call on Windows too.
         // Examples:

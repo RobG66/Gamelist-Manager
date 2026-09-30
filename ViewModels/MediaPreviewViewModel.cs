@@ -193,12 +193,12 @@ public partial class MediaPreviewViewModel : ViewModelBase, IDisposable
 
         try
         {
-            var destFolder = mediaFolder.FolderPath;
-            if (!Directory.Exists(destFolder))
-                Directory.CreateDirectory(destFolder);
-
             var romPath = SelectedGame.GetValue(MetaDataKeys.path)?.ToString() ?? string.Empty;
             var fullRomPath = FilePathHelper.GamelistPathToFullPath(romPath, romFolder);
+            var destFolder = FilePathHelper.MediaFolderForRom(
+                mediaFolder.FolderPath, fullRomPath, romFolder,
+                _settingsState.ProfileType == SettingKeys.ProfileTypeEsDe);
+            Directory.CreateDirectory(destFolder);
             var romName = FilePathHelper.NormalizeMediaRomName(
                 romPath,
                 fullRomPath,

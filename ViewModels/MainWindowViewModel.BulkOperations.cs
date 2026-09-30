@@ -340,6 +340,12 @@ public partial class MainWindowViewModel
 
     private void DeleteMediaFiles(GameMetadataRow game)
     {
+        var esDeProfile = _settingsState.ProfileType == SettingKeys.ProfileTypeEsDe;
+        var romDirectory = esDeProfile ? _sessionState.CurrentRomFolder : null;
+        var fullRomPath = esDeProfile && !string.IsNullOrEmpty(romDirectory)
+            ? FilePathHelper.GamelistPathToFullPath(game.Path, romDirectory)
+            : null;
+
         foreach (var media in _sessionState.AvailableMedia)
         {
             if (!Enum.TryParse<MetaDataKeys>(media.Type, out var key)) continue;
@@ -351,7 +357,10 @@ public partial class MainWindowViewModel
             var fileName = Path.GetFileName(storedPath);
             if (string.IsNullOrEmpty(fileName)) continue;
 
-            var fullPath = Path.Combine(media.FolderPath, fileName);
+            var mediaFolder = FilePathHelper.MediaFolderForRom(
+                media.FolderPath, fullRomPath, romDirectory,
+                esDeProfile);
+            var fullPath = Path.Combine(mediaFolder, fileName);
             if (!File.Exists(fullPath)) continue;
 
             try { File.Delete(fullPath); }

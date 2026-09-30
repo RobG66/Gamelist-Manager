@@ -13,6 +13,7 @@ namespace Gamelist_Manager.Models
         public Dictionary<string, List<string>> EmuMoviesMediaLists { get; set; } = new();
         public bool SkipMD5 { get; set; }
         public string? RomFilePath { get; set; }
+        public string? RomDirectory { get; set; }
         public string? RomFileName { get; set; }
         public string? RomName { get; set; }
         public string? GameID { get; set; }
@@ -45,6 +46,7 @@ namespace Gamelist_Manager.Models
         public bool SkipNonCached { get; set; }
         public bool RemoveZzzNotGamePrefix { get; set; }
         public bool PreserveDirectoryExtensionForMedia { get; set; }
+        public bool UseEsDeMediaLayout { get; set; }
 
         public List<string>? ElementsToScrape { get; set; }
         public Dictionary<string, string>? MediaPaths { get; set; }

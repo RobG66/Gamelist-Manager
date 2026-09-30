@@ -116,7 +116,8 @@ namespace Gamelist_Manager.Services
                 {
                     if (!decl.IsEsDeSupported) continue;
 
-                    var folder = Path.Combine(mediaDirectory, decl.EsDeFolderName);
+                    var folder = FilePathHelper.MediaFolderForRom(
+                        Path.Combine(mediaDirectory, decl.EsDeFolderName), fullRomPath, romDirectory, esDeProfile: true);
 
                     var extensions = decl.DataType switch
                     {
