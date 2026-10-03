@@ -5,6 +5,7 @@
 
 A robust, cross platform (Windows/Linux) desktop application for viewing and editing EmulationStation gamelist XML files, with fullly configurable scraper services for metadata and artwork.  Built on Avalonia UI and targeting Windows and Linux.  
 
+Check out my new game on itch.io!  https://robg66.itch.io/cinderwing
 
 If you find this program useful, please consider supporting its continued development.  Donations for the 2026 year:  $0.00
 
