@@ -9,6 +9,7 @@ Check out my new game on itch.io!  https://robg66.itch.io/cinderwing
 
 If you find this program useful, please consider supporting its continued development.  
 
+https://paypal.me/RGanshorn
 [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/robg66)
 
 
