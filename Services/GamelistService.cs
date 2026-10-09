@@ -145,7 +145,7 @@ namespace Gamelist_Manager.Services
             }
         }
 
-        public static bool SaveGamelist(string xmlFilePath, ObservableCollection<GameMetadataRow> games)
+        public static bool SaveGamelist(string xmlFilePath, ObservableCollection<GameMetadataRow> games, bool saveMediaPaths)
         {
             try
             {
@@ -158,6 +158,12 @@ namespace Gamelist_Manager.Services
                 var root = doc.Root;
                 if (root == null || root.Name != "gameList")
                     return false;
+
+                // The caller supplies the media persistence capability. Keep media
+                // values in the model and existing XML intact when it is disabled.
+                var persistedFields = SessionState.Instance.XmlPersistedFields
+                    .Where(decl => saveMediaPaths || !decl.IsMedia)
+                    .ToList();
 
                 if (originalExists)
                 {
@@ -187,7 +193,7 @@ namespace Gamelist_Manager.Services
 
                         if (gameLookup.TryGetValue(pathValue, out var game))
                         {
-                            UpdateGameElement(gameElement, game);
+                            UpdateGameElement(gameElement, game, persistedFields);
                         }
                         else
                             gameElement.Remove();
@@ -198,7 +204,7 @@ namespace Gamelist_Manager.Services
                 {
                     if (!savedItems.Contains(game.Path))
                     {
-                        root.Add(CreateGameElement(game));
+                        root.Add(CreateGameElement(game, persistedFields));
                     }
                 }
 
@@ -213,7 +219,7 @@ namespace Gamelist_Manager.Services
             }
         }
 
-        private static void UpdateGameElement(XElement gameElement, GameMetadataRow game)
+        private static void UpdateGameElement(XElement gameElement, GameMetadataRow game, IReadOnlyList<MetaDataDecl> persistedFields)
         {
             var gameId = game.GetValue(MetaDataKeys.id)?.ToString();
             if (string.IsNullOrEmpty(gameId))
@@ -221,7 +227,7 @@ namespace Gamelist_Manager.Services
             else
                 gameElement.SetAttributeValue("id", gameId);
 
-            foreach (var metaDecl in SessionState.Instance.XmlPersistedFields)
+            foreach (var metaDecl in persistedFields)
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
 
@@ -239,7 +245,7 @@ namespace Gamelist_Manager.Services
             }
         }
 
-        private static XElement CreateGameElement(GameMetadataRow game)
+        private static XElement CreateGameElement(GameMetadataRow game, IReadOnlyList<MetaDataDecl> persistedFields)
         {
             var gameElement = new XElement("game");
 
@@ -247,7 +253,7 @@ namespace Gamelist_Manager.Services
             if (!string.IsNullOrEmpty(gameId))
                 gameElement.SetAttributeValue("id", gameId);
 
-            foreach (var metaDecl in SessionState.Instance.XmlPersistedFields)
+            foreach (var metaDecl in persistedFields)
             {
                 if (metaDecl.Key == MetaDataKeys.id) continue;
 

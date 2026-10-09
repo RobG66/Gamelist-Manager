@@ -147,7 +147,7 @@ internal static class Program
                 var before = File.ReadAllBytes(file);
                 var (games, _) = GamelistService.LoadGamelist(file);
                 games.Add(new GameMetadataRow { Path = "./A.zip", Name = "Duplicate" });
-                Assert(!GamelistService.SaveGamelist(file, games), "Ambiguous editor rows were saved.");
+                Assert(!GamelistService.SaveGamelist(file, games, SessionState.Instance.GamelistHasMediaPaths), "Ambiguous editor rows were saved.");
                 Assert(before.SequenceEqual(File.ReadAllBytes(file)), "Failed save overwrote original.");
             }));
             Run(profile, "preserve path spelling and case", () => WithFile("<gameList><game><path>./A.zip</path><name>A</name></game><game><path>./a.zip</path><name>a</name></game><game><path>./Folder\\B.zip</path><name>B</name></game><game><path>/roms/C.zip</path><name>C</name></game><game><path>Q:/roms/D.zip</path><name>D</name></game><game><path>\\\\server\\roms\\E.zip</path><name>E</name></game></gameList>", file =>
@@ -175,7 +175,7 @@ internal static class Program
                 Assert(game.Element("name") == null && game.Element("favorite") == null && game.Element("hidden")?.Value == "true", "Empty or boolean serialization changed.");
                 Assert(game.Element("rating")?.Value == "0.75" && game.Element("releasedate")?.Value == "20000203T000000" && game.Element("lastplayed")?.Value == "20261009T000000", "Rating or date serialization changed.");
                 Assert(game.Element("playtime")?.Value == (profile == SettingKeys.ProfileTypeEsDe ? "300" : "120"), "Profile field filtering changed.");
-                Assert(game.Element("image")?.Value == "./images/first.png", "Current media serialization changed outside this fix's scope.");
+                Assert(game.Element("image")?.Value == (profile == SettingKeys.ProfileTypeEsDe ? null : "./images/first.png"), "Profile media persistence policy failed.");
             }));
             Run(profile, "create and reload a new gamelist", () =>
             {
@@ -189,13 +189,13 @@ internal static class Program
             Run(profile, "reject malformed XML without overwriting", () => WithFile("<gameList><game>", file =>
             {
                 var before = File.ReadAllBytes(file);
-                Assert(!GamelistService.SaveGamelist(file, []), "Invalid XML was overwritten.");
+                Assert(!GamelistService.SaveGamelist(file, [], SessionState.Instance.GamelistHasMediaPaths), "Invalid XML was overwritten.");
                 Assert(before.SequenceEqual(File.ReadAllBytes(file)) && !File.Exists(file + ".tmp"), "Failed save changed file or left temp output.");
             }));
             Run(profile, "reject unexpected root without overwriting", () => WithFile("<other><game><path>./A.zip</path></game></other>", file =>
             {
                 var before = File.ReadAllBytes(file);
-                Assert(!GamelistService.SaveGamelist(file, []), "Unexpected XML root was overwritten.");
+                Assert(!GamelistService.SaveGamelist(file, [], SessionState.Instance.GamelistHasMediaPaths), "Unexpected XML root was overwritten.");
                 Assert(before.SequenceEqual(File.ReadAllBytes(file)), "Unexpected root save changed original.");
             }));
             Run(profile, "preserve whitespace and document type", () => WithFile("<!DOCTYPE gameList [<!ELEMENT gameList ANY>]>\n<gameList>\n  <futureRoot>  text  <child />  trailing  </futureRoot>\n  <game><path>./A.zip</path><name>A</name></game>\n</gameList>", file =>
@@ -219,7 +219,137 @@ internal static class Program
                 Save(file, reloaded);
                 Equal(first, XDocument.Load(file, LoadOptions.PreserveWhitespace));
             }));
+            Run(profile, "keep media available to the UI independently of XML persistence", () =>
+            {
+                foreach (var key in new[] { MetaDataKeys.image, MetaDataKeys.video, MetaDataKeys.manual, MetaDataKeys.mix })
+                {
+                    Assert(MetadataService.GetColumnDeclarations().Any(d => d.Key == key), $"Media column disappeared: {key}.");
+                    Assert(MetadataService.GetMediaDeclarations().Any(d => d.Key == key), $"Media-page field disappeared: {key}.");
+                }
+            });
+            Run(profile, "save discovered media according to profile", () => WithMedia((roms, media) =>
+            {
+                WithFile("<gameList><alternativeEmulator>keep</alternativeEmulator><game><path>./Game.zip</path><name>Game</name><future>keep</future></game></gameList>", file =>
+                {
+                    var image = WriteMedia(media, "screenshots", "Game.webp");
+                    var video = WriteMedia(media, "videos", "Game.m4v");
+                    var manual = WriteMedia(media, "manuals", "Game.pdf");
+                    var mix = WriteMedia(media, "miximages", "Game.webp");
+                    var (games, _) = GamelistService.LoadGamelist(file);
+                    GamelistService.PopulateMediaPaths(games, media, roms);
+                    games[0].Name = "Edited";
+                    Save(file, games);
+                    var saved = XDocument.Load(file).Root!.Element("game")!;
+                    Assert(saved.Element("name")?.Value == "Edited" && saved.Element("future")?.Value == "keep", "Non-media data changed.");
+                    Assert(games[0].Image == image && games[0].Video == video && games[0].Manual == manual && games[0].Mix == mix, "Saving cleared in-memory media paths.");
+                    if (profile == SettingKeys.ProfileTypeEsDe)
+                        Assert(!saved.Elements().Any(e => MetadataService.GetDeclByType(e.Name.LocalName)?.IsMedia == true), "Discovered media leaked into ES-DE XML.");
+                    else
+                        Assert(saved.Element("image")?.Value == image && saved.Element("video")?.Value == video && saved.Element("manual")?.Value == manual && saved.Element("mix")?.Value == mix, "Standard ES media paths were not saved.");
+                });
+            }));
+            Run(profile, "preserve existing media XML for ES-DE", () => WithFile("<gameList><game><path>./Game.zip</path><name>Game</name><image custom='keep'><![CDATA[./original/image.png]]><!--keep comment--></image><video>./original/video.mp4</video><manual>./original/manual.pdf</manual><futureMedia>keep</futureMedia></game></gameList>", file =>
+            {
+                var before = XDocument.Load(file).Root!.Element("game")!;
+                var (games, _) = GamelistService.LoadGamelist(file);
+                games[0].Image = "./changed/image.webp";
+                games[0].Video = "";
+                games[0].Manual = "./changed/manual.pdf";
+                games[0].Name = "Edited";
+                Save(file, games);
+                var after = XDocument.Load(file).Root!.Element("game")!;
+                Assert(after.Element("name")?.Value == "Edited", "Metadata edit lost.");
+                Equal(before.Element("futureMedia"), after.Element("futureMedia"));
+                if (profile == SettingKeys.ProfileTypeEsDe)
+                {
+                    Equal(before.Element("image"), after.Element("image"));
+                    Equal(before.Element("video"), after.Element("video"));
+                    Equal(before.Element("manual"), after.Element("manual"));
+                }
+                else
+                    Assert(after.Element("image")?.Value == "./changed/image.webp" && after.Element("video") == null && after.Element("manual")?.Value == "./changed/manual.pdf", "Standard ES media update/clear behavior changed.");
+            }));
+            Run(profile, "apply media policy to new files and newly added games", () =>
+            {
+                var file = Path.Combine(TestFiles, Guid.NewGuid() + ".xml");
+                var game = new GameMetadataRow { Path = "./First.zip", Name = "First" };
+                foreach (var media in MetadataService.GetAllMediaFolderTypes()) game.SetValue(media.Key, "./media/fixture");
+                Save(file, [game]);
+                var newGame = new GameMetadataRow { Path = "./Added.zip", Name = "Added" };
+                foreach (var media in MetadataService.GetAllMediaFolderTypes()) newGame.SetValue(media.Key, "./media/added");
+                Save(file, [game, newGame]);
+                var savedGames = XDocument.Load(file).Root!.Elements("game").ToArray();
+                Assert(savedGames.Length == 2 && savedGames[1].Element("name")?.Value == "Added", "New-game save failed.");
+                foreach (var saved in savedGames)
+                {
+                    var mediaTags = saved.Elements().Where(e => MetadataService.GetDeclByType(e.Name.LocalName)?.IsMedia == true).ToArray();
+                    Assert(profile == SettingKeys.ProfileTypeEsDe ? mediaTags.Length == 0 : mediaTags.Length == MetadataService.GetAllMediaFolderTypes().Count, "New file or new game violated media persistence policy.");
+                }
+            });
+            Run(profile, "honor the explicit media flag independently of profile", () => WithFile("<gameList><game><path>./Game.zip</path><name>Game</name></game></gameList>", file =>
+            {
+                var (games, _) = GamelistService.LoadGamelist(file);
+                games[0].Image = "./scraped/new.png";
+                Assert(GamelistService.SaveGamelist(file, games, saveMediaPaths: false), "Save with media disabled failed.");
+                Assert(XDocument.Load(file).Root!.Element("game")!.Element("image") == null && games[0].Image == "./scraped/new.png", "Media flag was ignored or model was cleared.");
+                Assert(GamelistService.SaveGamelist(file, games, saveMediaPaths: true), "Save with media enabled failed.");
+                Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == "./scraped/new.png", "Explicit media flag did not enable serialization.");
+                games[0].Image = "";
+                Assert(GamelistService.SaveGamelist(file, games, saveMediaPaths: false), "Save preserving media failed.");
+                Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == "./scraped/new.png", "Disabled media flag removed existing XML.");
+                Assert(GamelistService.SaveGamelist(file, games, saveMediaPaths: true), "Save clearing media failed.");
+                Assert(XDocument.Load(file).Root!.Element("game")!.Element("image") == null, "Enabled media flag failed to clear media.");
+            }));
+            Run(profile, "apply newly scraped and replacement image paths before saving", () => WithMedia((roms, media) =>
+            {
+                var systemFolder = Path.Combine(roms, "test");
+                Directory.CreateDirectory(systemFolder);
+                var file = Path.Combine(systemFolder, "gamelist.xml");
+                File.WriteAllText(file, "<gameList><game><path>./Game.zip</path><name>Game</name></game></gameList>");
+                var (games, _) = GamelistService.LoadGamelist(file);
+                SettingsState.Instance.RootRomFolder = roms;
+                SessionState.Instance.SetGamelist(file, "test", games);
+
+                // Exercise the actual scraper result-application method without HTTP
+                // requests. The HTTP factory is unused by this method.
+                var scraperType = typeof(GamelistService).Assembly.GetType("Gamelist_Manager.Services.ScraperService")!;
+                var scraper = Activator.CreateInstance(scraperType, new object?[] { null })!;
+                foreach (var filename in new[] { "Game.png", "Game.webp" })
+                {
+                    var downloaded = profile == SettingKeys.ProfileTypeEs
+                        ? WriteMedia(systemFolder, "images", filename)
+                        : WriteMedia(media, "screenshots", filename);
+                    var data = new ScrapedGameData { Data = new() { ["image"] = downloaded } };
+                    var parameters = new ScraperParameters { ElementsToScrape = ["image"] };
+                    var task = (System.Threading.Tasks.Task)scraperType.GetMethod("SaveScrapedDataAsync")!.Invoke(scraper, new object[] { games[0], data, parameters })!;
+                    task.GetAwaiter().GetResult();
+                    Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+                    var expected = profile == SettingKeys.ProfileTypeEs ? "./images/" + filename : downloaded;
+                    Assert(games[0].Image == expected, "New scraper result failed to update the row or changed path semantics.");
+                    Save(file, games);
+                    Assert(games[0].Image == expected, "Saving changed the scraped path in memory.");
+                    Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == (profile == SettingKeys.ProfileTypeEs ? expected : null), "Newly scraped or replacement image was saved with the wrong policy.");
+                }
+                SessionState.Instance.Clear();
+            }));
         }
+        Run("profiles", "refresh media persistence policy when switching profiles", () => WithFile("<gameList><game><path>./Game.zip</path><name>Game</name></game></gameList>", file =>
+        {
+            var (games, _) = GamelistService.LoadGamelist(file);
+            SettingsState.Instance.ProfileType = SettingKeys.ProfileTypeEs;
+            games[0].Image = "./first.png";
+            Save(file, games);
+            Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == "./first.png", "ES profile did not save media.");
+            SettingsState.Instance.ProfileType = SettingKeys.ProfileTypeEsDe;
+            games[0].Image = "./second.webp";
+            games[0].Name = "ES-DE edit";
+            Save(file, games);
+            var saved = XDocument.Load(file).Root!.Element("game")!;
+            Assert(saved.Element("image")?.Value == "./first.png" && saved.Element("name")?.Value == "ES-DE edit", "ES-DE inherited the ES media policy.");
+            SettingsState.Instance.ProfileType = SettingKeys.ProfileTypeEs;
+            Save(file, games);
+            Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == "./second.webp", "ES inherited the ES-DE media policy.");
+        }));
         RunMediaTests();
         Console.WriteLine($"\n{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
@@ -349,7 +479,7 @@ internal static class Program
         verify(before, XDocument.Load(file));
     });
     private static string NodeKey(XNode node) => node is XElement element ? "element:" + element.Name : node.ToString();
-    private static void Save(string file, ObservableCollection<GameMetadataRow> games) => Assert(GamelistService.SaveGamelist(file, games), "Save failed.");
+    private static void Save(string file, ObservableCollection<GameMetadataRow> games) => Assert(GamelistService.SaveGamelist(file, games, SessionState.Instance.GamelistHasMediaPaths), "Save failed.");
     private static void Equal(XNode? expected, XNode? actual) => Assert(XNode.DeepEquals(expected, actual), "XML content changed or was lost.");
     private static void Assert(bool condition, string message) { if (!condition) throw new Exception(message); }
 }

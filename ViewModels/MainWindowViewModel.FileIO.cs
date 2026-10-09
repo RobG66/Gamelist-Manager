@@ -175,11 +175,12 @@ public partial class MainWindowViewModel
             var allGames = new ObservableCollection<GameMetadataRow>(_sourceCache.Items);
             var filename = _sessionState.XmlFilename;
             var system = _sessionState.CurrentSystem;
+            var saveMediaPaths = _sessionState.GamelistHasMediaPaths;
 
             bool success = await Task.Run(() =>
             {
                 var backupPath = CreateBackupBeforeSave(filename, system);
-                return GamelistService.SaveGamelist(filename, allGames);
+                return GamelistService.SaveGamelist(filename, allGames, saveMediaPaths);
             });
 
             if (success)
