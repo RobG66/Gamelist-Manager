@@ -2,7 +2,8 @@ param(
     [string] $BuildDirectory = (Join-Path $PSScriptRoot '../bin/Debug/net10.0')
 )
 
-# Run against the actual built application in an isolated temporary host. No
+# Check XML saving and ES-DE media discovery against the actual built application.
+# Run in an isolated temporary host. No
 # production profiles, gamelists, media or backups are read or written.
 $ErrorActionPreference = 'Stop'
 $buildPath = (Resolve-Path -LiteralPath $BuildDirectory).Path
@@ -41,6 +42,7 @@ using System.Collections.ObjectModel;
 using System.Xml.Linq;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
+using Gamelist_Manager.ViewModels;
 
 internal static class Program
 {
@@ -218,8 +220,113 @@ internal static class Program
                 Equal(first, XDocument.Load(file, LoadOptions.PreserveWhitespace));
             }));
         }
+        RunMediaTests();
         Console.WriteLine($"\n{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
+    }
+
+    private static void RunMediaTests()
+    {
+        SettingsState.Instance.ProfileType = SettingKeys.ProfileTypeEsDe;
+        foreach (var extension in new[] { ".png", ".jpg", ".jpeg", ".webp", ".mp4", ".avi", ".mkv", ".webm", ".m4v" })
+        {
+            Run("media", $"discover {extension}", () => WithMedia((roms, media) =>
+            {
+                var video = new[] { ".mp4", ".avi", ".mkv", ".webm", ".m4v" }.Contains(extension);
+                var expected = WriteMedia(media, video ? "videos" : "screenshots", "Game" + extension);
+                var game = new GameMetadataRow { Path = "./Game.zip", Image = "stale", Video = "stale" };
+                GamelistService.PopulateMediaPaths([game], media, roms);
+                Assert((video ? game.Video : game.Image) == expected, $"{extension} media was not discovered.");
+                Assert(video ? MediaItemViewModel.IsVideoFile(expected) : MediaItemViewModel.IsImageFile(expected), "Discovered format not accepted by preview.");
+            }));
+        }
+        Run("media", "preserve existing format preference order", () => WithMedia((roms, media) =>
+        {
+            foreach (var formats in new[] { new[] { ".png", ".jpg", ".jpeg", ".webp" }, new[] { ".mp4", ".avi", ".mkv", ".webm", ".m4v" } })
+            {
+                var video = formats[0] == ".mp4";
+                var files = formats.Select(ext => WriteMedia(media, video ? "videos" : "screenshots", "Game" + ext)).ToArray();
+                var game = new GameMetadataRow { Path = "./Game.zip" };
+                foreach (var expected in files)
+                {
+                    GamelistService.PopulateMediaPaths([game], media, roms);
+                    Assert((video ? game.Video : game.Image) == expected, "Existing media preference order changed.");
+                    File.Delete(expected);
+                }
+            }
+        }));
+        Run("media", "discover WebP in mapped image categories", () => WithMedia((roms, media) =>
+        {
+            var expected = new Dictionary<MetaDataKeys, string>
+            {
+                [MetaDataKeys.thumbnail] = WriteMedia(media, "covers", "Game.webp"),
+                [MetaDataKeys.marquee] = WriteMedia(media, "marquees", "Game.webp"),
+                [MetaDataKeys.boxback] = WriteMedia(media, "backcovers", "Game.webp"),
+                [MetaDataKeys.boxart] = WriteMedia(media, "3dboxes", "Game.webp"),
+                [MetaDataKeys.fanart] = WriteMedia(media, "fanart", "Game.webp"),
+                [MetaDataKeys.cartridge] = WriteMedia(media, "physicalmedia", "Game.webp"),
+                [MetaDataKeys.titleshot] = WriteMedia(media, "titlescreens", "Game.webp"),
+                [MetaDataKeys.mix] = WriteMedia(media, "miximages", "Game.webp")
+            };
+            var game = new GameMetadataRow { Path = "./Game.zip" };
+            GamelistService.PopulateMediaPaths([game], media, roms);
+            foreach (var item in expected) Assert(game.GetValue(item.Key)?.ToString() == item.Value, $"WebP discovery failed for {item.Key}.");
+        }));
+        Run("media", "mirror nested ROM folders for new formats", () => WithMedia((roms, media) =>
+        {
+            var expectedVideo = WriteMedia(media, Path.Combine("videos", "Collection"), "日本語 Game.m4v");
+            var expectedImage = WriteMedia(media, Path.Combine("screenshots", "Collection"), "日本語 Game.webp");
+            WriteMedia(media, "videos", "日本語 Game.mp4");
+            var game = new GameMetadataRow { Path = "./Collection/日本語 Game.zip" };
+            GamelistService.PopulateMediaPaths([game], media, roms);
+            Assert(game.Video == expectedVideo && game.Image == expectedImage, "Nested media was flattened or filename changed.");
+        }));
+        Run("media", "preserve directory ROM extensions when matching", () => WithMedia((roms, media) =>
+        {
+            Directory.CreateDirectory(Path.Combine(roms, "Collection", "Game.ps3"));
+            var expected = WriteMedia(media, Path.Combine("videos", "Collection"), "Game.ps3.webm");
+            WriteMedia(media, Path.Combine("videos", "Collection"), "Game.mp4");
+            var game = new GameMetadataRow { Path = "./Collection/Game.ps3" };
+            GamelistService.PopulateMediaPaths([game], media, roms);
+            Assert(game.Video == expected, "Directory ROM extension was stripped.");
+        }));
+        Run("media", "clear missing media and retain unmapped categories", () => WithMedia((roms, media) =>
+        {
+            WriteMedia(media, "screenshots", "Game.bmp");
+            WriteMedia(media, "videos", "Game.mov");
+            var game = new GameMetadataRow { Path = "./Game.zip", Image = "stale", Video = "stale", Manual = "stale", Bezel = "keep", Music = "keep" };
+            GamelistService.PopulateMediaPaths([game], media, roms);
+            Assert(game.Image == "" && game.Video == "" && game.Manual == "", "Missing media stayed linked or discovery expanded beyond ES-DE formats.");
+            Assert(game.Bezel == "keep" && game.Music == "keep", "Unmapped category changed.");
+        }));
+        Run("media", "preserve manual discovery and empty-root behavior", () => WithMedia((roms, media) =>
+        {
+            var expected = WriteMedia(media, "manuals", "Game.pdf");
+            var game = new GameMetadataRow { Path = "./Game.zip", Manual = "stale" };
+            GamelistService.PopulateMediaPaths([game], "", roms);
+            Assert(game.Manual == "stale", "Empty-root behavior changed.");
+            GamelistService.PopulateMediaPaths([game], media, roms);
+            Assert(game.Manual == expected, "PDF discovery changed.");
+        }));
+    }
+
+    private static void WithMedia(Action<string, string> test)
+    {
+        var root = Path.Combine(TestFiles, Guid.NewGuid().ToString());
+        var roms = Path.Combine(root, "roms");
+        var media = Path.Combine(root, "media");
+        Directory.CreateDirectory(roms);
+        Directory.CreateDirectory(media);
+        test(roms, media);
+    }
+    private static string WriteMedia(string media, string category, string filename)
+    {
+        var folder = Path.Combine(media, category);
+        Directory.CreateDirectory(folder);
+        var file = Path.Combine(folder, filename);
+        // Discovery checks filenames, not codecs; no native media player is started.
+        File.WriteAllText(file, "discovery fixture");
+        return file;
     }
 
     private static void Run(string profile, string name, Action test)
