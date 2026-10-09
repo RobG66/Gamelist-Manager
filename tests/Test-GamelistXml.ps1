@@ -438,6 +438,40 @@ internal static class Program
             GamelistService.PopulateMediaPaths([game], media, roms);
             Assert(game.Manual == expected, "PDF discovery changed.");
         }));
+        Run("media", "preserve preview image formats and case handling", () =>
+        {
+            foreach (var extension in new[] { ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff", ".tif" })
+            {
+                Assert(MediaItemViewModel.IsImageFile("Game" + extension), $"Preview rejected {extension}.");
+                Assert(MediaItemViewModel.IsImageFile("Game" + extension.ToUpperInvariant()), $"Preview rejected uppercase {extension}.");
+            }
+            foreach (var filename in new[] { "Game.ico", "Game.svg", "Game.avif", "Game.mp4", "Game.png.tmp", "Game" })
+                Assert(!MediaItemViewModel.IsImageFile(filename), $"Preview accepted unsupported image {filename}.");
+        });
+        Run("media", "preserve preview video formats and case handling", () =>
+        {
+            foreach (var extension in new[] { ".mp4", ".avi", ".mkv", ".webm", ".m4v", ".mov", ".wmv", ".flv" })
+            {
+                Assert(MediaItemViewModel.IsVideoFile("Game" + extension), $"Preview rejected {extension}.");
+                Assert(MediaItemViewModel.IsVideoFile("Game" + extension.ToUpperInvariant()), $"Preview rejected uppercase {extension}.");
+            }
+            foreach (var filename in new[] { "Game.mpeg", "Game.ogv", "Game.png", "Game.mp4.tmp", "Game" })
+                Assert(!MediaItemViewModel.IsVideoFile(filename), $"Preview accepted unsupported video {filename}.");
+        });
+        Run("media", "preserve PDF preview classification", () =>
+        {
+            Assert(MediaItemViewModel.IsPdfFile("Game.pdf") && MediaItemViewModel.IsPdfFile("Game.PDF"), "PDF preview classification changed.");
+            Assert(!MediaItemViewModel.IsPdfFile("Game.pdf.tmp") && !MediaItemViewModel.IsPdfFile("Game.png") && !MediaItemViewModel.IsPdfFile("Game"), "Unsupported manual was accepted.");
+        });
+        Run("media", "preserve scraper image-verification formats including ICO", () =>
+        {
+            var transferType = typeof(GamelistService).Assembly.GetType("Gamelist_Manager.Classes.Helpers.FileTransferHelper")!;
+            var classify = transferType.GetMethod("IsImageExtension", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+            foreach (var extension in new[] { ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff", ".tif", ".ico" })
+                Assert((bool)classify.Invoke(null, new object[] { extension })!, $"Scraper stopped verifying {extension} images.");
+            foreach (var extension in new[] { ".svg", ".avif", ".mp4", ".pdf", "" })
+                Assert(!(bool)classify.Invoke(null, new object[] { extension })!, $"Scraper would verify unsupported {extension} as an image.");
+        });
     }
 
     private static void WithMedia(Action<string, string> test)

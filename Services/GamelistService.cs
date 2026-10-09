@@ -12,11 +12,6 @@ namespace Gamelist_Manager.Services
 {
     public class GamelistService
     {
-        private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg", ".webp"];
-        private static readonly string[] VideoExtensions = [".mp4", ".avi", ".mkv", ".webm", ".m4v"];
-        private static readonly string[] ManualExtensions = [".pdf"];
-        private static readonly string[] MusicExtensions = [".mp3", ".ogg", ".wav", ".flac"];
-
         public static (ObservableCollection<GameMetadataRow> Games, List<string> Duplicates) LoadGamelist(string xmlFilePath, bool ignoreDuplicates = false)
         {
             var games = new ObservableCollection<GameMetadataRow>();
@@ -123,10 +118,10 @@ namespace Gamelist_Manager.Services
 
                     var extensions = decl.DataType switch
                     {
-                        MetaDataType.Video => VideoExtensions,
-                        MetaDataType.Document => ManualExtensions,
-                        MetaDataType.Music => MusicExtensions,
-                        _ => ImageExtensions
+                        MetaDataType.Video => MediaExtensions.EsDeVideoExtensions,
+                        MetaDataType.Document => MediaExtensions.ManualExtensions,
+                        MetaDataType.Music => MediaExtensions.MusicExtensions,
+                        _ => MediaExtensions.EsDeImageExtensions
                     };
 
                     string? resolved = null;

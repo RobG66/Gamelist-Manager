@@ -140,11 +140,6 @@ namespace Gamelist_Manager.Classes.Helpers
             }
         }
 
-        private static bool IsImageExtension(string extension)
-        {
-            return extension is
-                ".jpg" or ".jpeg" or ".png" or ".bmp" or
-                ".gif" or ".tiff" or ".tif" or ".ico" or ".webp";
-        }
+        private static bool IsImageExtension(string extension) => MediaExtensions.IsImageExtension(extension);
     }
 }

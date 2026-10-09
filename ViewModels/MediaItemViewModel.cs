@@ -298,22 +298,11 @@ public partial class MediaItemViewModel : ObservableObject, IDisposable
         return IsImageFile(filePath);
     }
 
-    public static bool IsImageFile(string filePath)
-    {
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        return ext is ".jpg" or ".jpeg" or ".png" or ".bmp" or ".gif" or ".tiff" or ".tif" or ".webp";
-    }
+    public static bool IsImageFile(string filePath) => MediaExtensions.IsPreviewImageFile(filePath);
 
-    public static bool IsVideoFile(string filePath)
-    {
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        return ext is ".mp4" or ".avi" or ".mkv" or ".mov" or ".wmv" or ".flv" or ".webm" or ".m4v";
-    }
+    public static bool IsVideoFile(string filePath) => MediaExtensions.IsPreviewVideoFile(filePath);
 
-    public static bool IsPdfFile(string filePath)
-    {
-        return Path.GetExtension(filePath).ToLowerInvariant() == ".pdf";
-    }
+    public static bool IsPdfFile(string filePath) => MediaExtensions.IsPdfFile(filePath);
 
     internal string ResolveFullPath(string path)
     {
