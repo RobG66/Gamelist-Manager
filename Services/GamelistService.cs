@@ -32,7 +32,9 @@ namespace Gamelist_Manager.Services
                 return (games, duplicates);
             }
 
-            var gameElements = xmlDoc.Descendants("game");
+            // Only direct game entries belong to the editor. Nested game elements in
+            // unknown metadata must remain untouched during a round trip.
+            var gameElements = xmlDoc.Root?.Elements("game") ?? Enumerable.Empty<XElement>();
             if (!gameElements.Any())
                 return (games, duplicates);
 
@@ -150,27 +152,45 @@ namespace Gamelist_Manager.Services
                 var originalExists = File.Exists(xmlFilePath);
                 var savedItems = new HashSet<string>(StringComparer.Ordinal);
                 var newFile = xmlFilePath + ".tmp";
-                var root = new XElement("gameList");
+                var doc = originalExists
+                    ? XDocument.Load(xmlFilePath, LoadOptions.PreserveWhitespace)
+                    : new XDocument(new XElement("gameList"));
+                var root = doc.Root;
+                if (root == null || root.Name != "gameList")
+                    return false;
 
                 if (originalExists)
                 {
-                    var existingDoc = XDocument.Load(xmlFilePath);
-                    var existingGames = existingDoc.Descendants("game").ToList();
+                    // Keep the original document, including folders, unknown metadata,
+                    // attributes, comments and processing instructions, in place.
+                    var existingGames = root.Elements("game").ToList();
                     var gameLookup = games.ToDictionary(g => g.Path, g => g, StringComparer.Ordinal);
 
                     foreach (var gameElement in existingGames)
                     {
                         var pathElement = gameElement.Element("path");
-                        if (pathElement == null) continue;
+                        if (pathElement == null)
+                        {
+                            // Entries without a path cannot be matched safely. Preserve
+                            // them rather than recreating the corresponding empty row.
+                            savedItems.Add(string.Empty);
+                            continue;
+                        }
 
                         var pathValue = pathElement.Value;
-                        if (!savedItems.Add(pathValue)) continue;
+                        if (!savedItems.Add(pathValue))
+                        {
+                            // Retain the existing duplicate-path cleanup behavior.
+                            gameElement.Remove();
+                            continue;
+                        }
 
                         if (gameLookup.TryGetValue(pathValue, out var game))
                         {
                             UpdateGameElement(gameElement, game);
-                            root.Add(gameElement);
                         }
+                        else
+                            gameElement.Remove();
                     }
                 }
 
@@ -182,8 +202,7 @@ namespace Gamelist_Manager.Services
                     }
                 }
 
-                var doc = new XDocument(root);
-                doc.Save(newFile);
+                doc.Save(newFile, originalExists ? SaveOptions.DisableFormatting : SaveOptions.None);
                 File.Move(newFile, xmlFilePath, overwrite: true);
 
                 return true;

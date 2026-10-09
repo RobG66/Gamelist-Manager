@@ -143,6 +143,7 @@ $RECYCLE.BIN/
 !README.md
 !LINUX.md
 *.ps1
+!tests/Test-GamelistXml.ps1
 *.sh
 
 # libmpv
