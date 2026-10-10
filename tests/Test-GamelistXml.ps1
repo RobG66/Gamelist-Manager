@@ -351,6 +351,7 @@ internal static class Program
             Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == "./second.webp", "ES inherited the ES-DE media policy.");
         }));
         RunMediaTests();
+        RunMediaFolderGuardTests();
         Console.WriteLine($"\n{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -472,6 +473,119 @@ internal static class Program
             foreach (var extension in new[] { ".svg", ".avif", ".mp4", ".pdf", "" })
                 Assert(!(bool)classify.Invoke(null, new object[] { extension })!, $"Scraper would verify unsupported {extension} as an image.");
         });
+    }
+
+    private static void RunMediaFolderGuardTests()
+    {
+        var esDe = SettingKeys.GetProfileTypeOption(SettingKeys.ProfileTypeEsDe);
+        var es = SettingKeys.GetProfileTypeOption(SettingKeys.ProfileTypeEs);
+        MetaDataDecl Declaration() => new()
+        {
+            Key = MetaDataKeys.wheel, Type = "wheel", Name = "Wheel",
+            PropertyName = nameof(GameMetadataRow.Wheel), DataType = MetaDataType.Image
+        };
+        Run("folders", "guard an omitted folder assignment", () =>
+        {
+            var decl = Declaration();
+            Assert(!decl.IsEsDeSupported && !esDe.IncludesMediaFolder(decl), "Omitted folder assignment was accepted.");
+        });
+        foreach (var folder in new string?[] { null, "", " \t\r\n" })
+        {
+            Run("folders", $"guard {(folder == null ? "null" : folder.Length == 0 ? "empty" : "whitespace")} folder names", () =>
+            {
+                var decl = new MetaDataDecl
+                {
+                    Key = MetaDataKeys.wheel, Type = "wheel", Name = "Wheel",
+                    PropertyName = nameof(GameMetadataRow.Wheel), DataType = MetaDataType.Image,
+                    EsDeFolderName = folder!
+                };
+                var item = new MediaFolderItem { Path = "./custom-images" };
+                item.RefreshDisplayState(esDe, decl, TestFiles, "test");
+                Assert(!decl.IsEsDeSupported && !item.CanMediaOverrideCheckboxBeEnabled && item.DisplayPath == "", "Invalid folder generated a usable ES-DE path or checkbox.");
+                item.RefreshDisplayState(esDe, decl, "", null);
+                Assert(item.DisplayPath == "", "Invalid fallback folder was displayed.");
+                item.RefreshDisplayState(es, decl, TestFiles, "test");
+                Assert(item.CanMediaOverrideCheckboxBeEnabled && item.DisplayPath == "./custom-images", "Missing ES-DE mapping disabled ES media or changed its configured path.");
+            });
+        }
+        Run("folders", "preserve mapped folder display and fallback", () =>
+        {
+            var marquee = MetaDataDecl.AllDeclarations.Single(d => d.Key == MetaDataKeys.marquee);
+            var item = new MediaFolderItem();
+            item.RefreshDisplayState(esDe, marquee, TestFiles, "test");
+            Assert(item.CanMediaOverrideCheckboxBeEnabled && item.DisplayPath == Path.Combine(TestFiles, "test", "marquees"), "Valid mapping changed.");
+            item.RefreshDisplayState(esDe, marquee, "", null);
+            Assert(item.DisplayPath == "marquees", "Valid mapping fallback changed.");
+        });
+        Run("media", "ignore unsupported wheel folders while discovering marquee", () => WithMedia((roms, media) =>
+        {
+            WriteMedia(media, "wheel", "Game.png");
+            WriteMedia(media, "", "Game.png");
+            var expectedMarquee = WriteMedia(media, "marquees", "Game.png");
+            var game = new GameMetadataRow { Path = "./Game.zip", Wheel = "keep-existing" };
+            GamelistService.PopulateMediaPaths([game], media, roms);
+            Assert(game.Wheel == "keep-existing" && game.Marquee == expectedMarquee, "Unmapped wheel was discovered, existing metadata cleared, or marquee discovery broke.");
+        }));
+
+        // Provider capabilities and saved settings are fixtures in the isolated host.
+        // Both media types are deliberately enabled to catch accidental fallback disabling.
+        var ini = Path.Combine(AppContext.BaseDirectory, "ini");
+        Directory.CreateDirectory(ini);
+        File.WriteAllText(Path.Combine(ini, "screenscraper_options.ini"), """
+            [SupportedFields]
+            wheel
+            marquee
+            [WheelSource]
+            Clear Logo=wheel-hd
+            [MarqueeSource]
+            Clear Logo=wheel-hd
+            """);
+        var profileFile = Path.Combine(TestFiles, "wheel-profile.ini");
+        File.WriteAllText(profileFile, """
+            [MediaPathOverrides]
+            test_wheel_enabled=true
+            [Scrapers]
+            ScreenScraper_MediaWheel=true
+            ScreenScraper_MediaMarquee=true
+            """);
+        SettingsService.Instance.SwitchProfile(profileFile);
+        SettingsState.Instance.SelectedScraper = "ScreenScraper";
+        SettingsState.Instance.ScraperConfigSave = 0;
+        var settings = new Dictionary<string, string>
+        {
+            ["wheel_enabled"] = "true", ["wheel"] = "./custom-images",
+            ["wheel_suffix"] = "custom-wheel", ["wheel_suffix_enabled"] = "true",
+            ["marquee_enabled"] = "true"
+        };
+        foreach (var profile in new[] { SettingKeys.ProfileTypeEsDe, SettingKeys.ProfileTypeEs })
+        {
+            SettingsState.Instance.ProfileType = profile;
+            var available = MediaPathResolver.BuildAvailableMedia(profile, "test", TestFiles, settings);
+            var isEs = profile == SettingKeys.ProfileTypeEs;
+            Run(profile, "respect wheel capability despite saved enabled settings", () =>
+            {
+                Assert(SettingsService.Instance.GetSection(SettingKeys.MediaPathOverridesSection)!.ContainsKey("test_wheel_enabled"), "Override fixture was not loaded.");
+                var wheel = available.SingleOrDefault(m => m.Type == "wheel");
+                Assert(isEs ? wheel != null && wheel.MediaEnabled && wheel.FolderPath == Path.Combine(TestFiles, "custom-images") && wheel.Suffix == "custom-wheel" && wheel.IsSuffixEnabled : wheel == null, "Wheel availability or ES path/suffix behavior changed.");
+                Assert(available.Any(m => m.Type == "marquee" && m.MediaEnabled), "Marquee became unavailable.");
+            });
+            Run(profile, "enforce wheel capability in scraper controls and destinations", () =>
+            {
+                // Supply the actual resolver output to the session without requiring a UI profile wizard.
+                typeof(SessionState).GetProperty(nameof(SessionState.AvailableMedia))!.SetValue(SessionState.Instance, available);
+                using var vm = new ScraperViewModel();
+                Assert(vm.CurrentScraper == "ScreenScraper" && MetadataService.GetScraperElements(vm.CurrentScraper).Contains("wheel"), "Provider fixture was not loaded.");
+                Assert(vm.MediaWheelEnabled == isEs && vm.MediaWheel == isEs, "Wheel scraper control did not respect folder capability or saved selection.");
+                Assert(vm.MediaMarqueeEnabled && vm.MediaMarquee, "Marquee scraper control changed.");
+                var scraperType = typeof(GamelistService).Assembly.GetType("Gamelist_Manager.Services.ScraperService")!;
+                var parameters = (ScraperParameters)scraperType.GetMethod("CreateScraperParameters")!.Invoke(null,
+                    new object[] { true, profile, available, "ScreenScraper", "test", new List<string> { "wheel", "marquee" } })!;
+                Assert(parameters.MediaPaths!.ContainsKey("wheel") == isEs, "Unsupported wheel gained a download destination or ES wheel lost its destination.");
+                Assert(parameters.MediaPaths.ContainsKey("marquee") && parameters.MarqueeSource == "wheel-hd", "Marquee destination or selectable logo source changed.");
+                Assert(isEs ? parameters.MediaSuffixes!["wheel"] == ("custom-wheel", true) : parameters.MediaSuffixes!.Count == 0, "Scraper suffix policy changed.");
+            });
+        }
+        SessionState.Instance.Clear();
     }
 
     private static void WithMedia(Action<string, string> test)

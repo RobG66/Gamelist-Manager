@@ -88,10 +88,10 @@ namespace Gamelist_Manager.Models
 
             if (profile.GamelistHasMediaPaths)
                 DisplayPath = Path;
-            else if (!string.IsNullOrEmpty(decl.EsDeFolderName) && !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem))
+            else if (decl.IsEsDeSupported && !string.IsNullOrEmpty(esDeMediaBase) && !string.IsNullOrEmpty(currentSystem))
                 DisplayPath = System.IO.Path.Combine(esDeMediaBase, currentSystem, decl.EsDeFolderName);
             else
-                DisplayPath = decl.EsDeFolderName;
+                DisplayPath = decl.IsEsDeSupported ? decl.EsDeFolderName : string.Empty;
         }
     }
 }

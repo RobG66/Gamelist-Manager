@@ -86,7 +86,7 @@ namespace Gamelist_Manager.Models
         public bool DefaultEnabled { get; init; } = true;
         public string DefaultSuffix { get; init; } = string.Empty;
         public string EsDeFolderName { get; init; } = string.Empty;
-        public bool IsEsDeSupported => !string.IsNullOrEmpty(EsDeFolderName);
+        public bool IsEsDeSupported => !string.IsNullOrWhiteSpace(EsDeFolderName);
 
         public static readonly IReadOnlyList<MetaDataDecl> AllDeclarations = new List<MetaDataDecl>
         {
@@ -125,7 +125,7 @@ namespace Gamelist_Manager.Models
             new() { Key = MetaDataKeys.marquee,            Type = "marquee",            Name = "Marquee",               PropertyName = nameof(GameMetadataRow.Marquee),            DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = true,  DefaultSuffix = "marquee",   EsDeFolderName = "marquees" },
             new() { Key = MetaDataKeys.thumbnail,          Type = "thumbnail",          Name = "Thumbnail",             PropertyName = nameof(GameMetadataRow.Thumbnail),          DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = true,  DefaultSuffix = "thumb",     EsDeFolderName = "covers" },
             new() { Key = MetaDataKeys.boxback,            Type = "boxback",            Name = "Box Back",              PropertyName = nameof(GameMetadataRow.Boxback),            DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = true,  DefaultSuffix = "boxback",   EsDeFolderName = "backcovers" },
-            new() { Key = MetaDataKeys.wheel,              Type = "wheel",              Name = "Wheel",                 PropertyName = nameof(GameMetadataRow.Wheel),              DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = false, DefaultSuffix = "wheel",     EsDeFolderName = "wheel" },
+            new() { Key = MetaDataKeys.wheel,              Type = "wheel",              Name = "Wheel",                 PropertyName = nameof(GameMetadataRow.Wheel),              DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = false, DefaultSuffix = "wheel" },
             new() { Key = MetaDataKeys.boxart,             Type = "boxart",             Name = "Box Art",               PropertyName = nameof(GameMetadataRow.Boxart),             DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = true,  DefaultSuffix = "boxart",    EsDeFolderName = "3dboxes" },
             new() { Key = MetaDataKeys.fanart,             Type = "fanart",             Name = "Fan Art",               PropertyName = nameof(GameMetadataRow.Fanart),             DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = true,  DefaultSuffix = "fanart",    EsDeFolderName = "fanart" },
             new() { Key = MetaDataKeys.map,                Type = "map",                Name = "Map",                   PropertyName = nameof(GameMetadataRow.Map),                DataType = MetaDataType.Image,  Viewable = true,                        Editable = false, DefaultPath = "./images",  DefaultEnabled = false, DefaultSuffix = "map" },
