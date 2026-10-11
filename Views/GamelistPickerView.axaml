@@ -61,7 +61,6 @@
                                 Classes.selected="{Binding IsSelected}"
                                 Command="{Binding $parent[ItemsControl].((viewModels:GamelistPickerViewModel)DataContext).SelectSystemCommand}"
                                 CommandParameter="{Binding}"
-                                ToolTip.Tip="{Binding Name}"
                                 DoubleTapped="OnTileDoubleTapped">
                             <Grid RowDefinitions="*,Auto,Auto">
                                 <!-- Logo or fallback -->
