@@ -3,12 +3,14 @@
 <img width="472" height="249" alt="gamelistmanager" src="https://github.com/user-attachments/assets/d57bc076-e36c-46e7-9116-8d3793fe283d" />
 
 
-A robust, cross platform (Windows/Linux) desktop application for viewing and editing EmulationStation gamelist XML files, with fullly configurable scraper services for metadata and artwork.  Built on Avalonia UI and targeting Windows and Linux.  
+A robust, cross platform (Windows/Linux) desktop application for viewing and editing EmulationStation (Batocera/Retrobat) and EmulationStation Desktop-Edition gamelist XML files.  Includes a fully configurable scraper services for metadata and artwork.  Built on Avalonia UI and targeting Windows and Linux.  
 
+Check out my new game on itch.io!  https://robg66.itch.io/cinderwing
 
-If you find this program useful, please consider supporting its continued development.
+If you find this program useful, please consider supporting its continued development.  
 
-[![GitHub](https://img.shields.io/badge/GitHub-RobG66-181717?style=for-the-badge&logo=github)](https://github.com/RobG66)
+[![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/RGanshorn)
+
 [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/robg66)
 
 
