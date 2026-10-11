@@ -2,7 +2,7 @@ param(
     [string] $BuildDirectory = (Join-Path $PSScriptRoot '../bin/Debug/net10.0')
 )
 
-# Check XML saving and ES-DE media discovery against the actual built application.
+# Check XML saving, media discovery and ROM discovery against the actual built application.
 # Run in an isolated temporary host. No
 # production profiles, gamelists, media or backups are read or written.
 $ErrorActionPreference = 'Stop'
@@ -40,6 +40,7 @@ try {
     @'
 using System.Collections.ObjectModel;
 using System.Xml.Linq;
+using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using Gamelist_Manager.ViewModels;
@@ -351,6 +352,7 @@ internal static class Program
             Assert(XDocument.Load(file).Root!.Element("game")!.Element("image")?.Value == "./second.webp", "ES inherited the ES-DE media policy.");
         }));
         RunMediaTests();
+        RunRomDiscoveryTests();
         RunMediaFolderGuardTests();
         Console.WriteLine($"\n{passed} passed; {failed} failed.");
         return failed == 0 ? 0 : 1;
@@ -472,6 +474,75 @@ internal static class Program
                 Assert((bool)classify.Invoke(null, new object[] { extension })!, $"Scraper stopped verifying {extension} images.");
             foreach (var extension in new[] { ".svg", ".avif", ".mp4", ".pdf", "" })
                 Assert(!(bool)classify.Invoke(null, new object[] { extension })!, $"Scraper would verify unsupported {extension} as an image.");
+        });
+    }
+
+    private static void RunRomDiscoveryTests()
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+        var scan = typeof(MainWindowViewModel).GetMethod("ScanForRoms", flags)!;
+        var findMissing = typeof(MainWindowViewModel).GetMethod("FindMissingPaths", flags)!;
+        var buildRow = typeof(MainWindowViewModel).GetMethod("BuildNewItemRow", flags)!;
+        var csv = SettingsService.Instance.GetFileTypes()["xbox360"];
+        var extensions = csv.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var withoutExtensionless = extensions.Where(e => e != ".").ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Run("ROMs", "bundle Xbox 360 extensionless support without broadening other systems", () =>
+        {
+            Assert(extensions.Contains("."), "Xbox 360 filetypes does not enable extensionless ROMs.");
+            Assert(SettingsService.Instance.GetFileTypes().Where(p => p.Value.Split(',').Contains(".")).Select(p => p.Key).SequenceEqual(new[] { "xbox360" }), "Extensionless matching was enabled for unrelated systems.");
+        });
+        WithMedia((roms, _) =>
+        {
+            var xbla = WriteMedia(roms, "", "Castle Crashers (XBLA)");
+            var hashName = WriteMedia(roms, "", "584108B7A0123456789ABCDEF");
+            var nested = WriteMedia(roms, "Collection.v1", "日本語 Game");
+            var iso = WriteMedia(roms, "", "Disc.ISO");
+            var unsupported = WriteMedia(roms, "", "notes.txt");
+            var excluded = WriteMedia(roms, "images", "MediaWithoutExtension");
+            var empty = Path.Combine(roms, "Empty");
+            var package = Path.Combine(roms, "Game.ps3");
+            Directory.CreateDirectory(empty);
+            var internalIso = WriteMedia(package, "", "Internal.iso");
+            var emptyPackage = Path.Combine(roms, "Empty.ps3");
+            Directory.CreateDirectory(emptyPackage);
+            var withPackages = new HashSet<string>(extensions, StringComparer.OrdinalIgnoreCase) { ".ps3" };
+            var media = new HashSet<string>(FilePathHelper.PathComparer) { "images" };
+            List<string> Scan(HashSet<string> allowed, int depth) => (List<string>)scan.Invoke(null, new object[] { roms, allowed, media, depth })!;
+            var found = Scan(withPackages, 3);
+            Run("ROMs", "discover extensionless XBLA and hash filenames", () =>
+                Assert(found.Contains(xbla) && found.Contains(hashName), "Extensionless Xbox 360 ROMs were missed."));
+            Run("ROMs", "require explicit extensionless opt-in", () =>
+            {
+                var ordinary = Scan(withoutExtensionless, 3);
+                Assert(!ordinary.Contains(xbla) && !ordinary.Contains(hashName) && !ordinary.Contains(nested) && ordinary.Contains(iso), "Extensionless ROMs were accepted without the dot token or normal extension matching changed.");
+            });
+            Run("ROMs", "preserve named-extension and media exclusion behavior", () =>
+                Assert(found.Contains(iso) && !found.Contains(unsupported) && !found.Contains(excluded), "Extensionless support matched unrelated file types or changed media exclusion."));
+            Run("ROMs", "ignore plain empty and collection directories", () =>
+                Assert(!found.Contains(empty) && !found.Contains(Path.GetDirectoryName(nested)!) && !found.Contains(Path.Combine(roms, "images")), "Dot token turned an extensionless directory into a game."));
+            Run("ROMs", "preserve directory-as-game behavior without scanning package contents", () =>
+                Assert(found.Contains(package) && found.Contains(emptyPackage) && !found.Contains(internalIso), "Directory ROM recognition or package traversal changed."));
+            Run("ROMs", "respect search depth for nested extensionless files", () =>
+                Assert(found.Contains(nested) && !Scan(withPackages, 0).Contains(nested) && Scan(withPackages, 0).Contains(xbla), "Nested extensionless discovery ignored the depth limit or a dot in a parent folder."));
+            Run("ROMs", "preserve extensionless names and relative gamelist paths", () =>
+            {
+                var row = (GameMetadataRow)buildRow.Invoke(null, new object[] { nested, roms })!;
+                Assert(row.Path == "./Collection.v1/日本語 Game" && row.Name == "日本語 Game", "Extensionless name or relative path was changed.");
+            });
+            var rows = new List<GameMetadataRow>
+            {
+                new() { Path = "./Castle Crashers (XBLA)" }, new() { Path = "./Collection.v1/日本語 Game" },
+                new() { Path = "./MissingExtensionless" }, new() { Path = "./Collection.v1/MissingExtensionless" },
+                new() { Path = "./Missing.ISO" }, new() { Path = "./Missing.txt" },
+                new() { Path = "./Empty" }, new() { Path = "./Empty.ps3" }, new() { Path = "" }
+            };
+            HashSet<string> Missing(HashSet<string> allowed) => (HashSet<string>)findMissing.Invoke(null, new object[] { rows, roms, allowed })!;
+            Run("ROMs", "find missing extensionless files while retaining existing files and directories", () =>
+                Assert(Missing(withPackages).SetEquals(new[] { "./MissingExtensionless", "./Collection.v1/MissingExtensionless", "./Missing.ISO" }), "Missing-file check misclassified extensionless paths, existing folders, or unsupported files."));
+            Run("ROMs", "require dot token for missing extensionless checks", () =>
+                Assert(Missing(withoutExtensionless).SetEquals(new[] { "./Missing.ISO" }), "Missing-file filter checked extensionless paths without opt-in."));
+            Run("ROMs", "preserve unfiltered missing checks when no filetypes are defined", () =>
+                Assert(Missing([]).SetEquals(new[] { "./MissingExtensionless", "./Collection.v1/MissingExtensionless", "./Missing.ISO", "./Missing.txt" }), "Empty extension configuration changed existing missing-file behavior."));
         });
     }
 
@@ -638,6 +709,9 @@ internal static class Program
         Set-Content -LiteralPath (Join-Path $testRoot 'NuGet.Config')
     dotnet restore (Join-Path $testRoot 'RegressionTests.csproj') --configfile (Join-Path $testRoot 'NuGet.Config')
     if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the isolated test host.' }
+    $testIniPath = Join-Path $testRoot 'bin/Release/net10.0/ini'
+    [IO.Directory]::CreateDirectory($testIniPath) | Out-Null
+    Copy-Item -LiteralPath (Join-Path $buildPath 'ini/filetypes.ini') -Destination (Join-Path $testIniPath 'filetypes.ini')
     dotnet run --project (Join-Path $testRoot 'RegressionTests.csproj') --configuration Release --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'Gamelist XML regression tests failed.' }
 }

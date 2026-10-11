@@ -227,7 +227,7 @@ public partial class MainWindowViewModel
 
             foreach (var file in files)
             {
-                if (extensions.Contains(Path.GetExtension(file)))
+                if (extensions.Contains(GetRomExtension(file)))
                     results.Add(file);
             }
 
@@ -274,7 +274,7 @@ public partial class MainWindowViewModel
                 return;
 
             if (extensions.Count > 0 &&
-                !extensions.Contains(Path.GetExtension(row.Path)))
+                !extensions.Contains(GetRomExtension(row.Path)))
                 return;
 
             var fullPath = FilePathHelper.GamelistPathToFullPath(row.Path, gamelistDir);
@@ -284,6 +284,14 @@ public partial class MainWindowViewModel
         });
 
         return new HashSet<string>(missing, FilePathHelper.PathComparer);
+    }
+
+    // ES system extension lists use "." for files with no extension.
+    // Directory-as-game detection deliberately keeps its separate nonempty-extension check.
+    private static string GetRomExtension(string path)
+    {
+        var extension = Path.GetExtension(path);
+        return string.IsNullOrEmpty(extension) ? "." : extension;
     }
 
     private static GameMetadataRow BuildNewItemRow(
