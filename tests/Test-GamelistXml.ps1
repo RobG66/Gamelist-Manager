@@ -39,6 +39,7 @@ try {
 
     @'
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Xml.Linq;
 using Gamelist_Manager.Classes.Helpers;
 using Gamelist_Manager.Models;
@@ -174,10 +175,94 @@ internal static class Program
                 var game = XDocument.Load(file).Root!.Element("game")!;
                 Assert(game.Attribute("id")?.Value == "456", "ID serialization changed.");
                 Assert(game.Element("name") == null && game.Element("favorite") == null && game.Element("hidden")?.Value == "true", "Empty or boolean serialization changed.");
-                Assert(game.Element("rating")?.Value == "0.75" && game.Element("releasedate")?.Value == "20000203T000000" && game.Element("lastplayed")?.Value == "20261009T000000", "Rating or date serialization changed.");
+                Assert(game.Element("rating")?.Value == "0.75" && game.Element("releasedate")?.Value == "2000-02-03" && game.Element("lastplayed")?.Value == "20261009T000000", "Rating or date serialization changed.");
                 Assert(game.Element("playtime")?.Value == (profile == SettingKeys.ProfileTypeEsDe ? "300" : "120"), "Profile field filtering changed.");
                 Assert(game.Element("image")?.Value == (profile == SettingKeys.ProfileTypeEsDe ? null : "./images/first.png"), "Profile media persistence policy failed.");
             }));
+            foreach (var field in new[] { "lastplayed", "releasedate" })
+            foreach (var cultureName in new[] { "en-US", "it-IT", "fr-FR" })
+            {
+                Run(profile, $"preserve {field} timestamps across repeated saves ({cultureName})", () =>
+                {
+                    var originalCulture = CultureInfo.CurrentCulture;
+                    var originalUiCulture = CultureInfo.CurrentUICulture;
+                    try
+                    {
+                        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+                        CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture;
+                        string?[] timestamps =
+                        [
+                            "20261001T224230", "20260817T232330", "20261001T081503",
+                            "20261001T000000", "20240229T235959", "20260101T000001", null, ""
+                        ];
+                        string GetTimestamp(GameMetadataRow game) => field == "lastplayed" ? game.Lastplayed : game.Releasedate;
+                        var fixture = new XDocument(new XElement("gameList", timestamps.Select((timestamp, index) =>
+                            new XElement("game", new XElement("path", $"./Game{index}.zip"),
+                                new XElement("name", $"Game{index}"),
+                                timestamp == null ? null : new XElement(field, timestamp)))));
+                        WithFile(fixture.ToString(), file =>
+                        {
+                            var (games, _) = GamelistService.LoadGamelist(file);
+                            // Edit a game with no timestamp; every other game must keep its time.
+                            games[6].Name = "Edited";
+                            for (var save = 0; save < 3; save++)
+                            {
+                                Save(file, games);
+                                var savedGames = XDocument.Load(file).Root!.Elements("game").ToArray();
+                                Assert(savedGames.Length == timestamps.Length && savedGames[6].Element("name")?.Value == "Edited", "Unrelated edit or game count changed.");
+                                for (var index = 0; index < timestamps.Length; index++)
+                                {
+                                    var expected = string.IsNullOrEmpty(timestamps[index]) ? null : timestamps[index];
+                                    Assert(savedGames[index].Element(field)?.Value == expected, $"Game {index} lost its {field} timestamp on save {save + 1}.");
+                                }
+                                // Cover saving the same model twice and then saving after a reload.
+                                if (save == 1) (games, _) = GamelistService.LoadGamelist(file);
+                            }
+                            Assert(GetTimestamp(games[0]) == (field == "lastplayed" ? "2026-10-01 22:42:30" : timestamps[0]) &&
+                                GetTimestamp(games[1]) == (field == "lastplayed" ? "2026-08-17 23:23:30" : timestamps[1]), "Loaded model changed the expected timestamp text.");
+                            Assert(GetTimestamp(games[3]) == (field == "lastplayed" ? "2026-10-01 00:00:00" : timestamps[3]), "Midnight timestamp changed.");
+                            Assert(GetTimestamp(games[6]) == "" && GetTimestamp(games[7]) == "", "Missing or empty timestamps acquired a value.");
+                            var sameDayOrder = new[] { games[0], games[2], games[3] }.OrderBy(GetTimestamp).Select(game => game.Path);
+                            Assert(sameDayOrder.SequenceEqual(new[] { "./Game3.zip", "./Game2.zip", "./Game0.zip" }), "Same-day chronological sort order was lost.");
+                            var newFile = Path.Combine(TestFiles, Guid.NewGuid() + ".xml");
+                            Save(newFile, games);
+                            var createdGames = XDocument.Load(newFile).Root!.Elements("game").ToArray();
+                            for (var index = 0; index < timestamps.Length; index++)
+                            {
+                                var expected = string.IsNullOrEmpty(timestamps[index]) ? null : timestamps[index];
+                                Assert(createdGames[index].Element(field)?.Value == expected, $"New file lost the {field} timestamp for game {index}.");
+                            }
+                        });
+                        if (field == "releasedate")
+                        {
+                            string[] releaseText = ["2000", "2008-03-18", "01/05/1997", "Mai 1997", "未知", "  1988  "];
+                            var rawFixture = new XDocument(new XElement("gameList", releaseText.Select((value, index) =>
+                                new XElement("game", new XElement("path", $"./Release{index}.zip"), new XElement("releasedate", value)))));
+                            WithFile(rawFixture.ToString(), file =>
+                            {
+                                var (games, _) = GamelistService.LoadGamelist(file);
+                                for (var round = 0; round < 2; round++)
+                                {
+                                    Assert(games.Select(game => game.Releasedate).SequenceEqual(releaseText), "Release text was parsed, reformatted or trimmed on load.");
+                                    Save(file, games);
+                                    Assert(XDocument.Load(file).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(releaseText), "Release text changed on save.");
+                                    (games, _) = GamelistService.LoadGamelist(file);
+                                }
+                                // Cover provider values and manual edits on newly created rows.
+                                var newFile = Path.Combine(TestFiles, Guid.NewGuid() + ".xml");
+                                Save(newFile, new ObservableCollection<GameMetadataRow>(releaseText.Select((value, index) =>
+                                    new GameMetadataRow { Path = $"./NewRelease{index}.zip", Releasedate = value })));
+                                Assert(XDocument.Load(newFile).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(releaseText), "New release text was reformatted.");
+                            });
+                        }
+                    }
+                    finally
+                    {
+                        CultureInfo.CurrentCulture = originalCulture;
+                        CultureInfo.CurrentUICulture = originalUiCulture;
+                    }
+                });
+            }
             Run(profile, "create and reload a new gamelist", () =>
             {
                 var file = Path.Combine(TestFiles, Guid.NewGuid() + ".xml");
