@@ -175,7 +175,7 @@ internal static class Program
                 var game = XDocument.Load(file).Root!.Element("game")!;
                 Assert(game.Attribute("id")?.Value == "456", "ID serialization changed.");
                 Assert(game.Element("name") == null && game.Element("favorite") == null && game.Element("hidden")?.Value == "true", "Empty or boolean serialization changed.");
-                Assert(game.Element("rating")?.Value == "0.75" && game.Element("releasedate")?.Value == "2000-02-03" && game.Element("lastplayed")?.Value == "20261009T000000", "Rating or date serialization changed.");
+                Assert(game.Element("rating")?.Value == "0.75" && game.Element("releasedate")?.Value == "20000203T000000" && game.Element("lastplayed")?.Value == "20261009T000000", "Rating or date serialization changed.");
                 Assert(game.Element("playtime")?.Value == (profile == SettingKeys.ProfileTypeEsDe ? "300" : "120"), "Profile field filtering changed.");
                 Assert(game.Element("image")?.Value == (profile == SettingKeys.ProfileTypeEsDe ? null : "./images/first.png"), "Profile media persistence policy failed.");
             }));
@@ -218,9 +218,9 @@ internal static class Program
                                 // Cover saving the same model twice and then saving after a reload.
                                 if (save == 1) (games, _) = GamelistService.LoadGamelist(file);
                             }
-                            Assert(GetTimestamp(games[0]) == (field == "lastplayed" ? "2026-10-01 22:42:30" : timestamps[0]) &&
-                                GetTimestamp(games[1]) == (field == "lastplayed" ? "2026-08-17 23:23:30" : timestamps[1]), "Loaded model changed the expected timestamp text.");
-                            Assert(GetTimestamp(games[3]) == (field == "lastplayed" ? "2026-10-01 00:00:00" : timestamps[3]), "Midnight timestamp changed.");
+                            Assert(GetTimestamp(games[0]) == "2026-10-01 22:42:30" &&
+                                GetTimestamp(games[1]) == "2026-08-17 23:23:30", "Loaded model changed the expected timestamp text.");
+                            Assert(GetTimestamp(games[3]) == "2026-10-01 00:00:00", "Midnight timestamp changed.");
                             Assert(GetTimestamp(games[6]) == "" && GetTimestamp(games[7]) == "", "Missing or empty timestamps acquired a value.");
                             var sameDayOrder = new[] { games[0], games[2], games[3] }.OrderBy(GetTimestamp).Select(game => game.Path);
                             Assert(sameDayOrder.SequenceEqual(new[] { "./Game3.zip", "./Game2.zip", "./Game0.zip" }), "Same-day chronological sort order was lost.");
@@ -235,24 +235,30 @@ internal static class Program
                         });
                         if (field == "releasedate")
                         {
-                            string[] releaseText = ["2000", "2008-03-18", "01/05/1997", "Mai 1997", "未知", "  1988  "];
-                            var rawFixture = new XDocument(new XElement("gameList", releaseText.Select((value, index) =>
+                            // ArcadeDB supplies years; ScreenScraper supplies years or ISO dates.
+                            string[] releaseText = ["2000", "2009", "2004", "2008-12-17", "2008-03-18", "1997-05-01", "2004-02-29"];
+                            string[] expectedXml = ["20000101T000000", "20090101T000000", "20040101T000000", "20081217T000000", "20080318T000000", "19970501T000000", "20040229T000000"];
+                            var fixtureWithScrapedDates = new XDocument(new XElement("gameList", releaseText.Select((value, index) =>
                                 new XElement("game", new XElement("path", $"./Release{index}.zip"), new XElement("releasedate", value)))));
-                            WithFile(rawFixture.ToString(), file =>
+                            // Also repair release dates written in plain text by 9.7.7.
+                            WithFile(fixtureWithScrapedDates.ToString(), file =>
                             {
                                 var (games, _) = GamelistService.LoadGamelist(file);
                                 for (var round = 0; round < 2; round++)
                                 {
-                                    Assert(games.Select(game => game.Releasedate).SequenceEqual(releaseText), "Release text was parsed, reformatted or trimmed on load.");
                                     Save(file, games);
-                                    Assert(XDocument.Load(file).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(releaseText), "Release text changed on save.");
+                                    Assert(XDocument.Load(file).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(expectedXml), "Scraped release dates were not saved in EmulationStation format.");
                                     (games, _) = GamelistService.LoadGamelist(file);
                                 }
-                                // Cover provider values and manual edits on newly created rows.
+                                // Cover freshly scraped values and manual edits on new rows.
                                 var newFile = Path.Combine(TestFiles, Guid.NewGuid() + ".xml");
-                                Save(newFile, new ObservableCollection<GameMetadataRow>(releaseText.Select((value, index) =>
-                                    new GameMetadataRow { Path = $"./NewRelease{index}.zip", Releasedate = value })));
-                                Assert(XDocument.Load(newFile).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(releaseText), "New release text was reformatted.");
+                                var newGames = new ObservableCollection<GameMetadataRow>(releaseText.Select((value, index) =>
+                                    new GameMetadataRow { Path = $"./NewRelease{index}.zip", Releasedate = value }));
+                                Save(newFile, newGames);
+                                Assert(XDocument.Load(newFile).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(expectedXml), "New release dates were not saved in EmulationStation format.");
+                                (newGames, _) = GamelistService.LoadGamelist(newFile);
+                                Save(newFile, newGames);
+                                Assert(XDocument.Load(newFile).Root!.Elements("game").Select(game => game.Element("releasedate")!.Value).SequenceEqual(expectedXml), "Release dates changed after reload and save.");
                             });
                         }
                     }

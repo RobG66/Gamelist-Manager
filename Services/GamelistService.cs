@@ -58,9 +58,9 @@ namespace Gamelist_Manager.Services
                     }
                     else
                     {
-                        if (metaDecl.Key == MetaDataKeys.lastplayed)
+                        if (metaDecl.Key == MetaDataKeys.releasedate || metaDecl.Key == MetaDataKeys.lastplayed)
                         {
-                            // Keep last-played seconds; release dates pass through as text.
+                            // Preserve seconds when converting timestamps for display and saving.
                             string formattedDate = Iso8601Helper.ConvertFromIso8601(value, "yyyy-MM-dd HH:mm:ss");
                             game.SetValue(metaDecl.Key, !string.IsNullOrEmpty(formattedDate) ? formattedDate : value);
                         }
@@ -275,7 +275,7 @@ namespace Gamelist_Manager.Services
 
             if (metaDecl.Key == MetaDataKeys.rating)
                 stringValue = NormalizeRatingForXml(stringValue);
-            else if (metaDecl.Key == MetaDataKeys.lastplayed)
+            else if (metaDecl.Key == MetaDataKeys.releasedate || metaDecl.Key == MetaDataKeys.lastplayed)
                 stringValue = Iso8601Helper.ConvertToIso8601(stringValue);
 
             return string.IsNullOrWhiteSpace(stringValue) ? null : stringValue;
