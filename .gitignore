@@ -139,7 +139,6 @@ $RECYCLE.BIN/
 # Avalonia
 *.avalonia
 *.md
-!CHANGELOG.md
 !README.md
 !LINUX.md
 *.ps1

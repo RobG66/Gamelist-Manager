@@ -16,20 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Extract release notes from CHANGELOG
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          VERSION_ESC=$(echo "$VERSION" | sed 's/\./\\./g')
-          awk "/^## \[?${VERSION_ESC}\]?/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md > release_notes.md
-          [ -s release_notes.md ] || echo "See [CHANGELOG.md](CHANGELOG.md) for details." > release_notes.md
-
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Gamelist Manager ${{ github.ref_name }}
-          body_path: release_notes.md
+          generate_release_notes: true
           draft: true
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
