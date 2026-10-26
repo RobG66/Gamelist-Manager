@@ -102,10 +102,9 @@ namespace Gamelist_Manager.Views
                 return false;
             }
 
-            char[] invalidChars = Path.GetInvalidFileNameChars();
-            if (name.IndexOfAny(invalidChars) >= 0)
+            if (!ProfileService.IsValidProfileName(name))
             {
-                errorMessage = "Profile name contains invalid characters.";
+                errorMessage = "Use a valid file name without directory separators or control characters.";
                 return false;
             }
 

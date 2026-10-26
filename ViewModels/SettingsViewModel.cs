@@ -6,12 +6,13 @@ using Gamelist_Manager.Models;
 using Gamelist_Manager.Services;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text.Json;
 
 namespace Gamelist_Manager.ViewModels;
 
-public partial class SettingsViewModel : ViewModelBase
+public partial class SettingsViewModel : ViewModelBase, IDisposable
 {
     #region Fields / Constants
 
@@ -20,6 +21,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
 
     private bool _isProfileLoading;
+    private bool _isDisposed;
 
     private static readonly string[] ThemeNames = ["Light", "Dark"];
     private static readonly string[] ColorNames =
@@ -118,28 +120,8 @@ public partial class SettingsViewModel : ViewModelBase
             _isProfileLoading = false;
         }
 
-        _settingsState.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(SettingsState.ProfileType))
-            {
-                OnPropertyChanged(nameof(AreSuffixesAllowed));
-                OnPropertyChanged(nameof(RomsPathVisible));
-                OnPropertyChanged(nameof(EsDePathsVisible));
-                OnPropertyChanged(nameof(RemoteTabVisible));
-                OnPropertyChanged(nameof(MediaPathsReadOnly));
-                OnPropertyChanged(nameof(ResetToDefaultsVisible));
-                RefreshMediaFolderDisplayState();
-            }
-        };
-
-        _sessionState.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(SessionState.CurrentSystem))
-            {
-                OnPropertyChanged(nameof(CanOverrideSystem));
-                OnPropertyChanged(nameof(SystemOverrideLabel));
-            }
-        };
+        _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
+        _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
 
         PropertyChanged += (_, e) =>
         {
@@ -170,6 +152,20 @@ public partial class SettingsViewModel : ViewModelBase
     #region Public Methods
 
     public void LoadSettings()
+    {
+        var wasLoading = _isProfileLoading;
+        _isProfileLoading = true;
+        try
+        {
+            LoadSettingsCore();
+        }
+        finally
+        {
+            _isProfileLoading = wasLoading;
+        }
+    }
+
+    private void LoadSettingsCore()
     {
         var profile = ActiveProfile;
 
@@ -230,20 +226,13 @@ public partial class SettingsViewModel : ViewModelBase
                            (bool.TryParse(_settingsState.MediaPaths.GetValueOrDefault($"{item.Key}_enabled"), out var en) ? en : item.DefaultEnabled);
         }
 
-        _isProfileLoading = true;
-        try
-        {
-            SystemOverrideActive = SystemHasOverrides;
-            if (SystemOverrideActive)
-                LoadSystemOverrides();
-        }
-        finally
-        {
-            _isProfileLoading = false;
-        }
+        SystemOverrideActive = SystemHasOverrides;
+        if (SystemOverrideActive)
+            LoadSystemOverrides();
 
         RefreshSystemsWithOverrides();
         LoadScraperCredentials();
+        LoadRegionsAndLanguages();
         RefreshProfileList();
 
         if (profile.ShowsEsDePathsSection)
@@ -298,7 +287,6 @@ public partial class SettingsViewModel : ViewModelBase
                 [SettingKeys.MaxUndo.Key] = MaxUndo.ToString(),
                 [SettingKeys.SearchDepth.Key] = SearchDepth.ToString(),
                 [SettingKeys.RecentFilesCount.Key] = RecentFilesCount.ToString(),
-                [SettingKeys.BatchProcessingMaximum.Key] = MaxBatch.ToString(),
                 [SettingKeys.LogVerbosity.Key] = LogVerbosityIndex.ToString(),
                 [SettingKeys.Volume.Key] = DefaultVolume.ToString(System.Globalization.CultureInfo.InvariantCulture)
             },
@@ -374,6 +362,8 @@ public partial class SettingsViewModel : ViewModelBase
             };
         }
 
+        settings[SettingKeys.ScraperOptionsSection][SettingKeys.BatchProcessingMaximum.Key] = MaxBatch.ToString();
+
         settings[SettingKeys.ProfileSection] = new()
         {
             [SettingKeys.ProfileType.Key] = _settingsState.ProfileType,
@@ -401,16 +391,32 @@ public partial class SettingsViewModel : ViewModelBase
     public void ResetAllSettings()
     {
         SettingsService.Instance.ResetToDefaults();
+        var wasLoading = _isProfileLoading;
         _isProfileLoading = true;
         try
         {
+            _settingsState.Reload();
             LoadSettings();
             RefreshMediaFolderDisplayState();
         }
         finally
         {
-            _isProfileLoading = false;
+            _isProfileLoading = wasLoading;
         }
+
+        _sessionState.RecentFiles.Clear();
+        _sessionState.RefreshAvailableMedia();
+        ThemeService.ApplyTheme(SelectedThemeIndex, SelectedColorIndex, SelectedAccentVariantIndex);
+        WeakReferenceMessenger.Default.Send(new SettingsAppliedMessage(resetScraperSettings: true));
+        SettingsChanged = false;
+    }
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _settingsState.PropertyChanged -= OnSettingsStatePropertyChanged;
+        _sessionState.PropertyChanged -= OnSessionStatePropertyChanged;
     }
 
     public static void ApplyThemeOnStartup()
@@ -428,6 +434,27 @@ public partial class SettingsViewModel : ViewModelBase
     #endregion
 
     #region Private Methods
+
+    private void OnSettingsStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(SettingsState.ProfileType)) return;
+
+        OnPropertyChanged(nameof(AreSuffixesAllowed));
+        OnPropertyChanged(nameof(RomsPathVisible));
+        OnPropertyChanged(nameof(EsDePathsVisible));
+        OnPropertyChanged(nameof(RemoteTabVisible));
+        OnPropertyChanged(nameof(MediaPathsReadOnly));
+        OnPropertyChanged(nameof(ResetToDefaultsVisible));
+        RefreshMediaFolderDisplayState();
+    }
+
+    private void OnSessionStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(SessionState.CurrentSystem)) return;
+
+        OnPropertyChanged(nameof(CanOverrideSystem));
+        OnPropertyChanged(nameof(SystemOverrideLabel));
+    }
 
     private static int NameToIndex(string[] names, string name)
     {

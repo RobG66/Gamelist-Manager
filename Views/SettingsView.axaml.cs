@@ -32,6 +32,7 @@ namespace Gamelist_Manager.Views
             Opened += OnOpened;
             KeyDown += SettingsWindow_KeyDown;
             Closing += SettingsWindow_Closing;
+            Closed += (_, _) => ViewModel.Dispose();
         }
 
         public void NavigateTo(int tabIndex, int scraperIndex)
@@ -160,7 +161,6 @@ namespace Gamelist_Manager.Views
                 if (result)
                 {
                     ViewModel.ResetAllSettings();
-                    ViewModel.SettingsChanged = true;
                 }
             }
             catch (Exception ex)

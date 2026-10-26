@@ -149,4 +149,5 @@ $RECYCLE.BIN/
 # libmpv
 lib/libmpv-2.dll
 
-tests/
+tests/*
+!tests/Test-Persistence.ps1

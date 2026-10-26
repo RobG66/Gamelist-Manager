@@ -785,6 +785,8 @@
 
 									</StackPanel>
 								</Grid>
+								<TextBlock Text="{Binding ProfileNameError}" IsVisible="{Binding HasProfileNameError}"
+										   Foreground="{DynamicResource ErrorTextBrush}" FontSize="{DynamicResource GlobalSmallFontSize}" TextWrapping="Wrap"/>
 								<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 									<TextBlock Text="Profile Type:" VerticalAlignment="Center"/>
 									<ComboBox ItemsSource="{Binding ProfileTypes}"

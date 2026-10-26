@@ -60,8 +60,37 @@ namespace Gamelist_Manager.Services
 
         #region Public Methods
 
-        public string GetProfilePath(string profileName) =>
-            Path.Combine(_profilesFolder, profileName + ".ini");
+        public static bool IsValidProfileName(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name) || name is "." or ".." ||
+                name.IndexOfAny(['/', '\\']) >= 0 || name.Any(char.IsControl) ||
+                name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                return false;
+
+            if (OperatingSystem.IsWindows())
+            {
+                if (name.EndsWith(' ') || name.EndsWith('.')) return false;
+                var stem = name.Split('.')[0];
+                if (stem.Equals("CON", StringComparison.OrdinalIgnoreCase) ||
+                    stem.Equals("PRN", StringComparison.OrdinalIgnoreCase) ||
+                    stem.Equals("AUX", StringComparison.OrdinalIgnoreCase) ||
+                    stem.Equals("NUL", StringComparison.OrdinalIgnoreCase) ||
+                    (stem.Length == 4 && stem[3] is >= '1' and <= '9' &&
+                     (stem.StartsWith("COM", StringComparison.OrdinalIgnoreCase) ||
+                      stem.StartsWith("LPT", StringComparison.OrdinalIgnoreCase))))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public string GetProfilePath(string profileName)
+        {
+            if (!IsValidProfileName(profileName))
+                throw new ArgumentException("Profile names must be valid file names without directory separators.", nameof(profileName));
+
+            return Path.Combine(_profilesFolder, profileName + ".ini");
+        }
 
         public List<string> GetProfiles()
         {
@@ -80,7 +109,7 @@ namespace Gamelist_Manager.Services
 
         public bool CreateProfile(string name, bool copyFromActive)
         {
-            if (string.IsNullOrWhiteSpace(name)) return false;
+            if (!IsValidProfileName(name)) return false;
 
             var newPath = GetProfilePath(name);
             if (File.Exists(newPath)) return false;
@@ -103,7 +132,7 @@ namespace Gamelist_Manager.Services
 
         public bool RenameProfile(string oldName, string newName)
         {
-            if (string.IsNullOrWhiteSpace(newName)) return false;
+            if (!IsValidProfileName(oldName) || !IsValidProfileName(newName)) return false;
 
             var oldPath = GetProfilePath(oldName);
             var newPath = GetProfilePath(newName);
@@ -124,7 +153,7 @@ namespace Gamelist_Manager.Services
 
         public bool CreateProfileFromTemplate(string name, Dictionary<string, string> connectionOverrides, bool overwrite = false)
         {
-            if (string.IsNullOrWhiteSpace(name)) return false;
+            if (!IsValidProfileName(name)) return false;
 
             var newPath = GetProfilePath(name);
             if (File.Exists(newPath))
@@ -147,8 +176,8 @@ namespace Gamelist_Manager.Services
         // Returns the final profile name, or null if creation failed.
         public string? CreateTypedProfile(string name, string profileType)
         {
-            var candidate = name.Trim();
-            if (string.IsNullOrWhiteSpace(candidate)) return null;
+            var candidate = name?.Trim() ?? string.Empty;
+            if (!IsValidProfileName(candidate)) return null;
 
             var finalName = candidate;
             var counter = 2;
@@ -191,6 +220,8 @@ namespace Gamelist_Manager.Services
 
         public bool DeleteProfile(string name)
         {
+            if (!IsValidProfileName(name)) return false;
+
             if (string.Equals(name, ActiveProfile, StringComparison.OrdinalIgnoreCase))
                 return false;
 
@@ -250,10 +281,12 @@ namespace Gamelist_Manager.Services
                 .Select((f, i) => (Key: $"file{i + 1}", Value: f))
                 .ToDictionary(x => x.Key, x => x.Value);
 
-            Save(new Dictionary<string, Dictionary<string, string>>
-            {
-                [SettingKeys.RecentFilesSection] = dict
-            });
+            // Recent files are an ordered list: replacing the section removes old tail entries.
+            var sections = IniFileService.ReadIniFile(ActiveProfilePath);
+            sections[SettingKeys.RecentFilesSection] = dict;
+            IniFileService.WriteIniFile(ActiveProfilePath, sections);
+            MigrateProfile(ActiveProfilePath);
+            SettingsService.Instance.InvalidateCache();
         }
 
         #endregion
@@ -274,7 +307,7 @@ namespace Gamelist_Manager.Services
             var sections = IniFileService.ReadIniFile(_appIniPath);
             if (sections.TryGetValue(AppIniSection, out var section) &&
                 section.TryGetValue(ActiveProfileKey, out var name) &&
-                !string.IsNullOrWhiteSpace(name))
+                IsValidProfileName(name))
             {
                 return name;
             }

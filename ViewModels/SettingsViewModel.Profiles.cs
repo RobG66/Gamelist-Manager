@@ -38,6 +38,9 @@ public partial class SettingsViewModel
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(CopyProfileCommand))]
     [NotifyCanExecuteChangedFor(nameof(CreateNewProfileCommand))]
+    [NotifyPropertyChangedFor(nameof(CanCreateFromTemplate))]
+    [NotifyPropertyChangedFor(nameof(ProfileNameError))]
+    [NotifyPropertyChangedFor(nameof(HasProfileNameError))]
     private string _newProfileName = string.Empty;
 
     [ObservableProperty]
@@ -52,7 +55,14 @@ public partial class SettingsViewModel
     public IReadOnlyList<ProfileTypeOption> ProfileTypes => SettingKeys.AllProfileTypes;
 
     public string ActiveProfileName => ProfileService.Instance.ActiveProfile;
-    public bool CanCreateFromTemplate => SelectedTemplateName != null;
+    public bool CanCreateFromTemplate => SelectedTemplateName != null &&
+        ProfileService.IsValidProfileName(NewProfileName.Trim());
+
+    public string? ProfileNameError => string.IsNullOrWhiteSpace(NewProfileName) ||
+        ProfileService.IsValidProfileName(NewProfileName.Trim())
+            ? null
+            : "Use a valid file name without directory separators or control characters.";
+    public bool HasProfileNameError => ProfileNameError != null;
 
     public bool SelectedProfileIsEsDe => GetSelectedProfileType() == SettingKeys.ProfileTypeEsDe;
     public string SelectedProfileEsDeMediaRoot => GetSelectedProfileMediaRoot();
@@ -94,7 +104,7 @@ public partial class SettingsViewModel
     #region CanExecute
 
     private bool CanCreateProfile() =>
-        !string.IsNullOrWhiteSpace(NewProfileName) &&
+        ProfileService.IsValidProfileName(NewProfileName.Trim()) &&
         !ProfileList.Contains(NewProfileName.Trim(), StringComparer.OrdinalIgnoreCase);
 
 

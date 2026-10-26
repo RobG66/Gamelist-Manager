@@ -19,15 +19,10 @@ namespace Gamelist_Manager.Services
             var games = new ObservableCollection<GameMetadataRow>();
             var duplicates = new List<string>();
 
-            XDocument xmlDoc;
-            try
-            {
-                xmlDoc = XDocument.Load(xmlFilePath);
-            }
-            catch
-            {
-                return (games, duplicates);
-            }
+            // Parsing and I/O failures must reach the caller before it replaces the session.
+            var xmlDoc = XDocument.Load(xmlFilePath);
+            if (xmlDoc.Root == null || xmlDoc.Root.Name != "gameList")
+                throw new InvalidDataException("The selected file must have a gameList root element.");
 
             // Only direct game entries belong to the editor. Nested game elements in
             // unknown metadata must remain untouched during a round trip.

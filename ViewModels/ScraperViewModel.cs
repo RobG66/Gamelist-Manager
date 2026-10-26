@@ -402,6 +402,22 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     #region Dispose
 
+    // A confirmed settings reset discards panel drafts before they can be saved back.
+    public void ResetSettings()
+    {
+        if (_isDisposed) return;
+        _isProfileLoading = true;
+        try
+        {
+            LoadScraperSettings();
+            RefreshCacheCount();
+        }
+        finally
+        {
+            _isProfileLoading = false;
+        }
+    }
+
     public void ApplySettingsChanges()
     {
         if (_isDisposed) return;
@@ -471,7 +487,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
         if (_isProfileLoading)
         {
-            var savedScraper = _settingsState.SelectedScraper;
+            var savedScraper = _settingsService.GetValue(SettingKeys.SelectedScraper);
             CurrentScraper = ScraperRegistry.Find(savedScraper)?.Name ?? ScraperRegistry.ArcadeDB.Name;
             key = ScraperSettingsKey;
         }

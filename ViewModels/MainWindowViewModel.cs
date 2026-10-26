@@ -207,13 +207,18 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsMediaPreviewMenuEnabled));
     }
 
-    private void OnSettingsApplied()
+    private void OnSettingsApplied(bool resetScraperSettings = false)
     {
         UpdateScaledLayoutWidths();
         _ = LoadSystemsAsync();
 
         if (IsScraperVisible)
-            ScraperPanelViewModel?.ApplySettingsChanges();
+        {
+            if (resetScraperSettings)
+                ScraperPanelViewModel?.ResetSettings();
+            else
+                ScraperPanelViewModel?.ApplySettingsChanges();
+        }
 
         // Refresh custom column values as needed
         PopulateMissingMedia();
@@ -242,7 +247,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _sessionState.PropertyChanged += OnSessionStatePropertyChanged;
         _settingsState.PropertyChanged += OnSettingsStatePropertyChanged;
 
-        WeakReferenceMessenger.Default.Register<SettingsAppliedMessage>(this, (_, __) => OnSettingsApplied());
+        WeakReferenceMessenger.Default.Register<SettingsAppliedMessage>(this, (_, message) => OnSettingsApplied(message.ResetScraperSettings));
         WeakReferenceMessenger.Default.Register<MainWindowViewModel, GamelistLoadedRequestMessage>(this, (r, m) => m.Reply(r.IsGamelistLoaded));
         WeakReferenceMessenger.Default.Register<MainWindowViewModel, CheckUnsavedGamelistChangesMessage>(this, (r, m) => m.Reply(r.CheckUnsavedChangesAsync()));
         WeakReferenceMessenger.Default.Register<MainWindowViewModel, UnloadGamelistMessage>(this, (r, _) => r.UnloadGamelist());

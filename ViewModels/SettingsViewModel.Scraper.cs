@@ -18,7 +18,9 @@ public partial class SettingsViewModel
 
     private static readonly string DefaultFallbackJson = SettingKeys.ScreenScraperRegionFallback.Default;
     private bool _credentialsDirty;
-    private string SetupScraperName => SelectedSetupScraperIndex switch
+    private string SetupScraperName => GetSetupScraperName(SelectedSetupScraperIndex);
+
+    private static string GetSetupScraperName(int index) => index switch
     {
         0 => ScraperRegistry.ArcadeDB.Name,
         1 => ScraperRegistry.EmuMovies.Name,
@@ -69,14 +71,16 @@ public partial class SettingsViewModel
 
     #region Property Change Callbacks
 
-    partial void OnSelectedSetupScraperIndexChanged(int value)
+    partial void OnSelectedSetupScraperIndexChanged(int oldValue, int newValue)
     {
         if (_isProfileLoading) return;
 
         if (_credentialsDirty)
         {
             ShowScraperPassword = false;
-            _ = PromptToSaveScraperCredentials();
+            // Capture the previous provider and its edits before loading the new fields.
+            _ = PromptToSaveScraperCredentials(
+                GetSetupScraperName(oldValue), ScraperUsername, ScraperPassword);
             // Always false after prompt because it was either saved or discarded.
             _credentialsDirty = false;
         }
@@ -93,7 +97,7 @@ public partial class SettingsViewModel
         finally { _isProfileLoading = false; }
     }
 
-    private async Task PromptToSaveScraperCredentials()
+    private async Task PromptToSaveScraperCredentials(string scraperName, string username, string password)
     {
         if (await _dialogService.ShowConfirmAsync(
                 "Unsaved Credentials",
@@ -102,10 +106,8 @@ public partial class SettingsViewModel
                 cancelText: "Discard",
                 icon: DialogIconTheme.Question))
         {
-            CredentialHelper.SaveCredentials(SetupScraperName, ScraperUsername, ScraperPassword);
-            _isProfileLoading = true;
-            LoadScraperCredentials();
-            _isProfileLoading = false;
+            if (!CredentialHelper.SaveCredentials(scraperName, username, password))
+                await _dialogService.ShowErrorAsync("Save Error", $"Credentials for {scraperName} could not be saved.");
         }
     }
 

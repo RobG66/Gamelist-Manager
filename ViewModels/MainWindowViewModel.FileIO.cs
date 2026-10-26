@@ -583,10 +583,12 @@ public partial class MainWindowViewModel
             {
                 (loadedGames, duplicates) = await Task.Run(() => GamelistService.LoadGamelist(filePath, _settingsState.IgnoreDuplicates));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                FileStatusText = $"Load failed: {filePath}";
-                LastModifiedText = string.Empty;
+                await _dialogService.ShowErrorAsync(
+                    "Load Failed",
+                    "The gamelist could not be loaded. The current gamelist has been kept.",
+                    detail: ex.Message);
                 return false;
             }
 
