@@ -166,8 +166,13 @@ public partial class MainWindowViewModel
     [RelayCommand]
     private async Task SaveGamelistAsync()
     {
+        await TrySaveGamelistAsync();
+    }
+
+    public async Task<bool> TrySaveGamelistAsync()
+    {
         if (string.IsNullOrEmpty(_sessionState.XmlFilename) || _sessionState.CurrentSystem == null)
-            return;
+            return false;
 
         _sessionState.IsBusy = true;
         try
@@ -196,12 +201,15 @@ public partial class MainWindowViewModel
             }
             else
             {
-                await ThreeButtonDialogView.ShowErrorAsync("Save Failed", "Failed to save the gamelist. Please check file permissions and disk space.");
+                await _dialogService.ShowErrorAsync("Save Failed", "Failed to save the gamelist. Please check file permissions and disk space.");
             }
+
+            return success;
         }
         catch (Exception ex)
         {
-            await ThreeButtonDialogView.ShowErrorAsync("Save Error", $"An error occurred while saving the gamelist.\nError: {ex.Message}");
+            await _dialogService.ShowErrorAsync("Save Error", $"An error occurred while saving the gamelist.\nError: {ex.Message}");
+            return false;
         }
         finally
         {
@@ -550,7 +558,7 @@ public partial class MainWindowViewModel
         return result switch
         {
             ThreeButtonResult.Button1 => false,
-            ThreeButtonResult.Button3 => await SaveGamelistAsync().ContinueWith(_ => true),
+            ThreeButtonResult.Button3 => await TrySaveGamelistAsync(),
             _ => true
         };
     }

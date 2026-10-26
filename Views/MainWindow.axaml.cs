@@ -125,8 +125,8 @@ public partial class MainWindow : Window
                 }).ShowDialog<ThreeButtonResult>(this);
 
                 if (result == ThreeButtonResult.Button1) return;
-                if (result == ThreeButtonResult.Button3)
-                    await viewModel.SaveGamelistCommand.ExecuteAsync(null);
+                if (result == ThreeButtonResult.Button3 && !await viewModel.TrySaveGamelistAsync())
+                    return;
             }
 
             viewModel.Dispose();
