@@ -354,11 +354,17 @@ namespace Gamelist_Manager.Services
             string childIndent,
             string closingIndent)
         {
+            // The nearest xml:space declaration wins, including an explicit
+            // default that overrides an ancestor's preserve instruction.
+            var space = element.AncestorsAndSelf().Attributes(XNamespace.Xml + "space").FirstOrDefault();
+            if (space?.Value == "preserve")
+                return;
+
             var nodes = element.Nodes().ToList();
 
-            // Direct text makes this mixed content. Its whitespace can be
-            // significant, so leave that element untouched.
-            if (nodes.OfType<XText>().Any(node => !string.IsNullOrWhiteSpace(node.Value)))
+            // CDATA is content even when it contains only whitespace. Leave
+            // all direct text in place when this element has mixed content.
+            if (nodes.OfType<XText>().Any(node => node is XCData || !string.IsNullOrWhiteSpace(node.Value)))
                 return;
 
             var contentNodes = nodes

@@ -143,7 +143,10 @@ $RECYCLE.BIN/
 !LINUX.md
 *.ps1
 !tests/Test-GamelistXml.ps1
+!tests/Test-Persistence.ps1
 *.sh
 
 # libmpv
 lib/libmpv-2.dll
+
+tests/

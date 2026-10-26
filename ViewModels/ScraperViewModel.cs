@@ -548,7 +548,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private void RestoreToggleValues(string key)
     {
         if (ScrapeFromCacheEnabled)
-            ScrapeFromCache = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeFromCache", ScrapeFromCache);
+            ScrapeFromCache = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_ScrapeFromCache", true);
         if (SkipNonCachedItemsEnabled)
             SkipNonCachedItems = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_SkipNonCachedItems", false);
         if (OverwriteMetadataEnabled)
