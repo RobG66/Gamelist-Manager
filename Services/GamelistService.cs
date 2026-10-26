@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Gamelist_Manager.Services
@@ -143,17 +145,19 @@ namespace Gamelist_Manager.Services
 
         public static bool SaveGamelist(string xmlFilePath, ObservableCollection<GameMetadataRow> games, bool saveMediaPaths)
         {
+            string? temporaryFile = null;
             try
             {
                 var originalExists = File.Exists(xmlFilePath);
                 var savedItems = new HashSet<string>(StringComparer.Ordinal);
-                var newFile = xmlFilePath + ".tmp";
                 var doc = originalExists
                     ? XDocument.Load(xmlFilePath, LoadOptions.PreserveWhitespace)
                     : new XDocument(new XElement("gameList"));
                 var root = doc.Root;
                 if (root == null || root.Name != "gameList")
                     return false;
+
+                var layout = GetXmlLayout(xmlFilePath, root, originalExists);
 
                 // The caller supplies the media persistence capability. Keep media
                 // values in the model and existing XML intact when it is disabled.
@@ -204,8 +208,37 @@ namespace Gamelist_Manager.Services
                     }
                 }
 
-                doc.Save(newFile, originalExists ? SaveOptions.DisableFormatting : SaveOptions.None);
-                File.Move(newFile, xmlFilePath, overwrite: true);
+                NormalizeEditableWhitespace(root, layout);
+
+                var fullPath = Path.GetFullPath(xmlFilePath);
+                var directory = Path.GetDirectoryName(fullPath);
+                if (string.IsNullOrEmpty(directory))
+                    return false;
+
+                // Use a unique file beside the destination so concurrent or failed
+                // saves cannot reuse stale output and the final rename stays on the
+                // same filesystem.
+                temporaryFile = Path.Combine(
+                    directory,
+                    $".{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
+
+                using (var stream = new FileStream(
+                    temporaryFile,
+                    FileMode.CreateNew,
+                    FileAccess.ReadWrite,
+                    FileShare.None))
+                {
+                    SaveDocument(doc, stream, layout);
+                    stream.Flush(flushToDisk: true);
+                }
+
+                // Never replace the user's gamelist until the complete output can be
+                // parsed again and contains exactly the path-bearing rows requested.
+                if (!ValidateSavedGamelist(temporaryFile, games))
+                    return false;
+
+                File.Move(temporaryFile, fullPath, overwrite: true);
+                temporaryFile = null;
 
                 return true;
             }
@@ -213,7 +246,173 @@ namespace Gamelist_Manager.Services
             {
                 return false;
             }
+            finally
+            {
+                if (temporaryFile != null)
+                {
+                    try
+                    {
+                        File.Delete(temporaryFile);
+                    }
+                    catch
+                    {
+                        // A failed cleanup must not hide the original save result.
+                    }
+                }
+            }
         }
+
+        private static bool ValidateSavedGamelist(string filePath, IEnumerable<GameMetadataRow> games)
+        {
+            var savedDocument = XDocument.Load(filePath);
+            var root = savedDocument.Root;
+            if (root == null || root.Name != "gameList")
+                return false;
+
+            var expectedPaths = games
+                .Select(game => game.Path)
+                .Where(path => !string.IsNullOrEmpty(path))
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .ToList();
+
+            var savedPaths = root.Elements("game")
+                .Select(game => game.Element("path")?.Value)
+                .Where(path => !string.IsNullOrEmpty(path))
+                .Select(path => path!)
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .ToList();
+
+            return expectedPaths.SequenceEqual(savedPaths, StringComparer.Ordinal);
+        }
+
+        private static XmlLayout GetXmlLayout(string xmlFilePath, XElement root, bool originalExists)
+        {
+            if (!originalExists)
+                return new XmlLayout(Environment.NewLine, "\t", "\t\t", EmitUtf8Bom: false);
+
+            string sourceText = File.ReadAllText(xmlFilePath);
+            string newLine = DetectNewLine(sourceText);
+            string rootIndent = FindExistingIndent(root) ?? "\t";
+            string indentUnit = rootIndent.All(character => character == '\t')
+                ? "\t"
+                : new string(' ', Math.Max(1, rootIndent.Length));
+            string childIndent = root.Elements("game")
+                .Select(FindExistingIndent)
+                .FirstOrDefault(indent => !string.IsNullOrEmpty(indent))
+                ?? rootIndent + indentUnit;
+
+            return new XmlLayout(newLine, rootIndent, childIndent, HasUtf8Bom(xmlFilePath));
+        }
+
+        private static string DetectNewLine(string text)
+        {
+            int lineFeed = text.IndexOf('\n');
+            if (lineFeed >= 0)
+                return lineFeed > 0 && text[lineFeed - 1] == '\r' ? "\r\n" : "\n";
+
+            return text.Contains('\r') ? "\r" : Environment.NewLine;
+        }
+
+        private static string? FindExistingIndent(XElement parent)
+        {
+            foreach (var textNode in parent.Nodes().OfType<XText>())
+            {
+                if (!string.IsNullOrWhiteSpace(textNode.Value) || textNode.NextNode == null)
+                    continue;
+
+                int lineBreak = textNode.Value.LastIndexOfAny(['\r', '\n']);
+                if (lineBreak < 0 || lineBreak == textNode.Value.Length - 1)
+                    continue;
+
+                string indent = textNode.Value[(lineBreak + 1)..];
+                if (indent.All(char.IsWhiteSpace))
+                    return indent;
+            }
+
+            return null;
+        }
+
+        private static bool HasUtf8Bom(string xmlFilePath)
+        {
+            Span<byte> prefix = stackalloc byte[3];
+            using var stream = new FileStream(xmlFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return stream.Read(prefix) == prefix.Length &&
+                   prefix[0] == 0xEF && prefix[1] == 0xBB && prefix[2] == 0xBF;
+        }
+
+        private static void NormalizeEditableWhitespace(XElement root, XmlLayout layout)
+        {
+            foreach (var gameElement in root.Elements("game").ToList())
+                NormalizeElementWhitespace(gameElement, layout.NewLine, layout.ChildIndent, layout.RootIndent);
+
+            NormalizeElementWhitespace(root, layout.NewLine, layout.RootIndent, string.Empty);
+        }
+
+        private static void NormalizeElementWhitespace(
+            XElement element,
+            string newLine,
+            string childIndent,
+            string closingIndent)
+        {
+            var nodes = element.Nodes().ToList();
+
+            // Direct text makes this mixed content. Its whitespace can be
+            // significant, so leave that element untouched.
+            if (nodes.OfType<XText>().Any(node => !string.IsNullOrWhiteSpace(node.Value)))
+                return;
+
+            var contentNodes = nodes
+                .Where(node => node is not XText text || !string.IsNullOrWhiteSpace(text.Value))
+                .ToList();
+
+            element.RemoveNodes();
+            foreach (var node in contentNodes)
+            {
+                element.Add(new XText(newLine + childIndent));
+                element.Add(node);
+            }
+
+            if (contentNodes.Count > 0)
+                element.Add(new XText(newLine + closingIndent));
+        }
+
+        private static void SaveDocument(XDocument document, FileStream stream, XmlLayout layout)
+        {
+            var encoding = new UTF8Encoding(layout.EmitUtf8Bom, throwOnInvalidBytes: true);
+            var writerSettings = new XmlWriterSettings
+            {
+                Encoding = encoding,
+                Indent = false,
+                NewLineChars = layout.NewLine,
+                NewLineHandling = NewLineHandling.Replace,
+                CloseOutput = false
+            };
+
+            using (var writer = XmlWriter.Create(stream, writerSettings))
+                document.Save(writer);
+
+            if (!EndsWithLineBreak(stream))
+            {
+                stream.Position = stream.Length;
+                stream.Write(encoding.GetBytes(layout.NewLine));
+            }
+        }
+
+        private static bool EndsWithLineBreak(FileStream stream)
+        {
+            if (stream.Length == 0)
+                return false;
+
+            stream.Position = stream.Length - 1;
+            int lastByte = stream.ReadByte();
+            return lastByte is (byte)'\r' or (byte)'\n';
+        }
+
+        private sealed record XmlLayout(
+            string NewLine,
+            string RootIndent,
+            string ChildIndent,
+            bool EmitUtf8Bom);
 
         private static void UpdateGameElement(XElement gameElement, GameMetadataRow game, IReadOnlyList<MetaDataDecl> persistedFields)
         {

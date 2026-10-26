@@ -185,16 +185,16 @@ public partial class MainWindowViewModel
             $"Do you want to permanently delete {SelectedGames.Count} {itemLabel}?");
         if (!result) return;
 
-        var toDelete = SelectedGames.OfType<GameMetadataRow>().ToList();
+        var toDelete = SelectedGames.OfType<GameMetadataRow>()
+            .Where(game => game.Path.StartsWith("./", StringComparison.Ordinal))
+            .ToList();
         foreach (var game in toDelete)
         {
-            if (!game.Path.StartsWith("./")) continue;
             DeleteGameFile(game);
             DeleteMediaFiles(game);
-            RemoveGame(game);
         }
 
-        _sourceCache.Refresh();
+        RemoveGames(toDelete);
     }
 
     [RelayCommand]
@@ -208,10 +208,7 @@ public partial class MainWindowViewModel
             $"Remove {SelectedGames.Count} {itemLabel} from the gamelist?");
         if (!result) return;
 
-        foreach (var game in SelectedGames.OfType<GameMetadataRow>().ToList())
-            RemoveGame(game);
-
-        _sourceCache.Refresh();
+        RemoveGames(SelectedGames.OfType<GameMetadataRow>().ToList());
     }
     #endregion
 
@@ -285,11 +282,21 @@ public partial class MainWindowViewModel
         _ => $"{count} selected"
     };
 
-    private void RemoveGame(GameMetadataRow game)
+    private void RemoveGames(IReadOnlyCollection<GameMetadataRow> games)
     {
-        game.PropertyChanged -= GameItem_PropertyChanged;
-        _sourceCache.Remove(game);
-        _sessionState.GamelistData?.Remove(game);
+        if (games.Count == 0) return;
+
+        // The DataGrid stores selection by row slot. Clear it before removing a
+        // large batch so collection changes cannot leave stale selection indexes.
+        RequestClearSelection?.Invoke(this, EventArgs.Empty);
+
+        foreach (var game in games)
+        {
+            game.PropertyChanged -= GameItem_PropertyChanged;
+            _sessionState.GamelistData?.Remove(game);
+        }
+
+        _sourceCache.Edit(updater => updater.Remove(games));
         _sessionState.IsDataChanged = true;
         IsSaveEnabled = true;
     }
