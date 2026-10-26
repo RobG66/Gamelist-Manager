@@ -149,15 +149,6 @@ public partial class MainWindowViewModel
 
     public void UpdateScaledLayoutWidths() => MenuWidth = GetScaledMenuWidth();
 
-    public void RefreshScraper()
-    {
-        if (!IsScraperVisible) return;
-
-        CloseScraper();
-        ScraperPanelViewModel = new ScraperViewModel();
-        CurrentBottomPanel = ScraperPanelViewModel;
-        IsScraperVisible = true;
-    }
     #endregion
 
     #region Private Methods

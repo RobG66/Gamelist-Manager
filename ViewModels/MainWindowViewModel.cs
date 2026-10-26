@@ -213,7 +213,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _ = LoadSystemsAsync();
 
         if (IsScraperVisible)
-            RefreshScraper();
+            ScraperPanelViewModel?.ApplySettingsChanges();
 
         // Refresh custom column values as needed
         PopulateMissingMedia();

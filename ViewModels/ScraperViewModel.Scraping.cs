@@ -221,5 +221,8 @@ public partial class ScraperViewModel
     }
 
     private List<string> BuildElementsToScrape()
-        => GetBoolToggles().Where(t => t.GetValue()).Select(t => t.ElementKey).ToList();
+        => GetBoolToggles()
+            .Where(t => t.GetValue() && t.GetEnabled())
+            .Select(t => t.ElementKey)
+            .ToList();
 }

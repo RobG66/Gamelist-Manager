@@ -34,7 +34,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
     private int _dlSuccessCount;
     private int _dlFailedCount;
     private bool _isStopping;
-    private string _previousSystem = string.Empty;
+    private string _loadedSettingsKey = string.Empty;
 
     #endregion
 
@@ -210,8 +210,13 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         {
             case nameof(SessionState.CurrentSystem):
                 if (ScraperConfigSaveMode == 1 && !IsScraping)
-                    SaveScraperSettings(BuildScraperKey(CurrentScraper, _previousSystem));
-                _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
+                {
+                    SaveScraperSettings();
+                    if (string.IsNullOrEmpty(_sessionState.CurrentSystem))
+                        _loadedSettingsKey = string.Empty;
+                    else
+                        LoadScraperSettings();
+                }
                 RefreshCacheCount();
                 break;
             case nameof(SessionState.IsBusy):
@@ -219,7 +224,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
                 break;
             case nameof(SessionState.AvailableMedia):
                 if (!IsScraping)
-                    LoadScraperSettings();
+                    UpdateMediaAvailability();
                 break;
             case nameof(SessionState.IsScraping):
                 if (IsScraping != _sessionState.IsScraping)
@@ -271,7 +276,6 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         _isProfileLoading = true;
         LoadScraperSettings();
         _isProfileLoading = false;
-        _previousSystem = _sessionState.CurrentSystem ?? string.Empty;
         RefreshCacheCount();
         Log("Ready to scrape...", LogLevel.Info);
     }
@@ -398,6 +402,23 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
 
     #region Dispose
 
+    public void ApplySettingsChanges()
+    {
+        if (_isDisposed) return;
+
+        ShowLogTimestamp = _settingsState.ShowLogTimestamp;
+
+        var targetKey = ScraperSettingsKey;
+        if (!string.Equals(_loadedSettingsKey, targetKey, StringComparison.Ordinal))
+        {
+            SaveScraperSettings();
+            LoadScraperSettings();
+            return;
+        }
+
+        UpdateMediaAvailability();
+    }
+
     public void Dispose()
     {
         if (_isDisposed) return;
@@ -456,8 +477,9 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         }
 
         LoadGeneralSettings(key);
-        ApplyScraperCapabilities();
+        InitializeScraperCapabilities();
         RestoreToggleValues(key);
+        _loadedSettingsKey = key;
     }
 
     private void LoadGeneralSettings(string key)
@@ -486,39 +508,40 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void ApplyScraperCapabilities()
+    private void InitializeScraperCapabilities()
     {
         var scraperElements = MetadataService.GetScraperElements(CurrentScraper);
-        var availableMedia = _sessionState.AvailableMedia;
-        bool HasMedia(string type) => availableMedia.Any(m => m.Type == type && m.MediaEnabled);
 
         foreach (var t in GetBoolToggles())
-        {
-            bool supported = scraperElements.Contains(t.ElementKey);
-            t.SetEnabled(supported);
-            if (!supported) t.SetValue(false);
-        }
+            t.SetEnabled(scraperElements.Contains(t.ElementKey));
 
         foreach (var s in GetSourceToggles())
         {
             ApplySource(s.Sources, s.Name, s.SetSelected, out bool enabled);
             var toggle = GetBoolToggles().FirstOrDefault(t => t.ElementKey == s.AvailabilityType);
-            toggle.SetEnabled(enabled);
-            if (!enabled) toggle.SetValue(false);
+            toggle.SetEnabled(enabled && scraperElements.Contains(toggle.ElementKey));
         }
 
-        foreach (var t in GetBoolToggles().Where(t => t.IsMedia))
+        UpdateMediaAvailability();
+    }
+
+    private void UpdateMediaAvailability()
+    {
+        var scraperElements = MetadataService.GetScraperElements(CurrentScraper);
+        var availableMedia = _sessionState.AvailableMedia;
+        var sourceAvailability = GetSourceToggles().ToDictionary(
+            s => s.AvailabilityType,
+            s => s.Sources.Count > 0,
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var toggle in GetBoolToggles().Where(t => t.IsMedia))
         {
-            if (!HasMedia(t.ElementKey)) { t.SetEnabled(false); t.SetValue(false); }
-        }
-        foreach (var s in GetSourceToggles())
-        {
-            if (!HasMedia(s.AvailabilityType))
-            {
-                var toggle = GetBoolToggles().FirstOrDefault(t => t.ElementKey == s.AvailabilityType);
-                toggle.SetEnabled(false);
-                toggle.SetValue(false);
-            }
+            var supported = scraperElements.Contains(toggle.ElementKey);
+            var hasConfiguredSource = !sourceAvailability.TryGetValue(toggle.ElementKey, out var hasSource) || hasSource;
+            var hasEnabledMediaPath = availableMedia.Any(m =>
+                string.Equals(m.Type, toggle.ElementKey, StringComparison.OrdinalIgnoreCase) && m.MediaEnabled);
+
+            toggle.SetEnabled(supported && hasConfiguredSource && hasEnabledMediaPath);
         }
     }
 
@@ -532,10 +555,7 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
             OverwriteMetadata = _settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_OverwriteMetadata", false);
 
         foreach (var t in GetBoolToggles())
-        {
-            if (!t.GetEnabled()) continue;
             t.SetValue(_settingsService.GetBool(SettingKeys.ScrapersSection, $"{key}_{t.Name}", false));
-        }
 
         foreach (var s in GetSourceToggles())
         {
@@ -550,12 +570,11 @@ public partial class ScraperViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private string BuildScraperKey(string scraper, string system)
-        => ScraperConfigSaveMode == 1 && !string.IsNullOrEmpty(system)
-            ? $"{scraper}_{system}"
-            : scraper;
-
-    private void SaveScraperSettings() => SaveScraperSettings(ScraperSettingsKey);
+    private void SaveScraperSettings()
+    {
+        if (string.IsNullOrEmpty(_loadedSettingsKey)) return;
+        SaveScraperSettings(_loadedSettingsKey);
+    }
 
     private void SaveScraperSettings(string key)
     {

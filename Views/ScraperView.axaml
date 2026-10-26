@@ -249,50 +249,106 @@
                         <CheckBox Grid.Row="0" Grid.Column="1" Content="Image" IsChecked="{Binding MediaImage}" IsEnabled="{Binding MediaImageEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download the main gameplay screenshot or promotional image"/>
                         <TextBlock Grid.Row="0" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="0" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding ImageSources}" SelectedIndex="{Binding SelectedImageSource}" IsEnabled="{Binding MediaImage}"
-                                  ToolTip.Tip="Select which image type to download from the scraper source"/>
+                        <ComboBox Grid.Row="0" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding ImageSources}" SelectedIndex="{Binding SelectedImageSource}"
+                                  ToolTip.Tip="Select which image type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaImage"/>
+                                    <Binding Path="MediaImageEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="1" Grid.Column="1" Content="Marquee" IsChecked="{Binding MediaMarquee}" IsEnabled="{Binding MediaMarqueeEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download the marquee (header banner) artwork for this game"/>
                         <TextBlock Grid.Row="1" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="1" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding MarqueeSources}" SelectedIndex="{Binding SelectedMarqueeSource}" IsEnabled="{Binding MediaMarquee}"
-                                  ToolTip.Tip="Select which marquee type to download from the scraper source"/>
+                        <ComboBox Grid.Row="1" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding MarqueeSources}" SelectedIndex="{Binding SelectedMarqueeSource}"
+                                  ToolTip.Tip="Select which marquee type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaMarquee"/>
+                                    <Binding Path="MediaMarqueeEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="2" Grid.Column="1" Content="Thumbnail" IsChecked="{Binding MediaThumbnail}" IsEnabled="{Binding MediaThumbnailEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download a small thumbnail image used in list views"/>
                         <TextBlock Grid.Row="2" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="2" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding ThumbnailSources}" SelectedIndex="{Binding SelectedThumbnailSource}" IsEnabled="{Binding MediaThumbnail}"
-                                  ToolTip.Tip="Select which thumbnail type to download from the scraper source"/>
+                        <ComboBox Grid.Row="2" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding ThumbnailSources}" SelectedIndex="{Binding SelectedThumbnailSource}"
+                                  ToolTip.Tip="Select which thumbnail type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaThumbnail"/>
+                                    <Binding Path="MediaThumbnailEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="3" Grid.Column="1" Content="Cartridge" IsChecked="{Binding MediaCartridge}" IsEnabled="{Binding MediaCartridgeEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download an image of the game cartridge, disc, or media"/>
                         <TextBlock Grid.Row="3" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="3" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding CartridgeSources}" SelectedIndex="{Binding SelectedCartridgeSource}" IsEnabled="{Binding MediaCartridge}"
-                                  ToolTip.Tip="Select which cartridge image type to download from the scraper source"/>
+                        <ComboBox Grid.Row="3" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding CartridgeSources}" SelectedIndex="{Binding SelectedCartridgeSource}"
+                                  ToolTip.Tip="Select which cartridge image type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaCartridge"/>
+                                    <Binding Path="MediaCartridgeEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="4" Grid.Column="1" Content="Video" IsChecked="{Binding MediaVideo}" IsEnabled="{Binding MediaVideoEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download a video preview or trailer for this game"/>
                         <TextBlock Grid.Row="4" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="4" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding VideoSources}" SelectedIndex="{Binding SelectedVideoSource}" IsEnabled="{Binding MediaVideo}"
-                                  ToolTip.Tip="Select which video type to download from the scraper source"/>
+                        <ComboBox Grid.Row="4" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding VideoSources}" SelectedIndex="{Binding SelectedVideoSource}"
+                                  ToolTip.Tip="Select which video type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaVideo"/>
+                                    <Binding Path="MediaVideoEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="5" Grid.Column="1" Content="Box Art" IsChecked="{Binding MediaBoxArt}" IsEnabled="{Binding MediaBoxArtEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download the front cover art of the game's box"/>
                         <TextBlock Grid.Row="5" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="5" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding BoxArtSources}" SelectedIndex="{Binding SelectedBoxArtSource}" IsEnabled="{Binding MediaBoxArt}"
-                                  ToolTip.Tip="Select which box art type to download from the scraper source"/>
+                        <ComboBox Grid.Row="5" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding BoxArtSources}" SelectedIndex="{Binding SelectedBoxArtSource}"
+                                  ToolTip.Tip="Select which box art type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaBoxArt"/>
+                                    <Binding Path="MediaBoxArtEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="6" Grid.Column="1" Content="Mix" IsChecked="{Binding MediaMix}" IsEnabled="{Binding MediaMixEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download a composite mix image for this game"/>
                         <TextBlock Grid.Row="6" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="6" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding MixSources}" SelectedIndex="{Binding SelectedMixSource}" IsEnabled="{Binding MediaMix}"
-                                  ToolTip.Tip="Select which mix image type to download from the scraper source"/>
+                        <ComboBox Grid.Row="6" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding MixSources}" SelectedIndex="{Binding SelectedMixSource}"
+                                  ToolTip.Tip="Select which mix image type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaMix"/>
+                                    <Binding Path="MediaMixEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
 
                         <CheckBox Grid.Row="7" Grid.Column="1" Content="Wheel" IsChecked="{Binding MediaWheel}" IsEnabled="{Binding MediaWheelEnabled}" Margin="0,4,4,4"
                                   ToolTip.Tip="Download the wheel (logo) art used in carousel-style front-ends"/>
                         <TextBlock Grid.Row="7" Grid.Column="2" Text="&#x2192;" FontSize="{DynamicResource GlobalFontSize}" Margin="4,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <ComboBox Grid.Row="7" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding WheelSources}" SelectedIndex="{Binding SelectedWheelSource}" IsEnabled="{Binding MediaWheel}"
-                                  ToolTip.Tip="Select which wheel art type to download from the scraper source"/>
+                        <ComboBox Grid.Row="7" Grid.Column="3" MinWidth="110" VerticalAlignment="Center" HorizontalAlignment="Stretch" ItemsSource="{Binding WheelSources}" SelectedIndex="{Binding SelectedWheelSource}"
+                                  ToolTip.Tip="Select which wheel art type to download from the scraper source">
+                            <ComboBox.IsEnabled>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="MediaWheel"/>
+                                    <Binding Path="MediaWheelEnabled"/>
+                                </MultiBinding>
+                            </ComboBox.IsEnabled>
+                        </ComboBox>
                     </Grid>
                 </StackPanel>
             </Border>
