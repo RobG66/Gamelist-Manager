@@ -52,6 +52,75 @@ class Program
     static void Test(string name, Action action) { try { Guard(); action(); pass++; Console.WriteLine("PASS " + name); } catch (Exception ex) { fail++; Console.WriteLine("FAIL " + name + ": " + ex.Message); } }
     static void Put(string section, params (string, string)[] values) { Guard(); var all = IniFileService.ReadIniFile(FixtureProfile); if (!all.ContainsKey(section)) all[section] = new(); foreach (var (k, v) in values) all[section][k] = v; IniFileService.WriteIniFile(FixtureProfile, all); typeof(SettingsService).GetMethod("InvalidateCache", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(SettingsService.Instance, null); S.Reload(); }
     static void Media(ScraperViewModel vm, bool enabled) { typeof(SessionState).GetProperty("AvailableMedia")!.SetValue(Session, new List<AvailableMediaFolder> { new("image", "Image", AppContext.BaseDirectory, "", enabled, false) }); typeof(ScraperViewModel).GetMethod("OnSessionStatePropertyChanged", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(vm, new object[] { Session, new PropertyChangedEventArgs("AvailableMedia") }); }
+    // Exercise the real provider and deployed INI mappings without live API calls.
+    sealed class ScreenScraperHandler : System.Net.Http.HttpMessageHandler
+    {
+        public int Requests;
+        public Uri? LastUri;
+        public string Body = "<Data><ssuser><requeststoday>7</requeststoday><maxrequestsperday>100</maxrequestsperday></ssuser><jeu id=\"123\"><noms><nom region=\"eu\">Zoop (Europe)</nom></noms><medias/></jeu></Data>";
+        protected override Task<System.Net.Http.HttpResponseMessage> SendAsync(System.Net.Http.HttpRequestMessage request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested(); Requests++; LastUri = request.RequestUri;
+            return Task.FromResult(new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new System.Net.Http.StringContent(Body) });
+        }
+    }
+    static void ScreenScraperTests()
+    {
+        var apiType = typeof(ScraperParameters).Assembly.GetType("Gamelist_Manager.Classes.Api.API_ScreenScraper", true)!;
+        var method = apiType.GetMethod("ScrapeScreenScraperAsync")!;
+        using var handler = new ScreenScraperHandler();
+        using var client = new System.Net.Http.HttpClient(handler);
+        var api = Activator.CreateInstance(apiType, client)!;
+        (bool Success, ScrapedGameData Data, List<string> Messages, int Progress, int Max) Scrape(ScraperParameters p) =>
+            ((Task<(bool, ScrapedGameData, List<string>, int, int)>)method.Invoke(api, new object[] { p, CancellationToken.None })!).GetAwaiter().GetResult();
+        ScraperParameters Parameters(string system) => new()
+        {
+            SystemID = ScraperConfigService.Instance.GetScraperSystemId("ScreenScraper", system),
+            RomFileName = "Zoop (Europe).zip", RomName = "Zoop (Europe)",
+            ElementsToScrape = new() { "name" }, SSRegions = new() { "us", "eu" },
+            CacheFolder = Path.Combine(AppContext.BaseDirectory, "scraper-cache-fixture", system),
+            UserID = "fixture-user", UserPassword = "fixture-password"
+        };
+        foreach (var system in new[] { "genesis", "megadrive" })
+        {
+            Test(system + " sends the shared system ID and saves usable XML to its own cache", () =>
+            {
+                var p = Parameters(system);
+                Check(p.SystemID == "1", "missing or incorrect system mapping");
+                int before = handler.Requests;
+                var result = Scrape(p);
+                Check(result.Success && result.Data.Data["name"] == "Zoop (Europe)", "game metadata not scraped");
+                Check(result.Progress == 7 && result.Max == 100, "scrape limits lost");
+                Check(handler.Requests == before + 1 && handler.LastUri!.Query.Contains("systemeid=1&"), "incorrect provider request");
+                var cache = Path.Combine(p.CacheFolder!, "Zoop (Europe).xml");
+                Check(File.Exists(cache), "successful scrape was not cached");
+                var saved = XDocument.Load(cache);
+                Check(saved.Root!.Element("jeu")!.Attribute("id")!.Value == "123", "wrong cached game");
+                p.ScrapeByCache = true; p.SystemID = null;
+                result = Scrape(p);
+                Check(result.Success && handler.Requests == before + 1, "cache read requires system mapping or uses network");
+            });
+        }
+        Test("unmapped systems fail clearly without sending requests or writing cache", () =>
+        {
+            var p = Parameters("unmapped-system"); int before = handler.Requests;
+            foreach (var id in new string?[] { null, "", " " })
+            {
+                p.SystemID = id; var result = Scrape(p);
+                Check(!result.Success && result.Messages.Any(m => m.Contains("No ScreenScraper system ID")), "missing-ID error not reported");
+            }
+            Check(handler.Requests == before && !Directory.Exists(p.CacheFolder), "invalid request sent or cached");
+            p.ScrapeByCache = true; p.SkipNonCached = true;
+            Check(Scrape(p).Messages.Any(m => m.Contains("skip non-cached enabled")) && handler.Requests == before, "skip non-cached behavior changed");
+        });
+        Test("malformed ScreenScraper responses are still excluded from cache", () =>
+        {
+            var p = Parameters("malformed-response"); p.SystemID = "1"; handler.Body = "<Data/>\nUnexpected provider output";
+            var result = Scrape(p);
+            Check(!result.Success && result.Messages.Any(m => m.Contains("Failed to parse XML")), "bad response accepted");
+            Check(!Directory.Exists(p.CacheFolder), "invalid XML was cached");
+        });
+    }
     static void SaveTests()
     {
         using var cache = new SourceCache<GameMetadataRow, string>(g => g.Path);
@@ -337,7 +406,7 @@ class Program
         {
             Session.CurrentSystem = "new-provider-system"; using var vm = new ScraperViewModel(); vm.CurrentScraper = "EmuMovies"; Check(!vm.ScrapeFromCache && !vm.ScrapeFromCacheEnabled, "EmuMovies behavior changed"); vm.CurrentScraper = "ArcadeDB"; Check(vm.ScrapeFromCache && vm.ScrapeFromCacheEnabled, "forced cache preference leaked");
         });
-        Session.Clear(); SaveTests(); SettingsTests(); LoadFailureTests();
+        Session.Clear(); SaveTests(); SettingsTests(); LoadFailureTests(); ScreenScraperTests();
         Console.WriteLine($"{pass} passed; {fail} failed"); return fail == 0 ? 0 : 1;
     }
 }

@@ -184,8 +184,9 @@ public partial class DatToolViewModel
 
     private static GameReportItem? ParseSingleMachine(XmlReader reader)
     {
-        string name = FilePathHelper.NormalizeRomName(reader.GetAttribute("name") ?? string.Empty);
-        string cloneOf = FilePathHelper.NormalizeRomName(reader.GetAttribute("cloneof") ?? string.Empty);
+        // DAT names are identifiers, not file paths; periods belong to titles and revisions.
+        string name = (reader.GetAttribute("name") ?? string.Empty).Trim();
+        string cloneOf = (reader.GetAttribute("cloneof") ?? string.Empty).Trim();
         string runnable = reader.GetAttribute("runnable") ?? "yes";
         string isBios = reader.GetAttribute("isbios") ?? "no";
         string isDevice = reader.GetAttribute("isdevice") ?? "no";
@@ -199,7 +200,8 @@ public partial class DatToolViewModel
         bool hasSoftwareList = false;
 
         if (runnable.Equals("no", StringComparison.OrdinalIgnoreCase)) nonPlayable.Add("Not runnable");
-        if (isBios.Equals("yes", StringComparison.OrdinalIgnoreCase)) nonPlayable.Add("BIOS");
+        if (isBios.Equals("yes", StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith("[BIOS]", StringComparison.OrdinalIgnoreCase)) nonPlayable.Add("BIOS");
         if (isDevice.Equals("yes", StringComparison.OrdinalIgnoreCase)) nonPlayable.Add("Device");
         if (isMechanical.Equals("yes", StringComparison.OrdinalIgnoreCase)) nonPlayable.Add("Mechanical");
 
@@ -231,7 +233,7 @@ public partial class DatToolViewModel
                         nonPlayable.Add("Preliminary driver");
                     break;
                 case "description":
-                    description = reader.ReadElementContentAsString().Trim();
+                    description = ReadDatElementText(reader);
                     break;
                 case "softwarelist":
                     hasSoftwareList = true;
@@ -277,9 +279,19 @@ public partial class DatToolViewModel
         return (diskStatus, nonPlayableReason, required);
     }
 
+    // Read the text without advancing the outer reader past the next sibling.
+    private static string ReadDatElementText(XmlReader reader)
+    {
+        using var element = reader.ReadSubtree();
+        element.Read();
+        return element.ReadElementContentAsString().Trim();
+    }
+
     private static DatHeader ParseDatHeaderInline(XmlReader reader)
     {
         var header = new DatHeader();
+        if (reader.IsEmptyElement) return header;
+
         int depth = reader.Depth;
 
         while (reader.Read())
@@ -292,11 +304,11 @@ public partial class DatToolViewModel
 
             switch (reader.Name.ToLowerInvariant())
             {
-                case "name": header.Name = reader.ReadElementContentAsString().Trim(); break;
-                case "version": header.Version = reader.ReadElementContentAsString().Trim(); break;
-                case "author": header.Author = reader.ReadElementContentAsString().Trim(); break;
-                case "date": header.Date = reader.ReadElementContentAsString().Trim(); break;
-                case "description": header.Description = reader.ReadElementContentAsString().Trim(); break;
+                case "name": header.Name = ReadDatElementText(reader); break;
+                case "version": header.Version = ReadDatElementText(reader); break;
+                case "author": header.Author = ReadDatElementText(reader); break;
+                case "date": header.Date = ReadDatElementText(reader); break;
+                case "description": header.Description = ReadDatElementText(reader); break;
             }
         }
 

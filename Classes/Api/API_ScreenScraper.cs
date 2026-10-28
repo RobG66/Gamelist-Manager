@@ -561,6 +561,12 @@ namespace Gamelist_Manager.Classes.Api
             // Fetch from API if not in cache
             if (string.IsNullOrEmpty(xml))
             {
+                if (string.IsNullOrWhiteSpace(parameters.SystemID))
+                {
+                    messages.Add($"No ScreenScraper system ID configured for this system; cannot scrape {romName}.");
+                    return (false, data, messages, scrapeLimitProgress, scrapeLimitMax);
+                }
+
                 string url = BuildScrapeUrl(parameters, romName);
                 var (success, apiXml, fetchError) = await FetchFromApi(url, cancellationToken);
 

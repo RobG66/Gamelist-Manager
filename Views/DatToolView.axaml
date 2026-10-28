@@ -96,6 +96,7 @@
                         <Button Content="Open DAT File"
                                 Classes="rounded green"
                                 Command="{Binding OpenDatFileCommand}"
+                                ToolTip.Tip="Open MAME, FBNeo, or No-Intro Parent-Clone XML DAT files"
                                 Margin="0,5,0,0"
                                 HorizontalAlignment="Left"/>
                         <Button Content="Close Panel"

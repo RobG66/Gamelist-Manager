@@ -1,4 +1,5 @@
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,6 +24,8 @@ public partial class SystemPickerItem : ObservableObject
     public string Name { get; init; } = string.Empty;
     public string FolderPath { get; init; } = string.Empty;
     public Bitmap? Logo { get; init; }
+    public Bitmap? LightLogo { get; internal set; }
+    public Bitmap? DarkLogo { get; internal set; }
     public bool HasGamelist { get; init; }
 
     [ObservableProperty]
@@ -59,6 +62,7 @@ public partial class GamelistPickerViewModel : ObservableObject
     private readonly bool _showAllSystems;
     private readonly List<SystemPickerItem> _allSystems;
     private CancellationTokenSource? _countCts;
+    private bool _isCleanedUp;
 
     #endregion
 
@@ -106,6 +110,12 @@ public partial class GamelistPickerViewModel : ObservableObject
 
         var all = candidates.OrderBy(s => s.Name);
         _allSystems = (showAllSystems ? all : all.Where(s => s.HasGamelist)).ToList();
+
+        foreach (var item in _allSystems)
+        {
+            item.LightLogo ??= TryLoadLogoVariant(item.Name, "Light");
+            item.DarkLogo ??= TryLoadLogoVariant(item.Name, "Dark");
+        }
 
         ConfirmButtonText = showAllSystems ? "Create Gamelist" : "Open Gamelist";
         SubtitleText = showAllSystems
@@ -212,8 +222,30 @@ public partial class GamelistPickerViewModel : ObservableObject
 
     public void Cleanup()
     {
+        if (_isCleanedUp) return;
+        _isCleanedUp = true;
+
         foreach (var item in _allSystems)
+        {
             item.Logo?.Dispose();
+            item.LightLogo?.Dispose();
+            item.LightLogo = null;
+            item.DarkLogo?.Dispose();
+            item.DarkLogo = null;
+        }
+    }
+
+    private static Bitmap? TryLoadLogoVariant(string systemName, string themeName)
+    {
+        try
+        {
+            var uri = new Uri($"avares://Gamelist_Manager/Assets/Systems/{themeName}/{systemName}.png");
+            if (!AssetLoader.Exists(uri)) return null;
+
+            using var stream = AssetLoader.Open(uri);
+            return Bitmap.DecodeToWidth(stream, 90);
+        }
+        catch { return null; }
     }
 
     private static int CountGamesInGamelist(string path)

@@ -1,4 +1,5 @@
 using Gamelist_Manager.Classes.Helpers;
+using Gamelist_Manager.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,51 @@ namespace Gamelist_Manager.ViewModels;
 public partial class DatToolViewModel
 {
     #region Report Helpers
+
+    internal static string BuildMissingReport(
+        List<GameReportItem> datSummary,
+        List<GameReportItem> gamelistSummary,
+        bool filterParents,
+        bool filterClones,
+        bool isTextFormat,
+        string datFileName)
+    {
+        var gamelistLookup = new HashSet<string>(
+            gamelistSummary.Select(g => g.Name),
+            FilePathHelper.PathComparer);
+
+        var missingParents = new List<(string Name, string Description, string NonPlayable, string CHDRequired)>();
+        var missingClones = new List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)>();
+
+        foreach (var datItem in datSummary)
+        {
+            if (gamelistLookup.Contains(datItem.Name)) continue;
+
+            if (!string.IsNullOrEmpty(datItem.NonPlayable))
+            {
+                string np = datItem.NonPlayable.ToLowerInvariant();
+                if (np.Contains("device") || np.Contains("bios") || np.Contains("software list"))
+                    continue;
+            }
+
+            if (string.IsNullOrEmpty(datItem.CloneOf))
+                missingParents.Add((datItem.Name, datItem.Description, datItem.NonPlayable, datItem.CHDRequired));
+            else
+                missingClones.Add((datItem.Name, datItem.CloneOf, datItem.Description, datItem.NonPlayable, datItem.CHDRequired));
+        }
+
+        if (filterParents)
+            missingClones.Clear();
+        else if (filterClones)
+            missingParents.Clear();
+
+        if (missingParents.Count == 0 && missingClones.Count == 0)
+            return string.Empty;
+
+        return isTextFormat
+            ? GenerateTextReport(missingParents, missingClones, datFileName)
+            : GenerateCsvReport(missingParents, missingClones, datFileName);
+    }
 
     // Builds a plain-text report
     internal static string GenerateTextReport(

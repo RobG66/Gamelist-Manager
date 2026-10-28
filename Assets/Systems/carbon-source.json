@@ -1,0 +1,21 @@
+{
+  "source": "https://github.com/fabricecaruso/es-theme-carbon",
+  "revision": "b921e1734d88d6bc7b9e8cb97dd8f8b91ba2058a",
+  "sourceFolder": "art/logos",
+  "modifications": "SVG files rendered to 800-pixel-wide PNG; source PNGs copied unchanged",
+  "images": [
+    "c16.svg",
+    "cgenie.svg",
+    "enterprise.svg",
+    "gemrb.png",
+    "imageviewer.svg",
+    "karaoke.png",
+    "namco3xx.png",
+    "pdark.png",
+    "retrobat.png"
+  ],
+  "localAliases": {
+    "gw": "gameandwatch.png",
+    "trs80": "trs-80.png"
+  }
+}

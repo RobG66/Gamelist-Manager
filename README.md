@@ -54,7 +54,8 @@ If you find this program useful, please consider supporting its continued develo
 - Auto-link existing media to game *(coming soon)*
 - Find and remove orphaned media files *(coming soon)*
 - Scan for bad, missing, or unnecessary media *(coming soon)*
-- DAT file import and romset analysis for **MAME** and **FBNeo**
+- DAT file import and romset analysis for **MAME**, **FBNeo**, and **No-Intro Parent-Clone XML**
+- Missing-game reports compare DAT titles with filenames in the loaded gamelist, including parent/clone filters; ROM files are not modified
 
 ### Batocera Remote Management
 - Remote SSH commands

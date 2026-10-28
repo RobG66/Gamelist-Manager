@@ -151,3 +151,9 @@ lib/libmpv-2.dll
 
 tests/*
 !tests/Test-Persistence.ps1
+
+# DAT regression suite and synthetic compatibility fixture
+!tests/Test-Dat.ps1
+!tests/Fixtures/
+tests/Fixtures/*
+!tests/Fixtures/NoIntroParentClone.dat

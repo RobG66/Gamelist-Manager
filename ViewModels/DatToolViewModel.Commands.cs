@@ -99,7 +99,7 @@ public partial class DatToolViewModel
     [RelayCommand]
     private async Task FindMissing()
     {
-        if (_datSummary.Count == 0 || _gamelistSummary.Count == 0) return;
+        if (_datSummary.Count == 0) return;
 
         IsBusy = true;
 
@@ -110,44 +110,10 @@ public partial class DatToolViewModel
             bool filterParents = MissingFilterParents;
             bool filterClones = MissingFilterClones;
 
-            string reportContent = await Task.Run(() =>
-            {
-                var gamelistLookup = new HashSet<string>(
-                    _gamelistSummary.Select(g => g.Name),
-                    FilePathHelper.PathComparer);
-
-                var missingParents = new List<(string Name, string Description, string NonPlayable, string CHDRequired)>();
-                var missingClones = new List<(string Name, string CloneOf, string Description, string NonPlayable, string CHDRequired)>();
-
-                foreach (var datItem in _datSummary)
-                {
-                    if (gamelistLookup.Contains(datItem.Name)) continue;
-
-                    if (!string.IsNullOrEmpty(datItem.NonPlayable))
-                    {
-                        string np = datItem.NonPlayable.ToLowerInvariant();
-                        if (np.Contains("device") || np.Contains("bios") || np.Contains("software list"))
-                            continue;
-                    }
-
-                    if (string.IsNullOrEmpty(datItem.CloneOf))
-                        missingParents.Add((datItem.Name, datItem.Description, datItem.NonPlayable, datItem.CHDRequired));
-                    else
-                        missingClones.Add((datItem.Name, datItem.CloneOf, datItem.Description, datItem.NonPlayable, datItem.CHDRequired));
-                }
-
-                if (filterParents)
-                    missingClones.Clear();
-                else if (filterClones)
-                    missingParents.Clear();
-
-                if (missingParents.Count == 0 && missingClones.Count == 0)
-                    return string.Empty;
-
-                return isTextFormat
-                    ? GenerateTextReport(missingParents, missingClones, datFileName)
-                    : GenerateCsvReport(missingParents, missingClones, datFileName);
-            });
+            var datSnapshot = _datSummary.ToList();
+            var gamelistSnapshot = _gamelistSummary.ToList();
+            string reportContent = await Task.Run(() => BuildMissingReport(
+                datSnapshot, gamelistSnapshot, filterParents, filterClones, isTextFormat, datFileName));
 
             if (string.IsNullOrEmpty(reportContent))
             {

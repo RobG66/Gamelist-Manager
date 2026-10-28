@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:Gamelist_Manager.ViewModels"
+        xmlns:converters="using:Gamelist_Manager.Classes.Converters"
         x:Class="Gamelist_Manager.Views.GamelistPickerView"
         x:DataType="viewModels:GamelistPickerViewModel"
         x:CompileBindings="True"
@@ -12,6 +13,10 @@
         FontSize="{DynamicResource GlobalFontSize}"
         WindowStartupLocation="CenterOwner"
         CanResize="True">
+
+    <Window.Resources>
+        <converters:SystemLogoThemeConverter x:Key="SystemLogoThemeConverter"/>
+    </Window.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -68,11 +73,20 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        ClipToBounds="True">
-                                    <Image Source="{Binding Logo}"
+                                    <Image
                                            MaxWidth="90" MaxHeight="44"
                                            Stretch="Uniform"
-                                           IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                    <Image Source="avares://Gamelist_Manager/Assets/Icons/question-circle.png"
+                                           IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <Image.Source>
+                                            <MultiBinding Converter="{StaticResource SystemLogoThemeConverter}">
+                                                <Binding Path="Logo"/>
+                                                <Binding Path="LightLogo"/>
+                                                <Binding Path="DarkLogo"/>
+                                                <Binding Path="$parent[Window].ActualThemeVariant"/>
+                                            </MultiBinding>
+                                        </Image.Source>
+                                    </Image>
+                                    <Image Source="avares://Gamelist_Manager/Assets/Icons/gamepad.png"
                                            Width="44" Height="44"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
