@@ -431,9 +431,9 @@ namespace Gamelist_Manager.Classes.Api
                             if (datesNode != null)
                             {
                                 string primaryRegion = parameters.SSRegions?.FirstOrDefault() ?? "wor";
-                                var dateRegions = new List<string> { primaryRegion, "wor", "us", "ss", "eu", "jp" }
-                                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                                    .ToList();
+                                var dateRegions = new[] { primaryRegion, "wor", "us", "ss", "eu", "jp" }
+                                    .Concat(parameters.SSRegions ?? [])
+                                    .Distinct(StringComparer.OrdinalIgnoreCase);
                                 string releaseDate = ParseReleaseDate(datesNode, dateRegions);
                                 if (!string.IsNullOrEmpty(releaseDate))
                                     gameData.Data["releasedate"] = releaseDate;
@@ -712,23 +712,22 @@ namespace Gamelist_Manager.Classes.Api
             return (string.Empty, string.Empty, string.Empty);
         }
 
-        private static string ParseReleaseDate(XmlNode xmlNode, List<string> regionsList)
+        private static string ParseReleaseDate(XmlNode datesNode, IEnumerable<string> regions)
         {
-            if (xmlNode == null || regionsList == null || regionsList.Count == 0)
-                return string.Empty;
+            var dates = datesNode.SelectNodes("date")!
+                .Cast<XmlElement>()
+                .Where(date => !string.IsNullOrWhiteSpace(date.InnerText))
+                .ToList();
 
-            foreach (string region in regionsList)
+            foreach (string region in regions)
             {
-                XmlNode? dateNode = xmlNode.SelectSingleNode($"date[@region='{region}']");
-                if (dateNode != null)
-                {
-                    string text = dateNode.InnerText?.Trim() ?? string.Empty;
-                    if (!string.IsNullOrEmpty(text))
-                        return text;
-                }
+                var date = dates.FirstOrDefault(date =>
+                    string.Equals(date.GetAttribute("region"), region, StringComparison.OrdinalIgnoreCase));
+                if (date != null)
+                    return date.InnerText.Trim();
             }
 
-            return string.Empty;
+            return dates.FirstOrDefault()?.InnerText.Trim() ?? string.Empty;
         }
 
         private static string ParseNames(XmlNode namesElement, string romFileName, ScraperParameters parameters)
