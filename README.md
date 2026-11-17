@@ -5,7 +5,7 @@
 
 A robust, cross platform (Windows/Linux) desktop application for viewing and editing EmulationStation (Batocera/Retrobat) and EmulationStation Desktop-Edition gamelist XML files.  Includes a fully configurable scraper services for metadata and artwork.  Built on Avalonia UI and targeting Windows and Linux.  
 
-Check out my new game on itch.io!  https://robg66.itch.io/cinderwing
+I removed my new game Cinderwing from itch.io because it wasn't gaining any traction there.  It will return soon as a git release page.
 
 If you find this program useful, please consider supporting its continued development.  
 
